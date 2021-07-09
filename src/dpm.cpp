@@ -1523,7 +1523,7 @@ void dpm::vertexAttractiveForces2D() {
               stress[1] += dy * fy;
               stress[2] += 0.5 * (dx * fy + dy * fx);
 
-              cindices(cj, vj, gj);
+              //cindices(cj, vj, gj);
               // add to contacts
               if (ci > cj)
                 cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2]++;
@@ -2018,6 +2018,7 @@ void dpm::vertexJamming2D(dpmMemFn forceCall, double Ftol, double Ptol, double d
   int k = 0, nr;
   bool jammed = 0, overcompressed = 0, undercompressed = 0;
   double pcheck, phi0, rH, r0, rL, rho0, scaleFactor = 1.0;
+  //double pcheck, phi0, rH, r0, rL, rho0, scaleFactor;
 
   // initialize binary root search parameters
   r0 = sqrt(a0.at(0));

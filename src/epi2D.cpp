@@ -628,6 +628,9 @@ void epi2D::deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc) {
   and possibly others 
 
   leave alone: double calA0, cellDOF, 
+
+  deleteCell effectively deletes a cell by erasing 1 element from vectors who have size = NCELLS
+  and by erasing largeNV or smallNV elements from vectors who have size = NVTOT
   */
   int vim1, vip1;
   int smallNV = nsmall;
@@ -661,35 +664,18 @@ void epi2D::deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc) {
   // adjust szList and nv, which keep track of global vertex indices
   // szList stores gi of each cell. To account for a deleted particle, delete
   // one index, then subtract numVertsDeleted from successive indices
-  std::cout << "szList values \n";
-  for (auto i = szList.begin(); i != szList.end(); i++) {
-    std::cout << *i << '\t';
-  }
-  std::cout << endl;
 
   for (auto i = szList.begin() + deleteIndex; i != szList.end(); i++) {
     *i -= numVertsDeleted;
   }
-  std::cout << "numVertsDeleted = " << numVertsDeleted << " deleteIndex " << deleteIndex
-            << " is delete large = " << isDeleteLarge << '\n';
 
   szList.erase(szList.begin() + deleteIndex);
-
-  std::cout << "szList values \n";
-  for (auto i = szList.begin(); i != szList.end(); i++) {
-    std::cout << *i << '\t';
-  }
-  std::cout << endl;
-
-  std::cout << "#nv, #a0  = " << nv.size() << '\t' << a0.size() << '\n';
 
   // nv,a0,l0,calA0 have dimension (NCELLS), so need to remove the correct cell
   // entry
   nv.erase(nv.begin() + deleteIndex);
   a0.erase(a0.begin() + deleteIndex);
   l0.erase(l0.begin() + deleteIndex);
-
-  std::cout << "#nv, #a0  = " << nv.size() << '\t' << a0.size() << '\n';
 
   int deleteIndexGlobal = gindex(deleteIndex, 0);
 
@@ -703,17 +689,6 @@ void epi2D::deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc) {
   // sum up number of vertices of each cell until reaching the cell to delete
   int sumVertsUntilGlobalIndex = szList[deleteIndex];
 
-  std::cout << "v size " << v.size() << '\n';
-
-  std::cout << "x elements to delete (box units): \n";
-  for (auto i = x.begin() + NDIM * sumVertsUntilGlobalIndex;
-       i < x.begin() + NDIM * (sumVertsUntilGlobalIndex + numVertsDeleted);
-       i += 2) {
-    std::cout << (*i) / L[0] << '\t' << (*(i + 1)) / L[1] << '\n';
-  }
-
-  std::cout << endl;
-
   // remove an entire cell of indices (NDIM*numVertsDeleted), for vectors of dimension
   // (vertDOF)
   v.erase(v.begin() + NDIM * sumVertsUntilGlobalIndex,
@@ -723,13 +698,9 @@ void epi2D::deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc) {
   F.erase(F.begin() + NDIM * sumVertsUntilGlobalIndex,
           F.begin() + NDIM * (sumVertsUntilGlobalIndex + numVertsDeleted));
 
-  std::cout << "v size " << v.size() << '\n';
   // save list of adjacent vertices
   im1 = vector<int>(NVTOT, 0);
   ip1 = vector<int>(NVTOT, 0);
-
-  std::cout << "NVTOT = " << NVTOT << " , #list, #ip1, #r = " << list.size()
-            << '\t' << ip1.size() << '\t' << r.size() << '\n';
 
   for (int ci = 0; ci < NCELLS; ci++) {
     for (int vi = 0; vi < nv.at(ci); vi++) {
@@ -753,20 +724,20 @@ void epi2D::laserAblate(int numCellsAblated, double sizeRatio, int nsmall, doubl
   zeroMomentum();
 }
 
-void epi2D::isotropicDistanceScaling(ofstream& enout, dpmMemFn forceCall, double B, int NT, int NPRINTSKIP) {
+void epi2D::isotropicDistanceScaling(ofstream& enout, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP) {
   //use dpm::scaleParticleSize2D
   //clean up unused parameters in a bit.
   int it = 0, itmax = 10;
   double scaleFactor = 0.98;
   while (it < itmax) {
     scaleParticleSizes2D(scaleFactor);
-    dampedNVE2D(enout, forceCall, B, dt, NT, NPRINTSKIP);
+    dampedNVE2D(enout, forceCall, B, dt0, NT, NPRINTSKIP);
     it++;
     //should have another escape condition in the loop
   }
 }
 
-void epi2D::holePunching(double sizeRatio, int nsmall, ofstream& enout, dpmMemFn forceCall, double B, int NT, int NPRINTSKIP) {
+void epi2D::holePunching(double sizeRatio, int nsmall, ofstream& enout, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP) {
   //generate rng
   //select xloc, yloc
   //deleteCell
@@ -779,7 +750,7 @@ void epi2D::holePunching(double sizeRatio, int nsmall, ofstream& enout, dpmMemFn
     yLoc = (drand48() - 0.5) * L[1];
     cout << " xLoc and yLoc = " << xLoc << '\t' << yLoc << '\n';
     laserAblate(numCellsDeleted, sizeRatio, nsmall, xLoc, yLoc);
-    isotropicDistanceScaling(enout, forceCall, B, NT, NPRINTSKIP);
+    isotropicDistanceScaling(enout, forceCall, B, dt0, NT, NPRINTSKIP);
     //probably don't need a separate function for isotropicDistanceScaling
   }
 }

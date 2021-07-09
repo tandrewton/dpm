@@ -62,6 +62,7 @@ class epi2D : public dpm {
       //psi.at(ci) = 2 * PI * drand48();  // [0, 2pi) coordinates
       psi.at(ci) = PI / 2 * (ci % 2) - PI / 2 * ((ci + 1) % 2);  //should be : right if odd, left if even
     }
+    cout << "Initializing epi2D object, l1 = " << l1 << ", l2 = " << l2 << ", Dr0 = " << Dr0 << '\n';
   };
 
   // File openers
@@ -101,8 +102,8 @@ class epi2D : public dpm {
   void deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc);
   void laserAblate(int numCellsAblated, double sizeRatio, int nsmall, double xLoc, double yLoc);
 
-  void isotropicDistanceScaling(ofstream& enout, dpmMemFn forceCall, double B, int NT, int NPRINTSKIP);
-  void holePunching(double sizeRatio, int nsmall, ofstream& enout, dpmMemFn forceCall, double B, int NT, int NPRINTSKIP);
+  void isotropicDistanceScaling(ofstream& enout, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP);
+  void holePunching(double sizeRatio, int nsmall, ofstream& enout, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP);
   void orientDirector(int ci, double xLoc, double yLoc);
 };
 
