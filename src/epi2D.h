@@ -44,7 +44,11 @@ class epi2D : public dpm {
   double Dr0;
 
   // specific output objects
-  std::ofstream fileout;
+  std::ofstream enout;
+  std::ofstream stressout;
+
+  // simulation time keeper (accumulates elapsed simulation time during MD routines)
+  double simclock;
 
  public:
   // constructor and destructor
@@ -63,12 +67,22 @@ class epi2D : public dpm {
       psi.at(ci) = PI / 2 * (ci % 2) - PI / 2 * ((ci + 1) % 2);  //should be : right if odd, left if even
     }
     cout << "Initializing epi2D object, l1 = " << l1 << ", l2 = " << l2 << ", Dr0 = " << Dr0 << '\n';
+    simclock = 0.0;
   };
 
   // File openers
-  void openFileObject(std::string& str) {
-    fileout.open(str.c_str());
-    if (!fileout.is_open()) {
+  void openEnergyObject(std::string& str) {
+    enout.open(str.c_str());
+    if (!enout.is_open()) {
+      std::cout << "	ERROR: file could not open " << str << "..." << std::endl;
+      exit(1);
+    } else
+      std::cout << "** Opening file " << str << " ..." << std::endl;
+  }
+
+  void openStressObject(std::string& str) {
+    stressout.open(str.c_str());
+    if (!stressout.is_open()) {
       std::cout << "	ERROR: file could not open " << str << "..." << std::endl;
       exit(1);
     } else
@@ -95,15 +109,16 @@ class epi2D : public dpm {
 
   // protocols
   void vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0);
+  void tensileLoading(double scaleFactorX, double scaleFactorY);
   void zeroMomentum();
-  void dampedNVE2D(ofstream& enout, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP);
+  void dampedNVE2D(dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP);
 
   int getIndexOfCellLocatedHere(double xLoc, double yLoc);
   void deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc);
   void laserAblate(int numCellsAblated, double sizeRatio, int nsmall, double xLoc, double yLoc);
 
-  void isotropicDistanceScaling(ofstream& enout, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP);
-  void holePunching(double sizeRatio, int nsmall, ofstream& enout, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP);
+  void isotropicNotchTest(int numCellsToDelete, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP);
+  void uniaxialNotchTest(int numCellsToDelete, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP);
   void orientDirector(int ci, double xLoc, double yLoc);
 };
 

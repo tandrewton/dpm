@@ -9,7 +9,7 @@
 //
 // Compilation command:
 // g++ -O3 --std=c++11 -I src main/epi2D/notchTest.cpp src/dpm.cpp src/epi2D.cpp -o main/epi2D/notchTest.o
-// ./main/epi2D/notchTest.o 12 20 1.08 0.7 0.9 1.0 0.5 0.5 1 100 pos.test energy.test
+// ./main/epi2D/notchTest.o 12 20 1.08 0.7 0.9 1.0 0.5 0.5 1.0 1 100 pos.test energy.test stress.test
 //
 //
 // Parameter input list
@@ -25,8 +25,9 @@
 // 9. Dr0:          rotational diffusion constant for protrusion activity (unused for notchTest code)
 // 10. seed: 			  seed for random number generator
 // 11. time:        amount of time (tau) to simulate
-// 12. positionFile: 	string of path to output file with position/configuration data
+// 12. positionFile: 	string of path to output file with position/configuration data'
 // 13. energyFile:  string of path to output file with energy data
+// 14. stressFile:  string of path to output file with stress data
 
 // header files
 #include <sstream>
@@ -69,6 +70,7 @@ int main(int argc, char const* argv[]) {
   string time_str = argv[11];
   string positionFile = argv[12];
   string energyFile = argv[13];
+  string stressFile = argv[14];
 
   // using sstreams to get parameters
   stringstream NCELLSss(NCELLS_str);
@@ -96,8 +98,6 @@ int main(int argc, char const* argv[]) {
   seedss >> seed;
   timess >> time_dbl;
 
-  std::ofstream enout(energyFile);
-
   // number of time steps
   int NT = int(time_dbl / dt0);
 
@@ -109,6 +109,8 @@ int main(int argc, char const* argv[]) {
   epithelial.setl2(att / 2);
 
   epithelial.openPosObject(positionFile);
+  epithelial.openEnergyObject(energyFile);
+  epithelial.openStressObject(stressFile);
 
   // set spring constants
   epithelial.setka(ka);
@@ -132,16 +134,14 @@ int main(int argc, char const* argv[]) {
   //after compress, turn on damped NVE
   double T = 1e-4;
   epithelial.drawVelocities2D(T);
-  epithelial.dampedNVE2D(enout, attractiveForceUpdate, B, dt0, NT / 10, NT / 10);
+  epithelial.dampedNVE2D(attractiveForceUpdate, B, dt0, NT / 10, NT / 10);
 
-  //ELASTIC SHEET FRACTURE SCHEME
-
-  epithelial.holePunching(sizeratio, nsmall, enout, attractiveForceUpdate, B, dt0, NT, NT);
+  //ELASTIC SHEET FRACTURE SCHEME (introduce defect + tensile loading)
+  int numCellsToDelete = 3;
+  //epithelial.isotropicNotchTest(numCellsToDelete, sizeratio, nsmall,attractiveForceUpdate, B, dt0, NT, NT);
+  epithelial.uniaxialNotchTest(numCellsToDelete, sizeratio, nsmall, attractiveForceUpdate, B, dt0, NT, NT);
 
   cout << "\n** Finished notchTest.cpp, ending. " << endl;
-
-  //testing energy conservation
-  enout.close();
 
   return 0;
 }

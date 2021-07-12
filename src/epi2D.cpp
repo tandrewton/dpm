@@ -304,6 +304,11 @@ void epi2D::activeAttractiveForceUpdate() {
   //reset forces, then get shape and attractive forces.
   attractiveForceUpdate_2();
 
+  // for now, hard code center seeking into cells to see if it works
+  for (int ci = 0; ci < NCELLS; ci++) {
+    orientDirector(ci, 0.0, 0.0);
+  }
+
   //compute active forces
   int gi = 0, ci = 0;
   double psiMean = 0.0, psiStd = 0.0, dpsi = 0.0, psitmp = 0.0;
@@ -387,7 +392,7 @@ void epi2D::activeAttractiveForceUpdate() {
     // get angular distance from psi
     psitmp = atan2(riy, rix);
     dpsi = psitmp - psi[ci - 1];
-    dpsi -= 2 * PI * round(dpsi / PI);
+    dpsi -= 2 * PI * round(dpsi / (2 * PI));
 
     // get velocity scale
     v0tmp = vmin + (v0 - vmin) * exp(-pow(dpsi, 2.0) / (2.0 * Ds * Ds));
@@ -400,18 +405,11 @@ void epi2D::activeAttractiveForceUpdate() {
     // add to forces
     F[NDIM * gi] += v0tmp * ux;
     F[NDIM * gi + 1] += v0tmp * uy;
-    //v[NDIM * gi] += v0tmp * ux;
-    //v[NDIM * gi + 1] += v0tmp * uy;
-    /*cout << "psitmp = " << psitmp << " , dpsi = " << dpsi << " , v0tmp = " << v0tmp << ", ux = " << ux << " , uy = " << uy << '\n';
-    cout << "Fx = " << v0tmp * ux << " , Fy = " << v0tmp * uy << '\n'
-         << "Fx tot = " << F[NDIM * gi] << ", Fy tot = " << F[NDIM * gi + 1] << '\n';*/
   }
   psiMean /= NCELLS;
   psiStd /= NCELLS;
   psiStd -= psiMean * psiMean;
   psiStd = sqrt(psiStd);
-  //cout << "psiMean = " << psiMean << '\n';
-  //cout << "psiStd = " << psiStd << '\n';
 }
 
 /******************************
@@ -476,17 +474,80 @@ void epi2D::vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0,
   }
 }
 
-void epi2D::dampedNVE2D(ofstream& enout, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP) {
+// scale particle sizes by specified ratio in x and y directions
+// compression in X corresponds to tensile loading along Y
+// compression in X and Y corresponds to isotropic tensile loading
+void epi2D::tensileLoading(double scaleFactorX, double scaleFactorY) {
+  // local variables
+  int gi, ci, vi, xind, yind;
+  double xi, yi, cx, cy, dx, dy;
+
+  double totalScaleFactor = scaleFactorX * scaleFactorY;
+
+  // loop over cells, scale
+  for (ci = 0; ci < NCELLS; ci++) {
+    // scale preferred area
+    a0[ci] *= totalScaleFactor;
+
+    // first global index for ci
+    gi = szList.at(ci);
+
+    // compute cell center of mass
+    xi = x[NDIM * gi];
+    yi = x[NDIM * gi + 1];
+    cx = xi;
+    cy = yi;
+    for (vi = 1; vi < nv.at(ci); vi++) {
+      dx = x.at(NDIM * (gi + vi)) - xi;
+      if (pbc[0])
+        dx -= L[0] * round(dx / L[0]);
+
+      dy = x.at(NDIM * (gi + vi) + 1) - yi;
+      if (pbc[1])
+        dy -= L[1] * round(dy / L[1]);
+
+      xi += dx;
+      yi += dy;
+
+      cx += xi;
+      cy += yi;
+    }
+    cx /= nv.at(ci);
+    cy /= nv.at(ci);
+
+    for (vi = 0; vi < nv.at(ci); vi++) {
+      // x and y inds
+      xind = NDIM * (gi + vi);
+      yind = xind + 1;
+
+      // closest relative position
+      dx = x[xind] - cx;
+      if (pbc[0])
+        dx -= L[0] * round(dx / L[0]);
+
+      dy = x[yind] - cy;
+      if (pbc[1])
+        dy -= L[1] * round(dy / L[1]);
+
+      // update vertex positions
+      x[xind] += (scaleFactorX - 1.0) * dx;
+      x[yind] += (scaleFactorY - 1.0) * dy;
+
+      // scale vertex radii
+      r[gi + vi] *= sqrt(totalScaleFactor);
+      l0[gi + vi] *= sqrt(totalScaleFactor);
+    }
+  }
+}
+
+void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP) {
   // make sure velocities exist or are already initialized before calling this
   // local variables
   int t, i;
-  double K, simclock;
+  double K;
 
   // set time step magnitude
   setdt(dt0);
-
-  // initialize time keeper
-  simclock = 0.0;
 
   // loop over time, print energy
   for (t = 0; t < NT; t++) {
@@ -536,13 +597,26 @@ void epi2D::dampedNVE2D(ofstream& enout, dpmMemFn forceCall, double B, double dt
       cout << "	** K 		= " << setprecision(12) << K << endl;
       cout << "	** E 		= " << setprecision(12) << U + K << endl;
 
-      // print to energy file
-      cout << "** printing energy" << endl;
-      enout << setw(w) << left << t;
-      enout << setw(wnum) << left << simclock;
-      enout << setw(wnum) << setprecision(12) << U;
-      enout << setw(wnum) << setprecision(12) << K;
-      enout << endl;
+      if (enout.is_open()) {
+        // print to energy file
+        cout << "** printing energy" << endl;
+        enout << setw(w) << left << t;
+        enout << setw(wnum) << left << simclock;
+        enout << setw(wnum) << setprecision(12) << U;
+        enout << setw(wnum) << setprecision(12) << K;
+        enout << endl;
+      }
+
+      if (stressout.is_open()) {
+        // print to stress file
+        cout << "** printing stress" << endl;
+        stressout << setw(w) << left << t;
+        stressout << setw(wnum) << left << simclock;
+        stressout << setw(wnum) << stress[0];
+        stressout << setw(wnum) << stress[1];
+        stressout << setw(wnum) << stress[2];
+        stressout << endl;
+      }
 
       // print to configuration only if position file is open
       if (posout.is_open())
@@ -602,7 +676,7 @@ int epi2D::getIndexOfCellLocatedHere(double xLoc, double yLoc) {
     cx /= nv.at(ci);
     cy /= nv.at(ci);
 
-    // what coordinate system do cx, cy use?
+    // cx, cy use coordinates such that bottom left corner of sim box = origin
 
     distanceSq[ci] =
         pow(cx - (L.at(0) / 2 + xLoc), 2) + pow(cy - (L.at(1) / 2 + yLoc), 2);
@@ -676,6 +750,7 @@ void epi2D::deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc) {
   nv.erase(nv.begin() + deleteIndex);
   a0.erase(a0.begin() + deleteIndex);
   l0.erase(l0.begin() + deleteIndex);
+  psi.erase(psi.begin() + deleteIndex);
 
   int deleteIndexGlobal = gindex(deleteIndex, 0);
 
@@ -724,34 +799,48 @@ void epi2D::laserAblate(int numCellsAblated, double sizeRatio, int nsmall, doubl
   zeroMomentum();
 }
 
-void epi2D::isotropicDistanceScaling(ofstream& enout, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP) {
-  //use dpm::scaleParticleSize2D
-  //clean up unused parameters in a bit.
-  int it = 0, itmax = 10;
+void epi2D::isotropicNotchTest(int numCellsToDelete, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP) {
+  // select xloc, yloc. delete the nearest cell. scale particle sizes, loop.
+  // our proxy for isotropic stretching is to scale the particle sizes down. Inter-vertex distances change,
+  int numCellsDeletedPerIt = 1;
+  int it, maxit = 10;
+  double xLoc, yLoc;
   double scaleFactor = 0.98;
-  while (it < itmax) {
-    scaleParticleSizes2D(scaleFactor);
-    dampedNVE2D(enout, forceCall, B, dt0, NT, NPRINTSKIP);
-    it++;
-    //should have another escape condition in the loop
+  for (int i = 0; i < numCellsToDelete; i++) {
+    xLoc = (drand48() - 0.5) * L[0];
+    yLoc = (drand48() - 0.5) * L[1];
+
+    laserAblate(numCellsDeletedPerIt, sizeRatio, nsmall, xLoc, yLoc);
+
+    it = 0;
+    while (it < maxit) {
+      // constant true strain rate, isotropic tensile loading
+      tensileLoading(scaleFactor, scaleFactor);
+      dampedNVE2D(forceCall, B, dt0, NT, NPRINTSKIP);
+      it++;
+    }
   }
 }
 
-void epi2D::holePunching(double sizeRatio, int nsmall, ofstream& enout, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP) {
-  //generate rng
-  //select xloc, yloc
-  //deleteCell
-  // loop
-  int numCellsDeleted = 1;
-  int it = 0, maxit = 10;
+void epi2D::uniaxialNotchTest(int numCellsToDelete, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP) {
+  // select xloc, yloc. delete the nearest cell. scale particle sizes, loop.
+  int numCellsDeletedPerIt = 1;
+  int it, maxit = 10;
   double xLoc, yLoc;
-  for (int i = 0; i < 3; i++) {
+  double scaleFactor = 0.98;
+  for (int i = 0; i < numCellsToDelete; i++) {
     xLoc = (drand48() - 0.5) * L[0];
     yLoc = (drand48() - 0.5) * L[1];
-    cout << " xLoc and yLoc = " << xLoc << '\t' << yLoc << '\n';
-    laserAblate(numCellsDeleted, sizeRatio, nsmall, xLoc, yLoc);
-    isotropicDistanceScaling(enout, forceCall, B, dt0, NT, NPRINTSKIP);
-    //probably don't need a separate function for isotropicDistanceScaling
+
+    laserAblate(numCellsDeletedPerIt, sizeRatio, nsmall, xLoc, yLoc);
+
+    it = 0;
+    while (it < maxit) {
+      // constant true strain rate, tensile loading along x direction (i.e. compression along y)
+      tensileLoading(1.0, scaleFactor);
+      dampedNVE2D(forceCall, B, dt0, NT, NPRINTSKIP);
+      it++;
+    }
   }
 }
 
@@ -787,8 +876,8 @@ void epi2D::orientDirector(int ci, double xLoc, double yLoc) {
   cy /= nv.at(ci);
 
   // compute angle needed for psi to point towards (xLoc,yLoc) - for now, just towards origin
-  double theta = atan2(cy, cx) + PI;
-  theta -= 2 * PI * round(theta / PI);
+  double theta = atan2(cy - 0.5 * L[1], cx - 0.5 * L[0]) + PI;
+  theta -= 2 * PI * round(theta / (2 * PI));
 
   psi.at(ci) = theta;
 }
