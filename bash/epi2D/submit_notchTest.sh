@@ -1,7 +1,7 @@
 #!/bin/bash
 # directories with code
 
-#example call: bash bash/epi2D/submit_notchTest.sh 24 24 1.08 0.7 0.9 1.0 0.5 0.5 0.0 uniaxial 1000 pi_ohern,day,scavenge 0-12:00:00 1 1
+#example call: bash bash/epi2D/submit_notchTest.sh 24 24 1.08 0.7 0.9 1.0 0.5 0.5 0.0 uniaxial 100 pi_ohern,day,scavenge 0-12:00:00 1 1
 cellsdir=~/dpm
 srcdir=$cellsdir/src
 maindir=$cellsdir/main/epi2D
@@ -43,7 +43,7 @@ let numSeeds=$numSeedsPerRun*$numRuns
 let endSeed=$startSeed+$numSeeds-1
 
 # name strings
-basestr=notch_N"$NCELLS"_NV"$NV"_calA0"$calA0"_kl"$kl"_att"$att"_B"$B"_Dr0$Dr0
+basestr=notch_N"$NCELLS"_NV"$NV"_calA0"$calA0"_kl"$kl"_att"$att"_B"$B"_Dr0"$Dr0"_loading"$loadingType"
 runstr="$basestr"_startseed"$startSeed"_endseed"$endSeed"
 
 # make directory specific for this simulation
@@ -111,7 +111,7 @@ for seed in `seq $startSeed $numSeedsPerRun $endSeed`; do
         stressf=$simdatadir/$filestr.stress
 
         # append to runString
-        runString="$runString ; ./$binf $NCELLS $NV $calA0 $phiMin $phiMax $kl $att $B $Dr0 $loadingType $runseed $NT $posf $energyf $stressf"
+        runString="$runString ; ./$binf $NCELLS $NV $calA0 $phiMin $phiMax $kl $att $B $Dr0 "$loadingType" $runseed $NT $posf $energyf $stressf"
     done
 
     # finish off run string

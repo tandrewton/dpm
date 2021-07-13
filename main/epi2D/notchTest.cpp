@@ -150,10 +150,11 @@ int main(int argc, char const* argv[]) {
   //ELASTIC SHEET FRACTURE SCHEME (introduce defect + tensile loading)
   int numCellsToDelete = 1;
 
+  int maxit = 30;
   if (loadingType == 0) {
-    epithelial.isotropicNotchTest(numCellsToDelete, sizeratio, nsmall, attractiveForceUpdate, B, dt0, NT, NT, 30);
+    epithelial.isotropicNotchTest(numCellsToDelete, sizeratio, nsmall, attractiveForceUpdate, B, dt0, NT, NT, maxit);
   } else if (loadingType == 1) {
-    epithelial.uniaxialNotchTest(numCellsToDelete, sizeratio, nsmall, attractiveForceUpdate, B, dt0, NT, NT, 30);
+    epithelial.uniaxialNotchTest(numCellsToDelete, sizeratio, nsmall, attractiveForceUpdate, B, dt0, NT, NT, maxit);
   } else {
     cout << "loadingType not found. Moving on.\n";
   }
