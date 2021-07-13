@@ -799,11 +799,11 @@ void epi2D::laserAblate(int numCellsAblated, double sizeRatio, int nsmall, doubl
   zeroMomentum();
 }
 
-void epi2D::isotropicNotchTest(int numCellsToDelete, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP) {
+void epi2D::isotropicNotchTest(int numCellsToDelete, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP, int maxit = 10) {
   // select xloc, yloc. delete the nearest cell. scale particle sizes, loop.
   // our proxy for isotropic stretching is to scale the particle sizes down. Inter-vertex distances change,
   int numCellsDeletedPerIt = 1;
-  int it, maxit = 10;
+  int it;
   double xLoc, yLoc;
   double scaleFactor = 0.98;
   for (int i = 0; i < numCellsToDelete; i++) {
@@ -811,6 +811,11 @@ void epi2D::isotropicNotchTest(int numCellsToDelete, double sizeRatio, int nsmal
     yLoc = (drand48() - 0.5) * L[1];
 
     laserAblate(numCellsDeletedPerIt, sizeRatio, nsmall, xLoc, yLoc);
+
+    std::cout << "***********************************************\n"
+              << "Ablating a cell! # cells left = " << NCELLS << '\n'
+              << " simclock time = " << simclock << '\n'
+              << "onto tensile loading loop! \n \n ********************************* \n";
 
     it = 0;
     while (it < maxit) {
@@ -822,10 +827,10 @@ void epi2D::isotropicNotchTest(int numCellsToDelete, double sizeRatio, int nsmal
   }
 }
 
-void epi2D::uniaxialNotchTest(int numCellsToDelete, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP) {
+void epi2D::uniaxialNotchTest(int numCellsToDelete, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP, int maxit = 10) {
   // select xloc, yloc. delete the nearest cell. scale particle sizes, loop.
   int numCellsDeletedPerIt = 1;
-  int it, maxit = 10;
+  int it;
   double xLoc, yLoc;
   double scaleFactor = 0.98;
   for (int i = 0; i < numCellsToDelete; i++) {
@@ -833,6 +838,11 @@ void epi2D::uniaxialNotchTest(int numCellsToDelete, double sizeRatio, int nsmall
     yLoc = (drand48() - 0.5) * L[1];
 
     laserAblate(numCellsDeletedPerIt, sizeRatio, nsmall, xLoc, yLoc);
+
+    std::cout << "***********************************************\n"
+              << "Ablating a cell! # cells left = " << NCELLS << '\n'
+              << " simclock time = " << simclock << '\n'
+              << "onto tensile loading loop! \n \n ********************************* \n";
 
     it = 0;
     while (it < maxit) {

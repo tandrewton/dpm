@@ -1,7 +1,7 @@
 #!/bin/bash
 # directories with code
 
-#example call: bash bash/epi2D/submit_laserAblation.sh 24 24 1.08 0.7 0.9 1.0 0.5 0.5 0.0 1000 pi_ohern,day,scavenge 0-12:00:00 1 1
+#example call: bash bash/epi2D/submit_notchTest.sh 24 24 1.08 0.7 0.9 1.0 0.5 0.5 0.0 uniaxial 1000 pi_ohern,day,scavenge 0-12:00:00 1 1
 cellsdir=~/dpm
 srcdir=$cellsdir/src
 maindir=$cellsdir/main/epi2D
@@ -31,11 +31,12 @@ kl=$6
 att=$7
 B=$8
 Dr0=$9
-NT="${10}"
-partition="${11}"
-time="${12}"
-numRuns="${13}"
-startSeed="${14}"
+loadingType=${10}
+NT="${11}"
+partition="${12}"
+time="${13}"
+numRuns="${14}"
+startSeed="${15}"
 
 numSeedsPerRun=1
 let numSeeds=$numSeedsPerRun*$numRuns
@@ -110,7 +111,7 @@ for seed in `seq $startSeed $numSeedsPerRun $endSeed`; do
         stressf=$simdatadir/$filestr.stress
 
         # append to runString
-        runString="$runString ; ./$binf $NCELLS $NV $calA0 $phiMin $phiMax $kl $att $B $Dr0 $runseed $NT $posf $energyf $stressf"
+        runString="$runString ; ./$binf $NCELLS $NV $calA0 $phiMin $phiMax $kl $att $B $Dr0 $loadingType $runseed $NT $posf $energyf $stressf"
     done
 
     # finish off run string

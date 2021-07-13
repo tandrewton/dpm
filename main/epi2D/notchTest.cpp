@@ -9,7 +9,7 @@
 //
 // Compilation command:
 // g++ -O3 --std=c++11 -I src main/epi2D/notchTest.cpp src/dpm.cpp src/epi2D.cpp -o main/epi2D/notchTest.o
-// ./main/epi2D/notchTest.o 12 20 1.08 0.7 0.9 1.0 0.5 0.5 1.0 1 100 pos.test energy.test stress.test
+// ./main/epi2D/notchTest.o 12 20 1.08 0.7 0.9 1.0 0.5 0.5 1.0 1 100 pos.test energy.test stress.test uniaxial
 //
 //
 // Parameter input list
@@ -28,6 +28,7 @@
 // 12. positionFile: 	string of path to output file with position/configuration data'
 // 13. energyFile:  string of path to output file with energy data
 // 14. stressFile:  string of path to output file with stress data
+// 15. loadingType: string representing whether to conduct a uniaxial loading or isotropic loading experiment
 
 // header files
 #include <sstream>
@@ -55,6 +56,7 @@ int main(int argc, char const* argv[]) {
   // local variables to be read in
   int NCELLS, nsmall, seed;
   double calA0, kl, kb = 0.0, phiMin, phiMax, att, B, Dr0, time_dbl;
+  int loadingType;  // 0 = uniaxial (tensile), 1 = isotropic (tensile)
 
   // read in parameters from command line input
   string NCELLS_str = argv[1];
@@ -71,6 +73,7 @@ int main(int argc, char const* argv[]) {
   string positionFile = argv[12];
   string energyFile = argv[13];
   string stressFile = argv[14];
+  string loadingType_str = argv[15];
 
   // using sstreams to get parameters
   stringstream NCELLSss(NCELLS_str);
@@ -97,6 +100,14 @@ int main(int argc, char const* argv[]) {
   Bss >> B;
   seedss >> seed;
   timess >> time_dbl;
+  if (loadingType_str == "uniaxial") {
+    loadingType = 0;
+  } else if (loadingType_str == "isotropic") {
+    loadingType = 1;
+  } else {
+    cout << "ERROR: loadingType not valid, exiting:\n";
+    return 1;
+  }
 
   // number of time steps
   int NT = int(time_dbl / dt0);
@@ -137,9 +148,15 @@ int main(int argc, char const* argv[]) {
   epithelial.dampedNVE2D(attractiveForceUpdate, B, dt0, NT / 10, NT / 10);
 
   //ELASTIC SHEET FRACTURE SCHEME (introduce defect + tensile loading)
-  int numCellsToDelete = 3;
-  //epithelial.isotropicNotchTest(numCellsToDelete, sizeratio, nsmall,attractiveForceUpdate, B, dt0, NT, NT);
-  epithelial.uniaxialNotchTest(numCellsToDelete, sizeratio, nsmall, attractiveForceUpdate, B, dt0, NT, NT);
+  int numCellsToDelete = 1;
+
+  if (loadingType == 0) {
+    epithelial.isotropicNotchTest(numCellsToDelete, sizeratio, nsmall, attractiveForceUpdate, B, dt0, NT, NT, 30);
+  } else if (loadingType == 1) {
+    epithelial.uniaxialNotchTest(numCellsToDelete, sizeratio, nsmall, attractiveForceUpdate, B, dt0, NT, NT, 30);
+  } else {
+    cout << "loadingType not found. Moving on.\n";
+  }
 
   cout << "\n** Finished notchTest.cpp, ending. " << endl;
 

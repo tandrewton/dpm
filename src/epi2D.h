@@ -117,8 +117,8 @@ class epi2D : public dpm {
   void deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc);
   void laserAblate(int numCellsAblated, double sizeRatio, int nsmall, double xLoc, double yLoc);
 
-  void isotropicNotchTest(int numCellsToDelete, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP);
-  void uniaxialNotchTest(int numCellsToDelete, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP);
+  void isotropicNotchTest(int numCellsToDelete, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP, int maxit);
+  void uniaxialNotchTest(int numCellsToDelete, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP, int maxit);
   void orientDirector(int ci, double xLoc, double yLoc);
 };
 

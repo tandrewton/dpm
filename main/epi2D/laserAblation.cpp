@@ -1,5 +1,5 @@
 // File to compress DPM into confluent epithelial layer, then laser ablate
-// ** Features to add: crawling, purse-string contraction, substrate interaction
+// ** Features to add: purse-string contraction, substrate interaction
 //
 // Cells are bidisperse, with bending energy (broken) and vertex-vertex attraction options.
 //
@@ -10,7 +10,7 @@
 //
 // Compilation command:
 // g++ -O3 --std=c++11 -I src main/epi2D/laserAblation.cpp src/dpm.cpp src/epi2D.cpp -o main/epi2D/laserAblation.o
-// ./main/epi2D/laserAblation.o 12 20 1.08 0.7 0.9 1.0 0.5 0.5 1.0 1 100 pos.test energy.test
+// ./main/epi2D/laserAblation.o 12 20 1.08 0.7 0.9 1.0 0.5 0.5 1.0 1 1000 pos.test energy.test stress.test
 //
 //
 // Parameter input list
@@ -28,6 +28,7 @@
 // 11. time:        amount of time (tau) to simulate
 // 12. positionFile: 	string of path to output file with position/configuration data
 // 13. energyFile:  string of path to output file with energy data
+// 14. stressFile:  string of path to output file with stress data
 
 // header files
 #include <sstream>
@@ -70,6 +71,7 @@ int main(int argc, char const* argv[]) {
   string time_str = argv[11];
   string positionFile = argv[12];
   string energyFile = argv[13];
+  string stressFile = argv[14];
 
   // using sstreams to get parameters
   stringstream NCELLSss(NCELLS_str);
@@ -97,8 +99,6 @@ int main(int argc, char const* argv[]) {
   seedss >> seed;
   timess >> time_dbl;
 
-  std::ofstream enout(energyFile);
-
   // number of time steps
   int NT = int(time_dbl / dt0);
 
@@ -110,6 +110,8 @@ int main(int argc, char const* argv[]) {
   epithelial.setl2(att / 2);
 
   epithelial.openPosObject(positionFile);
+  epithelial.openEnergyObject(energyFile);
+  epithelial.openStressObject(stressFile);
 
   // set spring constants
   epithelial.setka(ka);
@@ -126,7 +128,6 @@ int main(int argc, char const* argv[]) {
   // set base dpm force, upcast derived epi2D forces
   dpmMemFn repulsiveForceUpdate = &dpm::repulsiveForceUpdate;
   dpmMemFn attractiveForceUpdate = static_cast<void (dpm::*)()>(&epi2D::attractiveForceUpdate_2);
-  dpmMemFn baseAttractiveForceUpdate = &dpm::attractiveForceUpdate;
   dpmMemFn activeForceUpdate = static_cast<void (dpm::*)()>(&epi2D::activeAttractiveForceUpdate);
 
   epithelial.vertexCompress2Target2D(repulsiveForceUpdate, Ftol, dt0, phiMax, dphi0);
@@ -134,32 +135,29 @@ int main(int argc, char const* argv[]) {
   //after compress, turn on damped NVE
   double T = 1e-4;
   epithelial.drawVelocities2D(T);
-  epithelial.dampedNVE2D(enout, attractiveForceUpdate, B, dt0, NT / 10, NT / 10);
+  epithelial.dampedNVE2D(attractiveForceUpdate, B, dt0, NT / 10, NT / 10);
 
-  /*********** placeholder: LASER ABLATION SCHEME ************************/
-  /*double xLoc = 0.0, yLoc = 0.0;
+  // LASER ABLATION SCHEME
+  double xLoc = 0.0, yLoc = 0.0;
   int numCellsToAblate = 3;
   epithelial.laserAblate(numCellsToAblate, sizeratio, nsmall, xLoc, yLoc);
+
   cout << "numCells = " << epithelial.getNCELLS() << '\n';
+
   for (int ci = 0; ci < epithelial.getNCELLS(); ci++) {
     cout << "Psi(" << ci << ") = " << epithelial.getPsi(ci) << '\n';
     epithelial.orientDirector(ci, xLoc, yLoc);
     cout << "Psi(" << ci << ") = " << epithelial.getPsi(ci) << '\n';
   }
-  epithelial.dampedNVE2D(enout, activeForceUpdate, B, dt0, NT, NT / 10);*/
-  /*for (int ci = 0; ci < epithelial.getNCELLS(); ci++) {
+
+  epithelial.dampedNVE2D(activeForceUpdate, B, dt0, NT, NT / 10);
+
+  for (int ci = 0; ci < epithelial.getNCELLS(); ci++) {
     cout << "Psi(" << ci << ") = " << epithelial.getPsi(ci) << '\n';
     //epithelial.orientDirector(ci, 0.0, 0.0);
     cout << "Psi(" << ci << ") = " << epithelial.getPsi(ci) << '\n';
-  }*/
-
-  /*********placeholder: ELASTIC SHEET FRACTURE SCHEME*********************/
-  epithelial.holePunching(sizeratio, nsmall, enout, attractiveForceUpdate, B, dt0, NT, NT);
+  }
 
   cout << "\n** Finished laserAblation.cpp, ending. " << endl;
-
-  //testing energy conservation
-  enout.close();
-
   return 0;
 }
