@@ -93,7 +93,9 @@ class epi2D : public dpm {
   void setkbi(double val) { fill(kbi.begin(), kbi.end(), val); };
   void setRandPsi() {
     for (int ci = 0; ci < NCELLS; ci++)
-      psi[ci] = (2 * drand48() - 1) * PI;
+      psi[ci] = (2.0 * drand48() - 1.0) * PI;
+  }
+  void seta0() {
   }
 
   // getters
@@ -125,6 +127,9 @@ class epi2D : public dpm {
   void uniaxialNotchTest(int numCellsToDelete, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP, int maxit);
   void orientDirector(int ci, double xLoc, double yLoc);
   void swapOverlappingDirectors();
+
+  // polymorphism: write configuration information to file
+  void printConfiguration2D();
 };
 
 #endif

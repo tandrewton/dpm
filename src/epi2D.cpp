@@ -304,21 +304,14 @@ void epi2D::activeAttractiveForceUpdate() {
   //reset forces, then get shape and attractive forces.
   attractiveForceUpdate_2();
 
-  /*
-  // for now, hard code center seeking into cells to see if it works
-  for (int ci = 0; ci < NCELLS; ci++) {
-    orientDirector(ci, 0.0, 0.0);
-  }
-  */
-
   //compute active forces
   int gi = 0, ci = 0;
   double psiMean = 0.0, psiStd = 0.0, dpsi = 0.0, psitmp = 0.0;
   double xi, yi, vi, nvtmp, dx, dy, cx, cy, r1, r2, grv,
       v0tmp, vmin, v0, Ds, rnorm, ux, uy, rix, riy;
 
-  v0 = 0.1;          // max velocity
-  vmin = 1e-2 * v0;  // min velocity
+  v0 = 0.05;         // max velocity
+  vmin = 1e-1 * v0;  // min velocity
   Ds = 0.1;          // active velocity spread parameter
 
   std::vector<double> DrList(NCELLS, Dr0);
@@ -920,7 +913,7 @@ void epi2D::swapOverlappingDirectors() {
         njx = director[cj][0];
         njy = director[cj][1];
         dot_product = nix * njx + niy * njy;
-        if (dot_product <= -0.9 && dot_product >= -1) {
+        if (dot_product <= -0.8 && dot_product >= -1) {
           //compute center of mass of cells i and j
           com2D(ci, rix, riy);
           com2D(cj, rjx, rjy);
@@ -943,4 +936,144 @@ void epi2D::swapOverlappingDirectors() {
       std::cout << "swapped cell # " << ci << " " << counter << " times! Shouldn't happen often!\n";
     }
   }
+}
+
+/*void epi2D::purseStringContraction() {
+  // in wounded epithelia, actomyosin accumulates in cells at the edge of wounds
+  // it forms a ring that shrinks in size, sewing the wound shut
+  // we will model it by shrinking the length between vertices on the wound edge
+  // which will pull cells into the wound by cortical tension
+
+  // require some kind of edge detection to see which cells are on the edge
+  // what happens if a cell did not start as an edge cell, but becomes an edge cell? does this occur?
+  // what happens if a cell started as an edge cell, but is no longer an edge cell? does this occur?
+
+  // if on edge,
+  //    l0 *= scaleFactor
+  //    after l0 shrinks by 10%, delete a vertex
+  //    iterate
+}*/
+
+void epi2D::printConfiguration2D() {
+  // overloaded to print out psi as well
+  // local variables
+  int ci, cj, vi, gi, ctmp, zc, zv;
+  double xi, yi, dx, dy, Lx, Ly;
+
+  // check if pos object is open
+  if (!posout.is_open()) {
+    cerr << "** ERROR: in printConfiguration2D, posout is not open, but function call will try to use. Ending here." << endl;
+    exit(1);
+  } else
+    cout << "** In printConfiguration2D, printing particle positions to file..." << endl;
+
+  // save box sizes
+  Lx = L.at(0);
+  Ly = L.at(1);
+
+  // print information starting information
+  posout << setw(w) << left << "NEWFR"
+         << " " << endl;
+  posout << setw(w) << left << "NUMCL" << setw(w) << left << NCELLS << endl;
+  posout << setw(w) << left << "PACKF" << setw(wnum) << setprecision(pnum) << left << vertexPackingFraction2D() << endl;
+
+  // print box sizes
+  posout << setw(w) << left << "BOXSZ";
+  posout << setw(wnum) << setprecision(pnum) << left << Lx;
+  posout << setw(wnum) << setprecision(pnum) << left << Ly;
+  posout << endl;
+
+  // print stress info
+  posout << setw(w) << left << "STRSS";
+  posout << setw(wnum) << setprecision(pnum) << left << stress.at(0);
+  posout << setw(wnum) << setprecision(pnum) << left << stress.at(1);
+  posout << setw(wnum) << setprecision(pnum) << left << stress.at(2);
+  posout << endl;
+
+  // print coordinate for rest of the cells
+  for (ci = 0; ci < NCELLS; ci++) {
+    // get cell contact data
+    zc = 0;
+    zv = 0;
+    for (cj = 0; cj < NCELLS; cj++) {
+      if (ci != cj) {
+        // contact info from entry ci, cj
+        if (ci < cj)
+          ctmp = cij[NCELLS * ci + cj - (ci + 1) * (ci + 2) / 2];
+        else
+          ctmp = cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2];
+
+        // add to contact information
+        zv += ctmp;
+        if (ctmp > 0)
+          zc++;
+      }
+    }
+
+    // cell information
+    posout << setw(w) << left << "CINFO";
+    posout << setw(w) << left << nv.at(ci);
+    posout << setw(w) << left << zc;
+    posout << setw(w) << left << zv;
+    posout << setw(wnum) << left << a0.at(ci);
+    posout << setw(wnum) << left << area(ci);
+    posout << setw(wnum) << left << perimeter(ci);
+    posout << setw(wnum) << left << psi.at(ci);
+    posout << endl;
+
+    // get initial vertex positions
+    gi = gindex(ci, 0);
+    xi = x.at(NDIM * gi);
+    yi = x.at(NDIM * gi + 1);
+
+    // place back in box center
+    xi = fmod(xi, Lx);
+    yi = fmod(yi, Ly);
+
+    posout << setw(w) << left << "VINFO";
+    posout << setw(w) << left << ci;
+    posout << setw(w) << left << 0;
+
+    // output initial vertex information
+    posout << setw(wnum) << setprecision(pnum) << right << xi;
+    posout << setw(wnum) << setprecision(pnum) << right << yi;
+    posout << setw(wnum) << setprecision(pnum) << right << r.at(gi);
+    posout << setw(wnum) << setprecision(pnum) << right << l0.at(gi);
+    posout << setw(wnum) << setprecision(pnum) << right << t0.at(gi);
+    posout << endl;
+
+    // vertex information for next vertices
+    for (vi = 1; vi < nv.at(ci); vi++) {
+      // get global vertex index for next vertex
+      gi++;
+
+      // get next vertex positions
+      dx = x.at(NDIM * gi) - xi;
+      if (pbc[0])
+        dx -= Lx * round(dx / Lx);
+      xi += dx;
+
+      dy = x.at(NDIM * gi + 1) - yi;
+      if (pbc[1])
+        dy -= Ly * round(dy / Ly);
+      yi += dy;
+
+      // Print indexing information
+      posout << setw(w) << left << "VINFO";
+      posout << setw(w) << left << ci;
+      posout << setw(w) << left << vi;
+
+      // output vertex information
+      posout << setw(wnum) << setprecision(pnum) << right << xi;
+      posout << setw(wnum) << setprecision(pnum) << right << yi;
+      posout << setw(wnum) << setprecision(pnum) << right << r.at(gi);
+      posout << setw(wnum) << setprecision(pnum) << right << l0.at(gi);
+      posout << setw(wnum) << setprecision(pnum) << right << t0.at(gi);
+      posout << endl;
+    }
+  }
+
+  // print end frame
+  posout << setw(w) << left << "ENDFR"
+         << " " << endl;
 }
