@@ -64,7 +64,7 @@ class epi2D : public dpm {
     for (int ci = 0; ci < NCELLS; ci++) {
       //psi.at(ci) = 2 * PI * (drand48() - 0.5);  // [-pi,pi) coordinates
       //psi.at(ci) = 2 * PI * drand48();  // [0, 2pi) coordinates
-      psi.at(ci) = PI / 2 * (ci % 2) - PI / 2 * ((ci + 1) % 2);  //should be : right if odd, left if even
+      psi.at(ci) = PI / 2 * (ci % 2) - PI / 2 * ((ci + 1) % 2);  //should be : up if odd, down if even
     }
     cout << "Initializing epi2D object, l1 = " << l1 << ", l2 = " << l2 << ", Dr0 = " << Dr0 << '\n';
     simclock = 0.0;
@@ -91,6 +91,10 @@ class epi2D : public dpm {
 
   // setters
   void setkbi(double val) { fill(kbi.begin(), kbi.end(), val); };
+  void setRandPsi() {
+    for (int ci = 0; ci < NCELLS; ci++)
+      psi[ci] = (2 * drand48() - 1) * PI;
+  }
 
   // getters
 
@@ -120,6 +124,7 @@ class epi2D : public dpm {
   void isotropicNotchTest(int numCellsToDelete, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP, int maxit);
   void uniaxialNotchTest(int numCellsToDelete, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP, int maxit);
   void orientDirector(int ci, double xLoc, double yLoc);
+  void swapOverlappingDirectors();
 };
 
 #endif

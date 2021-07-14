@@ -304,10 +304,12 @@ void epi2D::activeAttractiveForceUpdate() {
   //reset forces, then get shape and attractive forces.
   attractiveForceUpdate_2();
 
+  /*
   // for now, hard code center seeking into cells to see if it works
   for (int ci = 0; ci < NCELLS; ci++) {
     orientDirector(ci, 0.0, 0.0);
   }
+  */
 
   //compute active forces
   int gi = 0, ci = 0;
@@ -410,6 +412,7 @@ void epi2D::activeAttractiveForceUpdate() {
   psiStd /= NCELLS;
   psiStd -= psiMean * psiMean;
   psiStd = sqrt(psiStd);
+  swapOverlappingDirectors();
 }
 
 /******************************
@@ -890,4 +893,54 @@ void epi2D::orientDirector(int ci, double xLoc, double yLoc) {
   theta -= 2 * PI * round(theta / (2 * PI));
 
   psi.at(ci) = theta;
+}
+
+void epi2D::swapOverlappingDirectors() {
+  // if any two cells are overlapping (according to cij), they are candidates to have their directors swapped in the same timestep
+  // directors will be swapped if they are approximately 180 degrees out of phase AND pointed towards each other
+  double dot_product = 0.0, dist1_sq, dist2_sq, psi_temp;
+  int gi;
+  double rix, riy, rjx, rjy, nix, niy, njx, njy;
+  //i suspect maybe have a bug about psi when a cell crosses pbc? haven't tested this, no real reason to suspect
+
+  // compute directors for all cells
+  vector<vector<double>> director(NCELLS, vector<double>(2, 0.0));
+  for (int ci = 0; ci < NCELLS; ci++) {
+    director[ci][0] = cos(psi[ci]);
+    director[ci][1] = sin(psi[ci]);
+  }
+
+  for (int ci = 0; ci < NCELLS; ci++) {
+    int counter = 0;
+    for (int cj = ci + 1; cj < NCELLS; cj++) {
+      if (cij[NCELLS * ci + cj - (ci + 1) * (ci + 2) / 2] > 0) {
+        // cells are overlapping
+        nix = director[ci][0];
+        niy = director[ci][1];
+        njx = director[cj][0];
+        njy = director[cj][1];
+        dot_product = nix * njx + niy * njy;
+        if (dot_product <= -0.9 && dot_product >= -1) {
+          //compute center of mass of cells i and j
+          com2D(ci, rix, riy);
+          com2D(cj, rjx, rjy);
+
+          //add director
+          dist1_sq = pow(rix + nix - rjx - njx, 2) + pow(riy + niy - rjy - njy, 2);
+          dist2_sq = pow(rix - nix - rjx + njx, 2) + pow(riy - niy - rjy + njy, 2);
+
+          if (dist1_sq < dist2_sq) {
+            //then current directors point towards each other, so swap them
+            psi_temp = psi[ci];
+            psi[ci] = psi[cj];
+            psi[cj] = psi_temp;
+            counter++;  //indicate that a swap has occurred for cell ci
+          }
+        }
+      }
+    }
+    if (counter > 1) {
+      std::cout << "swapped cell # " << ci << " " << counter << " times! Shouldn't happen often!\n";
+    }
+  }
 }

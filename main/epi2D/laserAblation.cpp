@@ -139,24 +139,20 @@ int main(int argc, char const* argv[]) {
 
   // LASER ABLATION SCHEME
   double xLoc = 0.0, yLoc = 0.0;
-  int numCellsToAblate = 3;
+  int numCellsToAblate = 10;
   epithelial.laserAblate(numCellsToAblate, sizeratio, nsmall, xLoc, yLoc);
 
   cout << "numCells = " << epithelial.getNCELLS() << '\n';
 
-  for (int ci = 0; ci < epithelial.getNCELLS(); ci++) {
+  for (int ci = 0; ci < epithelial.getNCELLS(); ci++)
     cout << "Psi(" << ci << ") = " << epithelial.getPsi(ci) << '\n';
-    epithelial.orientDirector(ci, xLoc, yLoc);
-    cout << "Psi(" << ci << ") = " << epithelial.getPsi(ci) << '\n';
-  }
 
-  epithelial.dampedNVE2D(activeForceUpdate, B, dt0, NT, NT / 10);
+  epithelial.setRandPsi();
 
-  for (int ci = 0; ci < epithelial.getNCELLS(); ci++) {
+  for (int ci = 0; ci < epithelial.getNCELLS(); ci++)
     cout << "Psi(" << ci << ") = " << epithelial.getPsi(ci) << '\n';
-    //epithelial.orientDirector(ci, 0.0, 0.0);
-    cout << "Psi(" << ci << ") = " << epithelial.getPsi(ci) << '\n';
-  }
+
+  epithelial.dampedNVE2D(activeForceUpdate, B, dt0, NT, NT / 20);
 
   cout << "\n** Finished laserAblation.cpp, ending. " << endl;
   return 0;
