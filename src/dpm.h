@@ -103,7 +103,8 @@ class dpm {
   // macroscopic stress vector
   std::vector<double> stress;
 
-  // contact network
+  // contact network (vector, size N(N-1)/2), stores # vertex contacts between i-j (i,j are cells)
+  // cij is structured as follows: (0-1, 0-2, 0-3, ... ,0- (N-1), 1-2, 1-3, ..., 1- (N-1), 2-3,...)
   std::vector<int> cij;
 
   // Box linked-list variables
