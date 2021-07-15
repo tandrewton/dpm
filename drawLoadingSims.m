@@ -2,7 +2,7 @@
 % output is a movie made from stitching the position file frames together
 %pwd should give ~/Documents/YalePhd/projects/dpm
 %works on cluster to write an avi file, but avi is a terrible format...
-isTestData = false;
+isTestData = true;
 addpath("/Users/AndrewTon/Documents/YalePhD/projects/Jamming/CellSim/cells/bash/seq/")
 %addpath("/home/at965/cells/bash/seq")
 
@@ -34,8 +34,8 @@ max_seed = 1;
 makeAMovie = 1;
 
 
-txt = 'N = '+N+', NV = '+NV+', calA_o='+calA+', att='+att+', B='+B+', load='+loadingType;
-
+%txt = 'N = '+N+', NV = '+NV+', calA_o='+calA+', att='+att+', B='+B+', load='+loadingType;
+txt = 'test';
 figure(13), clf, hold on, box on;
 for seed = startSeed:max_seed
     if (isTestData)
@@ -88,9 +88,11 @@ for seed = startSeed:max_seed
     NCELLS = trajectoryData.NCELLS;
     nv = trajectoryData.nv;
     %NVTOT = sum(nv);
-    L = trajectoryData.L(1,:);
-    Lx = L(1);
-    Ly = L(2);
+    
+    %if L is constant, use the next 3 lines
+    %L = trajectoryData.L(1,:);
+    %Lx = L(1);
+    %Ly = L(2);
 
 
     % show vertices or not
@@ -137,6 +139,12 @@ for seed = startSeed:max_seed
             xpos = trajectoryData.xpos(ff,:);
             ypos = trajectoryData.ypos(ff,:);
             l0 = trajectoryData.l0(ff,:);
+            
+            %if L is not constant, use the next 3 lines
+            L = trajectoryData.L(ff,:);
+            Lx = L(1);
+            Ly = L(2);
+            
             for nn = 1:NCELLS
                 xtmp = xpos{nn};
                 ytmp = ypos{nn};

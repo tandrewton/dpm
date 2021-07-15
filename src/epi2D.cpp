@@ -795,7 +795,7 @@ void epi2D::laserAblate(int numCellsAblated, double sizeRatio, int nsmall, doubl
   zeroMomentum();
 }
 
-void epi2D::isotropicNotchTest(int numCellsToDelete, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP, int maxit = 10) {
+void epi2D::notchTest(int numCellsToDelete, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP, int maxit, std::string loadingType) {
   // select xloc, yloc. delete the nearest cell. scale particle sizes, loop.
   // our proxy for isotropic stretching is to scale the particle sizes down. Inter-vertex distances change,
   int numCellsDeletedPerIt = 1;
@@ -814,39 +814,24 @@ void epi2D::isotropicNotchTest(int numCellsToDelete, double sizeRatio, int nsmal
               << "onto tensile loading loop! \n \n ********************************* \n";
 
     it = 0;
-    while (it < maxit) {
-      // constant true strain rate, isotropic tensile loading
-      tensileLoading(scaleFactor, scaleFactor);
-      dampedNVE2D(forceCall, B, dt0, NT, NPRINTSKIP);
-      it++;
-    }
-  }
-}
+    if (loadingType == "isotropic") {
+      while (it < maxit) {
+        // constant true strain rate, isotropic tensile loading
+        tensileLoading(scaleFactor, scaleFactor);
+        dampedNVE2D(forceCall, B, dt0, NT, NPRINTSKIP);
+        it++;
+      }
+    } else if (loadingType == "uniaxial") {
+      while (it < maxit) {
+        // constant true strain rate, isotropic tensile loading
+        //tensileLoading(1.0, scaleFactor);
+        L[0] *= 1.01;
+        dampedNVE2D(forceCall, B, dt0, NT, NPRINTSKIP);
+        it++;
+      }
 
-void epi2D::uniaxialNotchTest(int numCellsToDelete, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP, int maxit = 10) {
-  // select xloc, yloc. delete the nearest cell. scale particle sizes, loop.
-  int numCellsDeletedPerIt = 1;
-  int it;
-  double xLoc, yLoc;
-  double scaleFactor = 0.98;
-  for (int i = 0; i < numCellsToDelete; i++) {
-    xLoc = (drand48() - 0.5) * L[0];
-    yLoc = (drand48() - 0.5) * L[1];
-
-    laserAblate(numCellsDeletedPerIt, sizeRatio, nsmall, xLoc, yLoc);
-
-    std::cout << "***********************************************\n"
-              << "Ablating a cell! # cells left = " << NCELLS << '\n'
-              << " simclock time = " << simclock << '\n'
-              << "onto tensile loading loop! \n \n ********************************* \n";
-
-    it = 0;
-    while (it < maxit) {
-      // constant true strain rate, tensile loading along x direction (i.e. compression along y)
-      tensileLoading(1.0, scaleFactor);
-      dampedNVE2D(forceCall, B, dt0, NT, NPRINTSKIP);
-      it++;
-    }
+    } else
+      std::cout << "Issue: loadingType not understood\n";
   }
 }
 

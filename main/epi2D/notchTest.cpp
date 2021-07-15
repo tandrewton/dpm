@@ -152,9 +152,9 @@ int main(int argc, char const* argv[]) {
 
   int maxit = 30;
   if (loadingType == 0) {
-    epithelial.uniaxialNotchTest(numCellsToDelete, sizeratio, nsmall, attractiveForceUpdate, B, dt0, NT, NT, maxit);
+    epithelial.notchTest(numCellsToDelete, sizeratio, nsmall, attractiveForceUpdate, B, dt0, NT, NT, maxit, "uniaxial");
   } else if (loadingType == 1) {
-    epithelial.isotropicNotchTest(numCellsToDelete, sizeratio, nsmall, attractiveForceUpdate, B, dt0, NT, NT, maxit);
+    epithelial.notchTest(numCellsToDelete, sizeratio, nsmall, attractiveForceUpdate, B, dt0, NT, NT, maxit, "isotropic");
   } else {
     cout << "loadingType not found. Moving on.\n";
   }

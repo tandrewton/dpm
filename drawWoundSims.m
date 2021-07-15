@@ -3,21 +3,22 @@
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
 %works on cluster to write an avi file, but avi is a terrible format...
-isTestData = true;
+isTestData = false;
 addpath("/Users/AndrewTon/Documents/YalePhD/projects/Jamming/CellSim/cells/bash/seq/")
 %addpath("/home/at965/cells/bash/seq")
 
 %CHANGE THESE PARAMETERS AS NEEDED
 
 runType = "ablate";
-N="96";
+N="192";
 NV="24";
 calA="1.08";
 kl="1.0";
 kb="0";
 att="0.5";
-B="0.5";
-Dr0="1.0";
+B="1.0";
+Dr0="0.1";
+NT="10000";
 
 %PC directory
 pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
@@ -50,7 +51,7 @@ for seed = startSeed:max_seed
         stressstr = pc_dir+'/stress.test';
     else
         run_name =runType+"_N"+N+"_NV"+NV+"_calA0"+calA+"_kl"+kl+...
-            "_att"+att+"_B"+B+"_Dr0"+Dr0;     
+            "_att"+att+"_B"+B+"_Dr0"+Dr0+"_NT"+NT;     
         pipeline_dir =  subdir_pipeline + run_name + "/";
         output_dir = subdir_output + run_name + "/";
         mkdir(pipeline_dir)
@@ -88,9 +89,11 @@ for seed = startSeed:max_seed
     NCELLS = trajectoryData.NCELLS;
     nv = trajectoryData.nv;
     %NVTOT = sum(nv);
-    L = trajectoryData.L(1,:);
-    Lx = L(1);
-    Ly = L(2);
+    
+    %if L is constant, use the next 3 lines
+    %L = trajectoryData.L(1,:);
+    %Lx = L(1);
+    %Ly = L(2);
 
 
     % show vertices or not
@@ -138,6 +141,11 @@ for seed = startSeed:max_seed
             ypos = trajectoryData.ypos(ff,:);
             l0 = trajectoryData.l0(ff,:);
             psi = trajectoryData.psi(ff,:);
+            
+            %if L is not constant, use the next 3 lines
+            %L = trajectoryData.L(ff,:);
+            %Lx = L(1);
+            %Ly = L(2);
             for nn = 1:NCELLS
                 xtmp = xpos{nn};
                 ytmp = ypos{nn};
