@@ -126,7 +126,7 @@ class epi2D : public dpm {
   void isotropicNotchTest(int numCellsToDelete, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP, int maxit);
   void uniaxialNotchTest(int numCellsToDelete, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP, int maxit);
   void orientDirector(int ci, double xLoc, double yLoc);
-  void swapOverlappingDirectors();
+  void deflectOverlappingDirectors();
 
   // polymorphism: write configuration information to file
   void printConfiguration2D();

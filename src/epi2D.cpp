@@ -310,9 +310,9 @@ void epi2D::activeAttractiveForceUpdate() {
   double xi, yi, vi, nvtmp, dx, dy, cx, cy, r1, r2, grv,
       v0tmp, vmin, v0, Ds, rnorm, ux, uy, rix, riy;
 
-  v0 = 0.05;         // max velocity
-  vmin = 1e-1 * v0;  // min velocity
-  Ds = 0.1;          // active velocity spread parameter
+  v0 = 0.4;          // max velocity
+  vmin = 1e-2 * v0;  // min velocity
+  Ds = 0.2;          // active velocity spread parameter
 
   std::vector<double> DrList(NCELLS, Dr0);
 
@@ -405,7 +405,7 @@ void epi2D::activeAttractiveForceUpdate() {
   psiStd /= NCELLS;
   psiStd -= psiMean * psiMean;
   psiStd = sqrt(psiStd);
-  swapOverlappingDirectors();
+  deflectOverlappingDirectors();
 }
 
 /******************************
@@ -888,7 +888,7 @@ void epi2D::orientDirector(int ci, double xLoc, double yLoc) {
   psi.at(ci) = theta;
 }
 
-void epi2D::swapOverlappingDirectors() {
+void epi2D::deflectOverlappingDirectors() {
   // if any two cells are overlapping (according to cij), they are candidates to have their directors swapped in the same timestep
   // directors will be swapped if they are approximately 180 degrees out of phase AND pointed towards each other
   double dot_product = 0.0, dist1_sq, dist2_sq, psi_temp;
@@ -896,6 +896,7 @@ void epi2D::swapOverlappingDirectors() {
   double rix, riy, rjx, rjy, nix, niy, njx, njy;
   //i suspect maybe have a bug about psi when a cell crosses pbc? haven't tested this, no real reason to suspect
 
+  double angle_cutoff = -1.0 / sqrt(2.0);
   // compute directors for all cells
   vector<vector<double>> director(NCELLS, vector<double>(2, 0.0));
   for (int ci = 0; ci < NCELLS; ci++) {
@@ -913,7 +914,7 @@ void epi2D::swapOverlappingDirectors() {
         njx = director[cj][0];
         njy = director[cj][1];
         dot_product = nix * njx + niy * njy;
-        if (dot_product <= -0.8 && dot_product >= -1) {
+        if (dot_product <= angle_cutoff && dot_product >= -1) {
           //compute center of mass of cells i and j
           com2D(ci, rix, riy);
           com2D(cj, rjx, rjy);
@@ -923,17 +924,21 @@ void epi2D::swapOverlappingDirectors() {
           dist2_sq = pow(rix - nix - rjx + njx, 2) + pow(riy - niy - rjy + njy, 2);
 
           if (dist1_sq < dist2_sq) {
-            //then current directors point towards each other, so swap them
-            psi_temp = psi[ci];
+            //then current directors point towards each other, so deflect them
+            /*psi_temp = psi[ci];
             psi[ci] = psi[cj];
-            psi[cj] = psi_temp;
+            psi[cj] = psi_temp;*/
+            psi[ci] += PI + (2 * drand48() - 1) * PI / 4;
+            psi[ci] -= 2 * PI * round(psi[ci] / (2 * PI));
+            psi[cj] += PI + (2 * drand48() - 1) * PI / 4;
+            psi[cj] -= 2 * PI * round(psi[cj] / (2 * PI));
             counter++;  //indicate that a swap has occurred for cell ci
           }
         }
       }
     }
     if (counter > 1) {
-      std::cout << "swapped cell # " << ci << " " << counter << " times! Shouldn't happen often!\n";
+      std::cout << "deflected cell # " << ci << " " << counter << " times in the same timestep!\n";
     }
   }
 }
