@@ -140,8 +140,8 @@ int main(int argc, char const* argv[]) {
 
   // LASER ABLATION SCHEME
   double xLoc = 0.0, yLoc = 0.0;
-  //int numCellsToAblate = 10;
-  int numCellsToAblate = 4;
+  int numCellsToAblate = 10;
+  //int numCellsToAblate = 4;
   epithelial.laserAblate(numCellsToAblate, sizeratio, nsmall, xLoc, yLoc);
 
   cout << "numCells = " << epithelial.getNCELLS() << '\n';
