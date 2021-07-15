@@ -117,7 +117,7 @@ for seed = startSeed:max_seed
         moviestr = output_dir + runType+fileheader+'seed_'+seed+'.mp4';
         vobj = VideoWriter(moviestr,'MPEG-4');
 
-        vobj.FrameRate = 15;
+        vobj.FrameRate = 5;
         open(vobj);
     %end
 
@@ -151,9 +151,12 @@ for seed = startSeed:max_seed
                 cx = mean(xtmp);
                 cy = mean(ytmp);
                 %plot arrows representing directors
-                quiver(cx, cy, costmp, sintmp, 'r', 'LineWidth', 2,...
-                    'MaxHeadSize', 2);
-                
+                for xx = -1:1
+                    for yy = -1:1
+                        quiver(cx + xx*Lx, cy + yy*Ly, costmp, sintmp,...
+                            'r', 'LineWidth', 2, 'MaxHeadSize', 2);
+                    end
+                end
                 if showverts == 1
                     for vv = 1:nv(ff,nn)
                         xplot = xtmp(vv) - 0.5*l0tmp;
