@@ -9,7 +9,7 @@
 //
 // Compilation command:
 // g++ -O3 --std=c++11 -I src main/epi2D/notchTest.cpp src/dpm.cpp src/epi2D.cpp -o main/epi2D/notchTest.o
-// ./main/epi2D/notchTest.o 12 20 1.08 0.7 0.9 1.0 0.5 0.5 1.0 1 100 pos.test energy.test stress.test uniaxial
+// ./main/epi2D/notchTest.o 12 20 1.08 0.7 0.9 1.0 0.5 0.5 1.0 1 1000 pos.test energy.test stress.test uniaxial
 //
 //
 // Parameter input list
@@ -152,9 +152,9 @@ int main(int argc, char const* argv[]) {
 
   int maxit = 30;
   if (loadingType == 0) {
-    epithelial.notchTest(numCellsToDelete, sizeratio, nsmall, attractiveForceUpdate, B, dt0, NT, NT, maxit, "uniaxial");
+    epithelial.notchTest(numCellsToDelete, boxLengthScale, sizeratio, nsmall, attractiveForceUpdate, B, dt0, NT, NT, maxit, "uniaxial");
   } else if (loadingType == 1) {
-    epithelial.notchTest(numCellsToDelete, sizeratio, nsmall, attractiveForceUpdate, B, dt0, NT, NT, maxit, "isotropic");
+    epithelial.notchTest(numCellsToDelete, boxLengthScale, sizeratio, nsmall, attractiveForceUpdate, B, dt0, NT, NT, maxit, "isotropic");
   } else {
     cout << "loadingType not found. Moving on.\n";
   }

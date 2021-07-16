@@ -117,13 +117,14 @@ class epi2D : public dpm {
   void vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0);
   void tensileLoading(double scaleFactorX, double scaleFactorY);
   void zeroMomentum();
+  void scaleBoxSize(double boxLengthScale, double scaleFactorX, double scaleFactorY);
   void dampedNVE2D(dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP);
 
   int getIndexOfCellLocatedHere(double xLoc, double yLoc);
   void deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc);
   void laserAblate(int numCellsAblated, double sizeRatio, int nsmall, double xLoc, double yLoc);
 
-  void notchTest(int numCellsToDelete, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP, int maxit = 10, std::string loadingType = "uniaxial");
+  void notchTest(int numCellsToDelete, double boxLengthScale, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP, int maxit = 10, std::string loadingType = "uniaxial");
   void orientDirector(int ci, double xLoc, double yLoc);
   void deflectOverlappingDirectors();
 

@@ -285,7 +285,6 @@ void epi2D::vertexAttractiveForces2D_2() {
       pi = list[pi];
     }
   }
-
   // normalize stress by box area, make dimensionless
   stress[0] *= (rho0 / (L[0] * L[1]));
   stress[1] *= (rho0 / (L[0] * L[1]));
@@ -486,19 +485,19 @@ void epi2D::tensileLoading(double scaleFactorX, double scaleFactorY) {
     a0[ci] *= totalScaleFactor;
 
     // first global index for ci
-    gi = szList.at(ci);
+    gi = szList[ci];
 
     // compute cell center of mass
     xi = x[NDIM * gi];
     yi = x[NDIM * gi + 1];
     cx = xi;
     cy = yi;
-    for (vi = 1; vi < nv.at(ci); vi++) {
-      dx = x.at(NDIM * (gi + vi)) - xi;
+    for (vi = 1; vi < nv[ci]; vi++) {
+      dx = x[NDIM * (gi + vi)] - xi;
       if (pbc[0])
         dx -= L[0] * round(dx / L[0]);
 
-      dy = x.at(NDIM * (gi + vi) + 1) - yi;
+      dy = x[NDIM * (gi + vi) + 1] - yi;
       if (pbc[1])
         dy -= L[1] * round(dy / L[1]);
 
@@ -508,10 +507,10 @@ void epi2D::tensileLoading(double scaleFactorX, double scaleFactorY) {
       cx += xi;
       cy += yi;
     }
-    cx /= nv.at(ci);
-    cy /= nv.at(ci);
+    cx /= nv[ci];
+    cy /= nv[ci];
 
-    for (vi = 0; vi < nv.at(ci); vi++) {
+    for (vi = 0; vi < nv[ci]; vi++) {
       // x and y inds
       xind = NDIM * (gi + vi);
       yind = xind + 1;
@@ -558,7 +557,6 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, int NT, int NP
       else if (x[i] < 0 && pbc[i % NDIM])
         x[i] += L[i % NDIM];
     }
-
     // FORCE UPDATE
     std::vector<double> F_old = F;
     CALL_MEMBER_FN(*this, forceCall)
@@ -638,28 +636,31 @@ void epi2D::zeroMomentum() {
   }
 }
 
-int epi2D::getIndexOfCellLocatedHere(double xLoc, double yLoc) {
-  // return cell index of cell nearest specified (xLoc,yLoc) coordinate.
-  // loop through global indices, compute all centers of mass (stored in
-  // simulation as unbounded coordinates) distance (squared) of centers of mass
-  // to origin
-  vector<double> distanceSq = vector<double>(NCELLS, 1e7);
-  double dx = 0.0, dy = 0.0;
-  for (int ci = 0; ci < NCELLS; ci++) {
-    // first global index for ci
-    int gi = szList.at(ci);
-    // compute cell center of mass
+void epi2D::scaleBoxSize(double boxLengthScale, double scaleFactorX, double scaleFactorY) {
+  // scale box size while accounting for periodic boundary conditions
+  // takes in the original coordinates, alters the box length, and updates the coordinates according to the new boundary conditions
+  // local variables
+  int gi, ci, vi, xind, yind;
+  double xi, yi, cx, cy, dx, dy;
+  double newLx = scaleFactorX * L[0];
+  double newLy = scaleFactorY * L[1];
 
-    double xi = x[NDIM * gi];
-    double yi = x[NDIM * gi + 1];
-    double cx = xi;
-    double cy = yi;
-    for (int vi = 1; vi < nv[ci]; vi++) {
-      dx = x.at(NDIM * (gi + vi)) - xi;
+  // loop over cells, scale
+  for (ci = 0; ci < NCELLS; ci++) {
+    // first global index for ci
+    gi = szList[ci];
+
+    // compute cell center of mass
+    xi = x[NDIM * gi];
+    yi = x[NDIM * gi + 1];
+    cx = xi;
+    cy = yi;
+    for (vi = 1; vi < nv[ci]; vi++) {
+      dx = x[NDIM * (gi + vi)] - xi;
       if (pbc[0])
         dx -= L[0] * round(dx / L[0]);
 
-      dy = x.at(NDIM * (gi + vi) + 1) - yi;
+      dy = x[NDIM * (gi + vi) + 1] - yi;
       if (pbc[1])
         dy -= L[1] * round(dy / L[1]);
 
@@ -669,13 +670,72 @@ int epi2D::getIndexOfCellLocatedHere(double xLoc, double yLoc) {
       cx += xi;
       cy += yi;
     }
-    cx /= nv.at(ci);
-    cy /= nv.at(ci);
+    cx /= nv[ci];
+    cy /= nv[ci];
+
+    for (vi = 0; vi < nv[ci]; vi++) {
+      // x and y inds
+      xind = NDIM * (gi + vi);
+      yind = xind + 1;
+
+      // closest relative position
+      dx = x[xind] - cx;
+      if (pbc[0])
+        dx -= L[0] * round(dx / L[0]);
+
+      dy = x[yind] - cy;
+      if (pbc[1])
+        dy -= L[1] * round(dy / L[1]);
+
+      x[xind] = cx + dx;
+      x[yind] = cy + dy;
+      x[xind] -= newLx * round(x[xind] / newLx);
+      x[yind] -= newLy * round(x[yind] / newLy);
+    }
+  }
+  L[0] = newLx;
+  L[1] = newLy;
+  initializeNeighborLinkedList2D(boxLengthScale);
+}
+
+int epi2D::getIndexOfCellLocatedHere(double xLoc, double yLoc) {
+  // return cell index of cell nearest specified (xLoc,yLoc) coordinate.
+  // loop through global indices, compute all centers of mass (stored in
+  // simulation as unbounded coordinates) distance (squared) of centers of mass
+  // to origin
+  vector<double> distanceSq = vector<double>(NCELLS, 1e7);
+  double dx = 0.0, dy = 0.0;
+  for (int ci = 0; ci < NCELLS; ci++) {
+    // first global index for ci
+    int gi = szList[ci];
+    // compute cell center of mass
+
+    double xi = x[NDIM * gi];
+    double yi = x[NDIM * gi + 1];
+    double cx = xi;
+    double cy = yi;
+    for (int vi = 1; vi < nv[ci]; vi++) {
+      dx = x[NDIM * (gi + vi)] - xi;
+      if (pbc[0])
+        dx -= L[0] * round(dx / L[0]);
+
+      dy = x[NDIM * (gi + vi) + 1] - yi;
+      if (pbc[1])
+        dy -= L[1] * round(dy / L[1]);
+
+      xi += dx;
+      yi += dy;
+
+      cx += xi;
+      cy += yi;
+    }
+    cx /= nv[ci];
+    cy /= nv[ci];
 
     // cx, cy use coordinates such that bottom left corner of sim box = origin
 
     distanceSq[ci] =
-        pow(cx - (L.at(0) / 2 + xLoc), 2) + pow(cy - (L.at(1) / 2 + yLoc), 2);
+        pow(cx - (L[0] / 2 + xLoc), 2) + pow(cy - (L[1] / 2 + yLoc), 2);
   }
   // compute argmin
   int argmin =
@@ -774,15 +834,15 @@ void epi2D::deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc) {
   ip1 = vector<int>(NVTOT, 0);
 
   for (int ci = 0; ci < NCELLS; ci++) {
-    for (int vi = 0; vi < nv.at(ci); vi++) {
+    for (int vi = 0; vi < nv[ci]; vi++) {
       // wrap local indices
-      vim1 = (vi - 1 + nv.at(ci)) % nv.at(ci);
-      vip1 = (vi + 1) % nv.at(ci);
+      vim1 = (vi - 1 + nv[ci]) % nv[ci];
+      vip1 = (vi + 1) % nv[ci];
 
       // get global wrapped indices
       int gi = gindex(ci, vi);
-      im1.at(gi) = gindex(ci, vim1);
-      ip1.at(gi) = gindex(ci, vip1);
+      im1[gi] = gindex(ci, vim1);
+      ip1[gi] = gindex(ci, vip1);
     }
   }
 }
@@ -795,7 +855,7 @@ void epi2D::laserAblate(int numCellsAblated, double sizeRatio, int nsmall, doubl
   zeroMomentum();
 }
 
-void epi2D::notchTest(int numCellsToDelete, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP, int maxit, std::string loadingType) {
+void epi2D::notchTest(int numCellsToDelete, double boxLengthScale, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP, int maxit, std::string loadingType) {
   // select xloc, yloc. delete the nearest cell. scale particle sizes, loop.
   // our proxy for isotropic stretching is to scale the particle sizes down. Inter-vertex distances change,
   int numCellsDeletedPerIt = 1;
@@ -823,11 +883,13 @@ void epi2D::notchTest(int numCellsToDelete, double sizeRatio, int nsmall, dpmMem
       }
     } else if (loadingType == "uniaxial") {
       while (it < maxit) {
+        cout << "it = " << it << '\n';
         // constant true strain rate, isotropic tensile loading
         //tensileLoading(1.0, scaleFactor);
-        L[0] *= 1.01;
+        scaleBoxSize(boxLengthScale, 1.01, 1.0);
         dampedNVE2D(forceCall, B, dt0, NT, NPRINTSKIP);
         it++;
+        cout << "onto it loop " << it << '\n';
       }
 
     } else
@@ -841,7 +903,7 @@ void epi2D::orientDirector(int ci, double xLoc, double yLoc) {
   double dx, dy;
 
   // compute center of mass of cell ci
-  int gi = szList.at(ci);
+  int gi = szList[ci];
   // compute cell center of mass
 
   double xi = x[NDIM * gi];
@@ -849,11 +911,11 @@ void epi2D::orientDirector(int ci, double xLoc, double yLoc) {
   double cx = xi;
   double cy = yi;
   for (int vi = 1; vi < nv[ci]; vi++) {
-    dx = x.at(NDIM * (gi + vi)) - xi;
+    dx = x[NDIM * (gi + vi)] - xi;
     if (pbc[0])
       dx -= L[0] * round(dx / L[0]);
 
-    dy = x.at(NDIM * (gi + vi) + 1) - yi;
+    dy = x[NDIM * (gi + vi) + 1] - yi;
     if (pbc[1])
       dy -= L[1] * round(dy / L[1]);
 
@@ -863,14 +925,14 @@ void epi2D::orientDirector(int ci, double xLoc, double yLoc) {
     cx += xi;
     cy += yi;
   }
-  cx /= nv.at(ci);
-  cy /= nv.at(ci);
+  cx /= nv[ci];
+  cy /= nv[ci];
 
   // compute angle needed for psi to point towards (xLoc,yLoc) - for now, just towards origin
   double theta = atan2(cy - 0.5 * L[1], cx - 0.5 * L[0]) + PI;
   theta -= 2 * PI * round(theta / (2 * PI));
 
-  psi.at(ci) = theta;
+  psi[ci] = theta;
 }
 
 void epi2D::deflectOverlappingDirectors() {
@@ -958,8 +1020,8 @@ void epi2D::printConfiguration2D() {
     cout << "** In printConfiguration2D, printing particle positions to file..." << endl;
 
   // save box sizes
-  Lx = L.at(0);
-  Ly = L.at(1);
+  Lx = L[0];
+  Ly = L[1];
 
   // print information starting information
   posout << setw(w) << left << "NEWFR"
@@ -975,9 +1037,9 @@ void epi2D::printConfiguration2D() {
 
   // print stress info
   posout << setw(w) << left << "STRSS";
-  posout << setw(wnum) << setprecision(pnum) << left << stress.at(0);
-  posout << setw(wnum) << setprecision(pnum) << left << stress.at(1);
-  posout << setw(wnum) << setprecision(pnum) << left << stress.at(2);
+  posout << setw(wnum) << setprecision(pnum) << left << stress[0];
+  posout << setw(wnum) << setprecision(pnum) << left << stress[1];
+  posout << setw(wnum) << setprecision(pnum) << left << stress[2];
   posout << endl;
 
   // print coordinate for rest of the cells
@@ -1002,19 +1064,19 @@ void epi2D::printConfiguration2D() {
 
     // cell information
     posout << setw(w) << left << "CINFO";
-    posout << setw(w) << left << nv.at(ci);
+    posout << setw(w) << left << nv[ci];
     posout << setw(w) << left << zc;
     posout << setw(w) << left << zv;
-    posout << setw(wnum) << left << a0.at(ci);
+    posout << setw(wnum) << left << a0[ci];
     posout << setw(wnum) << left << area(ci);
     posout << setw(wnum) << left << perimeter(ci);
-    posout << setw(wnum) << left << psi.at(ci);
+    posout << setw(wnum) << left << psi[ci];
     posout << endl;
 
     // get initial vertex positions
     gi = gindex(ci, 0);
-    xi = x.at(NDIM * gi);
-    yi = x.at(NDIM * gi + 1);
+    xi = x[NDIM * gi];
+    yi = x[NDIM * gi + 1];
 
     // place back in box center
     xi = fmod(xi, Lx);
@@ -1027,23 +1089,23 @@ void epi2D::printConfiguration2D() {
     // output initial vertex information
     posout << setw(wnum) << setprecision(pnum) << right << xi;
     posout << setw(wnum) << setprecision(pnum) << right << yi;
-    posout << setw(wnum) << setprecision(pnum) << right << r.at(gi);
-    posout << setw(wnum) << setprecision(pnum) << right << l0.at(gi);
-    posout << setw(wnum) << setprecision(pnum) << right << t0.at(gi);
+    posout << setw(wnum) << setprecision(pnum) << right << r[gi];
+    posout << setw(wnum) << setprecision(pnum) << right << l0[gi];
+    posout << setw(wnum) << setprecision(pnum) << right << t0[gi];
     posout << endl;
 
     // vertex information for next vertices
-    for (vi = 1; vi < nv.at(ci); vi++) {
+    for (vi = 1; vi < nv[ci]; vi++) {
       // get global vertex index for next vertex
       gi++;
 
       // get next vertex positions
-      dx = x.at(NDIM * gi) - xi;
+      dx = x[NDIM * gi] - xi;
       if (pbc[0])
         dx -= Lx * round(dx / Lx);
       xi += dx;
 
-      dy = x.at(NDIM * gi + 1) - yi;
+      dy = x[NDIM * gi + 1] - yi;
       if (pbc[1])
         dy -= Ly * round(dy / Ly);
       yi += dy;
@@ -1056,9 +1118,9 @@ void epi2D::printConfiguration2D() {
       // output vertex information
       posout << setw(wnum) << setprecision(pnum) << right << xi;
       posout << setw(wnum) << setprecision(pnum) << right << yi;
-      posout << setw(wnum) << setprecision(pnum) << right << r.at(gi);
-      posout << setw(wnum) << setprecision(pnum) << right << l0.at(gi);
-      posout << setw(wnum) << setprecision(pnum) << right << t0.at(gi);
+      posout << setw(wnum) << setprecision(pnum) << right << r[gi];
+      posout << setw(wnum) << setprecision(pnum) << right << l0[gi];
+      posout << setw(wnum) << setprecision(pnum) << right << t0[gi];
       posout << endl;
     }
   }
@@ -1066,4 +1128,6 @@ void epi2D::printConfiguration2D() {
   // print end frame
   posout << setw(w) << left << "ENDFR"
          << " " << endl;
+
+  cout << "leaving printPos\n";
 }
