@@ -404,7 +404,7 @@ void epi2D::activeAttractiveForceUpdate() {
   psiStd /= NCELLS;
   psiStd -= psiMean * psiMean;
   psiStd = sqrt(psiStd);
-  deflectOverlappingDirectors();
+  //deflectOverlappingDirectors();
 }
 
 /******************************
@@ -687,8 +687,23 @@ void epi2D::scaleBoxSize(double boxLengthScale, double scaleFactorX, double scal
       if (pbc[1])
         dy -= L[1] * round(dy / L[1]);
 
-      x[xind] = cx + dx;
-      x[yind] = cy + dy;
+      // compute vertex positions relative to center of box
+      x[xind] = (cx - L[0] / 2 + dx);
+      x[yind] = (cy - L[1] / 2 + dy);
+
+      // wrap coordinates relative to center of box
+      x[xind] -= L[0] * round(x[xind] / L[0]);
+      x[yind] -= L[1] * round(x[yind] / L[1]);
+
+      // scale coordinates relative to center of box
+      x[xind] *= scaleFactorX;
+      x[yind] *= scaleFactorY;
+
+      // put coordinates back to bottom left origin convention
+      x[xind] += L[0] / 2;
+      x[yind] += L[1] / 2;
+
+      // wrap coordinates relative to bottom left corner, with new scaled box lengths
       x[xind] -= newLx * round(x[xind] / newLx);
       x[yind] -= newLy * round(x[yind] / newLy);
     }

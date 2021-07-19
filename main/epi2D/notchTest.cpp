@@ -9,7 +9,8 @@
 //
 // Compilation command:
 // g++ -O3 --std=c++11 -I src main/epi2D/notchTest.cpp src/dpm.cpp src/epi2D.cpp -o main/epi2D/notchTest.o
-// ./main/epi2D/notchTest.o 12 20 1.08 0.7 0.9 1.0 0.5 0.5 1.0 1 1000 pos.test energy.test stress.test uniaxial
+// ./main/epi2D/notchTest.o 12 20 1.08 0.7 0.9 1.0 0.5 0.1 1.0 1 100 pos.test energy.test stress.test uniaxial
+// ./main/epi2D/notchTest.o 24 20 1.08 0.7 0.9 1.0 0.5 0.1 1.0 1 100 pos.test energy.test stress.test uniaxial
 //
 //
 // Parameter input list
@@ -25,7 +26,7 @@
 // 9. Dr0:          rotational diffusion constant for protrusion activity (unused for notchTest code)
 // 10. seed: 			  seed for random number generator
 // 11. time:        amount of time (tau) to simulate
-// 12. positionFile: 	string of path to output file with position/configuration data'
+// 12. positionFile:string of path to output file with position/configuration data'
 // 13. energyFile:  string of path to output file with energy data
 // 14. stressFile:  string of path to output file with stress data
 // 15. loadingType: string representing whether to conduct a uniaxial loading or isotropic loading experiment
@@ -150,7 +151,8 @@ int main(int argc, char const* argv[]) {
   //ELASTIC SHEET FRACTURE SCHEME (introduce defect + tensile loading)
   int numCellsToDelete = 1;
 
-  int maxit = 30;
+  //int maxit = 30;
+  int maxit = 60;  // should enter this as a parameter, like LxTargetFrac, LyTargetFrac?
   if (loadingType == 0) {
     epithelial.notchTest(numCellsToDelete, boxLengthScale, sizeratio, nsmall, attractiveForceUpdate, B, dt0, NT, NT, maxit, "uniaxial");
   } else if (loadingType == 1) {
