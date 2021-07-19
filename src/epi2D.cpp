@@ -573,48 +573,50 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, int NT, int NP
     simclock += dt;
 
     // print to console and file
-    if (t % NPRINTSKIP == 0) {
-      // compute kinetic energy
-      K = vertexKineticEnergy();
+    if (NPRINTSKIP != 0) {
+      if (t % NPRINTSKIP == 0) {
+        // compute kinetic energy
+        K = vertexKineticEnergy();
 
-      // print to console
-      cout << endl
-           << endl;
-      cout << "===============================" << endl;
-      cout << "	D P M  						" << endl;
-      cout << " 			 					" << endl;
-      cout << "		N V E (DAMPED) 					" << endl;
-      cout << "===============================" << endl;
-      cout << endl;
-      cout << "	** t / NT	= " << t << " / " << NT << endl;
-      cout << "	** U 		= " << setprecision(12) << U << endl;
-      cout << "	** K 		= " << setprecision(12) << K << endl;
-      cout << "	** E 		= " << setprecision(12) << U + K << endl;
+        // print to console
+        cout << endl
+             << endl;
+        cout << "===============================" << endl;
+        cout << "	D P M  						" << endl;
+        cout << " 			 					" << endl;
+        cout << "		N V E (DAMPED) 					" << endl;
+        cout << "===============================" << endl;
+        cout << endl;
+        cout << "	** t / NT	= " << t << " / " << NT << endl;
+        cout << "	** U 		= " << setprecision(12) << U << endl;
+        cout << "	** K 		= " << setprecision(12) << K << endl;
+        cout << "	** E 		= " << setprecision(12) << U + K << endl;
 
-      if (enout.is_open()) {
-        // print to energy file
-        cout << "** printing energy" << endl;
-        enout << setw(w) << left << t;
-        enout << setw(wnum) << left << simclock;
-        enout << setw(wnum) << setprecision(12) << U;
-        enout << setw(wnum) << setprecision(12) << K;
-        enout << endl;
+        if (enout.is_open()) {
+          // print to energy file
+          cout << "** printing energy" << endl;
+          enout << setw(w) << left << t;
+          enout << setw(wnum) << left << simclock;
+          enout << setw(wnum) << setprecision(12) << U;
+          enout << setw(wnum) << setprecision(12) << K;
+          enout << endl;
+        }
+
+        if (stressout.is_open()) {
+          // print to stress file
+          cout << "** printing stress" << endl;
+          stressout << setw(w) << left << t;
+          stressout << setw(wnum) << left << simclock;
+          stressout << setw(wnum) << stress[0];
+          stressout << setw(wnum) << stress[1];
+          stressout << setw(wnum) << stress[2];
+          stressout << endl;
+        }
+
+        // print to configuration only if position file is open
+        if (posout.is_open())
+          printConfiguration2D();
       }
-
-      if (stressout.is_open()) {
-        // print to stress file
-        cout << "** printing stress" << endl;
-        stressout << setw(w) << left << t;
-        stressout << setw(wnum) << left << simclock;
-        stressout << setw(wnum) << stress[0];
-        stressout << setw(wnum) << stress[1];
-        stressout << setw(wnum) << stress[2];
-        stressout << endl;
-      }
-
-      // print to configuration only if position file is open
-      if (posout.is_open())
-        printConfiguration2D();
     }
   }
 }
