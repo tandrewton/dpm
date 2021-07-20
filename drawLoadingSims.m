@@ -8,7 +8,6 @@ addpath("/Users/AndrewTon/Documents/YalePhD/projects/Jamming/CellSim/cells/bash/
 
 %CHANGE THESE PARAMETERS AS NEEDED
 runType = "notch";
-%runType = "ablate";
 N="96";
 NV="24";
 calA="1.08";
@@ -18,6 +17,7 @@ att="0.5";
 B="0.5";
 Dr0="0.0";
 loadingType="isotropic";
+FSKIP = 6; %# frames skipped to lower sampling freq
 
 %PC directory
 pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
@@ -104,15 +104,9 @@ for seed = startSeed:max_seed
     %cellCLR = jet(NUQ);
 
     % get frames to plot
-    if showverts == 0
-        FSTART = 1;
-        FSTEP = 1;
-        FEND = NFRAMES;
-    else
-        FSTART = 1;
-        FSTEP = 1;
-        FEND = NFRAMES;
-    end
+    FSTART = 1;
+    FSTEP = FSKIP;
+    FEND = NFRAMES;
 
     if makeAMovie == 1
        
@@ -144,6 +138,10 @@ for seed = startSeed:max_seed
             L = trajectoryData.L(ff,:);
             Lx = L(1);
             Ly = L(2);
+            
+            %idea: to keep the box size constant visually,
+            % just store Lx0, Ly0. Every frame, compute delta = Lx(new) - Lx(old),
+            % Ly(new) - Ly(old). Scale particle sizes by (1-delta). 
             
             for nn = 1:NCELLS
                 xtmp = xpos{nn};
