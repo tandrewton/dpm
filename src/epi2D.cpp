@@ -318,28 +318,7 @@ void epi2D::activeAttractiveForceUpdate() {
   for (int gi = 0; gi < NVTOT; gi++) {
     if (ci < NCELLS) {
       if (gi == szList[ci]) {
-        nvtmp = nv[ci];
-
-        // compute cell center of mass
-        xi = x[NDIM * gi];
-        yi = x[NDIM * gi + 1];
-        cx = xi;
-        cy = yi;
-        for (vi = 1; vi < nvtmp; vi++) {
-          dx = x[NDIM * (gi + vi)] - xi;
-          dx -= L[0] * round(dx / L[0]);
-
-          dy = x[NDIM * (gi + vi) + 1] - yi;
-          dy -= L[1] * round(dy / L[1]);
-
-          xi += dx;
-          yi += dy;
-
-          cx += xi;
-          cy += yi;
-        }
-        cx /= nvtmp;
-        cy /= nvtmp;
+        com2D(ci, cx, cy);
 
         r1 = drand48();
         r2 = drand48();
@@ -347,6 +326,7 @@ void epi2D::activeAttractiveForceUpdate() {
 
         //update director
         psi[ci] += sqrt(dt * 2.0 * DrList[ci]) * grv;
+        psi[ci] -= 2 * PI * round(psi[ci] / (2 * PI));
 
         // add to mean and std dev of directors
         psiMean += psi[ci];
@@ -382,6 +362,8 @@ void epi2D::activeAttractiveForceUpdate() {
     // get coordinates relative to center of mass
     rix = x[NDIM * gi] - cx;
     riy = x[NDIM * gi + 1] - cy;
+    rix -= L[0] * round(rix / L[0]);
+    riy -= L[1] * round(riy / L[1]);
 
     // get angular distance from psi
     psitmp = atan2(riy, rix);
@@ -404,6 +386,7 @@ void epi2D::activeAttractiveForceUpdate() {
   psiStd /= NCELLS;
   psiStd -= psiMean * psiMean;
   psiStd = sqrt(psiStd);
+  //cout << "psiMean, psiStd = " << psiMean << '\t' << psiStd << '\n';
   //deflectOverlappingDirectors();
 }
 
@@ -487,28 +470,7 @@ void epi2D::tensileLoading(double scaleFactorX, double scaleFactorY) {
     // first global index for ci
     gi = szList[ci];
 
-    // compute cell center of mass
-    xi = x[NDIM * gi];
-    yi = x[NDIM * gi + 1];
-    cx = xi;
-    cy = yi;
-    for (vi = 1; vi < nv[ci]; vi++) {
-      dx = x[NDIM * (gi + vi)] - xi;
-      if (pbc[0])
-        dx -= L[0] * round(dx / L[0]);
-
-      dy = x[NDIM * (gi + vi) + 1] - yi;
-      if (pbc[1])
-        dy -= L[1] * round(dy / L[1]);
-
-      xi += dx;
-      yi += dy;
-
-      cx += xi;
-      cy += yi;
-    }
-    cx /= nv[ci];
-    cy /= nv[ci];
+    com2D(ci, cx, cy);
 
     for (vi = 0; vi < nv[ci]; vi++) {
       // x and y inds
@@ -652,28 +614,7 @@ void epi2D::scaleBoxSize(double boxLengthScale, double scaleFactorX, double scal
     // first global index for ci
     gi = szList[ci];
 
-    // compute cell center of mass
-    xi = x[NDIM * gi];
-    yi = x[NDIM * gi + 1];
-    cx = xi;
-    cy = yi;
-    for (vi = 1; vi < nv[ci]; vi++) {
-      dx = x[NDIM * (gi + vi)] - xi;
-      if (pbc[0])
-        dx -= L[0] * round(dx / L[0]);
-
-      dy = x[NDIM * (gi + vi) + 1] - yi;
-      if (pbc[1])
-        dy -= L[1] * round(dy / L[1]);
-
-      xi += dx;
-      yi += dy;
-
-      cx += xi;
-      cy += yi;
-    }
-    cx /= nv[ci];
-    cy /= nv[ci];
+    com2D(ci, cx, cy);
 
     for (vi = 0; vi < nv[ci]; vi++) {
       // x and y inds
@@ -721,35 +662,12 @@ int epi2D::getIndexOfCellLocatedHere(double xLoc, double yLoc) {
   // simulation as unbounded coordinates) distance (squared) of centers of mass
   // to origin
   vector<double> distanceSq = vector<double>(NCELLS, 1e7);
-  double dx = 0.0, dy = 0.0;
+  double dx = 0.0, dy = 0.0, cx, cy;
   for (int ci = 0; ci < NCELLS; ci++) {
     // first global index for ci
     int gi = szList[ci];
-    // compute cell center of mass
 
-    double xi = x[NDIM * gi];
-    double yi = x[NDIM * gi + 1];
-    double cx = xi;
-    double cy = yi;
-    for (int vi = 1; vi < nv[ci]; vi++) {
-      dx = x[NDIM * (gi + vi)] - xi;
-      if (pbc[0])
-        dx -= L[0] * round(dx / L[0]);
-
-      dy = x[NDIM * (gi + vi) + 1] - yi;
-      if (pbc[1])
-        dy -= L[1] * round(dy / L[1]);
-
-      xi += dx;
-      yi += dy;
-
-      cx += xi;
-      cy += yi;
-    }
-    cx /= nv[ci];
-    cy /= nv[ci];
-
-    // cx, cy use coordinates such that bottom left corner of sim box = origin
+    com2D(ci, cx, cy);  // cx, cy use coordinates such that bottom left corner of sim box = origin
 
     distanceSq[ci] =
         pow(cx - (L[0] / 2 + xLoc), 2) + pow(cy - (L[1] / 2 + yLoc), 2);
@@ -917,33 +835,10 @@ void epi2D::notchTest(int numCellsToDelete, double boxLengthScale, double sizeRa
 void epi2D::orientDirector(int ci, double xLoc, double yLoc) {
   // point the director of cell ci towards (xLoc, yLoc)
 
-  double dx, dy;
+  double dx, dy, cx, cy;
 
-  // compute center of mass of cell ci
-  int gi = szList[ci];
   // compute cell center of mass
-
-  double xi = x[NDIM * gi];
-  double yi = x[NDIM * gi + 1];
-  double cx = xi;
-  double cy = yi;
-  for (int vi = 1; vi < nv[ci]; vi++) {
-    dx = x[NDIM * (gi + vi)] - xi;
-    if (pbc[0])
-      dx -= L[0] * round(dx / L[0]);
-
-    dy = x[NDIM * (gi + vi) + 1] - yi;
-    if (pbc[1])
-      dy -= L[1] * round(dy / L[1]);
-
-    xi += dx;
-    yi += dy;
-
-    cx += xi;
-    cy += yi;
-  }
-  cx /= nv[ci];
-  cy /= nv[ci];
+  com2D(ci, cx, cy);
 
   // compute angle needed for psi to point towards (xLoc,yLoc) - for now, just towards origin
   double theta = atan2(cy - 0.5 * L[1], cx - 0.5 * L[0]) + PI;
