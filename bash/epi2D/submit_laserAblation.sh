@@ -1,7 +1,7 @@
 #!/bin/bash
 # directories with code
 
-#example call: bash bash/epi2D/submit_laserAblation.sh 24 24 1.08 0.7 0.9 1.0 0.5 0.5 0.0 1000 pi_ohern,day,scavenge 0-12:00:00 1 1
+#example call: bash bash/epi2D/submit_laserAblation.sh 24 24 1.08 0.7 0.9 1.0 0.5 0.4 0.5 0.0 1000 pi_ohern,day,scavenge 0-12:00:00 1 1
 cellsdir=~/dpm
 srcdir=$cellsdir/src
 maindir=$cellsdir/main/epi2D
@@ -29,20 +29,21 @@ phiMin=$4
 phiMax=$5
 kl=$6
 att=$7
-B=$8
-Dr0=$9
-NT="${10}"
-partition="${11}"
-time="${12}"
-numRuns="${13}"
-startSeed="${14}"
+v0=$8
+B=$9
+Dr0="${10}"
+NT="${11}"
+partition="${12}"
+time="${13}"
+numRuns="${14}"
+startSeed="${15}"
 
 numSeedsPerRun=1
 let numSeeds=$numSeedsPerRun*$numRuns
 let endSeed=$startSeed+$numSeeds-1
 
 # name strings
-basestr=ablate_N"$NCELLS"_NV"$NV"_calA0"$calA0"_kl"$kl"_att"$att"_B"$B"_Dr0"$Dr0"_NT"$NT"
+basestr=ablate_N"$NCELLS"_NV"$NV"_calA0"$calA0"_kl"$kl"_att"$att"_v0"$v0"_B"$B"_Dr0"$Dr0"_NT"$NT"
 runstr="$basestr"_startseed"$startSeed"_endseed"$endSeed"
 
 # make directory specific for this simulation
@@ -61,6 +62,7 @@ echo phiMin = "$phiMin"
 echo phiMax = "$phiMax"
 echo kl = "$kl"
 echo att = "$att"
+echo v0 = "$v0"
 echo B = "$B"
 echo Dr0 = "$Dr0"
 echo NT = "$NT"
@@ -111,7 +113,7 @@ for seed in `seq $startSeed $numSeedsPerRun $endSeed`; do
         stressf=$simdatadir/$filestr.stress
 
         # append to runString
-        runString="$runString ; ./$binf $NCELLS $NV $calA0 $phiMin $phiMax $kl $att $B $Dr0 $runseed $NT $posf $energyf $stressf"
+        runString="$runString ; ./$binf $NCELLS $NV $calA0 $phiMin $phiMax $kl $att $v0 $B $Dr0 $runseed $NT $posf $energyf $stressf"
     done
 
     # finish off run string
@@ -170,8 +172,9 @@ sbatch -t $time $slurmf
 # 6. kl
 # 7. kb
 # 8. att
-# 9. number of timesteps
-# 10. partition
-# 11. time
-# 12. number of runs (number of array entries, i.e. arraynum)
-# 13. start seed (end seed determined by number of runs)
+# 9. active velocity scale
+# 10. number of timesteps
+# 11. partition
+# 12. time
+# 13. number of runs (number of array entries, i.e. arraynum)
+# 14. start seed (end seed determined by number of runs)

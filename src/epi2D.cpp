@@ -307,9 +307,8 @@ void epi2D::activeAttractiveForceUpdate() {
   int gi = 0, ci = 0;
   double psiMean = 0.0, psiStd = 0.0, dpsi = 0.0, psitmp = 0.0;
   double xi, yi, vi, nvtmp, dx, dy, cx, cy, r1, r2, grv,
-      v0tmp, vmin, v0, Ds, rnorm, ux, uy, rix, riy;
+      v0tmp, vmin, Ds, rnorm, ux, uy, rix, riy;
 
-  v0 = 0.4;          // max velocity
   vmin = 1e-2 * v0;  // min velocity
   Ds = 0.2;          // active velocity spread parameter
 

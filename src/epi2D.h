@@ -34,8 +34,8 @@ class epi2D : public dpm {
   // vv contacts per cell
   std::vector<int> z;
 
-  // adhesion strength
-  //double att;
+  // active vertex velocity scale
+  double v0;
 
   // directors (direction vectors) for activity
   std::vector<double> psi;
@@ -95,8 +95,7 @@ class epi2D : public dpm {
     for (int ci = 0; ci < NCELLS; ci++)
       psi[ci] = (2.0 * drand48() - 1.0) * PI;
   }
-  void seta0() {
-  }
+  void setv0(double val) { v0 = val; };
 
   // getters
 

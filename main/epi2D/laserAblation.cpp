@@ -10,8 +10,8 @@
 //
 // Compilation command:
 // g++ -O3 --std=c++11 -I src main/epi2D/laserAblation.cpp src/dpm.cpp src/epi2D.cpp -o main/epi2D/laserAblation.o
-// ./main/epi2D/laserAblation.o 24 24 1.08 0.8 0.9 1.0 0.1 1.0 0.1 1 1000 pos.test energy.test stress.test
-// ./main/epi2D/laserAblation.o 12 20 1.08 0.6 0.7 1.0 0.5 1.0 0.1 1 100 pos.test energy.test stress.test
+// ./main/epi2D/laserAblation.o 24 24 1.08 0.8 0.9 1.0 0.1 0.4 1.0 0.1 1 1000 pos.test energy.test stress.test
+// ./main/epi2D/laserAblation.o 12 20 1.08 0.6 0.7 1.0 0.5 0.4 1.0 0.1 1 100 pos.test energy.test stress.test
 //
 //
 // Parameter input list
@@ -22,14 +22,15 @@
 // 4. phiMin: 			p ?
 // 5. phiMax: 			p
 // 6. kl: 				  perimeter spring constant
-// 7. att:          attraction range and strength parameter
-// 8. B:            damping coefficient
-// 9. Dr0:          rotational diffusion constant for protrusion activity
-// 10. seed: 			  seed for random number generator
-// 11. time:        amount of time (tau) to simulate
-// 12. positionFile: 	string of path to output file with position/configuration data
-// 13. energyFile:  string of path to output file with energy data
-// 14. stressFile:  string of path to output file with stress data
+// 7. att:          attraction strength parameter
+// 8. v0:           active vertex velocity scale
+// 9. B:            (over)damping coefficient gamma
+// 10. Dr0:          rotational diffusion constant for protrusion activity
+// 11. seed: 			  seed for random number generator
+// 12. time:        amount of time (tau) to simulate
+// 13. positionFile: 	string of path to output file with position/configuration data
+// 14. energyFile:  string of path to output file with energy data
+// 15. stressFile:  string of path to output file with stress data
 
 // header files
 #include <sstream>
@@ -52,11 +53,12 @@ const double sizeratio = 1.4;  // size ratio between small and large particles
 const double dt0 = 0.01;       // initial magnitude of time step in units of MD time
 const double Ptol = 1e-8;
 const double Ftol = 1e-12;
+const double att_range = 0.5;
 
 int main(int argc, char const* argv[]) {
   // local variables to be read in
   int NCELLS, nsmall, seed;
-  double calA0, kl, kb = 0.0, phiMin, phiMax, att, B, Dr0, time_dbl;
+  double calA0, kl, kb = 0.0, phiMin, phiMax, att, v0, B, Dr0, time_dbl;
 
   // read in parameters from command line input
   string NCELLS_str = argv[1];
@@ -66,13 +68,14 @@ int main(int argc, char const* argv[]) {
   string phiMax_str = argv[5];
   string kl_str = argv[6];
   string att_str = argv[7];
-  string B_str = argv[8];
-  string Dr0_str = argv[9];
-  string seed_str = argv[10];
-  string time_str = argv[11];
-  string positionFile = argv[12];
-  string energyFile = argv[13];
-  string stressFile = argv[14];
+  string v0_str = argv[8];
+  string B_str = argv[9];
+  string Dr0_str = argv[10];
+  string seed_str = argv[11];
+  string time_str = argv[12];
+  string positionFile = argv[13];
+  string energyFile = argv[14];
+  string stressFile = argv[15];
 
   // using sstreams to get parameters
   stringstream NCELLSss(NCELLS_str);
@@ -83,6 +86,7 @@ int main(int argc, char const* argv[]) {
   stringstream klss(kl_str);
   stringstream Dr0ss(Dr0_str);
   stringstream attss(att_str);
+  stringstream v0ss(v0_str);
   stringstream Bss(B_str);
   stringstream seedss(seed_str);
   stringstream timess(time_str);
@@ -96,6 +100,7 @@ int main(int argc, char const* argv[]) {
   klss >> kl;
   Dr0ss >> Dr0;
   attss >> att;
+  v0ss >> v0;
   Bss >> B;
   seedss >> seed;
   timess >> time_dbl;
@@ -107,8 +112,6 @@ int main(int argc, char const* argv[]) {
 
   // instantiate object
   epi2D epithelial(NCELLS, 0.0, 0.0, Dr0, seed);
-  epithelial.setl1(att);
-  epithelial.setl2(att / 2);
 
   epithelial.openPosObject(positionFile);
   epithelial.openEnergyObject(energyFile);
@@ -119,6 +122,17 @@ int main(int argc, char const* argv[]) {
   epithelial.setkl(kl);
   epithelial.setkb(kb);
   epithelial.setkc(kc);
+
+  //set activity scale
+  epithelial.setv0(v0);
+
+  //set adhesion scale
+  epithelial.setl1(att);
+  epithelial.setl2(att_range);
+  if (att > att_range) {
+    cout << "attraction stronger than attraction range; discontinuous adhesive potential; error, exiting!\n";
+    return 1;
+  }
 
   epithelial.bidisperse2D(calA0, nsmall, smallfrac, sizeratio);
 
@@ -140,8 +154,8 @@ int main(int argc, char const* argv[]) {
 
   // LASER ABLATION SCHEME
   double xLoc = 0.0, yLoc = 0.0;
-  //int numCellsToAblate = 10;
-  int numCellsToAblate = 4;
+  int numCellsToAblate = 20;
+  //int numCellsToAblate = 4;
   epithelial.laserAblate(numCellsToAblate, sizeratio, nsmall, xLoc, yLoc);
 
   cout << "numCells = " << epithelial.getNCELLS() << '\n';

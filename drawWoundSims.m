@@ -10,12 +10,12 @@ addpath("/Users/AndrewTon/Documents/YalePhD/projects/Jamming/CellSim/cells/bash/
 %CHANGE THESE PARAMETERS AS NEEDED
 
 runType = "ablate";
-N="96";
+N="192";
 NV="24";
 calA="1.08";
 kl="1.0";
 kb="0";
-att="0.1";
+att="0";
 B="1.0";
 Dr0="0.1";
 NT="10000";
@@ -34,7 +34,7 @@ mkdir(subdir_output);
 startSeed = 1;
 max_seed = 1;
 makeAMovie = 1;
-showPeriodicImages = 1;
+showPeriodicImages = 0;
 
 % show vertices or not
 showverts = 0;

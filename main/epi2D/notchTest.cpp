@@ -22,7 +22,7 @@
 // 5. phiMax: 			p
 // 6. kl: 				  perimeter spring constant
 // 7. att:          attraction range and strength parameter
-// 8. B:            damping coefficient
+// 8. B:            (over)damping coefficient gamma
 // 9. Dr0:          rotational diffusion constant for protrusion activity (unused for notchTest code)
 // 10. seed: 			  seed for random number generator
 // 11. time:        amount of time (tau) to simulate
@@ -146,7 +146,7 @@ int main(int argc, char const* argv[]) {
   //after compress, turn on damped NVE
   double T = 1e-4;
   epithelial.drawVelocities2D(T);
-  epithelial.dampedNVE2D(attractiveForceUpdate, B, dt0, NT / 10, NT / 10);
+  epithelial.dampedNVE2D(attractiveForceUpdate, B, dt0, NT / 10, 0);
 
   //ELASTIC SHEET FRACTURE SCHEME (introduce defect + tensile loading)
   int numCellsToDelete = 1;
