@@ -310,7 +310,7 @@ void epi2D::activeAttractiveForceUpdate() {
       v0tmp, vmin, Ds, rnorm, ux, uy, rix, riy;
 
   vmin = 1e-2 * v0;  // min velocity
-  Ds = 0.2;          // active velocity spread parameter
+  Ds = 0.1;          // active velocity spread parameter
 
   std::vector<double> DrList(NCELLS, Dr0);
 
@@ -386,7 +386,7 @@ void epi2D::activeAttractiveForceUpdate() {
   psiStd -= psiMean * psiMean;
   psiStd = sqrt(psiStd);
   //cout << "psiMean, psiStd = " << psiMean << '\t' << psiStd << '\n';
-  //deflectOverlappingDirectors();
+  deflectOverlappingDirectors();
 }
 
 /******************************
@@ -852,9 +852,8 @@ void epi2D::deflectOverlappingDirectors() {
   double dot_product = 0.0, dist1_sq, dist2_sq, psi_temp;
   int gi;
   double rix, riy, rjx, rjy, nix, niy, njx, njy;
-  //i suspect maybe have a bug about psi when a cell crosses pbc? haven't tested this, no real reason to suspect
 
-  double angle_cutoff = -1.0 / sqrt(2.0);
+  double angle_cutoff = cos(7 * PI / 8);
   // compute directors for all cells
   vector<vector<double>> director(NCELLS, vector<double>(2, 0.0));
   for (int ci = 0; ci < NCELLS; ci++) {

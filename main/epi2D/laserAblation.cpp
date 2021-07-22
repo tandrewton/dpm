@@ -10,7 +10,7 @@
 //
 // Compilation command:
 // g++ -O3 --std=c++11 -I src main/epi2D/laserAblation.cpp src/dpm.cpp src/epi2D.cpp -o main/epi2D/laserAblation.o
-// ./main/epi2D/laserAblation.o 24 24 1.08 0.8 0.9 1.0 0.1 0.4 1.0 0.1 1 1000 pos.test energy.test stress.test
+// ./main/epi2D/laserAblation.o 48 24 1.08 0.8 0.9 1.0 0.01 0.2 1.0 0.1 1 100 pos.test energy.test stress.test
 // ./main/epi2D/laserAblation.o 12 20 1.08 0.6 0.7 1.0 0.5 0.4 1.0 0.1 1 100 pos.test energy.test stress.test
 //
 //
@@ -154,8 +154,8 @@ int main(int argc, char const* argv[]) {
 
   // LASER ABLATION SCHEME
   double xLoc = 0.0, yLoc = 0.0;
-  int numCellsToAblate = 20;
-  //int numCellsToAblate = 4;
+  //int numCellsToAblate = 20;
+  int numCellsToAblate = 10;
   epithelial.laserAblate(numCellsToAblate, sizeratio, nsmall, xLoc, yLoc);
 
   cout << "numCells = " << epithelial.getNCELLS() << '\n';
