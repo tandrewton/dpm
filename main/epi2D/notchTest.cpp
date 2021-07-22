@@ -9,8 +9,8 @@
 //
 // Compilation command:
 // g++ -O3 --std=c++11 -I src main/epi2D/notchTest.cpp src/dpm.cpp src/epi2D.cpp -o main/epi2D/notchTest.o
-// ./main/epi2D/notchTest.o 12 20 1.08 0.7 0.9 1.0 0.5 0.1 1.0 1 100 pos.test energy.test stress.test uniaxial
-// ./main/epi2D/notchTest.o 24 20 1.08 0.7 0.9 1.0 0.5 0.1 1.0 1 100 pos.test energy.test stress.test uniaxial
+// ./main/epi2D/notchTest.o 12 20 1.08 0.8 0.9 1.0 0.5 0.1 1.0 1 100 pos.test energy.test stress.test uniaxial
+// ./main/epi2D/notchTest.o 24 20 1.08 0.8 0.9 1.0 0.5 0.1 1.0 1 100 pos.test energy.test stress.test uniaxial
 //
 //
 // Parameter input list
@@ -130,7 +130,7 @@ int main(int argc, char const* argv[]) {
   epithelial.setkb(kb);
   epithelial.setkc(kc);
 
-  epithelial.bidisperse2D(calA0, nsmall, smallfrac, sizeratio);
+  epithelial.monodisperse2D(calA0, nsmall, smallfrac, sizeratio);
 
   epithelial.initializePositions2D(phi0, Ftol);
 
