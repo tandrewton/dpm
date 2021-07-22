@@ -43,6 +43,12 @@ class epi2D : public dpm {
   // rotational diffusion constant
   double Dr0;
 
+  // motility scale factor for contact inhibition repolarization (active 'kick' to help with repulsion)
+  std::vector<double> activePropulsionFactor;
+
+  // counter for number of deflected polarizations
+  int polarizationCounter;
+
   // specific output objects
   std::ofstream enout;
   std::ofstream stressout;
@@ -60,7 +66,9 @@ class epi2D : public dpm {
     l2 = att2;
     Dr0 = Dr;
     vector<double> temp(NCELLS, 0.0);
+    vector<double> temp2(NCELLS, 1.0);
     psi = temp;
+    activePropulsionFactor = temp2;
     for (int ci = 0; ci < NCELLS; ci++) {
       //psi.at(ci) = 2 * PI * (drand48() - 0.5);  // [-pi,pi) coordinates
       //psi.at(ci) = 2 * PI * drand48();  // [0, 2pi) coordinates
@@ -101,6 +109,9 @@ class epi2D : public dpm {
 
   // main double
   double getPsi(int ci) { return psi.at(ci); };
+
+  // initialization
+  void monodisperse2D(double calA0, int n);
 
   // editors & updates
   double meanl0();

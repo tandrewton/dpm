@@ -25,6 +25,36 @@ using namespace std;
 
 *******************************/
 
+// initialize monodisperse cell system, single calA0
+void epi2D::monodisperse2D(double calA0, int n) {
+  // local variables
+  double calA0tmp, calAntmp, rtmp, areaSum;
+  int vim1, vip1, gi, ci, vi, nlarge, smallN, largeN, NVSMALL;
+
+  // print to console
+  cout << "** initializing monodisperse DPM particles in 2D ..." << endl;
+
+  // total number of vertices
+  NVTOT = n * NCELLS;
+  vertDOF = NDIM * NVTOT;
+
+  // szList and nv (keep track of global vertex indices)
+  nv.resize(NCELLS);
+  szList.resize(NCELLS);
+
+  nv.at(0) = n;
+  for (ci = 1; ci < NCELLS; ci++) {
+    nv.at(ci) = n;
+    szList.at(ci) = szList.at(ci - 1) + nv.at(ci - 1);
+  }
+
+  // initialize vertex shape parameters
+  initializeVertexShapeParameters(calA0, n);
+
+  // initialize vertex indexing
+  initializeVertexIndexing2D();
+}
+
 /******************************
 
 	E P I 2 D 
@@ -304,13 +334,13 @@ void epi2D::activeAttractiveForceUpdate() {
   attractiveForceUpdate_2();
 
   //compute active forces
-  int gi = 0, ci = 0;
+  int gi = 0, ci = 0, vi = 0;
   double psiMean = 0.0, psiStd = 0.0, dpsi = 0.0, psitmp = 0.0;
-  double xi, yi, vi, nvtmp, dx, dy, cx, cy, r1, r2, grv,
+  double xi, yi, nvtmp, dx, dy, cx, cy, r1, r2, grv,
       v0tmp, vmin, Ds, rnorm, ux, uy, rix, riy;
 
-  vmin = 1e-2 * v0;  // min velocity
-  Ds = 0.1;          // active velocity spread parameter
+  vmin = 1e-1 * v0;  // min velocity
+  Ds = 0.2;          // active velocity spread parameter
 
   std::vector<double> DrList(NCELLS, Dr0);
 
@@ -371,6 +401,8 @@ void epi2D::activeAttractiveForceUpdate() {
 
     // get velocity scale
     v0tmp = vmin + (v0 - vmin) * exp(-pow(dpsi, 2.0) / (2.0 * Ds * Ds));
+
+    v0tmp *= activePropulsionFactor[ci];
 
     // get unit vectors
     rnorm = sqrt(rix * rix + riy * riy);
@@ -577,6 +609,8 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, int NT, int NP
         // print to configuration only if position file is open
         if (posout.is_open())
           printConfiguration2D();
+
+        cout << "Number of polarization deflections: " << polarizationCounter << '\n';
       }
     }
   }
@@ -741,6 +775,7 @@ void epi2D::deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc) {
   a0.erase(a0.begin() + deleteIndex);
   l0.erase(l0.begin() + deleteIndex);
   psi.erase(psi.begin() + deleteIndex);
+  activePropulsionFactor.erase(activePropulsionFactor.begin() + deleteIndex);
 
   int deleteIndexGlobal = gindex(deleteIndex, 0);
 
@@ -853,7 +888,12 @@ void epi2D::deflectOverlappingDirectors() {
   int gi;
   double rix, riy, rjx, rjy, nix, niy, njx, njy;
 
+  // tolerance for valid CIL head to head collision angles
   double angle_cutoff = cos(7 * PI / 8);
+
+  // count number of head-to-head collisions per timestep
+  polarizationCounter = 0;
+
   // compute directors for all cells
   vector<vector<double>> director(NCELLS, vector<double>(2, 0.0));
   for (int ci = 0; ci < NCELLS; ci++) {
@@ -863,6 +903,9 @@ void epi2D::deflectOverlappingDirectors() {
 
   for (int ci = 0; ci < NCELLS; ci++) {
     int counter = 0;
+
+    //reset active propulsion factor
+    activePropulsionFactor[ci] = 1.0;
     for (int cj = ci + 1; cj < NCELLS; cj++) {
       if (cij[NCELLS * ci + cj - (ci + 1) * (ci + 2) / 2] > 0) {
         // cells are overlapping
@@ -889,7 +932,11 @@ void epi2D::deflectOverlappingDirectors() {
             psi[ci] -= 2 * PI * round(psi[ci] / (2 * PI));
             psi[cj] += PI + (2 * drand48() - 1) * PI / 4;
             psi[cj] -= 2 * PI * round(psi[cj] / (2 * PI));
+
+            activePropulsionFactor[ci] = 5.0;
+            activePropulsionFactor[cj] = 5.0;
             counter++;  //indicate that a swap has occurred for cell ci
+            polarizationCounter++;
           }
         }
       }

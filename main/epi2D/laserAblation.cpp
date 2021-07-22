@@ -10,8 +10,8 @@
 //
 // Compilation command:
 // g++ -O3 --std=c++11 -I src main/epi2D/laserAblation.cpp src/dpm.cpp src/epi2D.cpp -o main/epi2D/laserAblation.o
-// ./main/epi2D/laserAblation.o 48 24 1.08 0.8 0.9 1.0 0.01 0.2 1.0 0.1 1 100 pos.test energy.test stress.test
-// ./main/epi2D/laserAblation.o 12 20 1.08 0.6 0.7 1.0 0.5 0.4 1.0 0.1 1 100 pos.test energy.test stress.test
+// ./main/epi2D/laserAblation.o 48 24 1.08 0.8 0.9 1.0 0.1 0.5 1.0 0.1 1 1000 pos.test energy.test stress.test
+// ./main/epi2D/laserAblation.o 12 24 1.08 0.8 0.9 1.0 0.05 0.5 1.0 0.1 1 1000 pos.test energy.test stress.test
 //
 //
 // Parameter input list
@@ -134,7 +134,7 @@ int main(int argc, char const* argv[]) {
     return 1;
   }
 
-  epithelial.bidisperse2D(calA0, nsmall, smallfrac, sizeratio);
+  epithelial.monodisperse2D(calA0, nsmall);
 
   epithelial.initializePositions2D(phi0, Ftol);
 
