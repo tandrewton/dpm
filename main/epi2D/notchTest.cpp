@@ -130,7 +130,7 @@ int main(int argc, char const* argv[]) {
   epithelial.setkb(kb);
   epithelial.setkc(kc);
 
-  epithelial.monodisperse2D(calA0, nsmall, smallfrac, sizeratio);
+  epithelial.monodisperse2D(calA0, nsmall);
 
   epithelial.initializePositions2D(phi0, Ftol);
 
