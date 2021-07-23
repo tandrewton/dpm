@@ -2,7 +2,7 @@
 % output is a movie made from stitching the position file frames together
 %pwd should give ~/Documents/YalePhd/projects/dpm
 %works on cluster to write an avi file, but avi is a terrible format...
-isTestData = true;
+isTestData = false;
 addpath("/Users/AndrewTon/Documents/YalePhD/projects/Jamming/CellSim/cells/bash/seq/")
 %addpath("/home/at965/cells/bash/seq")
 
@@ -14,10 +14,11 @@ calA="1.08";
 kl="1.0";
 kb="0";
 att="0.5";
-B="0.5";
+B="0.1";
 Dr0="0.0";
-loadingType="isotropic";
-FSKIP = 6; %# frames skipped to lower sampling freq
+NT="100";
+loadingType="uniaxial";
+FSKIP = 1; %# frames skipped to lower sampling freq
 
 %PC directory
 pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
@@ -32,7 +33,10 @@ mkdir(subdir_output);
 startSeed = 1;
 max_seed = 1;
 makeAMovie = 1;
+showPeriodicImages = 1;
 
+% show vertices or not
+showverts = 0;
 
 %txt = 'N = '+N+', NV = '+NV+', calA_o='+calA+', att='+att+', B='+B+', load='+loadingType;
 txt = 'test';
@@ -50,7 +54,7 @@ for seed = startSeed:max_seed
         stressstr = pc_dir+'/stress.test';
     else
         run_name =runType+"_N"+N+"_NV"+NV+"_calA0"+calA+"_kl"+kl+...
-            "_att"+att+"_B"+B+"_Dr0"+Dr0+"_loading_"+loadingType;     
+            "_att"+att+"_B"+B+"_Dr0"+Dr0+"_NT"+NT+"_loading_"+loadingType;     
         pipeline_dir =  subdir_pipeline + run_name + "/";
         output_dir = subdir_output + run_name + "/";
         mkdir(pipeline_dir)
@@ -94,10 +98,6 @@ for seed = startSeed:max_seed
     %Lx = L(1);
     %Ly = L(2);
 
-
-    % show vertices or not
-    showverts = 1;
-
     % get cell colors
     %[nvUQ, ~, IC] = unique(nv);
    % NUQ = length(nvUQ);
@@ -106,100 +106,147 @@ for seed = startSeed:max_seed
     % get frames to plot
     FSTART = 1;
     FSTEP = FSKIP;
-    FEND = NFRAMES;
+    FEND = NFRAMES/2;
 
     if makeAMovie == 1
        
         moviestr = output_dir + runType+fileheader+'seed_'+seed+'.mp4';
+        voronoi_movie_str = output_dir + "voronoi"+runType+fileheader+'seed_'+seed+'.mp4';
         vobj = VideoWriter(moviestr,'MPEG-4');
+        vor_vobj = VideoWriter(voronoi_movie_str, 'MPEG-4');
 
+        vobj.Quality = 100;
         vobj.FrameRate = 15;
         open(vobj);
-    %end
+        vor_vobj.Quality = 100;
+        vor_vobj.FrameRate = 15;
+        open(vor_vobj);
+    end
+    if showPeriodicImages == 1
+        itLow = -1;
+        itHigh = 1;
+        boxAxLow = -0.25;
+        boxAxHigh = 1.25;
+    else
+        itLow = 0;
+        itHigh = 0;
+        boxAxLow = 0;
+        boxAxHigh = 1;
+    end
 
-        fnum = 1;
+    fnum = 1;
+    figure(fnum), clf, hold on, box on;
+    for ff = FSTART:FSTEP:FEND
+        vor_cx = [];
+        vor_cy = [];
+        %nv can change, so recompute color map each frame
+        [nvUQ, ~, IC] = unique(nonzeros(nv(ff,:)));
+        NUQ = length(nvUQ);
+        cellCLR = jet(NUQ);
+
+        NCELLS = cell_count(ff);
         figure(fnum), clf, hold on, box on;
-        for ff = FSTART:FSTEP:FEND
-            %nv can change, so recompute color map each frame
-            [nvUQ, ~, IC] = unique(nonzeros(nv(ff,:)));
-            NUQ = length(nvUQ);
-            cellCLR = jet(NUQ);
+        fprintf('printing frame ff = %d/%d\n',ff,FEND);
 
-            NCELLS = cell_count(ff);
-            figure(fnum), clf, hold on, box on;
-            fprintf('printing frame ff = %d/%d\n',ff,FEND);
+        % get cell positions
+        xpos = trajectoryData.xpos(ff,:);
+        ypos = trajectoryData.ypos(ff,:);
+        l0 = trajectoryData.l0(ff,:);
 
-            % get cell positions
-            xpos = trajectoryData.xpos(ff,:);
-            ypos = trajectoryData.ypos(ff,:);
-            l0 = trajectoryData.l0(ff,:);
-            
-            %if L is not constant, use the next 3 lines
-            L = trajectoryData.L(ff,:);
-            Lx = L(1);
-            Ly = L(2);
-            
-            %idea: to keep the box size constant visually,
-            % just store Lx0, Ly0. Every frame, compute delta = Lx(new) - Lx(old),
-            % Ly(new) - Ly(old). Scale particle sizes by (1-delta). 
-            
-            for nn = 1:NCELLS
-                xtmp = xpos{nn};
-                ytmp = ypos{nn};
-                l0tmp = l0(nn);
-                clr = cellCLR(IC(nn),:);
-                if showverts == 1
-                    for vv = 1:nv(ff,nn)
-                        xplot = xtmp(vv) - 0.5*l0tmp;
-                        yplot = ytmp(vv) - 0.5*l0tmp;
-                        for xx = -1:1
-                            for yy = -1:1
-                                %if (ff == 5 || ff == 6) 
-                                %    disp(ff+","+l0tmp)
-                                %end
-                                rectangle('Position',[xplot + xx*Lx, yplot + yy*Ly, l0tmp, l0tmp],'Curvature',[1 1],'EdgeColor','k','FaceColor',clr);
-                            end
-                        end
-                    end
-                else
-                    cx = mean(xtmp);
-                    cy = mean(ytmp);
-                    rx = xtmp - cx;
-                    ry = ytmp - cy;
-                    rads = sqrt(rx.^2 + ry.^2);
-                    xtmp = xtmp + 0.4*l0tmp*(rx./rads);
-                    ytmp = ytmp + 0.4*l0tmp*(ry./rads);
-                    for xx = -1:1
-                        for yy = -1:1
-                            vpos = [xtmp + xx*Lx, ytmp + yy*Ly];
-                            finfo = [1:nv(ff,nn) 1];
-                            disp("finfo is ", finfo)
-                            patch('Faces',finfo,'vertices',vpos,'FaceColor',clr,'EdgeColor','k','linewidth',2);
+        %if L is not constant, use the next 3 lines
+        L = trajectoryData.L(ff,:);
+        Lx = L(1);
+        Ly = L(2);
+
+        %idea: to keep the box size constant visually,
+        % just store Lx0, Ly0. Every frame, compute delta = Lx(new) - Lx(old),
+        % Ly(new) - Ly(old). Scale particle sizes by (1-delta). 
+
+        for nn = 1:NCELLS
+            xtmp = xpos{nn};
+            ytmp = ypos{nn};
+            l0tmp = l0(nn);
+            clr = cellCLR(IC(nn),:);
+            cx = mean(xtmp);
+            cy = mean(ytmp);
+            if showverts == 1
+                for vv = 1:nv(ff,nn)
+                    xplot = xtmp(vv) - 0.5*l0tmp;
+                    yplot = ytmp(vv) - 0.5*l0tmp;
+                    for xx = itLow:itHigh
+                        for yy = itLow:itHigh
+                            rectangle('Position',[xplot + xx*Lx, yplot + yy*Ly, l0tmp, l0tmp],'Curvature',[1 1],'EdgeColor','k','FaceColor',clr);
                         end
                     end
                 end
-            end
-
-            % plot box
-            plot([0 Lx Lx 0 0], [0 0 Ly Ly 0], 'k-', 'linewidth', 1.5);
-            axis equal;
-            ax = gca;
-            ax.XTick = [];
-            ax.YTick = [];
-            ax.XLim = [-0.25 1.25]*Lx;
-            ax.YLim = [-0.25 1.25]*Ly;
-
-            % if making a movie, save frame
-            if makeAMovie == 1
-                currframe = getframe(gcf);
-                writeVideo(vobj,currframe);
+            else
+                rx = xtmp - cx;
+                ry = ytmp - cy;
+                rads = sqrt(rx.^2 + ry.^2);
+                xtmp = xtmp + 0.4*l0tmp*(rx./rads);
+                ytmp = ytmp + 0.4*l0tmp*(ry./rads);
+                for xx = itLow:itHigh
+                    for yy = itLow:itHigh
+                        vpos = [xtmp + xx*Lx, ytmp + yy*Ly];
+                        finfo = [1:nv(ff,nn) 1];
+                        patch('Faces',finfo,'vertices',vpos,'FaceColor',clr,'EdgeColor','k','linewidth',2);
+                    end
+                end
             end
         end
 
+        % plot box
+        plot([0 Lx Lx 0 0], [0 0 Ly Ly 0], 'k-', 'linewidth', 1.5);
+        axis equal;
+        ax = gca;
+        ax.XTick = [];
+        ax.YTick = [];
+        if showPeriodicImages == 1
+            ax.XLim = [boxAxLow boxAxHigh]*Lx;
+            ax.YLim = [boxAxLow boxAxHigh]*Ly;
+        else
+            ax.XLim = [0 1]*Lx;
+            ax.YLim = [0 1]*Ly;
+        end
 
-        % close video object
+        % if making a movie, save frame
         if makeAMovie == 1
-            close(vobj);
+            currframe = getframe(gcf);
+            writeVideo(vobj,currframe);
         end
+        mat_cx = mean(cell2mat(xpos));
+        mat_cy = mean(cell2mat(ypos));
+        for xx=itLow:itHigh
+            for yy=itLow:itHigh
+                vor_cx = [vor_cx, mat_cx + xx*Lx];
+                vor_cy = [vor_cy, mat_cy + yy*Ly];
+            end
+        end
+        figure(fnum+20), clf, hold on, box on;
+        plot([0 Lx Lx 0 0], [0 0 Ly Ly 0], 'k-', 'linewidth', 1.5);
+        axis equal;
+        ax = gca;
+        ax.XTick = [];
+        ax.YTick = [];
+        if showPeriodicImages == 1
+            ax.XLim = [boxAxLow boxAxHigh]*Lx;
+            ax.YLim = [boxAxLow boxAxHigh]*Ly;
+        else
+            ax.XLim = [0 1]*Lx;
+            ax.YLim = [0 1]*Ly;
+        end
+        voronoi(ax, vor_cx,vor_cy);    
+        if makeAMovie == 1
+            currframe = getframe(gcf);
+            writeVideo(vor_vobj, currframe);
+        end
+        
+    end
+
+
+    % close video object
+    if makeAMovie == 1
+        close(vobj);
+        close(vor_vobj);
     end
 end
