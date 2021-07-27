@@ -10,27 +10,29 @@
 //
 // Compilation command:
 // g++ -O3 --std=c++11 -I src main/epi2D/laserAblation.cpp src/dpm.cpp src/epi2D.cpp -o main/epi2D/laserAblation.o
-// ./main/epi2D/laserAblation.o 48 24 1.08 0.8 0.9 1.0 0.1 0.5 1.0 0.1 1 1000 pos.test energy.test stress.test
-// ./main/epi2D/laserAblation.o 12 24 1.08 0.8 0.9 1.0 0.05 0.5 1.0 0.1 1 1000 pos.test energy.test stress.test
+// ./main/epi2D/laserAblation.o 48 24 10 1.08 0.8 0.9 1.0 0.3 0.5 1.0 0.5 1 1 1000 pos.test energy.test stress.test
+// ./main/epi2D/laserAblation.o 24 24 5 1.08 0.8 0.9 1.0 0.1 0 1.0 0.5 1 1 10000 pos.test energy.test stress.test
 //
 //
 // Parameter input list
 // 1. NCELLS: 			number of particles
 // 2. nsmall: 			number of vertices on small particles (larger
 // particles set by 1.4:1.0 bidispersity)
-// 3. calA0: 			  preferred shape parameter for all particles
-// 4. phiMin: 			p ?
-// 5. phiMax: 			p
-// 6. kl: 				  perimeter spring constant
-// 7. att:          attraction strength parameter
-// 8. v0:           active vertex velocity scale
-// 9. B:            (over)damping coefficient gamma
-// 10. Dr0:          rotational diffusion constant for protrusion activity
-// 11. seed: 			  seed for random number generator
-// 12. time:        amount of time (tau) to simulate
-// 13. positionFile: 	string of path to output file with position/configuration data
-// 14. energyFile:  string of path to output file with energy data
-// 15. stressFile:  string of path to output file with stress data
+// 3. ndelete:      number of cells to delete
+// 4. calA0: 			  preferred shape parameter for all particles
+// 5. phiMin: 			p ?
+// 6. phiMax: 			p
+// 7. kl: 				  perimeter spring constant
+// 8. att:          attraction strength parameter
+// 9. v0:           active vertex velocity scale
+// 10. B:            (over)damping coefficient gamma
+// 11. Dr0:          rotational diffusion constant for protrusion activity
+// 12. boolCIL:     bool for whether cells conduct contact inhibition of locomotion
+// 13. seed: 			  seed for random number generator
+// 14. time:        amount of time (tau) to simulate
+// 15. positionFile: 	string of path to output file with position/configuration data
+// 16. energyFile:  string of path to output file with energy data
+// 17. stressFile:  string of path to output file with stress data
 
 // header files
 #include <sstream>
@@ -57,51 +59,58 @@ const double att_range = 0.5;
 
 int main(int argc, char const* argv[]) {
   // local variables to be read in
-  int NCELLS, nsmall, seed;
+  int NCELLS, nsmall, seed, gi, ndelete;
   double calA0, kl, kb = 0.0, phiMin, phiMax, att, v0, B, Dr0, time_dbl;
+  bool boolCIL;
 
   // read in parameters from command line input
   string NCELLS_str = argv[1];
   string nsmall_str = argv[2];
-  string calA0_str = argv[3];
-  string phiMin_str = argv[4];
-  string phiMax_str = argv[5];
-  string kl_str = argv[6];
-  string att_str = argv[7];
-  string v0_str = argv[8];
-  string B_str = argv[9];
-  string Dr0_str = argv[10];
-  string seed_str = argv[11];
-  string time_str = argv[12];
-  string positionFile = argv[13];
-  string energyFile = argv[14];
-  string stressFile = argv[15];
+  string ndelete_str = argv[3];
+  string calA0_str = argv[4];
+  string phiMin_str = argv[5];
+  string phiMax_str = argv[6];
+  string kl_str = argv[7];
+  string att_str = argv[8];
+  string v0_str = argv[9];
+  string B_str = argv[10];
+  string Dr0_str = argv[11];
+  string boolCIL_str = argv[12];
+  string seed_str = argv[13];
+  string time_str = argv[14];
+  string positionFile = argv[15];
+  string energyFile = argv[16];
+  string stressFile = argv[17];
 
   // using sstreams to get parameters
   stringstream NCELLSss(NCELLS_str);
   stringstream nsmallss(nsmall_str);
+  stringstream ndeletess(ndelete_str);
   stringstream calA0ss(calA0_str);
   stringstream phiMinss(phiMin_str);
   stringstream phiMaxss(phiMax_str);
   stringstream klss(kl_str);
-  stringstream Dr0ss(Dr0_str);
   stringstream attss(att_str);
   stringstream v0ss(v0_str);
   stringstream Bss(B_str);
+  stringstream Dr0ss(Dr0_str);
+  stringstream boolCILss(boolCIL_str);
   stringstream seedss(seed_str);
   stringstream timess(time_str);
 
   // read into data
   NCELLSss >> NCELLS;
   nsmallss >> nsmall;
+  ndeletess >> ndelete;
   calA0ss >> calA0;
   phiMinss >> phiMin;
   phiMaxss >> phiMax;
   klss >> kl;
-  Dr0ss >> Dr0;
   attss >> att;
   v0ss >> v0;
   Bss >> B;
+  Dr0ss >> Dr0;
+  boolCILss >> boolCIL;
   seedss >> seed;
   timess >> time_dbl;
 
@@ -123,8 +132,9 @@ int main(int argc, char const* argv[]) {
   epithelial.setkb(kb);
   epithelial.setkc(kc);
 
-  //set activity scale
+  //set activity scale, and CIL option
   epithelial.setv0(v0);
+  epithelial.setboolCIL(boolCIL);
 
   //set adhesion scale
   epithelial.setl1(att);
@@ -155,21 +165,19 @@ int main(int argc, char const* argv[]) {
   // LASER ABLATION SCHEME
   double xLoc = 0.0, yLoc = 0.0;
   //int numCellsToAblate = 20;
-  int numCellsToAblate = 10;
+  int numCellsToAblate = ndelete;
   epithelial.laserAblate(numCellsToAblate, sizeratio, nsmall, xLoc, yLoc);
-
-  cout << "numCells = " << epithelial.getNCELLS() << '\n';
-
-  for (int ci = 0; ci < epithelial.getNCELLS(); ci++)
-    cout << "Psi(" << ci << ") = " << epithelial.getPsi(ci) << '\n';
 
   epithelial.setRandPsi();
 
-  for (int ci = 0; ci < epithelial.getNCELLS(); ci++)
-    cout << "Psi(" << ci << ") = " << epithelial.getPsi(ci) << '\n';
-
   epithelial.zeroMomentum();
-  epithelial.dampedNVE2D(activeForceUpdate, B, dt0, NT, NT / 20);
+  int numIts = 20;
+  for (int i = 0; i < numIts; i++) {
+    epithelial.dampedNVE2D(activeForceUpdate, B, dt0, NT / numIts, NT / numIts);
+    //epithelial.setka(ka * 0.95);
+    //epithelial.scalea0(1.05);
+    //epithelial.ageCellAreas(1.02);
+  }
 
   cout << "\n** Finished laserAblation.cpp, ending. " << endl;
   return 0;

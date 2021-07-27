@@ -1,7 +1,7 @@
 #!/bin/bash
 # directories with code
 
-#example call: bash bash/epi2D/submit_laserAblation.sh 24 24 1.08 0.7 0.9 1.0 0.5 0.4 0.5 0.0 1000 pi_ohern,day,scavenge 0-12:00:00 1 1
+#example call: bash bash/epi2D/submit_laserAblation.sh 24 24 5 1.08 0.7 0.9 1.0 0.5 0.4 0.5 0.0 1 1000 pi_ohern,day,scavenge 0-12:00:00 1 1
 cellsdir=~/dpm
 srcdir=$cellsdir/src
 maindir=$cellsdir/main/epi2D
@@ -24,26 +24,28 @@ mkdir -p out
 # NT = simulation time (in tau), time = human time
 NCELLS=$1
 NV=$2
-calA0=$3
-phiMin=$4
-phiMax=$5
-kl=$6
-att=$7
-v0=$8
-B=$9
-Dr0="${10}"
-NT="${11}"
-partition="${12}"
-time="${13}"
-numRuns="${14}"
-startSeed="${15}"
+ndelete=$3
+calA0=$4
+phiMin=$5
+phiMax=$6
+kl=$7
+att=$8
+v0=$9
+B="${10}"
+Dr0="${11}"
+boolCIL="${12}"
+NT="${13}"
+partition="${14}"
+time="${15}"
+numRuns="${16}"
+startSeed="${17}"
 
 numSeedsPerRun=1
 let numSeeds=$numSeedsPerRun*$numRuns
 let endSeed=$startSeed+$numSeeds-1
 
 # name strings
-basestr=ablate_N"$NCELLS"_NV"$NV"_calA0"$calA0"_kl"$kl"_att"$att"_v0"$v0"_B"$B"_Dr0"$Dr0"_NT"$NT"
+basestr=ablate_N"$NCELLS"_NV"$NV"_ndel"$ndelete"_calA0"$calA0"_kl"$kl"_att"$att"_v0"$v0"_B"$B"_Dr0"$Dr0"_CIL"$boolCIL"_NT"$NT"
 runstr="$basestr"_startseed"$startSeed"_endseed"$endSeed"
 
 # make directory specific for this simulation
@@ -57,6 +59,7 @@ mainf=$maindir/laserAblation.cpp
 echo Running laserAblation simulations with parameters:
 echo NCELLS = "$NCELLS"
 echo NV = "$NV"
+echo ndelete = "$ndelete"
 echo calA0 = "$calA0"
 echo phiMin = "$phiMin"
 echo phiMax = "$phiMax"
@@ -66,6 +69,7 @@ echo v0 = "$v0"
 echo B = "$B"
 echo Dr0 = "$Dr0"
 echo NT = "$NT"
+echo boolCIL = "$boolCIl"
 
 # run compiler
 rm -f $binf
@@ -113,7 +117,7 @@ for seed in `seq $startSeed $numSeedsPerRun $endSeed`; do
         stressf=$simdatadir/$filestr.stress
 
         # append to runString
-        runString="$runString ; ./$binf $NCELLS $NV $calA0 $phiMin $phiMax $kl $att $v0 $B $Dr0 $runseed $NT $posf $energyf $stressf"
+        runString="$runString ; ./$binf $NCELLS $NV $ndelete $calA0 $phiMin $phiMax $kl $att $v0 $B $Dr0 $boolCIL $runseed $NT $posf $energyf $stressf"
     done
 
     # finish off run string
@@ -166,6 +170,7 @@ sbatch -t $time $slurmf
 # ====================
 # 1. NCELLS
 # 2. NV
+# 3. number of cells to delete
 # 3. calA0
 # 4. phiMin
 # 5. Ptol
@@ -173,6 +178,8 @@ sbatch -t $time $slurmf
 # 7. kb
 # 8. att
 # 9. active velocity scale
+# 10. rotational diffusion constant
+# 10. whether cells have CIL or not
 # 10. number of timesteps
 # 11. partition
 # 12. time

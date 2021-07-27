@@ -418,7 +418,8 @@ void epi2D::activeAttractiveForceUpdate() {
   psiStd -= psiMean * psiMean;
   psiStd = sqrt(psiStd);
   //cout << "psiMean, psiStd = " << psiMean << '\t' << psiStd << '\n';
-  deflectOverlappingDirectors();
+  if (boolCIL == true)
+    deflectOverlappingDirectors();
 }
 
 /******************************
@@ -483,8 +484,27 @@ void epi2D::vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0,
   }
 }
 
+void epi2D::ageCellAreas(double areaScaleFactor) {
+  int gi, ci, vi;
+  double lengthScaleFactor = sqrt(areaScaleFactor);
+
+  // loop over cells, scale
+  for (ci = 0; ci < NCELLS; ci++) {
+    // scale preferred area
+    a0[ci] *= areaScaleFactor;
+
+    // first global index for ci
+    gi = szList[ci];
+
+    for (vi = 0; vi < nv[ci]; vi++) {
+      // scale vertex radii
+      //r[gi + vi] *= lengthScaleFactor;
+      //l0[gi + vi] *= lengthScaleFactor;
+    }
+  }
+}
+
 // scale particle sizes by specified ratio in x and y directions
-// compression in X corresponds to tensile loading along Y
 // compression in X and Y corresponds to isotropic tensile loading
 void epi2D::tensileLoading(double scaleFactorX, double scaleFactorY) {
   // local variables
@@ -854,7 +874,6 @@ void epi2D::notchTest(int numCellsToDelete, double boxLengthScale, double sizeRa
       while (it < maxit) {
         cout << "it = " << it << '\n';
         // constant true strain rate, isotropic tensile loading
-        //tensileLoading(1.0, scaleFactor);
         scaleBoxSize(boxLengthScale, 1.01, 1.0);
         dampedNVE2D(forceCall, B, dt0, NT, NPRINTSKIP);
         it++;
@@ -933,8 +952,8 @@ void epi2D::deflectOverlappingDirectors() {
             psi[cj] += PI + (2 * drand48() - 1) * PI / 4;
             psi[cj] -= 2 * PI * round(psi[cj] / (2 * PI));
 
-            activePropulsionFactor[ci] = 5.0;
-            activePropulsionFactor[cj] = 5.0;
+            activePropulsionFactor[ci] = 2.0;
+            activePropulsionFactor[cj] = 2.0;
             counter++;  //indicate that a swap has occurred for cell ci
             polarizationCounter++;
           }

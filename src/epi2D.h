@@ -49,6 +49,9 @@ class epi2D : public dpm {
   // counter for number of deflected polarizations
   int polarizationCounter;
 
+  // boolean for whether cells execute CIL or not
+  bool boolCIL;
+
   // specific output objects
   std::ofstream enout;
   std::ofstream stressout;
@@ -65,6 +68,7 @@ class epi2D : public dpm {
     l1 = att1;
     l2 = att2;
     Dr0 = Dr;
+    boolCIL = false;
     vector<double> temp(NCELLS, 0.0);
     vector<double> temp2(NCELLS, 1.0);
     psi = temp;
@@ -104,6 +108,11 @@ class epi2D : public dpm {
       psi[ci] = (2.0 * drand48() - 1.0) * PI;
   }
   void setv0(double val) { v0 = val; };
+  void scalea0(double scaleFactor) {
+    for (int ci = 0; ci < NCELLS; ci++)
+      a0[ci] *= scaleFactor;
+  }
+  void setboolCIL(bool val) { boolCIL = val; };
 
   // getters
 
@@ -125,6 +134,7 @@ class epi2D : public dpm {
 
   // protocols
   void vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0);
+  void ageCellAreas(double areaScaleFactor);
   void tensileLoading(double scaleFactorX, double scaleFactorY);
   void zeroMomentum();
   void scaleBoxSize(double boxLengthScale, double scaleFactorX, double scaleFactorY);
