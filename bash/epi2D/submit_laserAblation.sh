@@ -68,8 +68,9 @@ echo att = "$att"
 echo v0 = "$v0"
 echo B = "$B"
 echo Dr0 = "$Dr0"
-echo NT = "$NT"
 echo boolCIL = "$boolCIl"
+echo NT = "$NT"
+
 
 # run compiler
 rm -f $binf

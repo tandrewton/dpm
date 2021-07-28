@@ -952,8 +952,8 @@ void epi2D::deflectOverlappingDirectors() {
             psi[cj] += PI + (2 * drand48() - 1) * PI / 4;
             psi[cj] -= 2 * PI * round(psi[cj] / (2 * PI));
 
-            activePropulsionFactor[ci] = 2.0;
-            activePropulsionFactor[cj] = 2.0;
+            activePropulsionFactor[ci] = 1.0;
+            activePropulsionFactor[cj] = 1.0;
             counter++;  //indicate that a swap has occurred for cell ci
             polarizationCounter++;
           }
