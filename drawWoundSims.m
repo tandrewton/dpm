@@ -3,24 +3,30 @@
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
 %works on cluster to write an avi file, but avi is a terrible format...
-isTestData = true;
+function drawWoundSims(N, NV, ndelete, calA, kl, att, v0, B,...
+    Dr0, NT, boolCIL, showPeriodicImages, showverts, isTestData)
+%isTestData = true;
 addpath("/Users/AndrewTon/Documents/YalePhD/projects/Jamming/CellSim/cells/bash/seq/")
 %addpath("/home/at965/cells/bash/seq")
 
-%CHANGE THESE PARAMETERS AS NEEDED
+%CHANGE THESE PARAMETERS AS                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   NEEDED
 
 runType = "ablate";
-N="192";
-NV="24";
-calA="1.08";
-kl="1.0";
-kb="0";
-att="0";
-B="1.0";
-Dr0="0.1";
-NT="10000";
-FSKIP = 1;
-
+% N="96";
+% NV="24";
+% ndelete="5";
+% calA="1.08";
+% kl="1.0";
+% att="0.1";
+% v0="0.5";
+% B="1.0";
+% Dr0="0.1";
+% boolCil="1";
+% NT="5000";
+ FSKIP = 1;
+ eta = str2num(v0)^2 / str2num(Dr0) / str2num(att) / 2;
+ eta = num2str(eta);
+ 
 %PC directory
 pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
 %pipeline is the location of data generated during simulations
@@ -34,10 +40,10 @@ mkdir(subdir_output);
 startSeed = 1;
 max_seed = 1;
 makeAMovie = 1;
-showPeriodicImages = 0;
+% showPeriodicImages = 1;
 
 % show vertices or not
-showverts = 0;
+% showverts = 0;
 
 %txt = 'N = '+N+', NV = '+NV+', calA_o='+calA+', att='+att+', B='+B;
 txt='test';
@@ -55,8 +61,8 @@ for seed = startSeed:max_seed
         energystr = pc_dir+'/energy.test';
         stressstr = pc_dir+'/stress.test';
     else
-        run_name =runType+"_N"+N+"_NV"+NV+"_calA0"+calA+"_kl"+kl+...
-            "_att"+att+"_B"+B+"_Dr0"+Dr0+"_NT"+NT;     
+        run_name =runType+"_N"+N+"_NV"+NV+"_ndel"+ndelete+"_calA0"+calA+"_kl"+kl+...
+            "_att"+att+"_v0"+v0+"_B"+B+"_Dr0"+Dr0+"_CIL"+boolCIL+"_NT"+NT;     
         pipeline_dir =  subdir_pipeline + run_name + "/";
         output_dir = subdir_output + run_name + "/";
         mkdir(pipeline_dir)
@@ -112,7 +118,8 @@ for seed = startSeed:max_seed
 
     if makeAMovie == 1
         moviestr = output_dir + runType+fileheader+'seed_'+seed+'.mp4';
-        vobj = VideoWriter(moviestr,'MPEG-4');
+        vobj = VideoWriter(moviestr, 'MPEG-4');
+        vobj.Quality = 100;
             
         vobj.FrameRate = 5;
         open(vobj);
@@ -121,9 +128,13 @@ for seed = startSeed:max_seed
     if showPeriodicImages == 1
         itLow = -1;
         itHigh = 1;
+        boxAxLow = -0.25;
+        boxAxHigh = 1.25;
     else
         itLow = 0;
         itHigh = 0;
+        boxAxLow = 0;
+        boxAxHigh = 1;
     end
 
     fnum = 1;
@@ -198,13 +209,16 @@ for seed = startSeed:max_seed
 
         % plot box
         plot([0 Lx Lx 0 0], [0 0 Ly Ly 0], 'k-', 'linewidth', 1.5);
+        ann = annotation('textbox', [.42 .05 .6 .05],'interpreter', 'latex',...
+            'String', "$$\eta = $$"+eta, 'Edgecolor','none');
+        ann.FontSize = 30;
         axis equal;
         ax = gca;
         ax.XTick = [];
         ax.YTick = [];
         if showPeriodicImages == 1
-            ax.XLim = [-0.25 1.25]*Lx;
-            ax.YLim = [-0.25 1.25]*Ly;
+            ax.XLim = [boxAxLow boxAxHigh]*Lx;
+            ax.YLim = [boxAxLow boxAxHigh]*Ly;
         else
             ax.XLim = [0 1]*Lx;
             ax.YLim = [0 1]*Ly;
@@ -222,4 +236,5 @@ for seed = startSeed:max_seed
     if makeAMovie == 1
         close(vobj);
     end
+    
 end

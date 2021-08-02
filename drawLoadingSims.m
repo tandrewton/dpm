@@ -2,7 +2,7 @@
 % output is a movie made from stitching the position file frames together
 %pwd should give ~/Documents/YalePhd/projects/dpm
 %works on cluster to write an avi file, but avi is a terrible format...
-isTestData = false;
+isTestData = true;
 addpath("/Users/AndrewTon/Documents/YalePhD/projects/Jamming/CellSim/cells/bash/seq/")
 %addpath("/home/at965/cells/bash/seq")
 
@@ -15,8 +15,9 @@ kl="1.0";
 kb="0";
 att="0.5";
 B="0.1";
-Dr0="0.0";
-NT="100";
+strain="0.5";
+strainRate="0.01";
+duration="100";
 loadingType="uniaxial";
 FSKIP = 1; %# frames skipped to lower sampling freq
 
@@ -34,6 +35,7 @@ startSeed = 1;
 max_seed = 1;
 makeAMovie = 1;
 showPeriodicImages = 1;
+plotVoronoi = 0;
 
 % show vertices or not
 showverts = 0;
@@ -54,7 +56,8 @@ for seed = startSeed:max_seed
         stressstr = pc_dir+'/stress.test';
     else
         run_name =runType+"_N"+N+"_NV"+NV+"_calA0"+calA+"_kl"+kl+...
-            "_att"+att+"_B"+B+"_Dr0"+Dr0+"_NT"+NT+"_loading_"+loadingType;     
+            "_att"+att+"_B"+B+"_strain"+strain+"_strainRate"+strainRate+...
+            "_duration"+duration+"_loading_"+loadingType;     
         pipeline_dir =  subdir_pipeline + run_name + "/";
         output_dir = subdir_output + run_name + "/";
         mkdir(pipeline_dir)
@@ -69,13 +72,14 @@ for seed = startSeed:max_seed
     figure(13);
     stress = load(stressstr);
     plot(stress(:,2), stress(:,3), 'r-', 'linewidth',2, 'DisplayName',...
-        '$S_{xx}$');
+         '$S_{xx}$');
     plot(stress(:,2), stress(:,4), 'b-', 'linewidth',2, 'DisplayName',...
-        '$S_{yy}$');
+         '$S_{yy}$');
     plot(stress(:,2), stress(:,5),'k-','linewidth',2, 'DisplayName',...
-        '$S_{xy}$');
-    xlabel('$\tau$','Interpreter','latex');
+         '$S_{xy}$');
+    xlabel('$\epsilon_x$ (tensile strain)','Interpreter','latex');
     ylabel('Stress','Interpreter','latex');
+    %plot(stress(:,1), stress(:,2), 'k-', 'linewidth', 2);
     legend('Location', 'southeast', 'Interpreter', 'latex');
     ax = gca;
     ax.FontSize = 24;
@@ -214,39 +218,42 @@ for seed = startSeed:max_seed
             currframe = getframe(gcf);
             writeVideo(vobj,currframe);
         end
-        mat_cx = mean(cell2mat(xpos));
-        mat_cy = mean(cell2mat(ypos));
-        for xx=itLow:itHigh
-            for yy=itLow:itHigh
-                vor_cx = [vor_cx, mat_cx + xx*Lx];
-                vor_cy = [vor_cy, mat_cy + yy*Ly];
+        if plotVoronoi == 1 
+            mat_cx = mean(cell2mat(xpos));
+            mat_cy = mean(cell2mat(ypos));
+            for xx=itLow:itHigh
+                for yy=itLow:itHigh
+                    vor_cx = [vor_cx, mat_cx + xx*Lx];
+                    vor_cy = [vor_cy, mat_cy + yy*Ly];
+                end
+            end
+            figure(fnum+20), clf, hold on, box on;
+            plot([0 Lx Lx 0 0], [0 0 Ly Ly 0], 'k-', 'linewidth', 1.5);
+            axis equal;
+            ax = gca;
+            ax.XTick = [];
+            ax.YTick = [];
+            if showPeriodicImages == 1
+                ax.XLim = [boxAxLow boxAxHigh]*Lx;
+                ax.YLim = [boxAxLow boxAxHigh]*Ly;
+            else
+                ax.XLim = [0 1]*Lx;
+                ax.YLim = [0 1]*Ly;
+            end
+            voronoi(ax, vor_cx,vor_cy);    
+            if makeAMovie == 1
+                currframe = getframe(gcf);
+                writeVideo(vor_vobj, currframe);
             end
         end
-        figure(fnum+20), clf, hold on, box on;
-        plot([0 Lx Lx 0 0], [0 0 Ly Ly 0], 'k-', 'linewidth', 1.5);
-        axis equal;
-        ax = gca;
-        ax.XTick = [];
-        ax.YTick = [];
-        if showPeriodicImages == 1
-            ax.XLim = [boxAxLow boxAxHigh]*Lx;
-            ax.YLim = [boxAxLow boxAxHigh]*Ly;
-        else
-            ax.XLim = [0 1]*Lx;
-            ax.YLim = [0 1]*Ly;
-        end
-        voronoi(ax, vor_cx,vor_cy);    
-        if makeAMovie == 1
-            currframe = getframe(gcf);
-            writeVideo(vor_vobj, currframe);
-        end
-        
     end
 
 
     % close video object
     if makeAMovie == 1
         close(vobj);
-        close(vor_vobj);
+        if plotVoronoi == 1
+            close(vor_vobj);
+        end
     end
 end

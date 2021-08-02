@@ -12,6 +12,7 @@
 
 */
 
+#include <math.h>
 #include <algorithm>
 #include <stdexcept>
 #include "dpm.h"
@@ -138,13 +139,13 @@ class epi2D : public dpm {
   void tensileLoading(double scaleFactorX, double scaleFactorY);
   void zeroMomentum();
   void scaleBoxSize(double boxLengthScale, double scaleFactorX, double scaleFactorY);
-  void dampedNVE2D(dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP);
+  void dampedNVE2D(dpmMemFn forceCall, double initialLx, double B, double dt0, double duration, double printInterval);
 
   int getIndexOfCellLocatedHere(double xLoc, double yLoc);
   void deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc);
   void laserAblate(int numCellsAblated, double sizeRatio, int nsmall, double xLoc, double yLoc);
 
-  void notchTest(int numCellsToDelete, double boxLengthScale, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP, int maxit = 10, std::string loadingType = "uniaxial");
+  void notchTest(int numCellsToDelete, double strain, double strainRate, double initialLx, double boxLengthScale, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, double printInterval, std::string loadingType);
   void orientDirector(int ci, double xLoc, double yLoc);
   void deflectOverlappingDirectors();
 

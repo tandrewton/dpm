@@ -548,17 +548,19 @@ void epi2D::tensileLoading(double scaleFactorX, double scaleFactorY) {
   }
 }
 
-void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP) {
+void epi2D::dampedNVE2D(dpmMemFn forceCall, double initialLx, double B, double dt0, double duration, double printInterval) {
   // make sure velocities exist or are already initialized before calling this
   // local variables
-  int t, i;
-  double K;
+  int i;
+  double K, t0 = simclock;
+  double temp_simclock = simclock;
 
   // set time step magnitude
   setdt(dt0);
+  int NPRINTSKIP = printInterval / dt;
 
   // loop over time, print energy
-  for (t = 0; t < NT; t++) {
+  while (simclock - t0 < duration) {
     // VV POSITION UPDATE
     for (i = 0; i < vertDOF; i++) {
       // update position
@@ -586,8 +588,9 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, int NT, int NP
     simclock += dt;
 
     // print to console and file
-    if (NPRINTSKIP != 0) {
-      if (t % NPRINTSKIP == 0) {
+    if (int(printInterval) != 0) {
+      if (int((simclock - t0) / dt) % NPRINTSKIP == 0 && (simclock - temp_simclock) > printInterval / 2) {
+        temp_simclock = simclock;
         // compute kinetic energy
         K = vertexKineticEnergy();
 
@@ -600,7 +603,7 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, int NT, int NP
         cout << "		N V E (DAMPED) 					" << endl;
         cout << "===============================" << endl;
         cout << endl;
-        cout << "	** t / NT	= " << t << " / " << NT << endl;
+        cout << "	** simclock - t0 / duration	= " << simclock - t0 << " / " << duration << endl;
         cout << "	** U 		= " << setprecision(12) << U << endl;
         cout << "	** K 		= " << setprecision(12) << K << endl;
         cout << "	** E 		= " << setprecision(12) << U + K << endl;
@@ -608,8 +611,8 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, int NT, int NP
         if (enout.is_open()) {
           // print to energy file
           cout << "** printing energy" << endl;
-          enout << setw(w) << left << t;
           enout << setw(wnum) << left << simclock;
+          enout << setw(wnum) << left << L[0] / initialLx - 1;
           enout << setw(wnum) << setprecision(12) << U;
           enout << setw(wnum) << setprecision(12) << K;
           enout << endl;
@@ -618,8 +621,8 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, int NT, int NP
         if (stressout.is_open()) {
           // print to stress file
           cout << "** printing stress" << endl;
-          stressout << setw(w) << left << t;
           stressout << setw(wnum) << left << simclock;
+          stressout << setw(wnum) << left << L[0] / initialLx - 1;
           stressout << setw(wnum) << stress[0];
           stressout << setw(wnum) << stress[1];
           stressout << setw(wnum) << stress[2];
@@ -661,7 +664,6 @@ void epi2D::scaleBoxSize(double boxLengthScale, double scaleFactorX, double scal
   double xi, yi, cx, cy, dx, dy;
   double newLx = scaleFactorX * L[0];
   double newLy = scaleFactorY * L[1];
-
   // loop over cells, scale
   for (ci = 0; ci < NCELLS; ci++) {
     // first global index for ci
@@ -744,8 +746,6 @@ void epi2D::deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc) {
   /*need to touch smallN, largeN, NCELLS, NVTOT, cellDOF, vertDOF, szList, nv, list, vvel, vpos, vF, vrad, im1, ip1, vim1, vip1,
   a0, l0, NCTCS, cij, calA0, psi, DrList (this list of items is from jamFracture.cpp)
   and possibly others 
-
-  leave alone: double calA0, cellDOF, 
 
   deleteCell effectively deletes a cell by erasing 1 element from vectors who have size = NCELLS
   and by erasing largeNV or smallNV elements from vectors who have size = NVTOT
@@ -844,42 +844,23 @@ void epi2D::laserAblate(int numCellsAblated, double sizeRatio, int nsmall, doubl
   zeroMomentum();
 }
 
-void epi2D::notchTest(int numCellsToDelete, double boxLengthScale, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, int NT, int NPRINTSKIP, int maxit, std::string loadingType) {
+void epi2D::notchTest(int numCellsToDelete, double strain, double strainRate, double initialLx, double boxLengthScale, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, double printInterval, std::string loadingType) {
   // select xloc, yloc. delete the nearest cell. scale particle sizes, loop.
   // our proxy for isotropic stretching is to scale the particle sizes down. Inter-vertex distances change,
-  int numCellsDeletedPerIt = 1;
-  int it;
   double xLoc, yLoc;
-  double scaleFactor = 0.98;
-  for (int i = 0; i < numCellsToDelete; i++) {
-    xLoc = (drand48() - 0.5) * L[0];
-    yLoc = (drand48() - 0.5) * L[1];
+  double tauRelax = 10.0;
+  std::cout << "inside notch test!\n";
 
-    laserAblate(numCellsDeletedPerIt, sizeRatio, nsmall, xLoc, yLoc);
+  for (int i = 0; i < 1; i++) {
+    xLoc = 0.5 * L[0];
+    yLoc = 0.5 * L[1];
+    laserAblate(numCellsToDelete, sizeRatio, nsmall, xLoc, yLoc);
 
-    std::cout << "***********************************************\n"
-              << "Ablating a cell! # cells left = " << NCELLS << '\n'
-              << " simclock time = " << simclock << '\n'
-              << "onto tensile loading loop! \n \n ********************************* \n";
-
-    it = 0;
-    if (loadingType == "isotropic") {
-      while (it < maxit) {
-        // constant true strain rate, isotropic tensile loading
-        tensileLoading(scaleFactor, scaleFactor);
-        dampedNVE2D(forceCall, B, dt0, NT, NPRINTSKIP);
-        it++;
+    if (loadingType == "uniaxial") {
+      while (L[0] / initialLx - 1 < strain) {
+        scaleBoxSize(boxLengthScale, 1 + strainRate, 1);
+        dampedNVE2D(forceCall, initialLx, B, dt0, tauRelax, printInterval);
       }
-    } else if (loadingType == "uniaxial") {
-      while (it < maxit) {
-        cout << "it = " << it << '\n';
-        // constant true strain rate, isotropic tensile loading
-        scaleBoxSize(boxLengthScale, 1.01, 1.0);
-        dampedNVE2D(forceCall, B, dt0, NT, NPRINTSKIP);
-        it++;
-        cout << "onto it loop " << it << '\n';
-      }
-
     } else
       std::cout << "Issue: loadingType not understood\n";
   }
@@ -887,22 +868,19 @@ void epi2D::notchTest(int numCellsToDelete, double boxLengthScale, double sizeRa
 
 void epi2D::orientDirector(int ci, double xLoc, double yLoc) {
   // point the director of cell ci towards (xLoc, yLoc)
-
   double dx, dy, cx, cy;
-
   // compute cell center of mass
   com2D(ci, cx, cy);
-
   // compute angle needed for psi to point towards (xLoc,yLoc) - for now, just towards origin
   double theta = atan2(cy - 0.5 * L[1], cx - 0.5 * L[0]) + PI;
   theta -= 2 * PI * round(theta / (2 * PI));
-
   psi[ci] = theta;
 }
 
 void epi2D::deflectOverlappingDirectors() {
   // if any two cells are overlapping (according to cij), they are candidates to have their directors swapped in the same timestep
   // directors will be swapped if they are approximately 180 degrees out of phase AND pointed towards each other
+  // this doesn't really catch a lot of edge cases. try a different thing.
   double dot_product = 0.0, dist1_sq, dist2_sq, psi_temp;
   int gi;
   double rix, riy, rjx, rjy, nix, niy, njx, njy;
@@ -927,7 +905,7 @@ void epi2D::deflectOverlappingDirectors() {
     activePropulsionFactor[ci] = 1.0;
     for (int cj = ci + 1; cj < NCELLS; cj++) {
       if (cij[NCELLS * ci + cj - (ci + 1) * (ci + 2) / 2] > 0) {
-        // cells are overlapping
+        // check if cells are overlapping
         nix = director[ci][0];
         niy = director[ci][1];
         njx = director[cj][0];
