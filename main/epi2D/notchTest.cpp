@@ -154,15 +154,15 @@ int main(int argc, char const* argv[]) {
   //after compress, turn on damped NVE
   double T = 1e-4;
   epithelial.drawVelocities2D(T);
-  epithelial.dampedNVE2D(attractiveForceUpdate, epithelial.getL(0), B, dt0, time_dbl / 10, 0);
+  epithelial.dampedNVE2D(attractiveForceUpdate, B, dt0, time_dbl / 10, 0);
+  epithelial.setInitialLx(epithelial.getL(0));
 
   //ELASTIC SHEET FRACTURE SCHEME (introduce defect + tensile loading)
   int numCellsToDelete = 2;
   double printInterval = 10.0;  // do not set larger than 10 tau!
 
-  double initialLx = epithelial.getL(0);
   if (loadingType == 0) {
-    epithelial.notchTest(numCellsToDelete, strain, strainRate, initialLx, boxLengthScale, sizeratio,
+    epithelial.notchTest(numCellsToDelete, strain, strainRate, boxLengthScale, sizeratio,
                          nsmall, attractiveForceUpdate, B, dt0, printInterval, "uniaxial");
   } else {
     cout << "loadingType not found. Moving on.\n";

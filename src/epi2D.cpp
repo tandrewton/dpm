@@ -548,7 +548,7 @@ void epi2D::tensileLoading(double scaleFactorX, double scaleFactorY) {
   }
 }
 
-void epi2D::dampedNVE2D(dpmMemFn forceCall, double initialLx, double B, double dt0, double duration, double printInterval) {
+void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval) {
   // make sure velocities exist or are already initialized before calling this
   // local variables
   int i;
@@ -844,7 +844,7 @@ void epi2D::laserAblate(int numCellsAblated, double sizeRatio, int nsmall, doubl
   zeroMomentum();
 }
 
-void epi2D::notchTest(int numCellsToDelete, double strain, double strainRate, double initialLx, double boxLengthScale, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, double printInterval, std::string loadingType) {
+void epi2D::notchTest(int numCellsToDelete, double strain, double strainRate, double boxLengthScale, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, double printInterval, std::string loadingType) {
   // select xloc, yloc. delete the nearest cell. scale particle sizes, loop.
   // our proxy for isotropic stretching is to scale the particle sizes down. Inter-vertex distances change,
   double xLoc, yLoc;
@@ -852,14 +852,14 @@ void epi2D::notchTest(int numCellsToDelete, double strain, double strainRate, do
   std::cout << "inside notch test!\n";
 
   for (int i = 0; i < 1; i++) {
-    xLoc = 0.5 * L[0];
-    yLoc = 0.5 * L[1];
+    xLoc = 0.0;
+    yLoc = 0.0;
     laserAblate(numCellsToDelete, sizeRatio, nsmall, xLoc, yLoc);
 
     if (loadingType == "uniaxial") {
       while (L[0] / initialLx - 1 < strain) {
         scaleBoxSize(boxLengthScale, 1 + strainRate, 1);
-        dampedNVE2D(forceCall, initialLx, B, dt0, tauRelax, printInterval);
+        dampedNVE2D(forceCall, B, dt0, tauRelax, printInterval);
       }
     } else
       std::cout << "Issue: loadingType not understood\n";

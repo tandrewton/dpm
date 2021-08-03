@@ -53,6 +53,10 @@ class epi2D : public dpm {
   // boolean for whether cells execute CIL or not
   bool boolCIL;
 
+  // stores x length of box, used for tracking box size when appling tensile strain
+  // set it after equilibrating before tensile strain, and never otherwise.
+  double initialLx;
+
   // specific output objects
   std::ofstream enout;
   std::ofstream stressout;
@@ -114,8 +118,10 @@ class epi2D : public dpm {
       a0[ci] *= scaleFactor;
   }
   void setboolCIL(bool val) { boolCIL = val; };
+  void setInitialLx(double val) { initialLx = val; };
 
   // getters
+  double getInitialLx() { return initialLx; };
 
   // main double
   double getPsi(int ci) { return psi.at(ci); };
@@ -139,13 +145,13 @@ class epi2D : public dpm {
   void tensileLoading(double scaleFactorX, double scaleFactorY);
   void zeroMomentum();
   void scaleBoxSize(double boxLengthScale, double scaleFactorX, double scaleFactorY);
-  void dampedNVE2D(dpmMemFn forceCall, double initialLx, double B, double dt0, double duration, double printInterval);
+  void dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval);
 
   int getIndexOfCellLocatedHere(double xLoc, double yLoc);
   void deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc);
   void laserAblate(int numCellsAblated, double sizeRatio, int nsmall, double xLoc, double yLoc);
 
-  void notchTest(int numCellsToDelete, double strain, double strainRate, double initialLx, double boxLengthScale, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, double printInterval, std::string loadingType);
+  void notchTest(int numCellsToDelete, double strain, double strainRate, double boxLengthScale, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, double printInterval, std::string loadingType);
   void orientDirector(int ci, double xLoc, double yLoc);
   void deflectOverlappingDirectors();
 

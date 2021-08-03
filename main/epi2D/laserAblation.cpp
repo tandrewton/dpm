@@ -160,7 +160,7 @@ int main(int argc, char const* argv[]) {
   //after compress, turn on damped NVE
   double T = 1e-4;
   epithelial.drawVelocities2D(T);
-  epithelial.dampedNVE2D(attractiveForceUpdate, L[0], B, dt0, time_dbl / 10, 0);
+  epithelial.dampedNVE2D(attractiveForceUpdate, B, dt0, time_dbl / 10, 0);
 
   // LASER ABLATION SCHEME
   double xLoc = 0.0, yLoc = 0.0;
@@ -173,7 +173,7 @@ int main(int argc, char const* argv[]) {
   epithelial.zeroMomentum();
   int numIts = 20;
   for (int i = 0; i < numIts; i++) {
-    epithelial.dampedNVE2D(activeForceUpdate, L[0], B, dt0, time_dbl / numIts, time_dbl / numIts);
+    epithelial.dampedNVE2D(activeForceUpdate, B, dt0, time_dbl / numIts, time_dbl / numIts);
     //epithelial.setka(ka * 0.95);
     //epithelial.scalea0(1.05);
     //epithelial.ageCellAreas(1.02);
