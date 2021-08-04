@@ -10,9 +10,11 @@
 //
 // Compilation command:
 // g++ -O3 --std=c++11 -I src main/epi2D/laserAblation.cpp src/dpm.cpp src/epi2D.cpp -o main/epi2D/laserAblation.o
-// ./main/epi2D/laserAblation.o 48 24 10 1.08 0.8 0.9 1.0 0.3 0.5 1.0 0.5 1 1 1000 pos.test energy.test stress.test
-// ./main/epi2D/laserAblation.o 24 24 5 1.08 0.8 0.9 1.0 0.1 0 1.0 0.5 1 1 1000 pos.test energy.test stress.test
-// ./main/epi2D/laserAblation.o 24 24 0 1.08 0.6 0.7 1.0 0 0 1.0 0.1 0 1 100 pos.test energy.test stress.test
+// ./main/epi2D/laserAblation.o 48 24 10 1.08 0.2 0.85 1.0 0.3 0.5 1.0 0.5 1 1 1000 pos.test energy.test stress.test
+// ./main/epi2D/laserAblation.o 24 24 5 1.08 0.2 0.85 1.0 0.1 0 1.0 0.5 1 1 1000 pos.test energy.test stress.test
+// ./main/epi2D/laserAblation.o 24 24 5 1.08 0.2 0.85 1.0 0 0 1.0 0.1 0 1 100 pos.test energy.test stress.test
+// ./main/epi2D/laserAblation.o 24 24 5 1.08 0.2 0.85 1.0 0.3 0 1.0 0.1 0 1 100 pos.test energy.test stress.test
+// ./main/epi2D/laserAblation.o 24 24 5 1.08 0.2 0.85 1.0 0.25 0.5 1.0 0.5 0 1 100 pos.test energy.test stress.test
 //
 // Parameter input list
 // 1. NCELLS: 			number of particles
@@ -25,8 +27,8 @@
 // 7. kl: 				  perimeter spring constant
 // 8. att:          attraction strength parameter
 // 9. v0:           active vertex velocity scale
-// 10. B:            (over)damping coefficient gamma
-// 11. Dr0:          rotational diffusion constant for protrusion activity
+// 10. B:           (over)damping coefficient gamma
+// 11. Dr0:         rotational diffusion constant for protrusion activity
 // 12. boolCIL:     bool for whether cells conduct contact inhibition of locomotion
 // 13. seed: 			  seed for random number generator
 // 14. time:        amount of time (tau) to simulate
@@ -55,7 +57,7 @@ const double sizeratio = 1.4;  // size ratio between small and large particles
 const double dt0 = 0.01;       // initial magnitude of time step in units of MD time
 const double Ptol = 1e-8;
 const double Ftol = 1e-12;
-const double att_range = 0.5;
+const double att_range = 0.3;
 
 int main(int argc, char const* argv[]) {
   // local variables to be read in
@@ -149,20 +151,23 @@ int main(int argc, char const* argv[]) {
   epithelial.monodisperse2D(calA0, nsmall);
 
   epithelial.initializePositions2D(phi0, Ftol, true);
+  epithelial.printConfiguration2D();
 
   epithelial.initializeNeighborLinkedList2D(boxLengthScale);
 
   // set base dpm force, upcast derived epi2D forces
   dpmMemFn repulsiveForceUpdate = &dpm::repulsiveForceUpdate;
+  dpmMemFn repulsiveForceUpdateWithWalls = static_cast<void (dpm::*)()>(&epi2D::repulsiveForceUpdateWithWalls);
   dpmMemFn attractiveForceUpdate = static_cast<void (dpm::*)()>(&epi2D::attractiveForceUpdate_2);
   dpmMemFn activeForceUpdate = static_cast<void (dpm::*)()>(&epi2D::activeAttractiveForceUpdate);
 
-  epithelial.vertexCompress2Target2D(repulsiveForceUpdate, Ftol, dt0, phiMax, dphi0);
+  epithelial.vertexCompress2Target2D(repulsiveForceUpdateWithWalls, Ftol, dt0, phiMax, dphi0);
+  epithelial.printConfiguration2D();
 
   //after compress, turn on damped NVE
   double T = 1e-4;
   epithelial.drawVelocities2D(T);
-  epithelial.dampedNP0(attractiveForceUpdate, B, dt0, 100, 1);
+  epithelial.dampedNP0(attractiveForceUpdate, B, dt0, 10, 0);
 
   // LASER ABLATION SCHEME
   double xLoc = 0.0, yLoc = 0.0;
@@ -171,7 +176,7 @@ int main(int argc, char const* argv[]) {
   epithelial.setRandPsi();
   epithelial.zeroMomentum();
 
-  //epithelial.dampedNP0(activeForceUpdate, B, dt0, time_dbl, time_dbl / 20);
+  epithelial.dampedNP0(activeForceUpdate, B, dt0, time_dbl, time_dbl / 20);
 
   cout << "\n** Finished laserAblation.cpp, ending. " << endl;
   return 0;

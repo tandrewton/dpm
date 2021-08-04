@@ -107,6 +107,14 @@ double epi2D::meankb() {
   return val;
 }
 
+void epi2D::repulsiveForceUpdateWithWalls() {
+  double a, b, c, d;
+  resetForcesAndEnergy();
+  shapeForces2D();
+  vertexRepulsiveForces2D();
+  wallForces(false, false, false, false, a, b, c, d);
+}
+
 void epi2D::vertexAttractiveForces2D_2() {
   // altered from dpm attractive force code, because it works with larger l2 values. (warning: probably won't work with bending.)
   // local variables
@@ -767,6 +775,7 @@ void epi2D::wallForces(bool top, bool bottom, bool left, bool right, double& for
   //compute particle-wall forces and wall-particle forces. Only the latter exists, unless bool is
   // set to true, in which case the wall can be pushed on. bool set to true = barostat
   // e.g. for 3 fixed walls and 1 moving wall, set true false false false
+  // forceTop, etc., are forces on the walls due to newton's 3rd law + collisions.
   bool collideTopOrRight, collideBottomOrLeft;
   double boxL, K = 1, fmag = 0;
   forceTop = 0;
@@ -1196,8 +1205,10 @@ void epi2D::printConfiguration2D() {
     yi = x[NDIM * gi + 1];
 
     // place back in box center
-    xi = fmod(xi, Lx);
-    yi = fmod(yi, Ly);
+    if (pbc[0])
+      xi = fmod(xi, Lx);
+    if (pbc[1])
+      yi = fmod(yi, Ly);
 
     posout << setw(w) << left << "VINFO";
     posout << setw(w) << left << ci;

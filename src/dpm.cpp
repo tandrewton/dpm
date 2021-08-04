@@ -553,18 +553,18 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary) 
   // initialize cell centers randomly
   for (ci = 0; ci < cellDOF; ci += 2) {
     if (isFixedBoundary)
-      dpos.at(ci) = L[ci % 2] * (drand48() * 0.2 + 0.4);
+      dpos.at(ci) = L[ci % 2] * (drand48() * 0.5 + 0.25);
     else
       dpos.at(ci) = L[ci % 2] * drand48();
   }
   for (ci = cellDOF - 1; ci > 0; ci -= 2) {
     if (isFixedBoundary)
-      dpos.at(ci) = L[ci % 2] * (drand48() * 0.2 + 0.4);
+      dpos.at(ci) = L[ci % 2] * (drand48() * 0.5 + 0.25);
     else
       dpos.at(ci) = L[ci % 2] * drand48();
   }
   for (ci = 0; ci < cellDOF; ci++) {
-    assert(dpos[ci] >= r[ci] && dpos[ci] <= L[ci % NDIM] - r[ci]);
+    //assert(dpos[ci] >= r[ci] && dpos[ci] <= L[ci % NDIM] - r[ci]);
     cout << "dpos(x,y) = " << dpos[ci] / L[ci % NDIM] << '\n';
   }
   // set radii of SP disks
@@ -2759,8 +2759,10 @@ void dpm::printConfiguration2D() {
     yi = x.at(NDIM * gi + 1);
 
     // place back in box center
-    xi = fmod(xi, Lx);
-    yi = fmod(yi, Ly);
+    if (pbc[0])
+      xi = fmod(xi, Lx);
+    if (pbc[1])
+      yi = fmod(yi, Ly);
 
     posout << setw(w) << left << "VINFO";
     posout << setw(w) << left << ci;

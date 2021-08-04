@@ -54,6 +54,7 @@ const double sizeratio = 1.4;  // size ratio between small and large particles
 const double dt0 = 0.01;       // initial magnitude of time step in units of MD time
 const double Ptol = 1e-8;
 const double Ftol = 1e-12;
+const double att_range = 0.5;
 
 int main(int argc, char const* argv[]) {
   // local variables to be read in
@@ -126,7 +127,11 @@ int main(int argc, char const* argv[]) {
   // instantiate object
   epi2D epithelial(NCELLS, 0.0, 0.0, Dr0, seed);
   epithelial.setl1(att);
-  epithelial.setl2(att / 2);
+  epithelial.setl2(att_range);
+  if (att > att_range) {
+    cout << "attraction stronger than attraction range; discontinuous adhesive potential; error, exiting!\n";
+    return 1;
+  }
 
   epithelial.openPosObject(positionFile);
   epithelial.openEnergyObject(energyFile);
@@ -159,13 +164,14 @@ int main(int argc, char const* argv[]) {
 
   //ELASTIC SHEET FRACTURE SCHEME (introduce defect + tensile loading)
   int numCellsToDelete = 2;
-  double printInterval = 10.0;  // do not set larger than 10 tau!
+  double printInterval = 10.0;  // do not set larger than 10 tau (relax time set in notchTest, both this and that are hardcoded)!
 
   if (loadingType == 0) {
     epithelial.notchTest(numCellsToDelete, strain, strainRate, boxLengthScale, sizeratio,
                          nsmall, attractiveForceUpdate, B, dt0, printInterval, "uniaxial");
   } else {
-    cout << "loadingType not found. Moving on.\n";
+    cout << "loadingType not found. Closing.\n";
+    return 1;
   }
 
   cout << "\n** Finished notchTest.cpp, ending. " << endl;

@@ -1,7 +1,6 @@
 %%Draw sims for notchTest.cpp
 % output is a movie made from stitching the position file frames together
 %pwd should give ~/Documents/YalePhd/projects/dpm
-%works on cluster to write an avi file, but avi is a terrible format...
 isTestData = true;
 addpath("/Users/AndrewTon/Documents/YalePhD/projects/Jamming/CellSim/cells/bash/seq/")
 %addpath("/home/at965/cells/bash/seq")
@@ -21,6 +20,13 @@ duration="100";
 loadingType="uniaxial";
 FSKIP = 1; %# frames skipped to lower sampling freq
 
+startSeed = 1;
+max_seed = 1;
+makeAMovie = 1;
+showPeriodicImages = 1;
+plotVoronoi = 0;
+showverts = 0;
+
 %PC directory
 pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
 %pipeline is the location of data generated during simulations
@@ -31,14 +37,6 @@ subdir_output = pc_dir + "output/cells/"+runType+"/";
 mkdir(subdir_pipeline);
 mkdir(subdir_output);
 
-startSeed = 1;
-max_seed = 1;
-makeAMovie = 1;
-showPeriodicImages = 1;
-plotVoronoi = 0;
-
-% show vertices or not
-showverts = 0;
 
 %txt = 'N = '+N+', NV = '+NV+', calA_o='+calA+', att='+att+', B='+B+', load='+loadingType;
 txt = 'test';

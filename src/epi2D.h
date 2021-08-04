@@ -140,6 +140,7 @@ class epi2D : public dpm {
   double meankb();
 
   // epi cell interactions
+  void repulsiveForceUpdateWithWalls();
   void vertexAttractiveForces2D_2();
   void attractiveForceUpdate_2();
   void activeAttractiveForceUpdate();

@@ -2,30 +2,38 @@
 % output is a movie made from stitching the position file frames together
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
-%works on cluster to write an avi file, but avi is a terrible format...
-function drawWoundSims(N, NV, ndelete, calA, kl, att, v0, B,...
-    Dr0, NT, boolCIL, showPeriodicImages, showverts, isTestData)
-%isTestData = true;
-addpath("/Users/AndrewTon/Documents/YalePhD/projects/Jamming/CellSim/cells/bash/seq/")
-%addpath("/home/at965/cells/bash/seq")
 
-%CHANGE THESE PARAMETERS AS                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   NEEDED
+% function drawWoundSims(N, NV, ndelete, calA, kl, att, v0, B,...
+%     Dr0, NT, boolCIL, showPeriodicImages, showverts, isTestData)
+isTestData = true;
+addpath("/Users/AndrewTon/Documents/YalePhD/projects/Jamming/CellSim/cells/bash/seq/")
+
+%CHANGE THESE PARAMETERS                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   NEEDED
 
 runType = "ablate";
-% N="96";
-% NV="24";
-% ndelete="5";
-% calA="1.08";
-% kl="1.0";
-% att="0.1";
-% v0="0.5";
-% B="1.0";
-% Dr0="0.1";
-% boolCil="1";
-% NT="5000";
- FSKIP = 1;
- eta = str2num(v0)^2 / str2num(Dr0) / str2num(att) / 2;
- eta = num2str(eta);
+N="96";
+NV="24";
+ndelete="5";
+calA="1.08";
+kl="1.0";
+att="0.1";
+v0="0.5";
+B="1.0";
+Dr0="0.1";
+boolCil="1";
+NT="5000";
+FSKIP = 1;
+eta = str2num(v0)^2 / str2num(Dr0) / str2num(att) / 2;
+eta = num2str(eta);
+if (isTestData)
+    eta = " ";
+end
+
+startSeed = 1;
+max_seed = 1;
+makeAMovie = 1;
+showPeriodicImages = 0;
+showverts = 0;
  
 %PC directory
 pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
@@ -37,13 +45,6 @@ subdir_output = pc_dir + "output/cells/"+runType+"/";
 mkdir(subdir_pipeline);
 mkdir(subdir_output);
 
-startSeed = 1;
-max_seed = 1;
-makeAMovie = 1;
-% showPeriodicImages = 1;
-
-% show vertices or not
-% showverts = 0;
 
 %txt = 'N = '+N+', NV = '+NV+', calA_o='+calA+', att='+att+', B='+B;
 txt='test';
@@ -102,9 +103,9 @@ for seed = startSeed:max_seed
     %NVTOT = sum(nv);
     
     %if L is constant, use the next 3 lines
-    L = trajectoryData.L(1,:);
-    Lx = L(1);
-    Ly = L(2);
+    %L = trajectoryData.L(1,:);
+    %Lx = L(1);
+    %Ly = L(2);
 
     % get cell colors
     %[nvUQ, ~, IC] = unique(nv);
@@ -157,9 +158,9 @@ for seed = startSeed:max_seed
         psi = trajectoryData.psi(ff,:);
 
         %if L is not constant, use the next 3 lines
-        %L = trajectoryData.L(ff,:);
-        %Lx = L(1);
-        %Ly = L(2);
+        L = trajectoryData.L(ff,:);
+        Lx = L(1);
+        Ly = L(2);
 
         for nn = 1:NCELLS
             xtmp = xpos{nn};
