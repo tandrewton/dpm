@@ -199,7 +199,7 @@ class dpm {
   void sinusoidalPreferredAngle(double thA, double thK);
   void initializeVertexShapeParameters(double calA0, int nref);
   void initializeVertexIndexing2D();
-  void initializePositions2D(double phi0, double Ftol);
+  void initializePositions2D(double phi0, double Ftol, bool isFixedBoundary = false);
   void initializeNeighborLinkedList2D(double boxLengthScale);
 
   // editing & updating

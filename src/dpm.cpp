@@ -526,7 +526,8 @@ void dpm::sinusoidalPreferredAngle(double thA, double thK) {
 }
 
 // initialize CoM positions of cells using SP FIRE
-void dpm::initializePositions2D(double phi0, double Ftol) {
+void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary) {
+  // isFixedBoundary is an optional bool argument that tells cells to stay away from the boundary during initialization
   // local variables
   int i, d, ci, cj, vi, vj, gi, cellDOF = NDIM * NCELLS;
   double areaSum, xtra = 1.1;
@@ -550,11 +551,22 @@ void dpm::initializePositions2D(double phi0, double Ftol) {
     L.at(d) = pow(areaSum / phi0, 1.0 / NDIM);
 
   // initialize cell centers randomly
-  for (ci = 0; ci < cellDOF; ci += 2)
-    dpos.at(ci) = L[ci % 2] * drand48();
-  for (ci = cellDOF - 1; ci > 0; ci -= 2)
-    dpos.at(ci) = L[ci % 2] * drand48();
-
+  for (ci = 0; ci < cellDOF; ci += 2) {
+    if (isFixedBoundary)
+      dpos.at(ci) = L[ci % 2] * (drand48() * 0.2 + 0.4);
+    else
+      dpos.at(ci) = L[ci % 2] * drand48();
+  }
+  for (ci = cellDOF - 1; ci > 0; ci -= 2) {
+    if (isFixedBoundary)
+      dpos.at(ci) = L[ci % 2] * (drand48() * 0.2 + 0.4);
+    else
+      dpos.at(ci) = L[ci % 2] * drand48();
+  }
+  for (ci = 0; ci < cellDOF; ci++) {
+    assert(dpos[ci] >= r[ci] && dpos[ci] <= L[ci % NDIM] - r[ci]);
+    cout << "dpos(x,y) = " << dpos[ci] / L[ci % NDIM] << '\n';
+  }
   // set radii of SP disks
   for (ci = 0; ci < NCELLS; ci++)
     drad.at(ci) = xtra * sqrt((2.0 * a0.at(ci)) / (nv.at(ci) * sin(2.0 * PI / nv.at(ci))));
@@ -699,6 +711,20 @@ void dpm::initializePositions2D(double phi0, double Ftol) {
         }
       }
     }
+    // FIRE step 4.1 Compute wall forces
+    if (isFixedBoundary) {
+      for (i = 0; i < cellDOF; i++) {
+        bool collideTopOrRight = dpos[i] > L[i % NDIM] - drad[i];
+        bool collideBottomOrLeft = dpos[i] < drad[i];
+
+        if (collideTopOrRight) {  // deflect particle down or left
+          dF[i] += -1 * (drad[i] - L[i % NDIM] + dpos[i]);
+        }
+        if (collideBottomOrLeft) {
+          dF[i] += 1 * (drad[i] - dpos[i]);
+        }
+      }
+    }
 
     // FIRE step 5. Final VV update
     for (i = 0; i < cellDOF; i++)
@@ -772,6 +798,11 @@ void dpm::initializePositions2D(double phi0, double Ftol) {
       x.at(NDIM * gi) = dtmp * cos((2.0 * PI * vi) / nv.at(ci)) + dpos.at(NDIM * ci) + 1e-2 * l0[gi] * drand48();
       x.at(NDIM * gi + 1) = dtmp * sin((2.0 * PI * vi) / nv.at(ci)) + dpos.at(NDIM * ci + 1) + 1e-2 * l0[gi] * drand48();
     }
+  }
+  for (i = 0; i < vertDOF; i++) {
+    if (x[i] < -r[i] || x[i] > L[i % NDIM])
+      cerr << "vertex initialized out of bounds!!\n\n\n = " << x[i] / L[i % NDIM] << '\t' << i << '\n';
+    //assert(x[i] >= -r[i] && x[i] <= L[i % NDIM]);
   }
 }
 

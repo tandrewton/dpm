@@ -11,8 +11,8 @@
 // Compilation command:
 // g++ -O3 --std=c++11 -I src main/epi2D/laserAblation.cpp src/dpm.cpp src/epi2D.cpp -o main/epi2D/laserAblation.o
 // ./main/epi2D/laserAblation.o 48 24 10 1.08 0.8 0.9 1.0 0.3 0.5 1.0 0.5 1 1 1000 pos.test energy.test stress.test
-// ./main/epi2D/laserAblation.o 24 24 5 1.08 0.8 0.9 1.0 0.1 0 1.0 0.5 1 1 10000 pos.test energy.test stress.test
-//
+// ./main/epi2D/laserAblation.o 24 24 5 1.08 0.8 0.9 1.0 0.1 0 1.0 0.5 1 1 1000 pos.test energy.test stress.test
+// ./main/epi2D/laserAblation.o 24 24 0 1.08 0.6 0.7 1.0 0 0 1.0 0.1 0 1 100 pos.test energy.test stress.test
 //
 // Parameter input list
 // 1. NCELLS: 			number of particles
@@ -135,6 +135,8 @@ int main(int argc, char const* argv[]) {
   //set activity scale, and CIL option
   epithelial.setv0(v0);
   epithelial.setboolCIL(boolCIL);
+  epithelial.setpbc(0, false);
+  epithelial.setpbc(1, false);
 
   //set adhesion scale
   epithelial.setl1(att);
@@ -146,7 +148,7 @@ int main(int argc, char const* argv[]) {
 
   epithelial.monodisperse2D(calA0, nsmall);
 
-  epithelial.initializePositions2D(phi0, Ftol);
+  epithelial.initializePositions2D(phi0, Ftol, true);
 
   epithelial.initializeNeighborLinkedList2D(boxLengthScale);
 
@@ -160,24 +162,16 @@ int main(int argc, char const* argv[]) {
   //after compress, turn on damped NVE
   double T = 1e-4;
   epithelial.drawVelocities2D(T);
-  epithelial.dampedNVE2D(attractiveForceUpdate, B, dt0, time_dbl / 10, 0);
+  epithelial.dampedNP0(attractiveForceUpdate, B, dt0, 100, 1);
 
   // LASER ABLATION SCHEME
   double xLoc = 0.0, yLoc = 0.0;
-  //int numCellsToAblate = 20;
   int numCellsToAblate = ndelete;
   epithelial.laserAblate(numCellsToAblate, sizeratio, nsmall, xLoc, yLoc);
-
   epithelial.setRandPsi();
-
   epithelial.zeroMomentum();
-  int numIts = 20;
-  for (int i = 0; i < numIts; i++) {
-    epithelial.dampedNVE2D(activeForceUpdate, B, dt0, time_dbl / numIts, time_dbl / numIts);
-    //epithelial.setka(ka * 0.95);
-    //epithelial.scalea0(1.05);
-    //epithelial.ageCellAreas(1.02);
-  }
+
+  //epithelial.dampedNP0(activeForceUpdate, B, dt0, time_dbl, time_dbl / 20);
 
   cout << "\n** Finished laserAblation.cpp, ending. " << endl;
   return 0;

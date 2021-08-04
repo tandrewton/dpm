@@ -391,8 +391,16 @@ void epi2D::activeAttractiveForceUpdate() {
     // get coordinates relative to center of mass
     rix = x[NDIM * gi] - cx;
     riy = x[NDIM * gi + 1] - cy;
-    rix -= L[0] * round(rix / L[0]);
-    riy -= L[1] * round(riy / L[1]);
+    if (pbc[0] == false && round(rix / L[0]) != 0) {
+      cout << "error! rix is outside the box even though pbc are turned off!";
+    }
+    if (pbc[1] == false && round(riy / L[1]) != 0) {
+      cout << "error! riy is outside the box even though pbc are turned off!";
+    }
+    if (pbc[0])
+      rix -= L[0] * round(rix / L[0]);
+    if (pbc[1])
+      riy -= L[1] * round(riy / L[1]);
 
     // get angular distance from psi
     psitmp = atan2(riy, rix);
@@ -550,7 +558,6 @@ void epi2D::tensileLoading(double scaleFactorX, double scaleFactorY) {
 
 void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval) {
   // make sure velocities exist or are already initialized before calling this
-  // local variables
   int i;
   double K, t0 = simclock;
   double temp_simclock = simclock;
@@ -639,6 +646,160 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duratio
   }
 }
 
+void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval) {
+  // make sure velocities exist or are already initialized before calling this
+  // assuming zero temperature - ignore thermostat (not implemented)
+  // allow box lengths to move as a dynamical variable - rudimentary barostat, doesn't matter for non-equilibrium anyway
+
+  //need to erase the lines that recenter stuff? also needs to be set as an option in e.g. the force calls? in dpm? and in epi2D?
+  int i;
+  double K, t0 = simclock;
+  double temp_simclock = simclock;
+  double FT, FB, FL, FR;
+  double oldFT, oldFB, oldFL, oldFR;
+
+  // set time step magnitude
+  setdt(dt0);
+  int NPRINTSKIP = printInterval / dt;
+
+  // loop over time, print energy
+  while (simclock - t0 < duration) {
+    // VV POSITION UPDATE
+    for (i = 0; i < vertDOF; i++) {
+      // update position
+      x[i] += dt * v[i] + 0.5 * dt * dt * F[i];
+      // recenter in box
+      if (x[i] > L[i % NDIM] && pbc[i % NDIM])
+        x[i] -= L[i % NDIM];
+      else if (x[i] < 0 && pbc[i % NDIM])
+        x[i] += L[i % NDIM];
+    }
+    // FORCE UPDATE
+    std::vector<double> F_old = F;
+    CALL_MEMBER_FN(*this, forceCall)
+    ();
+
+    // VV VELOCITY UPDATE #2
+    for (i = 0; i < vertDOF; i++) {
+      F[i] -= (B * v[i] + B * F_old[i] * dt / 2);
+      F[i] /= (1 + B * dt / 2);
+      v[i] += 0.5 * (F[i] + F_old[i]) * dt;
+    }
+
+    // if top and bottom walls are flexible, do I integrate them separately?
+    // i think i have to?
+
+    // VV position update (walls)
+    L[0] += dt * VL[0] + 0.5 * dt * dt * FT;
+    L[1] += dt * VL[1] + 0.5 * dt * dt * FR;
+    // VV force update (walls)
+    oldFT = FT;
+    oldFB = FB;
+    oldFL = FL;
+    oldFR = FR;
+    wallForces(false, false, false, false, FT, FB, FL, FR);
+    FT -= (B * VL[1] + B * oldFT * dt / 2);
+    FT /= (1 + B * dt / 2);
+    FB -= (B * VL[1] + B * oldFB * dt / 2);
+    FB /= (1 + B * dt / 2);
+    FL -= (B * VL[0] + B * oldFL * dt / 2);
+    FL /= (1 + B * dt / 2);
+    FR -= (B * VL[0] + B * oldFR * dt / 2);
+    FR /= (1 + B * dt / 2);
+    VL[0] += 0.5 * (FR + oldFR) * dt;
+    VL[1] += 0.5 * (FT + oldFT) * dt;
+
+    // update sim clock
+    simclock += dt;
+    // print to console and file
+    if (int(printInterval) != 0) {
+      if (int((simclock - t0) / dt) % NPRINTSKIP == 0 && (simclock - temp_simclock) > printInterval / 2) {
+        temp_simclock = simclock;
+        // compute kinetic energy
+        K = vertexKineticEnergy();
+
+        // print to console
+        cout << endl
+             << endl;
+        cout << "===============================" << endl;
+        cout << "	D P M  						" << endl;
+        cout << " 			 					" << endl;
+        cout << "		N V E (DAMPED) 					" << endl;
+        cout << "===============================" << endl;
+        cout << endl;
+        cout << "	** simclock - t0 / duration	= " << simclock - t0 << " / " << duration << endl;
+        cout << "	** U 		= " << setprecision(12) << U << endl;
+        cout << "	** K 		= " << setprecision(12) << K << endl;
+        cout << "	** E 		= " << setprecision(12) << U + K << endl;
+
+        if (enout.is_open()) {
+          // print to energy file
+          cout << "** printing energy" << endl;
+          enout << setw(wnum) << left << simclock;
+          enout << setw(wnum) << left << L[0] / initialLx - 1;
+          enout << setw(wnum) << setprecision(12) << U;
+          enout << setw(wnum) << setprecision(12) << K;
+          enout << endl;
+        }
+
+        if (stressout.is_open()) {
+          // print to stress file
+          cout << "** printing stress" << endl;
+          stressout << setw(wnum) << left << simclock;
+          stressout << setw(wnum) << left << L[0] / initialLx - 1;
+          stressout << setw(wnum) << stress[0];
+          stressout << setw(wnum) << stress[1];
+          stressout << setw(wnum) << stress[2];
+          stressout << endl;
+        }
+
+        // print to configuration only if position file is open
+        if (posout.is_open())
+          printConfiguration2D();
+
+        cout << "Number of polarization deflections: " << polarizationCounter << '\n';
+      }
+    }
+  }
+}
+
+void epi2D::wallForces(bool top, bool bottom, bool left, bool right, double& forceTop, double& forceBottom, double& forceLeft, double& forceRight) {
+  //compute particle-wall forces and wall-particle forces. Only the latter exists, unless bool is
+  // set to true, in which case the wall can be pushed on. bool set to true = barostat
+  // e.g. for 3 fixed walls and 1 moving wall, set true false false false
+  bool collideTopOrRight, collideBottomOrLeft;
+  double boxL, K = 1, fmag = 0;
+  forceTop = 0;
+  forceBottom = 0;
+  forceLeft = 0;
+  forceRight = 0;
+  for (int i = 0; i < vertDOF; i++) {
+    boxL = L[i % NDIM];
+    collideTopOrRight = x[i] > boxL - r[i];
+    collideBottomOrLeft = x[i] < r[i];
+    if (collideTopOrRight) {  // deflect particle down or left
+      fmag = K * (r[i] - boxL + x[i]);
+      F[i] += -fmag;
+      if (i % NDIM == 0 && right)
+        forceRight += fmag;
+      //right wall acquires a force
+      if (i % NDIM == 1 && top)
+        forceTop += fmag;
+      //top wall acquires a force
+    }
+    if (collideBottomOrLeft) {  // deflect particle up or right
+      fmag = K * (r[i] - x[i]);
+      F[i] += fmag;
+      if (i % NDIM == 0 && left)
+        forceLeft += -fmag;
+      //left wall acquires a force
+      if (i % NDIM == 1 && bottom)
+        forceBottom += -fmag;
+      //bottom wall acquires a force
+    }
+  }
+}
+
 void epi2D::zeroMomentum() {
   //subtract off any linear momentum by reducing momentum of each particle by momentum/#vertices
   double v_cm_x = 0.0, v_cm_y = 0.0;
@@ -690,8 +851,10 @@ void epi2D::scaleBoxSize(double boxLengthScale, double scaleFactorX, double scal
       x[yind] = (cy - L[1] / 2 + dy);
 
       // wrap coordinates relative to center of box
-      x[xind] -= L[0] * round(x[xind] / L[0]);
-      x[yind] -= L[1] * round(x[yind] / L[1]);
+      if (pbc[0])
+        x[xind] -= L[0] * round(x[xind] / L[0]);
+      if (pbc[1])
+        x[yind] -= L[1] * round(x[yind] / L[1]);
 
       // scale coordinates relative to center of box
       x[xind] *= scaleFactorX;

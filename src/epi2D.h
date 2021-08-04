@@ -57,6 +57,8 @@ class epi2D : public dpm {
   // set it after equilibrating before tensile strain, and never otherwise.
   double initialLx;
 
+  std::vector<double> VL;
+
   // specific output objects
   std::ofstream enout;
   std::ofstream stressout;
@@ -78,11 +80,14 @@ class epi2D : public dpm {
     vector<double> temp2(NCELLS, 1.0);
     psi = temp;
     activePropulsionFactor = temp2;
+    polarizationCounter = 0;
     for (int ci = 0; ci < NCELLS; ci++) {
       //psi.at(ci) = 2 * PI * (drand48() - 0.5);  // [-pi,pi) coordinates
       //psi.at(ci) = 2 * PI * drand48();  // [0, 2pi) coordinates
       psi.at(ci) = PI / 2 * (ci % 2) - PI / 2 * ((ci + 1) % 2);  //should be : up if odd, down if even
     }
+    vector<double> temp3(NDIM * 2, 0.0);
+    VL = temp3;
     cout << "Initializing epi2D object, l1 = " << l1 << ", l2 = " << l2 << ", Dr0 = " << Dr0 << '\n';
     simclock = 0.0;
   };
@@ -146,6 +151,8 @@ class epi2D : public dpm {
   void zeroMomentum();
   void scaleBoxSize(double boxLengthScale, double scaleFactorX, double scaleFactorY);
   void dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval);
+  void dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval);
+  void wallForces(bool top, bool bottom, bool left, bool right, double& forceTop, double& forceBottom, double& forceLeft, double& forceRight);
 
   int getIndexOfCellLocatedHere(double xLoc, double yLoc);
   void deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc);
