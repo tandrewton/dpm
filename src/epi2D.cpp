@@ -1041,7 +1041,7 @@ void epi2D::notchTest(int numCellsToDelete, double strain, double strainRate, do
     if (loadingType == "uniaxial") {
       while (L[0] / initialLx - 1 < strain) {
         cout << "current strain = " << L[0] / initialLx - 1 << '\n';
-        scaleBoxSize(boxLengthScale, 1 + strainRate, 1);
+        scaleBoxSize(boxLengthScale, 1 + strainRate * tauRelax, 1);
         cout << "scaling box\n";
         dampedNVE2D(forceCall, B, dt0, tauRelax, printInterval);
         cout << "finished relaxing\n";
