@@ -338,6 +338,16 @@ int dpm::ccContacts() {
 
 *******************************/
 
+void dpm::initializeFieldStress() {
+  // local stress vector
+  fieldStress.resize(NVTOT);
+  for (int i = 0; i < NVTOT; i++) {
+    fieldStress[i].resize(NDIM * (NDIM + 1) / 2);
+    for (int j = 0; j < NDIM * (NDIM + 1) / 2; j++)
+      fieldStress[i][j] = 0.0;
+  }
+}
+
 // initialize vertex indexing
 void dpm::initializeVertexIndexing2D() {
   int gi, vi, vip1, vim1, ci;
@@ -541,6 +551,9 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary) 
   // print to console
   cout << "** initializing particle positions using 2D SP model and FIRE relaxation ..." << endl;
 
+  // initialize stress field
+  initializeFieldStress();
+
   // initialize box size based on packing fraction
   areaSum = 0.0;
   for (ci = 0; ci < NCELLS; ci++)
@@ -563,10 +576,7 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary) 
     else
       dpos.at(ci) = L[ci % 2] * drand48();
   }
-  for (ci = 0; ci < cellDOF; ci++) {
-    //assert(dpos[ci] >= r[ci] && dpos[ci] <= L[ci % NDIM] - r[ci]);
-    cout << "dpos(x,y) = " << dpos[ci] / L[ci % NDIM] << '\n';
-  }
+
   // set radii of SP disks
   for (ci = 0; ci < NCELLS; ci++)
     drad.at(ci) = xtra * sqrt((2.0 * a0.at(ci)) / (nv.at(ci) * sin(2.0 * PI / nv.at(ci))));
@@ -798,11 +808,6 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary) 
       x.at(NDIM * gi) = dtmp * cos((2.0 * PI * vi) / nv.at(ci)) + dpos.at(NDIM * ci) + 1e-2 * l0[gi] * drand48();
       x.at(NDIM * gi + 1) = dtmp * sin((2.0 * PI * vi) / nv.at(ci)) + dpos.at(NDIM * ci + 1) + 1e-2 * l0[gi] * drand48();
     }
-  }
-  for (i = 0; i < vertDOF; i++) {
-    if (x[i] < -r[i] || x[i] > L[i % NDIM])
-      cerr << "vertex initialized out of bounds!!\n\n\n = " << x[i] / L[i % NDIM] << '\t' << i << '\n';
-    //assert(x[i] >= -r[i] && x[i] <= L[i % NDIM]);
   }
 }
 
@@ -1087,6 +1092,7 @@ void dpm::drawVelocities2D(double T) {
 void dpm::resetForcesAndEnergy() {
   fill(F.begin(), F.end(), 0.0);
   fill(stress.begin(), stress.end(), 0.0);
+  fill(fieldStress.begin(), fieldStress.end(), vector<double>(3, 0.0));
   U = 0.0;
 }
 
@@ -1360,6 +1366,10 @@ void dpm::vertexRepulsiveForces2D() {
               stress[1] += dy * fy;
               stress[2] += 0.5 * (dx * fy + dy * fx);
 
+              fieldStress[gi][0] += dx * fx;
+              fieldStress[gi][1] += dy * fy;
+              fieldStress[gi][2] += 0.5 * (dx * fy + dy * fx);
+
               // add to contacts
               cindices(ci, vi, gi);
               cindices(cj, vj, gj);
@@ -1427,6 +1437,10 @@ void dpm::vertexRepulsiveForces2D() {
                 stress[0] += dx * fx;
                 stress[1] += dy * fy;
                 stress[2] += 0.5 * (dx * fy + dy * fx);
+
+                fieldStress[gi][0] += dx * fx;
+                fieldStress[gi][1] += dy * fy;
+                fieldStress[gi][2] += 0.5 * (dx * fy + dy * fx);
 
                 // add to contacts
                 cindices(ci, vi, gi);
@@ -1554,6 +1568,10 @@ void dpm::vertexAttractiveForces2D() {
               stress[1] += dy * fy;
               stress[2] += 0.5 * (dx * fy + dy * fx);
 
+              fieldStress[gi][0] += dx * fx;
+              fieldStress[gi][1] += dy * fy;
+              fieldStress[gi][2] += 0.5 * (dx * fy + dy * fx);
+
               //cindices(cj, vj, gj);
               // add to contacts
               if (ci > cj)
@@ -1640,6 +1658,10 @@ void dpm::vertexAttractiveForces2D() {
                 stress[0] += dx * fx;
                 stress[1] += dy * fy;
                 stress[2] += 0.5 * (dx * fy + dy * fx);
+
+                fieldStress[gi][0] += dx * fx;
+                fieldStress[gi][1] += dy * fy;
+                fieldStress[gi][2] += 0.5 * (dx * fy + dy * fx);
 
                 if (ci > cj)
                   cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2]++;
@@ -1772,6 +1794,7 @@ void dpm::vertexFIRE2D(dpmMemFn forceCall, double Ftol, double dt0) {
       cout << "	** U 		= " << U << endl;
       cout << "	** dt 		= " << dt << endl;
       cout << "	** P 		= " << P << endl;
+      cout << " ** phi  = " << vertexPreferredPackingFraction2D() << endl;
       cout << "	** alpha 	= " << alpha << endl;
       cout << "	** npPos 	= " << npPos << endl;
       cout << "	** npNeg 	= " << npNeg << endl;
@@ -1829,7 +1852,6 @@ void dpm::vertexFIRE2D(dpmMemFn forceCall, double Ftol, double dt0) {
         alpha = alpha0;
       }
     }
-
     // VV VELOCITY UPDATE #1
     for (i = 0; i < vertDOF; i++)
       v[i] += 0.5 * dt * F[i];
@@ -1849,7 +1871,6 @@ void dpm::vertexFIRE2D(dpmMemFn forceCall, double Ftol, double dt0) {
       for (i = 0; i < vertDOF; i++)
         v[i] = (1 - alpha) * v[i] + alpha * (F[i] / fnorm) * vnorm;
     }
-
     // VV POSITION UPDATE
     for (i = 0; i < vertDOF; i++) {
       // update position

@@ -156,7 +156,6 @@ int main(int argc, char const* argv[]) {
   epithelial.initializeNeighborLinkedList2D(boxLengthScale);
 
   // set base dpm force, upcast derived epi2D forces
-  dpmMemFn repulsiveForceUpdate = &dpm::repulsiveForceUpdate;
   dpmMemFn repulsiveForceUpdateWithWalls = static_cast<void (dpm::*)()>(&epi2D::repulsiveForceUpdateWithWalls);
   dpmMemFn attractiveForceUpdate = static_cast<void (dpm::*)()>(&epi2D::attractiveForceUpdate_2);
   dpmMemFn activeForceUpdate = static_cast<void (dpm::*)()>(&epi2D::activeAttractiveForceUpdate);

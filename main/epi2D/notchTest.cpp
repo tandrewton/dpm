@@ -9,8 +9,9 @@
 //
 // Compilation command:
 // g++ -O3 --std=c++11 -I src main/epi2D/notchTest.cpp src/dpm.cpp src/epi2D.cpp -o main/epi2D/notchTest.o
-// ./main/epi2D/notchTest.o 12 20 1.08 0.8 0.9 1.0 0.5 0.1 1.0 0.5 0.01 1 100 pos.test energy.test stress.test uniaxial
-// ./main/epi2D/notchTest.o 24 20 1.08 0.8 0.9 1.0 0.5 0.1 1.0 0.5 0.01 1 100 pos.test energy.test stress.test uniaxial
+// ./main/epi2D/notchTest.o 12 20 1.08 0.8 0.9 1.0 0.3 1.0 1.0 0.5 0.01 1 100 pos.test energy.test stress.test uniaxial
+// ./main/epi2D/notchTest.o 24 20 1.08 0.8 0.9 1.0 0.3 1.0 1.0 0.5 0.01 1 100 pos.test energy.test stress.test uniaxial
+// ./main/epi2D/notchTest.o 96 20 1.08 0.8 0.9 1.0 0.3 1.0 1.0 0.5 0.01 1 100 pos.test energy.test stress.test uniaxial
 //
 //
 // Parameter input list
@@ -54,7 +55,7 @@ const double sizeratio = 1.4;  // size ratio between small and large particles
 const double dt0 = 0.01;       // initial magnitude of time step in units of MD time
 const double Ptol = 1e-8;
 const double Ftol = 1e-12;
-const double att_range = 0.5;
+const double att_range = 0.3;
 
 int main(int argc, char const* argv[]) {
   // local variables to be read in
@@ -129,6 +130,7 @@ int main(int argc, char const* argv[]) {
   epithelial.setl1(att);
   epithelial.setl2(att_range);
   if (att > att_range) {
+    cout << "att, att_range = " << att << ',' << att_range << '\n';
     cout << "attraction stronger than attraction range; discontinuous adhesive potential; error, exiting!\n";
     return 1;
   }

@@ -8,10 +8,7 @@ addpath("/Users/AndrewTon/Documents/YalePhD/projects/Jamming/CellSim/cells/bash/
 %CHANGE THESE PARAMETERS AS NEEDED
 runType = "notch";
 N="96";
-NV="24";
 calA="1.08";
-kl="1.0";
-kb="0";
 att="0.5";
 B="0.1";
 strain="0.5";
@@ -26,6 +23,7 @@ makeAMovie = 1;
 showPeriodicImages = 1;
 plotVoronoi = 0;
 showverts = 0;
+colorCellStress = 1;
 
 %PC directory
 pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
@@ -53,7 +51,7 @@ for seed = startSeed:max_seed
         energystr = pc_dir+'/energy.test';
         stressstr = pc_dir+'/stress.test';
     else
-        run_name =runType+"_N"+N+"_NV"+NV+"_calA0"+calA+"_kl"+kl+...
+        run_name =runType+"_N"+N+"_calA0"+calA+...
             "_att"+att+"_B"+B+"_strain"+strain+"_strainRate"+strainRate+...
             "_duration"+duration+"_loading_"+loadingType;     
         pipeline_dir =  subdir_pipeline + run_name + "/";
@@ -95,6 +93,11 @@ for seed = startSeed:max_seed
     nv = trajectoryData.nv;
     %NVTOT = sum(nv);
     
+    %cellStress = trajectoryData.cellStressTrace;
+    %cellStress = trajectoryData.cellStressXX;
+    %cellStress = trajectoryData.cellStressYY;
+    cellStress = trajectoryData.cellStressXY;
+    
     %if L is constant, use the next 3 lines
     %L = trajectoryData.L(1,:);
     %Lx = L(1);
@@ -102,13 +105,13 @@ for seed = startSeed:max_seed
 
     % get cell colors
     %[nvUQ, ~, IC] = unique(nv);
-   % NUQ = length(nvUQ);
+    %NUQ = length(nvUQ);
     %cellCLR = jet(NUQ);
 
     % get frames to plot
     FSTART = 1;
     FSTEP = FSKIP;
-    FEND = NFRAMES/2;
+    FEND = NFRAMES;
 
     if makeAMovie == 1
        
@@ -138,13 +141,31 @@ for seed = startSeed:max_seed
 
     fnum = 1;
     figure(fnum), clf, hold on, box on;
+    absStress = abs(cellStress);
+    m_max = max(absStress,[], 'all');
     for ff = FSTART:FSTEP:FEND
         vor_cx = [];
         vor_cy = [];
-        %nv can change, so recompute color map each frame
-        [nvUQ, ~, IC] = unique(nonzeros(nv(ff,:)));
-        NUQ = length(nvUQ);
-        cellCLR = jet(NUQ);
+        
+        if (colorCellStress)
+            m = absStress(ff,:);
+            if (isempty(nonzeros(m)))
+                continue
+            end
+            nLevels = length(m);
+            cmat=gray(nLevels);
+            %assign each weight to a row of color
+            weightNorm = m./m_max; %normalized 0:1
+            %grab index of bin(weights)
+            [~,~,crow] = histcounts(weightNorm, linspace(0,1,nLevels));
+            %want white to black, so invert crow
+            cellCLR=cmat(nLevels-crow,:);
+        else
+            %nv can change, so recompute color map each frame
+            [nvUQ, ~, IC] = unique(nonzeros(nv(ff,:)));
+            NUQ = length(nvUQ);
+            cellCLR = jet(NUQ);
+        end
 
         NCELLS = cell_count(ff);
         figure(fnum), clf, hold on, box on;
@@ -168,7 +189,11 @@ for seed = startSeed:max_seed
             xtmp = xpos{nn};
             ytmp = ypos{nn};
             l0tmp = l0(nn);
-            clr = cellCLR(IC(nn),:);
+            if (colorCellStress)
+                clr = cellCLR(nn,:);
+            else
+                clr = cellCLR(IC(nn),:);
+            end
             cx = mean(xtmp);
             cy = mean(ytmp);
             if showverts == 1

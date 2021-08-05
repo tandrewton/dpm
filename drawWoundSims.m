@@ -12,10 +12,8 @@ addpath("/Users/AndrewTon/Documents/YalePhD/projects/Jamming/CellSim/cells/bash/
 
 runType = "ablate";
 N="96";
-NV="24";
 ndelete="5";
 calA="1.08";
-kl="1.0";
 att="0.1";
 v0="0.5";
 B="1.0";
@@ -62,7 +60,7 @@ for seed = startSeed:max_seed
         energystr = pc_dir+'/energy.test';
         stressstr = pc_dir+'/stress.test';
     else
-        run_name =runType+"_N"+N+"_NV"+NV+"_ndel"+ndelete+"_calA0"+calA+"_kl"+kl+...
+        run_name =runType+"_N"+N+"_ndel"+ndelete+"_calA0"+calA+...
             "_att"+att+"_v0"+v0+"_B"+B+"_Dr0"+Dr0+"_CIL"+boolCIL+"_NT"+NT;     
         pipeline_dir =  subdir_pipeline + run_name + "/";
         output_dir = subdir_output + run_name + "/";

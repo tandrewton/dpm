@@ -45,7 +45,7 @@ let numSeeds=$numSeedsPerRun*$numRuns
 let endSeed=$startSeed+$numSeeds-1
 
 # name strings
-basestr=ablate_N"$NCELLS"_NV"$NV"_ndel"$ndelete"_calA0"$calA0"_kl"$kl"_att"$att"_v0"$v0"_B"$B"_Dr0"$Dr0"_CIL"$boolCIL"_NT"$NT"
+basestr=ablate_N"$NCELLS"_ndel"$ndelete"_calA0"$calA0"_att"$att"_v0"$v0"_B"$B"_Dr0"$Dr0"_CIL"$boolCIL"_NT"$NT"
 runstr="$basestr"_startseed"$startSeed"_endseed"$endSeed"
 
 # make directory specific for this simulation

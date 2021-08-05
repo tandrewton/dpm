@@ -215,6 +215,10 @@ void epi2D::vertexAttractiveForces2D_2() {
               stress[1] += dy * fy;
               stress[2] += 0.5 * (dx * fy + dy * fx);
 
+              fieldStress[gi][0] += dx * fx;
+              fieldStress[gi][1] += dy * fy;
+              fieldStress[gi][2] += 0.5 * (dx * fy + dy * fx);
+
               // add to contacts
               if (ci != cj) {
                 if (ci > cj)
@@ -303,6 +307,10 @@ void epi2D::vertexAttractiveForces2D_2() {
                 stress[0] += dx * fx;
                 stress[1] += dy * fy;
                 stress[2] += 0.5 * (dx * fy + dy * fx);
+
+                fieldStress[gi][0] += dx * fx;
+                fieldStress[gi][1] += dy * fy;
+                fieldStress[gi][2] += 0.5 * (dx * fy + dy * fx);
 
                 if (ci != cj) {
                   if (ci > cj)
@@ -460,7 +468,6 @@ void epi2D::vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0,
 
     // update phi0
     phi0 = vertexPreferredPackingFraction2D();
-
     // relax configuration (pass member function force update)
     vertexFIRE2D(forceCall, Ftol, dt0);
 
@@ -619,6 +626,7 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duratio
         cout << "===============================" << endl;
         cout << endl;
         cout << "	** simclock - t0 / duration	= " << simclock - t0 << " / " << duration << endl;
+        cout << " **  dt   = " << setprecision(12) << dt << endl;
         cout << "	** U 		= " << setprecision(12) << U << endl;
         cout << "	** K 		= " << setprecision(12) << K << endl;
         cout << "	** E 		= " << setprecision(12) << U + K << endl;
@@ -977,6 +985,8 @@ void epi2D::deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc) {
              list.begin() + deleteIndexGlobal + numVertsDeleted);
   r.erase(r.begin() + deleteIndexGlobal,
           r.begin() + deleteIndexGlobal + numVertsDeleted - 1);
+  fieldStress.erase(fieldStress.begin() + deleteIndexGlobal,
+                    fieldStress.begin() + deleteIndexGlobal + numVertsDeleted - 1);
 
   // sum up number of vertices of each cell until reaching the cell to delete
   int sumVertsUntilGlobalIndex = szList[deleteIndex];
@@ -1030,8 +1040,11 @@ void epi2D::notchTest(int numCellsToDelete, double strain, double strainRate, do
 
     if (loadingType == "uniaxial") {
       while (L[0] / initialLx - 1 < strain) {
+        cout << "current strain = " << L[0] / initialLx - 1 << '\n';
         scaleBoxSize(boxLengthScale, 1 + strainRate, 1);
+        cout << "scaling box\n";
         dampedNVE2D(forceCall, B, dt0, tauRelax, printInterval);
+        cout << "finished relaxing\n";
       }
     } else
       std::cout << "Issue: loadingType not understood\n";
@@ -1136,7 +1149,7 @@ void epi2D::printConfiguration2D() {
   // overloaded to print out psi as well
   // local variables
   int ci, cj, vi, gi, ctmp, zc, zv;
-  double xi, yi, dx, dy, Lx, Ly;
+  double xi, yi, dx, dy, Lx, Ly, cellStressXX = 0.0, cellStressYY = 0.0, cellStressXY = 0.0, cellStressTrace = 0.0;
 
   // check if pos object is open
   if (!posout.is_open()) {
@@ -1187,6 +1200,17 @@ void epi2D::printConfiguration2D() {
           zc++;
       }
     }
+    cellStressXX = 0.0;
+    cellStressYY = 0.0;
+    cellStressXY = 0.0;
+    cellStressTrace = 0.0;
+    for (vi = 0; vi < nv.at(ci); vi++) {
+      gi = gindex(ci, vi);
+      cellStressXX += fieldStress[gi][0];
+      cellStressYY += fieldStress[gi][1];
+      cellStressXY += fieldStress[gi][2];
+    }
+    cellStressTrace = cellStressXX + cellStressYY;
 
     // cell information
     posout << setw(w) << left << "CINFO";
@@ -1197,6 +1221,10 @@ void epi2D::printConfiguration2D() {
     posout << setw(wnum) << left << area(ci);
     posout << setw(wnum) << left << perimeter(ci);
     posout << setw(wnum) << left << psi[ci];
+    posout << setw(wnum) << left << cellStressXX;
+    posout << setw(wnum) << left << cellStressYY;
+    posout << setw(wnum) << left << cellStressXY;
+    posout << setw(wnum) << left << cellStressTrace;
     posout << endl;
 
     // get initial vertex positions
@@ -1220,6 +1248,9 @@ void epi2D::printConfiguration2D() {
     posout << setw(wnum) << setprecision(pnum) << right << r[gi];
     posout << setw(wnum) << setprecision(pnum) << right << l0[gi];
     posout << setw(wnum) << setprecision(pnum) << right << t0[gi];
+    posout << setw(wnum) << setprecision(pnum) << right << fieldStress[gi][0];
+    posout << setw(wnum) << setprecision(pnum) << right << fieldStress[gi][1];
+    posout << setw(wnum) << setprecision(pnum) << right << fieldStress[gi][2];
     posout << endl;
 
     // vertex information for next vertices
@@ -1249,6 +1280,9 @@ void epi2D::printConfiguration2D() {
       posout << setw(wnum) << setprecision(pnum) << right << r[gi];
       posout << setw(wnum) << setprecision(pnum) << right << l0[gi];
       posout << setw(wnum) << setprecision(pnum) << right << t0[gi];
+      posout << setw(wnum) << setprecision(pnum) << right << fieldStress[gi][0];
+      posout << setw(wnum) << setprecision(pnum) << right << fieldStress[gi][1];
+      posout << setw(wnum) << setprecision(pnum) << right << fieldStress[gi][2];
       posout << endl;
     }
   }

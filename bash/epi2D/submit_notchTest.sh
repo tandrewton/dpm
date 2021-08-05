@@ -1,7 +1,7 @@
 #!/bin/bash
 # directories with code
 
-#example call: bash bash/epi2D/submit_notchTest.sh 24 24 1.08 0.7 0.9 1.0 0.5 0.5 0.0 uniaxial 100 pi_ohern,day,scavenge 0-12:00:00 1 1
+#example call: bash bash/epi2D/submit_notchTest.sh 96 24 1.08 0.8 0.9 1.0 0.3 1.0 0.0 0.5 0.01 uniaxial 100 pi_ohern,day,scavenge 0-12:00:00 1 1
 cellsdir=~/dpm
 srcdir=$cellsdir/src
 maindir=$cellsdir/main/epi2D
@@ -31,19 +31,21 @@ kl=$6
 att=$7
 B=$8
 Dr0=$9
-loadingType=${10}
-NT="${11}"
-partition="${12}"
-time="${13}"
-numRuns="${14}"
-startSeed="${15}"
+strain="${10}"
+strainRate="${11}"
+loadingType="${12}"
+NT="${13}"
+partition="${14}"
+time="${15}"
+numRuns="${16}"
+startSeed="${17}"
 
 numSeedsPerRun=1
 let numSeeds=$numSeedsPerRun*$numRuns
 let endSeed=$startSeed+$numSeeds-1
 
 # name strings
-basestr=notch_N"$NCELLS"_NV"$NV"_calA0"$calA0"_kl"$kl"_att"$att"_B"$B"_Dr0"$Dr0"_NT"$NT"_loading_"$loadingType"
+basestr=notch_N"$NCELLS"_calA0"$calA0"_att"$att"_B"$B"_strain"$strain"_strainRate"$strainRate"_NT"$NT"_loading_"$loadingType"
 runstr="$basestr"_startseed"$startSeed"_endseed"$endSeed"
 
 # make directory specific for this simulation
@@ -113,7 +115,7 @@ for seed in `seq $startSeed $numSeedsPerRun $endSeed`; do
         stressf=$simdatadir/$filestr.stress
 
         # append to runString
-        runString="$runString ; ./$binf $NCELLS $NV $calA0 $phiMin $phiMax $kl $att $B $Dr0 $runseed $NT $posf $energyf $stressf $loadingType"
+        runString="$runString ; ./$binf $NCELLS $NV $calA0 $phiMin $phiMax $kl $att $B $Dr0 $strain $strainRate $runseed $NT $posf $energyf $stressf $loadingType"
     done
 
     # finish off run string
