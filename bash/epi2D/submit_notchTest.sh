@@ -34,7 +34,7 @@ Dr0=$9
 strain="${10}"
 strainRate="${11}"
 loadingType="${12}"
-NT="${13}"
+duration="${13}"
 partition="${14}"
 time="${15}"
 numRuns="${16}"
@@ -45,7 +45,7 @@ let numSeeds=$numSeedsPerRun*$numRuns
 let endSeed=$startSeed+$numSeeds-1
 
 # name strings
-basestr=notch_N"$NCELLS"_calA0"$calA0"_att"$att"_B"$B"_strain"$strain"_strainRate"$strainRate"_NT"$NT"_loading_"$loadingType"
+basestr=notch_N"$NCELLS"_calA0"$calA0"_att"$att"_B"$B"_strain"$strain"_strainRate"$strainRate"_duration"$duration"_loading_"$loadingType"
 runstr="$basestr"_startseed"$startSeed"_endseed"$endSeed"
 
 # make directory specific for this simulation
@@ -66,7 +66,7 @@ echo kl = "$kl"
 echo att = "$att"
 echo B = "$B"
 echo Dr0 = "$Dr0"
-echo NT = "$NT"
+echo duration = "$duration"
 echo loadingType = "$loadingType"
 
 # run compiler
@@ -115,7 +115,7 @@ for seed in `seq $startSeed $numSeedsPerRun $endSeed`; do
         stressf=$simdatadir/$filestr.stress
 
         # append to runString
-        runString="$runString ; ./$binf $NCELLS $NV $calA0 $phiMin $phiMax $kl $att $B $Dr0 $strain $strainRate $runseed $NT $posf $energyf $stressf $loadingType"
+        runString="$runString ; ./$binf $NCELLS $NV $calA0 $phiMin $phiMax $kl $att $B $Dr0 $strain $strainRate $runseed $duration $posf $energyf $stressf $loadingType"
     done
 
     # finish off run string

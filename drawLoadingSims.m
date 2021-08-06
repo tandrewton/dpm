@@ -1,17 +1,16 @@
 %%Draw sims for notchTest.cpp
 % output is a movie made from stitching the position file frames together
 %pwd should give ~/Documents/YalePhd/projects/dpm
-isTestData = true;
-addpath("/Users/AndrewTon/Documents/YalePhD/projects/Jamming/CellSim/cells/bash/seq/")
-%addpath("/home/at965/cells/bash/seq")
+isTestData = false;
+addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 
 %CHANGE THESE PARAMETERS AS NEEDED
 runType = "notch";
-N="96";
+N="192";
 calA="1.08";
-att="0.5";
-B="0.1";
-strain="0.5";
+att="0.3";
+B="1.0";
+strain="0.6";
 strainRate="0.01";
 duration="100";
 loadingType="uniaxial";
@@ -153,13 +152,20 @@ for seed = startSeed:max_seed
                 continue
             end
             nLevels = length(m);
-            cmat=gray(nLevels);
+            
+            %cmat=gray(nLevels);
+            cmat=copper(nLevels);
+            
             %assign each weight to a row of color
             weightNorm = m./m_max; %normalized 0:1
+            
             %grab index of bin(weights)
             [~,~,crow] = histcounts(weightNorm, linspace(0,1,nLevels));
+            
             %want white to black, so invert crow
-            cellCLR=cmat(nLevels-crow,:);
+            %cellCLR=cmat(nLevels-crow,:);
+            
+            cellCLR=cmat(crow,:);
         else
             %nv can change, so recompute color map each frame
             [nvUQ, ~, IC] = unique(nonzeros(nv(ff,:)));

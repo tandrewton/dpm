@@ -6,7 +6,6 @@
 % function drawWoundSims(N, NV, ndelete, calA, kl, att, v0, B,...
 %     Dr0, NT, boolCIL, showPeriodicImages, showverts, isTestData)
 isTestData = true;
-addpath("/Users/AndrewTon/Documents/YalePhD/projects/Jamming/CellSim/cells/bash/seq/")
 
 %CHANGE THESE PARAMETERS                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   NEEDED
 

@@ -34,7 +34,7 @@ v0=$9
 B="${10}"
 Dr0="${11}"
 boolCIL="${12}"
-NT="${13}"
+duration="${13}"
 partition="${14}"
 time="${15}"
 numRuns="${16}"
@@ -45,7 +45,7 @@ let numSeeds=$numSeedsPerRun*$numRuns
 let endSeed=$startSeed+$numSeeds-1
 
 # name strings
-basestr=ablate_N"$NCELLS"_ndel"$ndelete"_calA0"$calA0"_att"$att"_v0"$v0"_B"$B"_Dr0"$Dr0"_CIL"$boolCIL"_NT"$NT"
+basestr=ablate_N"$NCELLS"_ndel"$ndelete"_calA0"$calA0"_att"$att"_v0"$v0"_B"$B"_Dr0"$Dr0"_CIL"$boolCIL"_duration"$duration"
 runstr="$basestr"_startseed"$startSeed"_endseed"$endSeed"
 
 # make directory specific for this simulation
@@ -118,7 +118,7 @@ for seed in `seq $startSeed $numSeedsPerRun $endSeed`; do
         stressf=$simdatadir/$filestr.stress
 
         # append to runString
-        runString="$runString ; ./$binf $NCELLS $NV $ndelete $calA0 $phiMin $phiMax $kl $att $v0 $B $Dr0 $boolCIL $runseed $NT $posf $energyf $stressf"
+        runString="$runString ; ./$binf $NCELLS $NV $ndelete $calA0 $phiMin $phiMax $kl $att $v0 $B $Dr0 $boolCIL $runseed $duration $posf $energyf $stressf"
     done
 
     # finish off run string
