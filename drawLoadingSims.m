@@ -1,7 +1,7 @@
 %%Draw sims for notchTest.cpp
 % output is a movie made from stitching the position file frames together
 %pwd should give ~/Documents/YalePhd/projects/dpm
-isTestData = false;
+isTestData = true;
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 
 %CHANGE THESE PARAMETERS AS NEEDED
@@ -19,10 +19,11 @@ FSKIP = 1; %# frames skipped to lower sampling freq
 startSeed = 1;
 max_seed = 1;
 makeAMovie = 1;
-showPeriodicImages = 1;
+showPeriodicImages = 0;
 plotVoronoi = 0;
 showverts = 0;
 colorCellStress = 1;
+showPrincipalStressDirections = 1;
 
 %PC directory
 pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
@@ -92,28 +93,40 @@ for seed = startSeed:max_seed
     nv = trajectoryData.nv;
     %NVTOT = sum(nv);
     
-    %cellStress = trajectoryData.cellStressTrace;
-    %cellStress = trajectoryData.cellStressXX;
-    %cellStress = trajectoryData.cellStressYY;
-    cellStress = trajectoryData.cellStressXY;
+    cellStress = trajectoryData.cellStressTrace;
+    
+    if (showPrincipalStressDirections)
+        stressFramesCells = zeros(NFRAMES, length(trajectoryData.cellStressXX(1,:)), 2, 2);
+
+        stressFramesCells(:,:,1,1) = trajectoryData.cellStressXX;
+        stressFramesCells(:,:,1,2) = trajectoryData.cellStressXY;
+        stressFramesCells(:,:,2,1) = trajectoryData.cellStressXY;
+        stressFramesCells(:,:,2,2) = trajectoryData.cellStressYY;
+
+        lenStresses = length(trajectoryData.cellStressXX(1,:));
+        prinStress = zeros(NFRAMES, lenStresses, 2, 2);
+        prinDir = zeros(NFRAMES, lenStresses, 2, 2);
+
+        for i = 1:length(stressFramesCells(:,1,1,1))
+            for j = 1:length(stressFramesCells(1,:,1,1))
+                %i,j is frame#, cell#
+                [prinDir(i,j,:,:),prinStress(i,j,:,:)] = ...
+                    eig(squeeze(stressFramesCells(i,j,:,:)));
+            end
+        end
+    end
     
     %if L is constant, use the next 3 lines
     %L = trajectoryData.L(1,:);
     %Lx = L(1);
     %Ly = L(2);
-
-    % get cell colors
-    %[nvUQ, ~, IC] = unique(nv);
-    %NUQ = length(nvUQ);
-    %cellCLR = jet(NUQ);
-
+    
     % get frames to plot
     FSTART = 1;
     FSTEP = FSKIP;
     FEND = NFRAMES;
 
     if makeAMovie == 1
-       
         moviestr = output_dir + runType+fileheader+'seed_'+seed+'.mp4';
         voronoi_movie_str = output_dir + "voronoi"+runType+fileheader+'seed_'+seed+'.mp4';
         vobj = VideoWriter(moviestr,'MPEG-4');
@@ -139,7 +152,9 @@ for seed = startSeed:max_seed
     end
 
     fnum = 1;
-    figure(fnum), clf, hold on, box on;
+    hFig = figure(fnum);
+    set(hFig, 'Visible', 'off')
+    clf, hold on, box on;
     absStress = abs(cellStress);
     m_max = max(absStress,[], 'all');
     for ff = FSTART:FSTEP:FEND
@@ -154,7 +169,7 @@ for seed = startSeed:max_seed
             nLevels = length(m);
             
             %cmat=gray(nLevels);
-            cmat=copper(nLevels);
+            cmat=hot(nLevels);
             
             %assign each weight to a row of color
             weightNorm = m./m_max; %normalized 0:1
@@ -208,7 +223,8 @@ for seed = startSeed:max_seed
                     yplot = ytmp(vv) - 0.5*l0tmp;
                     for xx = itLow:itHigh
                         for yy = itLow:itHigh
-                            rectangle('Position',[xplot + xx*Lx, yplot + yy*Ly, l0tmp, l0tmp],'Curvature',[1 1],'EdgeColor','k','FaceColor',clr);
+                            rectangle('Position',[xplot + xx*Lx, yplot + yy*Ly, l0tmp, l0tmp],...
+                                'Curvature',[1 1],'EdgeColor','k','FaceColor',clr);
                         end
                     end
                 end
@@ -222,7 +238,25 @@ for seed = startSeed:max_seed
                     for yy = itLow:itHigh
                         vpos = [xtmp + xx*Lx, ytmp + yy*Ly];
                         finfo = [1:nv(ff,nn) 1];
-                        patch('Faces',finfo,'vertices',vpos,'FaceColor',clr,'EdgeColor','k','linewidth',2);
+                        patch('Faces',finfo,'vertices',vpos,...
+                            'FaceColor',[220/256 220/256 220/256],...
+                            'EdgeColor','k','linewidth',2);
+                    end
+                end
+            end
+            
+            if (showPrincipalStressDirections)
+            stressDirs = squeeze(prinDir(ff,nn,:,:));
+            stressVals = squeeze(abs(prinStress(ff,nn,:,:)));
+                for xx = itLow:itHigh
+                    for yy = itLow:itHigh                      
+                        stressValsTrace = stressVals(1,1) + stressVals(2,2);
+                        if (stressValsTrace < 1e-3)
+                            stressValsTrace = NaN;
+                        end
+                        plot_ellipse(0.4*stressVals(1,1)/stressValsTrace, ...
+                            0.4*stressVals(2,2)/stressValsTrace, cx+xx*Lx, cy+yy*Ly, ...
+                            atan2(stressDirs(2,1),  stressDirs(1,1)), clr);
                     end
                 end
             end
