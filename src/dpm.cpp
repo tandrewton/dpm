@@ -55,6 +55,7 @@ dpm::dpm(int n, int ndim, int seed) {
 
   // preferred area for each cell
   a0.resize(NCELLS);
+  cellU.resize(NCELLS);
 
   // macroscopic stress vector
   stress.resize(NDIM * (NDIM + 1) / 2);
@@ -76,6 +77,7 @@ dpm::dpm(int n, int ndim, int seed) {
 // destructor
 dpm::~dpm() {
   // clear all private vectors
+  // should update this soon
   L.clear();
   pbc.clear();
   a0.clear();
@@ -345,6 +347,12 @@ void dpm::initializeFieldStress() {
     fieldStress[i].resize(NDIM * (NDIM + 1) / 2);
     for (int j = 0; j < NDIM * (NDIM + 1) / 2; j++)
       fieldStress[i][j] = 0.0;
+  }
+  fieldShapeStress.resize(NVTOT);
+  for (int i = 0; i < NVTOT; i++) {
+    fieldShapeStress[i].resize(NDIM * (NDIM + 1) / 2);
+    for (int j = 0; j < NDIM * (NDIM + 1) / 2; j++)
+      fieldShapeStress[i][j] = 0.0;
   }
 }
 
@@ -1093,7 +1101,9 @@ void dpm::resetForcesAndEnergy() {
   fill(F.begin(), F.end(), 0.0);
   fill(stress.begin(), stress.end(), 0.0);
   fill(fieldStress.begin(), fieldStress.end(), vector<double>(3, 0.0));
+  fill(fieldShapeStress.begin(), fieldShapeStress.end(), vector<double>(3, 0.0));
   U = 0.0;
+  fill(cellU.begin(), cellU.end(), 0.0);
 }
 
 void dpm::shapeForces2D() {
@@ -1106,6 +1116,8 @@ void dpm::shapeForces2D() {
   double rim2x, rim2y, rim1x, rim1y, rix, riy, rip1x, rip1y, rip2x, rip2y;
   double nim1x, nim1y, nix, niy, sinim1, sini, sinip1, cosim1, cosi, cosip1;
   double ddtim1, ddti;
+  double forceX, forceY;
+  double unwrappedX, unwrappedY;
 
   // loop over vertices, add to force
   rho0 = sqrt(a0.at(0));
@@ -1127,6 +1139,7 @@ void dpm::shapeForces2D() {
 
         // update potential energy
         U += 0.5 * ka * (da * da);
+        cellU[ci] += 0.5 * ka * (da * da);
 
         // shape force parameters
         fa = ka * da * (rho0 / a0tmp);
@@ -1186,6 +1199,9 @@ void dpm::shapeForces2D() {
         ci++;
       }
     }
+    //unwrapped vertex coordinate
+    unwrappedX = cx + rix;
+    unwrappedY = cy + riy;
 
     // preferred segment length
     l0i = l0[gi];
@@ -1198,9 +1214,15 @@ void dpm::shapeForces2D() {
     if (pbc[1])
       rip1y -= L[1] * round(rip1y / L[1]);
 
-    // -- Area force
-    F[NDIM * gi] += 0.5 * fa * (rim1y - rip1y);
-    F[NDIM * gi + 1] += 0.5 * fa * (rip1x - rim1x);
+    // -- Area force (comes from a cross product)
+    forceX = 0.5 * fa * (rim1y - rip1y);
+    forceY = 0.5 * fa * (rip1x - rim1x);
+    F[NDIM * gi] += forceX;
+    F[NDIM * gi + 1] += forceY;
+
+    fieldShapeStress[gi][0] += unwrappedX * forceX;
+    fieldShapeStress[gi][1] += unwrappedY * forceY;
+    fieldShapeStress[gi][2] += unwrappedX * forceY;
 
     // -- Perimeter force
     lix = rip1x - rix;
@@ -1219,11 +1241,19 @@ void dpm::shapeForces2D() {
     fli = kl * (rho0 / l0i);
 
     // add to forces
-    F[NDIM * gi] += (fli * dli * lix / li) - (flim1 * dlim1 * lim1x / lim1);
-    F[NDIM * gi + 1] += (fli * dli * liy / li) - (flim1 * dlim1 * lim1y / lim1);
+    forceX = (fli * dli * lix / li) - (flim1 * dlim1 * lim1x / lim1);
+    forceY = (fli * dli * liy / li) - (flim1 * dlim1 * lim1y / lim1);
+    F[NDIM * gi] += forceX;
+    F[NDIM * gi + 1] += forceY;
+
+    // note - Andrew here, confirmed that the shape stress matrix is diagonal as written
+    fieldShapeStress[gi][0] += unwrappedX * forceX;
+    fieldShapeStress[gi][1] += unwrappedY * forceY;
+    fieldShapeStress[gi][2] += unwrappedX * forceY;
 
     // update potential energy
     U += 0.5 * kl * (dli * dli);
+    cellU[ci] += 0.5 * kl * (dli * dli);
 
     // -- Bending force
     if (kb > 0) {
@@ -1271,6 +1301,7 @@ void dpm::shapeForces2D() {
 
       // update potential energy
       U += 0.5 * kb * (dti * dti);
+      cellU[ci] += 0.5 * kb * (dti * dti);
     }
 
     // update old coordinates
@@ -1373,6 +1404,8 @@ void dpm::vertexRepulsiveForces2D() {
               // add to contacts
               cindices(ci, vi, gi);
               cindices(cj, vj, gj);
+              cellU[ci] += 0.5 * kc * pow((1 - (rij / sij)), 2.0) / 2.0;
+              cellU[cj] += 0.5 * kc * pow((1 - (rij / sij)), 2.0) / 2.0;
 
               if (ci > cj)
                 cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2]++;
@@ -1445,6 +1478,9 @@ void dpm::vertexRepulsiveForces2D() {
                 // add to contacts
                 cindices(ci, vi, gi);
                 cindices(cj, vj, gj);
+
+                cellU[ci] += 0.5 * kc * pow((1 - (rij / sij)), 2.0) / 2.0;
+                cellU[cj] += 0.5 * kc * pow((1 - (rij / sij)), 2.0) / 2.0;
 
                 if (ci > cj)
                   cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2]++;
@@ -1544,12 +1580,16 @@ void dpm::vertexAttractiveForces2D() {
 
                 // increase potential energy
                 U += -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
+                cellU[ci] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
+                cellU[cj] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
               } else {
                 // force scale
                 ftmp = kc * (1 - xij) / sij;
 
                 // increase potential energy
                 U += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
+                cellU[ci] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
+                cellU[cj] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
               }
 
               // force elements
@@ -1635,12 +1675,16 @@ void dpm::vertexAttractiveForces2D() {
 
                   // increase potential energy
                   U += -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
+                  cellU[ci] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
+                  cellU[cj] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
                 } else {
                   // force scale
                   ftmp = kc * (1 - xij) / sij;
 
                   // increase potential energy
                   U += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
+                  cellU[ci] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
+                  cellU[cj] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
                 }
 
                 // force elements
@@ -1997,6 +2041,7 @@ void dpm::vertexNVE2D(ofstream& enout, dpmMemFn forceCall, double T, double dt0,
       enout << setw(wnum) << left << simclock;
       enout << setw(wnum) << setprecision(12) << U;
       enout << setw(wnum) << setprecision(12) << K;
+      enout << setw(wnum) << setprecision(12) << U + K;
       enout << endl;
 
       // print to configuration only if position file is open

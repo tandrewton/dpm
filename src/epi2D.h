@@ -156,6 +156,7 @@ class epi2D : public dpm {
   void wallForces(bool top, bool bottom, bool left, bool right, double& forceTop, double& forceBottom, double& forceLeft, double& forceRight);
 
   int getIndexOfCellLocatedHere(double xLoc, double yLoc);
+  // note: whenever adding member-level data structures that depend on NVTOT/NCELLS, need to make sure to modify the size in deleteCell appropriately
   void deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc);
   void laserAblate(int numCellsAblated, double sizeRatio, int nsmall, double xLoc, double yLoc);
 

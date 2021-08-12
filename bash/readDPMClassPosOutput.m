@@ -16,7 +16,7 @@ phi0        = textscan(fid,'PACKF %f',1);                   phi0 = phi0{1};
 fline       = fgetl(fid);
 Ltmp        = textscan(fid,'BOXSZ %f %f',1);
 fline       = fgetl(fid);
-stresstmp   = textscan(fid,'STRSS %f %f %f',1);
+stresstmp   = textscan(fid,'STRSS %f %f %f %f',1);
 fline       = fgetl(fid);
 S = fileread(fstr);
 t = regexp(S, 'NUMCL(\s+)(\d+)', 'tokens');
@@ -30,9 +30,6 @@ nv      = zeros(NFRAMES,NCELLS);
 vrad    = cell(NFRAMES,NCELLS);
 xpos    = cell(NFRAMES,NCELLS);
 ypos    = cell(NFRAMES,NCELLS);
-vertStressXX = cell(NFRAMES,NCELLS);
-vertStressYY = cell(NFRAMES,NCELLS);
-vertStressXY = cell(NFRAMES,NCELLS);
 zc      = zeros(NFRAMES,NCELLS);
 zv      = zeros(NFRAMES,NCELLS);
 calA0   = zeros(NFRAMES,NCELLS);
@@ -46,8 +43,13 @@ cellStressXX = zeros(NFRAMES, 1);
 cellStressYY = zeros(NFRAMES, 1);
 cellStressXY = zeros(NFRAMES, 1);
 cellStressTrace = zeros(NFRAMES, 1);
+cellShapeStressXX = zeros(NFRAMES, 1);
+cellShapeStressYY = zeros(NFRAMES, 1);
+cellShapeStressXY = zeros(NFRAMES, 1);
+cellU = zeros(NFRAMES, 1);
 L       = zeros(NFRAMES,2);
 stress  = zeros(NFRAMES, 3);
+strain  = zeros(NFRAMES, 1);
 
 % number of frames found
 nf = 1;
@@ -61,7 +63,7 @@ while ~feof(fid)
     % get info about deformable particle
     for nn = 1:NCELLS
         % get cell pos and asphericity
-        cInfoTmp        = textscan(fid,'CINFO %f %f %f %f %f %f %f %f %f %f %f',1); 
+        cInfoTmp        = textscan(fid,'CINFO %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f',1); 
         fline           = fgetl(fid);     % goes to next line in file
         NVTMP           = cInfoTmp{1};
         nv(nf,nn)       = NVTMP;
@@ -75,13 +77,17 @@ while ~feof(fid)
         cellStressYY(nf,nn)    = cInfoTmp{9};
         cellStressXY(nf,nn)    = cInfoTmp{10};
         cellStressTrace(nf,nn) = cInfoTmp{11};
+        cellShapeStressXX(nf,nn)    = cInfoTmp{12};
+        cellShapeStressYY(nf,nn)    = cInfoTmp{13};
+        cellShapeStressXY(nf,nn)    = cInfoTmp{14};
+        cellU(nf,nn)                = cInfoTmp{15};
         
         % compute l0 from calA0 and a0       
         calA0(nf,nn)    = perimeter(nf,nn)^2/(4*pi*area(nf,nn));
         l0(nf,nn)       = sqrt(4.0*pi*calA0(nf,nn)*a0(nf,nn))/nv(nf,nn);
         
         % get vertex positions
-        vPosTmp = textscan(fid,'VINFO %*f %*f %f %f %f %f %f %f %f %f',NVTMP); 
+        vPosTmp = textscan(fid,'VINFO %*f %*f %f %f %f %f %f',NVTMP); 
         % note : %*f means ignore that entry.
         fline = fgetl(fid);     % goes to next line in file
 
@@ -89,18 +95,12 @@ while ~feof(fid)
         xposTmp = vPosTmp{1};
         yposTmp = vPosTmp{2};
         vradTmp = vPosTmp{3};
-        vertStressXXtmp = vPosTmp{6};
-        vertStressYYtmp = vPosTmp{7};
-        vertStressXYtmp = vPosTmp{8};
         %there are also 4 and 5 which are going to be ignored by me for now.
         
         % save in cell
         xpos{nf,nn} = xposTmp;
         ypos{nf,nn} = yposTmp;
         vrad{nf,nn} = vradTmp;
-        vertStressXX{nf,nn} = vertStressXXtmp;
-        vertStressYY{nf,nn} = vertStressYYtmp;
-        vertStressXY{nf,nn} = vertStressXYtmp;
     end
     % increment frame count
     nf = nf + 1;
@@ -145,10 +145,11 @@ while ~feof(fid)
         fline = fgetl(fid);
         
         % update stress
-        stresstmp       = textscan(fid,'STRSS %f %f %f',1);
+        stresstmp       = textscan(fid,'STRSS %f %f %f %f',1);
         stress(nf,1)         = stresstmp{1};
         stress(nf,2)         = stresstmp{2};
         stress(nf,3)         = stresstmp{3};
+        strain(nf)           = stresstmp{4};
         fline = fgetl(fid);
     end
 end
@@ -159,9 +160,6 @@ if (nf < NFRAMES)
     vrad(nf:end,:) = [];
     xpos(nf:end,:) = [];
     ypos(nf:end,:) = [];
-    vertStressXX(nf:end,:) = [];
-    vertStressYY(nf:end,:) = [];
-    vertStressXY(nf:end,:) = [];
     nv(nf:end,:) = [];
     zc(nf:end,:) = [];
     zv(nf:end,:) = [];
@@ -175,6 +173,10 @@ if (nf < NFRAMES)
     cellStressYY(nf:end,:)    = [];
     cellStressXY(nf:end,:)    = [];
     cellStressTrace(nf:end,:) = [];
+    cellShapeStressXX(nf:end,:)    = [];
+    cellShapeStressYY(nf:end,:)    = [];
+    cellShapeStressXY(nf:end,:)    = [];
+    cellU(nf:end,:)                = [];
 end
 
 % close position file
@@ -186,9 +188,6 @@ cellTrajectoryData.phi0         = phi0;
 cellTrajectoryData.vrad         = vrad;
 cellTrajectoryData.xpos         = xpos;
 cellTrajectoryData.ypos         = ypos;
-cellTrajectoryData.vertStressXX = vertStressXX;
-cellTrajectoryData.vertStressYY = vertStressYY;
-cellTrajectoryData.vertStressXY = vertStressXY;
 cellTrajectoryData.nv           = nv;
 cellTrajectoryData.zc           = zc;
 cellTrajectoryData.zv           = zv;
@@ -197,6 +196,7 @@ cellTrajectoryData.a0           = a0;
 cellTrajectoryData.l0           = l0;
 cellTrajectoryData.L            = L;
 cellTrajectoryData.stress       = stress;
+cellTrajectoryData.strain       = strain;
 cellTrajectoryData.area         = area;
 cellTrajectoryData.perimeter    = perimeter;
 cellTrajectoryData.psi          = psi;
@@ -204,5 +204,9 @@ cellTrajectoryData.cellStressXX    = cellStressXX;
 cellTrajectoryData.cellStressYY    = cellStressYY;
 cellTrajectoryData.cellStressXY    = cellStressXY;
 cellTrajectoryData.cellStressTrace = cellStressTrace;
+cellTrajectoryData.cellShapeStressXX    = cellShapeStressXX;
+cellTrajectoryData.cellShapeStressYY    = cellShapeStressYY;
+cellTrajectoryData.cellShapeStressXY    = cellShapeStressXY;
+cellTrajectoryData.cellU                = cellU;
 
 end

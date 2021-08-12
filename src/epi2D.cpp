@@ -191,12 +191,16 @@ void epi2D::vertexAttractiveForces2D_2() {
 
                 // increase potential energy
                 U += -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
+                cellU[ci] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
+                cellU[cj] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
               } else {
                 // force scale
                 ftmp = kc * (1 - xij) / sij;
 
                 // increase potential energy
                 U += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
+                cellU[ci] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
+                cellU[cj] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
               }
 
               // force elements
@@ -284,12 +288,16 @@ void epi2D::vertexAttractiveForces2D_2() {
 
                   // increase potential energy
                   U += -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
+                  cellU[ci] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
+                  cellU[cj] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
                 } else {
                   // force scale
                   ftmp = kc * (1 - xij) / sij;
 
                   // increase potential energy
                   U += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
+                  cellU[ci] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
+                  cellU[cj] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
                 }
 
                 // force elements
@@ -642,13 +650,20 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duratio
         }
 
         if (stressout.is_open()) {
+          double shapeStressXX = 0.0, shapeStressYY = 0.0, shapeStressXY = 0.0;
+          for (int gi = 0; gi < NVTOT; gi++) {
+            shapeStressXX += fieldShapeStress[gi][0];
+            shapeStressYY += fieldShapeStress[gi][1];
+            shapeStressXY += fieldShapeStress[gi][2];
+          }
           // print to stress file
           cout << "** printing stress" << endl;
+          cout << "field shape stresses: " << shapeStressXX << '\t' << shapeStressYY << '\t' << shapeStressXY << '\n';
           stressout << setw(wnum) << left << simclock;
           stressout << setw(wnum) << left << L[0] / initialLx - 1;
-          stressout << setw(wnum) << stress[0];
-          stressout << setw(wnum) << stress[1];
-          stressout << setw(wnum) << stress[2];
+          stressout << setw(wnum) << stress[0] + shapeStressXX;
+          stressout << setw(wnum) << stress[1] + shapeStressYY;
+          stressout << setw(wnum) << stress[2] + shapeStressXY;
           stressout << endl;
         }
 
@@ -713,7 +728,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
     oldFB = FB;
     oldFL = FL;
     oldFR = FR;
-    wallForces(false, false, false, false, FT, FB, FL, FR);
+    wallForces(true, false, false, true, FT, FB, FL, FR);
     FT -= (B * VL[1] + B * oldFT * dt / 2);
     FT /= (1 + B * dt / 2);
     FB -= (B * VL[1] + B * oldFB * dt / 2);
@@ -740,7 +755,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
         cout << "===============================" << endl;
         cout << "	D P M  						" << endl;
         cout << " 			 					" << endl;
-        cout << "		N V E (DAMPED) 					" << endl;
+        cout << "		N P 0 (DAMPED) 					" << endl;
         cout << "===============================" << endl;
         cout << endl;
         cout << "	** simclock - t0 / duration	= " << simclock - t0 << " / " << duration << endl;
@@ -759,13 +774,20 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
         }
 
         if (stressout.is_open()) {
+          double shapeStressXX = 0.0, shapeStressYY = 0.0, shapeStressXY = 0.0;
+          for (int gi = 0; gi < NVTOT; gi++) {
+            shapeStressXX += fieldShapeStress[gi][0];
+            shapeStressYY += fieldShapeStress[gi][1];
+            shapeStressXY += fieldShapeStress[gi][2];
+          }
           // print to stress file
           cout << "** printing stress" << endl;
+          cout << "field shape stresses: " << shapeStressXX << '\t' << shapeStressYY << '\t' << shapeStressXY << '\n';
           stressout << setw(wnum) << left << simclock;
           stressout << setw(wnum) << left << L[0] / initialLx - 1;
-          stressout << setw(wnum) << stress[0];
-          stressout << setw(wnum) << stress[1];
-          stressout << setw(wnum) << stress[2];
+          stressout << setw(wnum) << stress[0] + shapeStressXX;
+          stressout << setw(wnum) << stress[1] + shapeStressYY;
+          stressout << setw(wnum) << stress[2] + shapeStressXY;
           stressout << endl;
         }
 
@@ -784,18 +806,32 @@ void epi2D::wallForces(bool top, bool bottom, bool left, bool right, double& for
   // set to true, in which case the wall can be pushed on. bool set to true = barostat
   // e.g. for 3 fixed walls and 1 moving wall, set true false false false
   // forceTop, etc., are forces on the walls due to newton's 3rd law + collisions.
+
+  // TODO: compute wall-cell attraction energy per cell (pain to go from vi to ci, so not doing this)
   bool collideTopOrRight, collideBottomOrLeft;
+  int vi = 0;
   double boxL, K = 1, fmag = 0;
+  double shell, cut, s, distLower, distUpper, scaledDist, ftmp, f;
+  double kint = (kc * l1) / (l2 - l1);
   forceTop = 0;
   forceBottom = 0;
   forceLeft = 0;
   forceRight = 0;
   for (int i = 0; i < vertDOF; i++) {
+    vi = i / 2;
     boxL = L[i % NDIM];
-    collideTopOrRight = x[i] > boxL - r[i];
-    collideBottomOrLeft = x[i] < r[i];
+
+    s = 2 * r[vi];
+    cut = (1.0 + l1) * s;
+    shell = (1.0 + l2) * s;
+    distLower = fabs(x[i]);
+    distUpper = fabs(boxL - x[i]);
+
+    /*collideTopOrRight = x[i] > boxL - r[i / 2];
+    collideBottomOrLeft = x[i] < r[i / 2];
+
     if (collideTopOrRight) {  // deflect particle down or left
-      fmag = K * (r[i] - boxL + x[i]);
+      fmag = K * (r[i / 2] - boxL + x[i]);
       F[i] += -fmag;
       if (i % NDIM == 0 && right)
         forceRight += fmag;
@@ -805,7 +841,7 @@ void epi2D::wallForces(bool top, bool bottom, bool left, bool right, double& for
       //top wall acquires a force
     }
     if (collideBottomOrLeft) {  // deflect particle up or right
-      fmag = K * (r[i] - x[i]);
+      fmag = K * (r[i / 2] - x[i]);
       F[i] += fmag;
       if (i % NDIM == 0 && left)
         forceLeft += -fmag;
@@ -813,6 +849,53 @@ void epi2D::wallForces(bool top, bool bottom, bool left, bool right, double& for
       if (i % NDIM == 1 && bottom)
         forceBottom += -fmag;
       //bottom wall acquires a force
+    }*/
+
+    // check if vertex is within attracting distance
+    if (distLower < shell) {
+      // scaled distance
+      scaledDist = distLower / s;
+      // check within attraction ring
+      if (distLower > cut) {
+        //force scale
+        ftmp = kint * (scaledDist - 1.0 - l2) / s;
+
+        U += -0.5 * 1 * pow(1.0 + l2 - scaledDist, 2.0);
+      } else {
+        //force scale
+        ftmp = kc * (1 - scaledDist) / s;
+
+        U += 0.5 * kc * (pow(1.0 - scaledDist, 2.0) - l1 * l2);
+      }
+      f = ftmp * s;
+      F[i] += f;
+      if (i % NDIM == 0 && left)
+        forceLeft -= f;
+      if (i % NDIM == 1 && bottom)
+        forceBottom -= f;
+    }
+    // check if vertex is within attracting distance
+    if (distUpper < shell) {
+      // scaled distance
+      scaledDist = distUpper / s;
+      // check within attraction ring
+      if (distUpper > cut) {
+        //force scale
+        ftmp = kint * (scaledDist - 1.0 - l2) / s;
+
+        U += -0.5 * 1 * pow(1.0 + l2 - scaledDist, 2.0);
+      } else {
+        //force scale
+        ftmp = kc * (1 - scaledDist) / s;
+
+        U += 0.5 * kc * (pow(1.0 - scaledDist, 2.0) - l1 * l2);
+      }
+      f = -ftmp * s;
+      F[i] += f;
+      if (i % NDIM == 0 && right)
+        forceRight -= f;
+      if (i % NDIM == 1 && top)
+        forceTop -= f;
     }
   }
 }
@@ -878,8 +961,9 @@ void epi2D::scaleBoxSize(double boxLengthScale, double scaleFactorX, double scal
       x[yind] *= scaleFactorY;
 
       // put coordinates back to bottom left origin convention
-      x[xind] += L[0] / 2;
-      x[yind] += L[1] / 2;
+      // might need to be newLx, newLy instead of L[0], L[1]
+      x[xind] += newLx / 2;
+      x[yind] += newLy / 2;
 
       // wrap coordinates relative to bottom left corner, with new scaled box lengths
       x[xind] -= newLx * round(x[xind] / newLx);
@@ -976,6 +1060,7 @@ void epi2D::deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc) {
   l0.erase(l0.begin() + deleteIndex);
   psi.erase(psi.begin() + deleteIndex);
   activePropulsionFactor.erase(activePropulsionFactor.begin() + deleteIndex);
+  cellU.erase(cellU.begin() + deleteIndex);
 
   int deleteIndexGlobal = gindex(deleteIndex, 0);
 
@@ -987,6 +1072,8 @@ void epi2D::deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc) {
           r.begin() + deleteIndexGlobal + numVertsDeleted - 1);
   fieldStress.erase(fieldStress.begin() + deleteIndexGlobal,
                     fieldStress.begin() + deleteIndexGlobal + numVertsDeleted - 1);
+  fieldShapeStress.erase(fieldShapeStress.begin() + deleteIndexGlobal,
+                         fieldShapeStress.begin() + deleteIndexGlobal + numVertsDeleted - 1);
 
   // sum up number of vertices of each cell until reaching the cell to delete
   int sumVertsUntilGlobalIndex = szList[deleteIndex];
@@ -1150,6 +1237,7 @@ void epi2D::printConfiguration2D() {
   // local variables
   int ci, cj, vi, gi, ctmp, zc, zv;
   double xi, yi, dx, dy, Lx, Ly, cellStressXX = 0.0, cellStressYY = 0.0, cellStressXY = 0.0, cellStressTrace = 0.0;
+  double cellShapeStressXX = 0.0, cellShapeStressYY = 0.0, cellShapeStressXY = 0.0;
 
   // check if pos object is open
   if (!posout.is_open()) {
@@ -1179,6 +1267,7 @@ void epi2D::printConfiguration2D() {
   posout << setw(wnum) << setprecision(pnum) << left << stress[0];
   posout << setw(wnum) << setprecision(pnum) << left << stress[1];
   posout << setw(wnum) << setprecision(pnum) << left << stress[2];
+  posout << setw(wnum) << setprecision(pnum) << left << L[0] / initialLx - 1;
   posout << endl;
 
   // print coordinate for rest of the cells
@@ -1204,11 +1293,17 @@ void epi2D::printConfiguration2D() {
     cellStressYY = 0.0;
     cellStressXY = 0.0;
     cellStressTrace = 0.0;
+    cellShapeStressXX = 0.0;
+    cellShapeStressYY = 0.0;
+    cellShapeStressXY = 0.0;
     for (vi = 0; vi < nv.at(ci); vi++) {
       gi = gindex(ci, vi);
       cellStressXX += fieldStress[gi][0];
       cellStressYY += fieldStress[gi][1];
       cellStressXY += fieldStress[gi][2];
+      cellShapeStressXX += fieldShapeStress[gi][0];
+      cellShapeStressYY += fieldShapeStress[gi][1];
+      cellShapeStressXY += fieldShapeStress[gi][2];
     }
     cellStressTrace = cellStressXX + cellStressYY;
 
@@ -1221,10 +1316,14 @@ void epi2D::printConfiguration2D() {
     posout << setw(wnum) << left << area(ci);
     posout << setw(wnum) << left << perimeter(ci);
     posout << setw(wnum) << left << psi[ci];
-    posout << setw(wnum) << left << cellStressXX;
-    posout << setw(wnum) << left << cellStressYY;
-    posout << setw(wnum) << left << cellStressXY;
-    posout << setw(wnum) << left << cellStressTrace;
+    posout << setw(wnum) << left << -cellStressXX;  //virial contribution to stress tensor comes with a minus sign
+    posout << setw(wnum) << left << -cellStressYY;
+    posout << setw(wnum) << left << -cellStressXY;
+    posout << setw(wnum) << left << -cellStressTrace;
+    posout << setw(wnum) << left << -cellShapeStressXX;
+    posout << setw(wnum) << left << -cellShapeStressYY;
+    posout << setw(wnum) << left << -cellShapeStressXY;
+    posout << setw(wnum) << left << cellU[ci];
     posout << endl;
 
     // get initial vertex positions
@@ -1248,9 +1347,6 @@ void epi2D::printConfiguration2D() {
     posout << setw(wnum) << setprecision(pnum) << right << r[gi];
     posout << setw(wnum) << setprecision(pnum) << right << l0[gi];
     posout << setw(wnum) << setprecision(pnum) << right << t0[gi];
-    posout << setw(wnum) << setprecision(pnum) << right << fieldStress[gi][0];
-    posout << setw(wnum) << setprecision(pnum) << right << fieldStress[gi][1];
-    posout << setw(wnum) << setprecision(pnum) << right << fieldStress[gi][2];
     posout << endl;
 
     // vertex information for next vertices
@@ -1280,9 +1376,6 @@ void epi2D::printConfiguration2D() {
       posout << setw(wnum) << setprecision(pnum) << right << r[gi];
       posout << setw(wnum) << setprecision(pnum) << right << l0[gi];
       posout << setw(wnum) << setprecision(pnum) << right << t0[gi];
-      posout << setw(wnum) << setprecision(pnum) << right << fieldStress[gi][0];
-      posout << setw(wnum) << setprecision(pnum) << right << fieldStress[gi][1];
-      posout << setw(wnum) << setprecision(pnum) << right << fieldStress[gi][2];
       posout << endl;
     }
   }

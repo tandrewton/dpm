@@ -12,6 +12,7 @@
 // ./main/epi2D/notchTest.o 12 20 1.08 0.8 0.9 1.0 0.3 1.0 1.0 0.5 0.001 1 100 pos.test energy.test stress.test uniaxial
 // ./main/epi2D/notchTest.o 24 20 1.08 0.8 0.9 1.0 0.3 1.0 1.0 0.5 0.001 1 100 pos.test energy.test stress.test uniaxial
 // ./main/epi2D/notchTest.o 96 20 1.08 0.8 0.9 1.0 0.3 1.0 1.0 0.5 0.001 1 100 pos.test energy.test stress.test uniaxial
+// ./main/epi2D/notchTest.o 192 20 1.08 0.8 0.9 1.0 0.3 1.0 1.0 0.5 0.001 1 100 pos.test energy.test stress.test uniaxial
 //
 //
 // Parameter input list

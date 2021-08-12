@@ -22,7 +22,7 @@ makeAMovie = 1;
 showPeriodicImages = 0;
 plotVoronoi = 0;
 showverts = 0;
-colorCellStress = 1;
+colorCellStress = 0;
 showPrincipalStressDirections = 1;
 colormap hot;
 
@@ -165,6 +165,8 @@ for seed = startSeed:max_seed
     for ff = FSTART:FSTEP:FEND
         vor_cx = [];
         vor_cy = [];
+        
+        annotation('textbox',[.8 .8 .9 .8],'String', txt, 'Edgecolor','none')
         if (showPrincipalStressDirections)
             m = absStress(ff,:);
             if (isempty(nonzeros(m)))
@@ -296,11 +298,7 @@ for seed = startSeed:max_seed
             ax.XLim = [0 1]*Lx;
             ax.YLim = [0 1]*Ly;
         end
-        
-        annotationStr = "$$\epsilon$$ = "+strain(ff);
-        annotation('textbox',[0.5, 0.5, 0, 0],...
-            'interpreter', 'latex', 'String', annotationStr, 'Edgecolor','none', 'FitBoxToText','on');
-        
+
         % if making a movie, save frame
         if makeAMovie == 1
             currframe = getframe(gcf);

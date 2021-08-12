@@ -69,6 +69,7 @@ class dpm {
 
   // potential energy
   double U;
+  std::vector<double> cellU;
 
   // particle spring constants
   double ka;
@@ -105,6 +106,7 @@ class dpm {
 
   // local stress vector
   std::vector<std::vector<double>> fieldStress;
+  std::vector<std::vector<double>> fieldShapeStress;
 
   // contact network (vector, size N(N-1)/2), stores # vertex contacts between i-j (i,j are cells)
   // cij is structured as follows: (0-1, 0-2, 0-3, ... ,0- (N-1), 1-2, 1-3, ..., 1- (N-1), 2-3,...)
