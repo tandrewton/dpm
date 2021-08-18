@@ -6,6 +6,7 @@
 % function drawWoundSims(N, NV, ndelete, calA, kl, att, v0, B,...
 %     Dr0, NT, boolCIL, showPeriodicImages, showverts, isTestData)
 isTestData = true;
+addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 
 %CHANGE THESE PARAMETERS                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   NEEDED
 
@@ -97,6 +98,9 @@ for seed = startSeed:max_seed
     NFRAMES = trajectoryData.NFRAMES;
     NCELLS = trajectoryData.NCELLS;
     nv = trajectoryData.nv;
+    flag = trajectoryData.flag;
+    flagX = trajectoryData.flagPosX;
+    flagY = trajectoryData.flagPosY;
     %NVTOT = sum(nv);
     
     %if L is constant, use the next 3 lines
@@ -140,7 +144,7 @@ for seed = startSeed:max_seed
 
     for ff = FSTART:FSTEP:FEND
         %nv can change, so recompute color map each frame
-        [nvUQ, ~, IC] = unique(nonzeros(nv(ff,:)));
+        [nvUQ, ~, IC] = unique(nonzeros(nv(ff,:).*(flag(ff,:)+1)));
         NUQ = length(nvUQ);
         cellCLR = jet(NUQ);
 
@@ -207,13 +211,14 @@ for seed = startSeed:max_seed
 
         % plot box
         plot([0 Lx Lx 0 0], [0 0 Ly Ly 0], 'k-', 'linewidth', 1.5);
+        plot(nonzeros(flagX(ff,:).*flag(ff,:)), nonzeros(flagY(ff,:).*flag(ff,:)), 'ro', 'linewidth', 5);
         ann = annotation('textbox', [.42 .05 .6 .05],'interpreter', 'latex',...
             'String', "$$\eta = $$"+eta, 'Edgecolor','none');
         ann.FontSize = 30;
         axis equal;
         ax = gca;
-        ax.XTick = [];
-        ax.YTick = [];
+        %ax.XTick = [];
+        %ax.YTick = [];
         if showPeriodicImages == 1
             ax.XLim = [boxAxLow boxAxHigh]*Lx;
             ax.YLim = [boxAxLow boxAxHigh]*Ly;

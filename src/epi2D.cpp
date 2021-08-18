@@ -107,6 +107,25 @@ double epi2D::meankb() {
   return val;
 }
 
+double epi2D::distanceLineAndPoint(double lineEndX1, double lineEndY1, double lineEndX2, double lineEndY2, double pointX, double pointY) {
+  double distance;
+  distance = abs((lineEndX2 - lineEndX1) * (lineEndY1 - pointY) - (lineEndX1 - pointX) * (lineEndY2 - lineEndY1));
+  distance /= sqrt(pow(lineEndX2 - lineEndX1, 2) + pow(lineEndY2 - lineEndY1, 2));
+  return distance;
+}
+
+void epi2D::directorDiffusion() {
+  double r1, r2, grv;
+  for (int ci = 0; ci < NCELLS; ci++) {
+    // propagate diffusion of directors psi
+    r1 = drand48();
+    r2 = drand48();
+    grv = sqrt(-2.0 * log(r1)) * cos(2.0 * PI * r2);
+    psi[ci] += sqrt(dt * 2.0 * Dr0) * grv;
+    psi[ci] -= 2 * PI * round(psi[ci] / (2 * PI));
+  }
+}
+
 void epi2D::repulsiveForceUpdateWithWalls() {
   double a, b, c, d;
   resetForcesAndEnergy();
@@ -118,7 +137,7 @@ void epi2D::repulsiveForceUpdateWithWalls() {
 void epi2D::vertexAttractiveForces2D_2() {
   // altered from dpm attractive force code, because it works with larger l2 values. (warning: probably won't work with bending.)
   // local variables
-  int ci, cj, gi, gj, vi, vj, bi, bj, pi, pj, boxid, sbtmp;
+  int ci, cj, gi, gj, vi, vj, bi, bj, pi, pj;
   double sij, rij, dx, dy, rho0;
   double ftmp, fx, fy;
 
@@ -237,7 +256,6 @@ void epi2D::vertexAttractiveForces2D_2() {
         // update pj
         pj = list[pj];
       }
-
       // test overlaps with forward neighboring cells
       for (bj = 0; bj < NNN; bj++) {
         // only check if boundaries permit
@@ -359,59 +377,16 @@ void epi2D::activeAttractiveForceUpdate() {
 
   //compute active forces
   int gi = 0, ci = 0, vi = 0;
-  double psiMean = 0.0, psiStd = 0.0, dpsi = 0.0, psitmp = 0.0;
+  double dpsi = 0.0, psitmp = 0.0;
   double xi, yi, nvtmp, dx, dy, cx, cy, r1, r2, grv,
       v0tmp, vmin, Ds, rnorm, ux, uy, rix, riy;
 
   vmin = 1e-1 * v0;  // min velocity
   Ds = 0.2;          // active velocity spread parameter
 
-  std::vector<double> DrList(NCELLS, Dr0);
+  directorDiffusion();
 
   for (int gi = 0; gi < NVTOT; gi++) {
-    if (ci < NCELLS) {
-      if (gi == szList[ci]) {
-        com2D(ci, cx, cy);
-
-        r1 = drand48();
-        r2 = drand48();
-        grv = sqrt(-2.0 * log(r1)) * cos(2.0 * PI * r2);
-
-        //update director
-        psi[ci] += sqrt(dt * 2.0 * DrList[ci]) * grv;
-        psi[ci] -= 2 * PI * round(psi[ci] / (2 * PI));
-
-        // add to mean and std dev of directors
-        psiMean += psi[ci];
-        psiStd += psi[ci] * psi[ci];
-        ci++;
-
-        /*if (ci % NCELLS == 0) {
-          cout << endl
-               << endl;
-          cout << "===============================" << endl;
-          cout << "								" << endl;
-          cout << " 	A C T I V I T Y  		" << endl;
-          cout << "								" << endl;
-          cout << "	P R O T O C O L 	  		" << endl;
-          cout << "								" << endl;
-          cout << "===============================" << endl;
-          cout << endl;
-          cout << "	** grv 			= " << grv << endl;
-          cout << "	** psi[0]	= " << psi[0] << endl;
-          //cout << "	** psiMean 	= " << psiMean << endl;
-          cout << "	** F[0] 			= " << F[0] << endl;
-          cout << "	** nvtmp 			= " << nvtmp << endl;
-          cout << "	** v0tmp 			= " << v0tmp << endl;
-          cout << "	** ux 			= " << ux << endl;
-          cout << "	** uy 			= " << uy << endl;
-          cout << "	** dpsi 			= " << dpsi << endl;
-          cout << endl
-               << endl;
-        }*/
-      }
-    }
-
     // get coordinates relative to center of mass
     rix = x[NDIM * gi] - cx;
     riy = x[NDIM * gi + 1] - cy;
@@ -445,13 +420,42 @@ void epi2D::activeAttractiveForceUpdate() {
     F[NDIM * gi] += v0tmp * ux;
     F[NDIM * gi + 1] += v0tmp * uy;
   }
-  psiMean /= NCELLS;
-  psiStd /= NCELLS;
-  psiStd -= psiMean * psiMean;
-  psiStd = sqrt(psiStd);
-  //cout << "psiMean, psiStd = " << psiMean << '\t' << psiStd << '\n';
   if (boolCIL == true)
     deflectOverlappingDirectors();
+}
+
+void epi2D::substrateadhesionAttractiveForceUpdate() {
+  //compute forces for shape, attractive, and substrate adhesion contributions
+  int gi = 0, argmin;
+  int numVerticesAttracted = 1;
+  double k = 1;
+  double refreshInterval = 0.1;
+
+  //reset forces, then get shape and attractive forces.
+  attractiveForceUpdate_2();
+  directorDiffusion();
+  updateSubstrateSprings(refreshInterval);
+
+  for (int ci = 0; ci < NCELLS; ci++) {
+    std::vector<double> distSqVertToFlag(nv[0], 0.0);
+    // check for protrusions
+    if (flag[ci]) {
+      // find nearest vertices
+      for (int vi = 0; vi < nv[ci]; vi++) {
+        gi = gindex(ci, vi);
+        distSqVertToFlag[vi] = pow(x[gi * NDIM] - flagPos[ci][0], 2) +
+                               pow(x[gi * NDIM + 1] - flagPos[ci][1], 2);
+      }
+      argmin = std::distance(distSqVertToFlag.begin(), std::min_element(distSqVertToFlag.begin(), distSqVertToFlag.end()));
+      gi = gindex(ci, argmin);
+
+      // evaluate force for spring-vertex interaction between nearest vertex and flag position
+      F[gi * NDIM] += -k * (x[gi * NDIM] - flagPos[ci][0]);
+      F[gi * NDIM + 1] += -k * (x[gi * NDIM + 1] - flagPos[ci][1]);
+    }
+  }
+  //if (boolCIL == true)
+  //  deflectOverlappingDirectors();
 }
 
 /******************************
@@ -535,6 +539,20 @@ void epi2D::ageCellAreas(double areaScaleFactor) {
   }
 }
 
+void epi2D::expandBoxAndCenterParticles(double boxLengthScaleFactor) {
+  if (boxLengthScaleFactor >= 1) {
+    for (int gi = 0; gi < NVTOT; gi++) {
+      x[gi * NDIM] += L[0] * (boxLengthScaleFactor - 1) / 2;
+      x[gi * NDIM + 1] += L[1] * (boxLengthScaleFactor - 1) / 2;
+    }
+    L[0] *= boxLengthScaleFactor;
+    L[1] *= boxLengthScaleFactor;
+
+  } else {
+    cout << "canceling expandBoxAndCenterParticles because of invalid scale factor\n";
+  }
+}
+
 // scale particle sizes by specified ratio in x and y directions
 // compression in X and Y corresponds to isotropic tensile loading
 void epi2D::tensileLoading(double scaleFactorX, double scaleFactorY) {
@@ -576,6 +594,61 @@ void epi2D::tensileLoading(double scaleFactorX, double scaleFactorY) {
       r[gi + vi] *= sqrt(totalScaleFactor);
       l0[gi + vi] *= sqrt(totalScaleFactor);
     }
+  }
+}
+
+void epi2D::updateSubstrateSprings(double refreshInterval) {
+  // check to see if enough time has passed for us to update springs again
+  if (simclock - previousUpdateSimclock > refreshInterval) {
+    double cx, cy, gj;
+    double flagDistance = sqrt(a0[0]);
+    bool cancelFlagToss;
+    std::vector<std::vector<double>> center(NCELLS, std::vector<double>(2, 0.0));
+    for (int ci = 0; ci < NCELLS; ci++) {
+      // find cell centers
+      com2D(ci, cx, cy);
+      center[ci][0] = cx;
+      center[ci][1] = cy;
+    }
+
+    // sweep through cells. If no flag, try to plant one. If flag, try to dissociate.
+    for (int ci = 0; ci < NCELLS; ci++) {
+      cancelFlagToss = false;
+      if (!flag[ci]) {
+        // pick a direction, throw a flag in that direction
+        flagPos[ci][0] = center[ci][0] + flagDistance * cos(psi[ci]);
+        flagPos[ci][1] = center[ci][1] + flagDistance * sin(psi[ci]);
+        // loop over cells near enough to block flag
+        for (int cj = 0; cj < NCELLS; cj++) {
+          if (cancelFlagToss == true)
+            continue;
+          if (ci != cj) {
+            if (pow(center[ci][0] - center[cj][0], 2) + pow(center[ci][1] - center[cj][1], 2) < 3 * pow(flagDistance, 2)) {
+              // check if cells block flag
+              for (int vj = 0; vj < nv[cj]; vj++) {
+                gj = gindex(cj, vj);
+                if (distanceLineAndPoint(cx, cy, flagPos[ci][0], flagPos[ci][1], x[gj * NDIM], x[gj * NDIM + 1]) < 4 * r[gj]) {
+                  cancelFlagToss = true;
+                  continue;
+                }
+              }
+            }
+          }
+        }
+        // if flag throw is successful, set flag[ci] = true and record flagPos
+        if (cancelFlagToss == false)
+          flag[ci] = true;
+      } else if (flag[ci]) {
+        // dissociation rate determines if existing flag is destroyed this step
+        if (drand48() < 0.1) {
+          flag[ci] = false;
+          //cout << "flag dissociates\n";
+        }
+      } else
+        cerr << "Error: no flag bool value found\n";
+    }
+    // update time tracker
+    previousUpdateSimclock = simclock;
   }
 }
 
@@ -677,7 +750,7 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duratio
   }
 }
 
-void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval) {
+void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, bool wallsOn) {
   // make sure velocities exist or are already initialized before calling this
   // assuming zero temperature - ignore thermostat (not implemented)
   // allow box lengths to move as a dynamical variable - rudimentary barostat, doesn't matter for non-equilibrium anyway
@@ -717,28 +790,28 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
       v[i] += 0.5 * (F[i] + F_old[i]) * dt;
     }
 
-    // if top and bottom walls are flexible, do I integrate them separately?
-    // i think i have to?
+    if (wallsOn == true) {
+      // VV position update (walls)
+      L[0] += dt * VL[0] + 0.5 * dt * dt * FT;
+      L[1] += dt * VL[1] + 0.5 * dt * dt * FR;
 
-    // VV position update (walls)
-    L[0] += dt * VL[0] + 0.5 * dt * dt * FT;
-    L[1] += dt * VL[1] + 0.5 * dt * dt * FR;
-    // VV force update (walls)
-    oldFT = FT;
-    oldFB = FB;
-    oldFL = FL;
-    oldFR = FR;
-    wallForces(true, false, false, true, FT, FB, FL, FR);
-    FT -= (B * VL[1] + B * oldFT * dt / 2);
-    FT /= (1 + B * dt / 2);
-    FB -= (B * VL[1] + B * oldFB * dt / 2);
-    FB /= (1 + B * dt / 2);
-    FL -= (B * VL[0] + B * oldFL * dt / 2);
-    FL /= (1 + B * dt / 2);
-    FR -= (B * VL[0] + B * oldFR * dt / 2);
-    FR /= (1 + B * dt / 2);
-    VL[0] += 0.5 * (FR + oldFR) * dt;
-    VL[1] += 0.5 * (FT + oldFT) * dt;
+      // VV force update (walls)
+      oldFT = FT;
+      oldFB = FB;
+      oldFL = FL;
+      oldFR = FR;
+      wallForces(true, false, false, true, FT, FB, FL, FR);
+      FT -= (B * VL[1] + B * oldFT * dt / 2);
+      FT /= (1 + B * dt / 2);
+      FB -= (B * VL[1] + B * oldFB * dt / 2);
+      FB /= (1 + B * dt / 2);
+      FL -= (B * VL[0] + B * oldFL * dt / 2);
+      FL /= (1 + B * dt / 2);
+      FR -= (B * VL[0] + B * oldFR * dt / 2);
+      FR /= (1 + B * dt / 2);
+      VL[0] += 0.5 * (FR + oldFR) * dt;
+      VL[1] += 0.5 * (FT + oldFT) * dt;
+    }
 
     // update sim clock
     simclock += dt;
@@ -1059,6 +1132,8 @@ void epi2D::deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc) {
   a0.erase(a0.begin() + deleteIndex);
   l0.erase(l0.begin() + deleteIndex);
   psi.erase(psi.begin() + deleteIndex);
+  flag.erase(flag.begin() + deleteIndex);
+  flagPos.erase(flagPos.begin() + deleteIndex);
   activePropulsionFactor.erase(activePropulsionFactor.begin() + deleteIndex);
   cellU.erase(cellU.begin() + deleteIndex);
 
@@ -1109,7 +1184,7 @@ void epi2D::laserAblate(int numCellsAblated, double sizeRatio, int nsmall, doubl
   for (int i = 0; i < numCellsAblated; i++) {
     deleteCell(sizeRatio, nsmall, xLoc, yLoc);
   }
-  cout << "deleting cell!\n";
+  cout << "deleted cells!\n";
   zeroMomentum();
 }
 
@@ -1324,6 +1399,9 @@ void epi2D::printConfiguration2D() {
     posout << setw(wnum) << left << -cellShapeStressYY;
     posout << setw(wnum) << left << -cellShapeStressXY;
     posout << setw(wnum) << left << cellU[ci];
+    posout << setw(wnum) << left << flag[ci];
+    posout << setw(wnum) << left << flagPos[ci][0];
+    posout << setw(wnum) << left << flagPos[ci][1];
     posout << endl;
 
     // get initial vertex positions

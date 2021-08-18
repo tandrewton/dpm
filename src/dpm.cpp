@@ -573,16 +573,10 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary) 
 
   // initialize cell centers randomly
   for (ci = 0; ci < cellDOF; ci += 2) {
-    if (isFixedBoundary)
-      dpos.at(ci) = L[ci % 2] * (drand48() * 0.5 + 0.25);
-    else
-      dpos.at(ci) = L[ci % 2] * drand48();
+    dpos.at(ci) = L[ci % 2] * drand48();
   }
   for (ci = cellDOF - 1; ci > 0; ci -= 2) {
-    if (isFixedBoundary)
-      dpos.at(ci) = L[ci % 2] * (drand48() * 0.5 + 0.25);
-    else
-      dpos.at(ci) = L[ci % 2] * drand48();
+    dpos.at(ci) = L[ci % 2] * drand48();
   }
 
   // set radii of SP disks
@@ -912,7 +906,6 @@ void dpm::sortNeighborLinkedList2D() {
   fill(list.begin(), list.end(), 0);
   fill(head.begin(), head.end(), 0);
   fill(last.begin(), last.end(), 0);
-
   // sort vertices into linked list
   for (gi = 0; gi < NVTOT; gi++) {
     // 1. get cell id of current particle position
@@ -920,8 +913,6 @@ void dpm::sortNeighborLinkedList2D() {
     sbtmp = 1;
     for (d = 0; d < NDIM; d++) {
       // add d index to 1d list
-      boxid += floor(x[NDIM * gi + d] / lb[d]) * sbtmp;
-
       // increment dimensional factor
       sbtmp *= sb[d];
     }

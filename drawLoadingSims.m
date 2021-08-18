@@ -1,17 +1,22 @@
 %%Draw sims for notchTest.cpp
 % output is a movie made from stitching the position file frames together
 %pwd should give ~/Documents/YalePhd/projects/dpm
-isTestData = true;
+
+% function drawLoadingSims(N, NV, calA, att, B,...
+%     strain, strainRate, duration, ...
+%       showPeriodicImages, showverts, colorCellStress,...
+%       showPrincipalStressDirections, isTestData)
+isTestData = false;
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 
 %CHANGE THESE PARAMETERS AS NEEDED
 runType = "notch";
-N="192";
+N="960";
 calA="1.08";
 att="0.3";
 B="1.0";
 strain="0.6";
-strainRate="0.01";
+strainRate="0.001";
 duration="100";
 loadingType="uniaxial";
 FSKIP = 1; %# frames skipped to lower sampling freq
@@ -22,7 +27,7 @@ makeAMovie = 1;
 showPeriodicImages = 0;
 plotVoronoi = 0;
 showverts = 0;
-colorCellStress = 1;
+colorCellStress = 0;
 showPrincipalStressDirections = 1;
 colormap hot;
 

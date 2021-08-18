@@ -66,6 +66,8 @@ echo kl = "$kl"
 echo att = "$att"
 echo B = "$B"
 echo Dr0 = "$Dr0"
+echo strain = "$strain"
+echo strainRate = "$strainRate"
 echo duration = "$duration"
 echo loadingType = "$loadingType"
 

@@ -38,6 +38,9 @@ l0      = zeros(NFRAMES,NCELLS);
 area   = zeros(NFRAMES,NCELLS);
 perimeter = zeros(NFRAMES, NCELLS);
 psi     = zeros(NFRAMES,NCELLS);
+flag     = zeros(NFRAMES,NCELLS);
+flagPosX     = zeros(NFRAMES,NCELLS);
+flagPosY     = zeros(NFRAMES,NCELLS);
 phi     = zeros(NFRAMES, 1);
 cellStressXX = zeros(NFRAMES, 1);
 cellStressYY = zeros(NFRAMES, 1);
@@ -63,7 +66,7 @@ while ~feof(fid)
     % get info about deformable particle
     for nn = 1:NCELLS
         % get cell pos and asphericity
-        cInfoTmp        = textscan(fid,'CINFO %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f',1); 
+        cInfoTmp        = textscan(fid,'CINFO %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %x %f %f',1); 
         fline           = fgetl(fid);     % goes to next line in file
         NVTMP           = cInfoTmp{1};
         nv(nf,nn)       = NVTMP;
@@ -81,7 +84,9 @@ while ~feof(fid)
         cellShapeStressYY(nf,nn)    = cInfoTmp{13};
         cellShapeStressXY(nf,nn)    = cInfoTmp{14};
         cellU(nf,nn)                = cInfoTmp{15};
-        
+        flag(nf,nn)                 = cInfoTmp{16};
+        flagPosX(nf,nn)             = cInfoTmp{17};
+        flagPosY(nf,nn)             = cInfoTmp{18};
         % compute l0 from calA0 and a0       
         calA0(nf,nn)    = perimeter(nf,nn)^2/(4*pi*area(nf,nn));
         l0(nf,nn)       = sqrt(4.0*pi*calA0(nf,nn)*a0(nf,nn))/nv(nf,nn);
@@ -177,6 +182,9 @@ if (nf < NFRAMES)
     cellShapeStressYY(nf:end,:)    = [];
     cellShapeStressXY(nf:end,:)    = [];
     cellU(nf:end,:)                = [];
+    flag(nf:end,:)                 = [];
+    flagPosX(nf:end,:)             = [];
+    flagPosY(nf:end,:)             = [];
 end
 
 % close position file
@@ -208,5 +216,8 @@ cellTrajectoryData.cellShapeStressXX    = cellShapeStressXX;
 cellTrajectoryData.cellShapeStressYY    = cellShapeStressYY;
 cellTrajectoryData.cellShapeStressXY    = cellShapeStressXY;
 cellTrajectoryData.cellU                = cellU;
+cellTrajectoryData.flag                 = flag;
+cellTrajectoryData.flagPosX             = flagPosX;
+cellTrajectoryData.flagPosY             = flagPosY;
 
 end

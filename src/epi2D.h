@@ -44,6 +44,12 @@ class epi2D : public dpm {
   // rotational diffusion constant
   double Dr0;
 
+  // whether cell ci has planted a flag, to which it will anchor one of its vertices to the flag with a spring
+  std::vector<bool> flag;
+
+  // position of flags
+  std::vector<std::vector<double>> flagPos;
+
   // motility scale factor for contact inhibition repolarization (active 'kick' to help with repulsion)
   std::vector<double> activePropulsionFactor;
 
@@ -66,6 +72,9 @@ class epi2D : public dpm {
   // simulation time keeper (accumulates elapsed simulation time during MD routines)
   double simclock;
 
+  // simclock's last value before substrate adhesion springs update
+  double previousUpdateSimclock;
+
  public:
   // constructor and destructor
   epi2D(int n, double att1, double att2, double Dr, int seed)
@@ -78,13 +87,16 @@ class epi2D : public dpm {
     boolCIL = false;
     vector<double> temp(NCELLS, 0.0);
     vector<double> temp2(NCELLS, 1.0);
-    psi = temp;
-    activePropulsionFactor = temp2;
+    //psi = temp;
+    //activePropulsionFactor = temp2;
+    psi.resize(NCELLS);
+    activePropulsionFactor.resize(NCELLS);
+    flag.resize(NCELLS);
+    flagPos.resize(NCELLS);
     polarizationCounter = 0;
     for (int ci = 0; ci < NCELLS; ci++) {
-      //psi.at(ci) = 2 * PI * (drand48() - 0.5);  // [-pi,pi) coordinates
-      //psi.at(ci) = 2 * PI * drand48();  // [0, 2pi) coordinates
       psi.at(ci) = PI / 2 * (ci % 2) - PI / 2 * ((ci + 1) % 2);  //should be : up if odd, down if even
+      flagPos[ci].resize(NDIM);
     }
     vector<double> temp3(NDIM * 2, 0.0);
     VL = temp3;
@@ -138,21 +150,26 @@ class epi2D : public dpm {
   double meanl0();
   double meancalA0();
   double meankb();
+  double distanceLineAndPoint(double lineEndX1, double lineEndX2, double lineEndY1, double lineEndY2, double pointX, double pointY);
+  void directorDiffusion();
 
   // epi cell interactions
   void repulsiveForceUpdateWithWalls();
   void vertexAttractiveForces2D_2();
   void attractiveForceUpdate_2();
   void activeAttractiveForceUpdate();
+  void substrateadhesionAttractiveForceUpdate();
 
   // protocols
   void vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0);
+  void expandBoxAndCenterParticles(double boxLengthScaleFactor);
   void ageCellAreas(double areaScaleFactor);
   void tensileLoading(double scaleFactorX, double scaleFactorY);
+  void updateSubstrateSprings(double refreshInterval);
   void zeroMomentum();
   void scaleBoxSize(double boxLengthScale, double scaleFactorX, double scaleFactorY);
   void dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval);
-  void dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval);
+  void dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, bool wallsOn);
   void wallForces(bool top, bool bottom, bool left, bool right, double& forceTop, double& forceBottom, double& forceLeft, double& forceRight);
 
   int getIndexOfCellLocatedHere(double xLoc, double yLoc);
