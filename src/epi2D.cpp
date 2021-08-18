@@ -121,7 +121,8 @@ void epi2D::directorDiffusion() {
     r1 = drand48();
     r2 = drand48();
     grv = sqrt(-2.0 * log(r1)) * cos(2.0 * PI * r2);
-    psi[ci] += sqrt(dt * 2.0 * Dr0) * grv;
+    //if flag is present, do not diffuse.
+    psi[ci] += sqrt(dt * 2.0 * Dr0 * !flag[ci]) * grv;
     psi[ci] -= 2 * PI * round(psi[ci] / (2 * PI));
   }
 }
@@ -539,7 +540,7 @@ void epi2D::ageCellAreas(double areaScaleFactor) {
   }
 }
 
-void epi2D::expandBoxAndCenterParticles(double boxLengthScaleFactor) {
+void epi2D::expandBoxAndCenterParticles(double boxLengthScaleFactor, double boxLengthScale) {
   if (boxLengthScaleFactor >= 1) {
     for (int gi = 0; gi < NVTOT; gi++) {
       x[gi * NDIM] += L[0] * (boxLengthScaleFactor - 1) / 2;
@@ -551,6 +552,7 @@ void epi2D::expandBoxAndCenterParticles(double boxLengthScaleFactor) {
   } else {
     cout << "canceling expandBoxAndCenterParticles because of invalid scale factor\n";
   }
+  initializeNeighborLinkedList2D(boxLengthScale);
 }
 
 // scale particle sizes by specified ratio in x and y directions
@@ -611,7 +613,7 @@ void epi2D::updateSubstrateSprings(double refreshInterval) {
       center[ci][1] = cy;
     }
 
-    // sweep through cells. If no flag, try to plant one. If flag, try to dissociate.
+    // sweep through cells. If no flag, try to plant one. Else if flag, try to dissociate.
     for (int ci = 0; ci < NCELLS; ci++) {
       cancelFlagToss = false;
       if (!flag[ci]) {
@@ -628,7 +630,11 @@ void epi2D::updateSubstrateSprings(double refreshInterval) {
               for (int vj = 0; vj < nv[cj]; vj++) {
                 gj = gindex(cj, vj);
                 if (distanceLineAndPoint(cx, cy, flagPos[ci][0], flagPos[ci][1], x[gj * NDIM], x[gj * NDIM + 1]) < 4 * r[gj]) {
+                  // yes, flag has been blocked. Move on to next cell's flag toss attempt.
                   cancelFlagToss = true;
+                  // inhibited, so director goes in opposite direction.
+                  //psi[cj] += PI;
+                  //psi[cj] -= 2 * PI * round(psi[cj] / (2 * PI));
                   continue;
                 }
               }
@@ -642,7 +648,6 @@ void epi2D::updateSubstrateSprings(double refreshInterval) {
         // dissociation rate determines if existing flag is destroyed this step
         if (drand48() < 0.1) {
           flag[ci] = false;
-          //cout << "flag dissociates\n";
         }
       } else
         cerr << "Error: no flag bool value found\n";
@@ -882,7 +887,8 @@ void epi2D::wallForces(bool top, bool bottom, bool left, bool right, double& for
 
   // TODO: compute wall-cell attraction energy per cell (pain to go from vi to ci, so not doing this)
   bool collideTopOrRight, collideBottomOrLeft;
-  int vi = 0;
+  int vi = 0, gi = 0;
+  double cx = 0, cy = 0;
   double boxL, K = 1, fmag = 0;
   double shell, cut, s, distLower, distUpper, scaledDist, ftmp, f;
   double kint = (kc * l1) / (l2 - l1);
@@ -890,6 +896,24 @@ void epi2D::wallForces(bool top, bool bottom, bool left, bool right, double& for
   forceBottom = 0;
   forceLeft = 0;
   forceRight = 0;
+
+  // if any cells have their centers outside of the box, force them towards the center
+  for (int ci = 0; ci < NCELLS; ci++) {
+    com2D(ci, cx, cy);
+    if (cx < 0 || cx > L[0]) {
+      for (int vi = 0; vi < nv[ci]; vi++) {
+        gi = gindex(ci, vi);
+        F[gi * NDIM] += -0.5 * (x[gi * NDIM] - L[0] / 2);
+      }
+    }
+    if (cy < 0 || cy > L[1]) {
+      for (int vi = 0; vi < nv[ci]; vi++) {
+        gi = gindex(ci, vi);
+        F[gi * NDIM + 1] += -0.5 * (x[gi * NDIM + 1] - L[1] / 2);
+      }
+    }
+  }
+
   for (int i = 0; i < vertDOF; i++) {
     vi = i / 2;
     boxL = L[i % NDIM];
@@ -899,30 +923,6 @@ void epi2D::wallForces(bool top, bool bottom, bool left, bool right, double& for
     shell = (1.0 + l2) * s;
     distLower = fabs(x[i]);
     distUpper = fabs(boxL - x[i]);
-
-    /*collideTopOrRight = x[i] > boxL - r[i / 2];
-    collideBottomOrLeft = x[i] < r[i / 2];
-
-    if (collideTopOrRight) {  // deflect particle down or left
-      fmag = K * (r[i / 2] - boxL + x[i]);
-      F[i] += -fmag;
-      if (i % NDIM == 0 && right)
-        forceRight += fmag;
-      //right wall acquires a force
-      if (i % NDIM == 1 && top)
-        forceTop += fmag;
-      //top wall acquires a force
-    }
-    if (collideBottomOrLeft) {  // deflect particle up or right
-      fmag = K * (r[i / 2] - x[i]);
-      F[i] += fmag;
-      if (i % NDIM == 0 && left)
-        forceLeft += -fmag;
-      //left wall acquires a force
-      if (i % NDIM == 1 && bottom)
-        forceBottom += -fmag;
-      //bottom wall acquires a force
-    }*/
 
     // check if vertex is within attracting distance
     if (distLower < shell) {
@@ -1184,7 +1184,7 @@ void epi2D::laserAblate(int numCellsAblated, double sizeRatio, int nsmall, doubl
   for (int i = 0; i < numCellsAblated; i++) {
     deleteCell(sizeRatio, nsmall, xLoc, yLoc);
   }
-  cout << "deleted cells!\n";
+  cout << "deleted " << numCellsAblated << "cells!\n";
   zeroMomentum();
 }
 

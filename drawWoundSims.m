@@ -23,8 +23,9 @@ NT="5000";
 FSKIP = 1;
 eta = str2num(v0)^2 / str2num(Dr0) / str2num(att) / 2;
 eta = num2str(eta);
+etaStr = "$$\eta = $$" + eta;
 if (isTestData)
-    eta = " ";
+    etaStr = " ";
 end
 
 startSeed = 1;
@@ -32,6 +33,8 @@ max_seed = 1;
 makeAMovie = 1;
 showPeriodicImages = 0;
 showverts = 0;
+showQuiver = 0;
+walls = 0;
  
 %PC directory
 pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
@@ -200,20 +203,21 @@ for seed = startSeed:max_seed
                     end
                 end
             end
-                  %plot arrows representing directors
-            for xx = itLow:itHigh
-                for yy = itLow:itHigh
-                    quiver(cx + xx*Lx, cy + yy*Ly, costmp, sintmp,...
-                        'r', 'LineWidth', 2, 'MaxHeadSize', 2);
+            
+            %plot arrows representing directors
+            if (showQuiver == 1)
+                for xx = itLow:itHigh
+                    for yy = itLow:itHigh
+                        quiver(cx + xx*Lx, cy + yy*Ly, costmp, sintmp,...
+                            'r', 'LineWidth', 2, 'MaxHeadSize', 2);
+                    end
                 end
             end
         end
 
-        % plot box
-        plot([0 Lx Lx 0 0], [0 0 Ly Ly 0], 'k-', 'linewidth', 1.5);
         plot(nonzeros(flagX(ff,:).*flag(ff,:)), nonzeros(flagY(ff,:).*flag(ff,:)), 'ro', 'linewidth', 5);
         ann = annotation('textbox', [.42 .05 .6 .05],'interpreter', 'latex',...
-            'String', "$$\eta = $$"+eta, 'Edgecolor','none');
+            'String', etaStr, 'Edgecolor','none');
         ann.FontSize = 30;
         axis equal;
         ax = gca;
@@ -222,9 +226,23 @@ for seed = startSeed:max_seed
         if showPeriodicImages == 1
             ax.XLim = [boxAxLow boxAxHigh]*Lx;
             ax.YLim = [boxAxLow boxAxHigh]*Ly;
-        else
+            % plot box
+            plot([0 Lx Lx 0 0], [0 0 Ly Ly 0], 'k-', 'linewidth', 1.5);
+        elseif walls == 1
             ax.XLim = [0 1]*Lx;
             ax.YLim = [0 1]*Ly;
+            % plot box
+            plot([0 Lx Lx 0 0], [0 0 Ly Ly 0], 'k-', 'linewidth', 1.5);
+        else
+            viewScale = 1.2;
+            viewLx = viewScale*Lx;
+            viewLxLow = -(viewScale-1)*Lx;
+            viewLy = viewScale*Ly;
+            viewLyLow = -(viewScale-1)*Ly;
+            ax.XLim = [-(viewScale-1) viewScale]*Lx;
+            ax.YLim = [-(viewScale-1) viewScale]*Ly;
+            % plot box
+            plot([viewLxLow viewLx viewLx viewLxLow viewLxLow], [viewLyLow viewLyLow viewLy viewLy viewLyLow], 'k-', 'linewidth', 1.5);
         end
 
         % if making a movie, save frame

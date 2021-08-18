@@ -97,6 +97,7 @@ class epi2D : public dpm {
     for (int ci = 0; ci < NCELLS; ci++) {
       psi.at(ci) = PI / 2 * (ci % 2) - PI / 2 * ((ci + 1) % 2);  //should be : up if odd, down if even
       flagPos[ci].resize(NDIM);
+      flag[ci] = true;
     }
     vector<double> temp3(NDIM * 2, 0.0);
     VL = temp3;
@@ -162,7 +163,7 @@ class epi2D : public dpm {
 
   // protocols
   void vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0);
-  void expandBoxAndCenterParticles(double boxLengthScaleFactor);
+  void expandBoxAndCenterParticles(double boxLengthScaleFactor, double boxLengthScale);
   void ageCellAreas(double areaScaleFactor);
   void tensileLoading(double scaleFactorX, double scaleFactorY);
   void updateSubstrateSprings(double refreshInterval);

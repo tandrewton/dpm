@@ -10,12 +10,12 @@
 //
 // Compilation command:
 // g++ -O3 --std=c++11 -I src main/epi2D/laserAblation.cpp src/dpm.cpp src/epi2D.cpp -o main/epi2D/laserAblation.o
-// ./main/epi2D/laserAblation.o 48 24 10 1.08 0.2 0.85 1.0 0.3 0.5 1.0 0.5 1 1 1000 pos.test energy.test stress.test
-// ./main/epi2D/laserAblation.o 24 24 5 1.08 0.2 0.85 1.0 0.1 0 1.0 0.5 1 1 1000 pos.test energy.test stress.test
-// ./main/epi2D/laserAblation.o 24 24 5 1.08 0.2 0.85 1.0 0 0 1.0 0.1 0 1 100 pos.test energy.test stress.test
-// ./main/epi2D/laserAblation.o 24 24 5 1.08 0.2 0.85 1.0 0.3 0 1.0 0.1 0 1 100 pos.test energy.test stress.test
-// ./main/epi2D/laserAblation.o 24 24 0 1.08 0.7 0.71 1.0 0.25 0.5 1.0 0.5 0 1 100 pos.test energy.test stress.test
-// ./main/epi2D/laserAblation.o 48 24 10 1.08 0.7 0.85 1.0 0.25 0.5 1.0 0.5 0 1 1000 pos.test energy.test stress.test
+// ./main/epi2D/laserAblation.o 48 20 10 1.08 0.2 0.85 1.0 0.3 0.5 1.0 0.5 1 1 1000 pos.test energy.test stress.test
+// ./main/epi2D/laserAblation.o 24 20 5 1.08 0.2 0.85 1.0 0.1 0 1.0 0.5 1 1 1000 pos.test energy.test stress.test
+// ./main/epi2D/laserAblation.o 24 20 5 1.08 0.2 0.85 1.0 0 0 1.0 0.1 0 1 100 pos.test energy.test stress.test
+// ./main/epi2D/laserAblation.o 24 20 5 1.08 0.2 0.85 1.0 0.3 0 1.0 0.1 0 1 100 pos.test energy.test stress.test
+// ./main/epi2D/laserAblation.o 24 20 4 1.08 0.85 0.86 1.0 0.3 0.5 1.0 0.5 0 1 300 pos.test energy.test stress.test
+// ./main/epi2D/laserAblation.o 48 20 10 1.08 0.85 0.86 1.0 0.3 0.5 1.0 0.5 0 1 100 pos.test energy.test stress.test
 //
 // Parameter input list
 // 1. NCELLS: 			number of particles
@@ -142,6 +142,7 @@ int main(int argc, char const* argv[]) {
   epithelial.setboolCIL(boolCIL);
   epithelial.setpbc(0, false);
   epithelial.setpbc(1, false);
+  epithelial.setRandPsi();
 
   //set adhesion scale
   epithelial.setl1(att);
@@ -159,29 +160,32 @@ int main(int argc, char const* argv[]) {
   epithelial.initializeNeighborLinkedList2D(boxLengthScale);
 
   // set base dpm force, upcast derived epi2D forces
+  dpmMemFn repulsiveForceUpdate = &dpm::repulsiveForceUpdate;
   dpmMemFn repulsiveForceUpdateWithWalls = static_cast<void (dpm::*)()>(&epi2D::repulsiveForceUpdateWithWalls);
   dpmMemFn attractiveForceUpdate = static_cast<void (dpm::*)()>(&epi2D::attractiveForceUpdate_2);
   dpmMemFn activeForceUpdate = static_cast<void (dpm::*)()>(&epi2D::activeAttractiveForceUpdate);
   dpmMemFn substrateAdhesionForceUpdate = static_cast<void (dpm::*)()>(&epi2D::substrateadhesionAttractiveForceUpdate);
 
-  //epithelial.vertexCompress2Target2D(repulsiveForceUpdateWithWalls, Ftol, dt0, phiMax, dphi0);
   epithelial.vertexCompress2Target2D(repulsiveForceUpdateWithWalls, Ftol, dt0, phiMax, dphi0);
   epithelial.printConfiguration2D();
 
   //after compress, turn on damped NVE
   double T = 1e-4;
   epithelial.drawVelocities2D(T);
-  epithelial.dampedNP0(attractiveForceUpdate, B, dt0, 10, 0, wallsOn);
-  epithelial.expandBoxAndCenterParticles(1.2);
+  epithelial.dampedNP0(attractiveForceUpdate, B, dt0, 100, 0, wallsOff);
+  //double boxSizeMultiplier = 1.2;
+  //epithelial.expandBoxAndCenterParticles(boxSizeMultiplier, boxLengthScale);
 
   // LASER ABLATION SCHEME
   double xLoc = 0.0, yLoc = 0.0;
   int numCellsToAblate = ndelete;
   epithelial.laserAblate(numCellsToAblate, sizeratio, nsmall, xLoc, yLoc);
-  epithelial.setRandPsi();
   epithelial.zeroMomentum();
 
-  epithelial.dampedNP0(substrateAdhesionForceUpdate, B, dt0, time_dbl, time_dbl / 20, wallsOn);
+  double NVErelaxTime = 100.0;
+  epithelial.dampedNVE2D(attractiveForceUpdate, B, dt0, NVErelaxTime, NVErelaxTime / 5);
+  epithelial.dampedNP0(substrateAdhesionForceUpdate, B, dt0, time_dbl, time_dbl / 20, wallsOff);
+  //epithelial.dampedNVE2D(attractiveForceUpdate, B, dt0, time_dbl, time_dbl / 20);
 
   cout << "\n** Finished laserAblation.cpp, ending. " << endl;
   return 0;
