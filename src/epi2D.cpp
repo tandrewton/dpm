@@ -640,13 +640,12 @@ void epi2D::updateSubstrateSprings(double refreshInterval) {
           if (cancelFlagToss == true)
             continue;
           if (ci != cj) {
-            // check if centers are near enough to possible block flag
+            // check if centers are near enough to possibly block flag
             if (pow(center[ci][0] - center[cj][0], 2) + pow(center[ci][1] - center[cj][1], 2) < 3 * pow(flagDistance, 2)) {
               // check if vertices actually block flag
               for (int vj = 0; vj < nv[cj]; vj++) {
                 gj = gindex(cj, vj);
-                //cout << distanceLineAndPoint(cx, cy, flagPos[ci][0], flagPos[ci][1], x[gj * NDIM], x[gj * NDIM + 1]) << '\t' << r[gj] << '\n';
-                if (distanceLineAndPoint(cx, cy, flagPos[ci][0], flagPos[ci][1], x[gj * NDIM], x[gj * NDIM + 1]) < 2 * r[gj]) {
+                if (distanceLineAndPoint(cx, cy, flagPos[ci][0], flagPos[ci][1], x[gj * NDIM], x[gj * NDIM + 1]) < 4 * r[gj]) {
                   // yes, flag has been blocked. Move on to next cell's flag toss attempt.
                   cancelFlagToss = true;
                   // inhibited, so director goes in opposite direction.
