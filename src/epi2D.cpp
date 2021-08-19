@@ -465,13 +465,13 @@ void epi2D::substrateadhesionAttractiveForceUpdate() {
   }
   //if (boolCIL == true)
   //  deflectOverlappingDirectors();
-  if (flagcount >= 1) {
+  /*if (flagcount >= 1) {
     cout << "simclock = " << simclock << '\t' << ", number of flags = " << flagcount << '\n';
     for (int ci = 0; ci < NCELLS; ci++) {
       if (flag[ci])
         cout << "cell " << ci << " has a flag!\n";
     }
-  }
+  }*/
 }
 
 /******************************
@@ -660,8 +660,6 @@ void epi2D::updateSubstrateSprings(double refreshInterval) {
         // if flag throw is successful, set flag[ci] = true and record flagPos
         if (cancelFlagToss == false) {
           flag[ci] = true;
-          cout << '\n'
-               << simclock << "\tnew flag established!\n\n\n";
         }
       } else if (flag[ci]) {
         // dissociation rate determines if existing flag is destroyed this step
