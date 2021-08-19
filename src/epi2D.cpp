@@ -107,10 +107,17 @@ double epi2D::meankb() {
   return val;
 }
 
-double epi2D::distanceLineAndPoint(double lineEndX1, double lineEndY1, double lineEndX2, double lineEndY2, double pointX, double pointY) {
-  double distance;
-  distance = abs((lineEndX2 - lineEndX1) * (lineEndY1 - pointY) - (lineEndX1 - pointX) * (lineEndY2 - lineEndY1));
-  distance /= sqrt(pow(lineEndX2 - lineEndX1, 2) + pow(lineEndY2 - lineEndY1, 2));
+double epi2D::distanceLineAndPoint(double x1, double y1, double x2, double y2, double x0, double y0) {
+  //get the distance from a line segment going through (x1,y1), (x2,y2) and a point located at (x0,y0)
+  double l2 = pow(x2 - x1, 2) + pow(y2 - y1, 2);  // |(pt2 - pt1)|^2
+  if (l2 == 0.0)                                  // pt2 == pt1 case
+    return sqrt(pow(x0 - x1, 2) + pow(y0 - y1, 2));
+
+  double dot = (x0 - x1) * (x2 - x1) + (y0 - y1) * (y2 - y1);  // (pt0 - pt1) dot (pt2 - pt1)
+  const double t = max(0.0, min(1.0, dot / l2));
+  const double projectionx = x1 + t * (x2 - x1);
+  const double projectiony = y1 + t * (y2 - y1);
+  const double distance = sqrt(pow(x0 - projectionx, 2) + pow(y0 - projectiony, 2));
   return distance;
 }
 
@@ -427,10 +434,10 @@ void epi2D::activeAttractiveForceUpdate() {
 
 void epi2D::substrateadhesionAttractiveForceUpdate() {
   //compute forces for shape, attractive, and substrate adhesion contributions
-  int gi = 0, argmin;
+  int gi = 0, argmin, flagcount = 0;
   int numVerticesAttracted = 1;
   double k = 1;
-  double refreshInterval = 0.1;
+  double refreshInterval = 1;
 
   //reset forces, then get shape and attractive forces.
   attractiveForceUpdate_2();
@@ -453,10 +460,18 @@ void epi2D::substrateadhesionAttractiveForceUpdate() {
       // evaluate force for spring-vertex interaction between nearest vertex and flag position
       F[gi * NDIM] += -k * (x[gi * NDIM] - flagPos[ci][0]);
       F[gi * NDIM + 1] += -k * (x[gi * NDIM + 1] - flagPos[ci][1]);
+      flagcount++;
     }
   }
   //if (boolCIL == true)
   //  deflectOverlappingDirectors();
+  if (flagcount >= 1) {
+    cout << "simclock = " << simclock << '\t' << ", number of flags = " << flagcount << '\n';
+    for (int ci = 0; ci < NCELLS; ci++) {
+      if (flag[ci])
+        cout << "cell " << ci << " has a flag!\n";
+    }
+  }
 }
 
 /******************************
@@ -603,7 +618,7 @@ void epi2D::updateSubstrateSprings(double refreshInterval) {
   // check to see if enough time has passed for us to update springs again
   if (simclock - previousUpdateSimclock > refreshInterval) {
     double cx, cy, gj;
-    double flagDistance = sqrt(a0[0]);
+    double flagDistance = 1.5 * sqrt(a0[0] / PI);
     bool cancelFlagToss;
     std::vector<std::vector<double>> center(NCELLS, std::vector<double>(2, 0.0));
     for (int ci = 0; ci < NCELLS; ci++) {
@@ -625,11 +640,13 @@ void epi2D::updateSubstrateSprings(double refreshInterval) {
           if (cancelFlagToss == true)
             continue;
           if (ci != cj) {
+            // check if centers are near enough to possible block flag
             if (pow(center[ci][0] - center[cj][0], 2) + pow(center[ci][1] - center[cj][1], 2) < 3 * pow(flagDistance, 2)) {
-              // check if cells block flag
+              // check if vertices actually block flag
               for (int vj = 0; vj < nv[cj]; vj++) {
                 gj = gindex(cj, vj);
-                if (distanceLineAndPoint(cx, cy, flagPos[ci][0], flagPos[ci][1], x[gj * NDIM], x[gj * NDIM + 1]) < 4 * r[gj]) {
+                //cout << distanceLineAndPoint(cx, cy, flagPos[ci][0], flagPos[ci][1], x[gj * NDIM], x[gj * NDIM + 1]) << '\t' << r[gj] << '\n';
+                if (distanceLineAndPoint(cx, cy, flagPos[ci][0], flagPos[ci][1], x[gj * NDIM], x[gj * NDIM + 1]) < 2 * r[gj]) {
                   // yes, flag has been blocked. Move on to next cell's flag toss attempt.
                   cancelFlagToss = true;
                   // inhibited, so director goes in opposite direction.
@@ -642,8 +659,11 @@ void epi2D::updateSubstrateSprings(double refreshInterval) {
           }
         }
         // if flag throw is successful, set flag[ci] = true and record flagPos
-        if (cancelFlagToss == false)
+        if (cancelFlagToss == false) {
           flag[ci] = true;
+          cout << '\n'
+               << simclock << "\tnew flag established!\n\n\n";
+        }
       } else if (flag[ci]) {
         // dissociation rate determines if existing flag is destroyed this step
         if (drand48() < 0.1) {
@@ -652,6 +672,7 @@ void epi2D::updateSubstrateSprings(double refreshInterval) {
       } else
         cerr << "Error: no flag bool value found\n";
     }
+    //
     // update time tracker
     previousUpdateSimclock = simclock;
   }

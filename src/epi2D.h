@@ -97,7 +97,7 @@ class epi2D : public dpm {
     for (int ci = 0; ci < NCELLS; ci++) {
       psi.at(ci) = PI / 2 * (ci % 2) - PI / 2 * ((ci + 1) % 2);  //should be : up if odd, down if even
       flagPos[ci].resize(NDIM);
-      flag[ci] = true;
+      flag[ci] = false;
     }
     vector<double> temp3(NDIM * 2, 0.0);
     VL = temp3;
@@ -151,7 +151,7 @@ class epi2D : public dpm {
   double meanl0();
   double meancalA0();
   double meankb();
-  double distanceLineAndPoint(double lineEndX1, double lineEndX2, double lineEndY1, double lineEndY2, double pointX, double pointY);
+  double distanceLineAndPoint(double x1, double y1, double x2, double y2, double x0, double y0);
   void directorDiffusion();
 
   // epi cell interactions
