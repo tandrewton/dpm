@@ -171,7 +171,7 @@ int main(int argc, char const* argv[]) {
 
   //after compress, turn on damped NVE
   double T = 1e-4;
-  double relaxTime = 10.0;
+  double relaxTime = 100.0;
   epithelial.drawVelocities2D(T);
   epithelial.dampedNP0(attractiveForceUpdate, B, dt0, relaxTime, 0, wallsOff);
   //double boxSizeMultiplier = 1.2;
@@ -185,7 +185,7 @@ int main(int argc, char const* argv[]) {
 
   epithelial.dampedNVE2D(attractiveForceUpdate, B, dt0, relaxTime, relaxTime / 5);
 
-  epithelial.dampedNP0(substrateAdhesionForceUpdate, B, dt0, time_dbl, time_dbl / 10, wallsOff);
+  epithelial.dampedNP0(substrateAdhesionForceUpdate, B, dt0, time_dbl, time_dbl / 20, wallsOff);
 
   cout << "\n** Finished laserAblation.cpp, ending. " << endl;
   return 0;
