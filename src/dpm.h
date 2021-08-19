@@ -106,7 +106,10 @@ class dpm {
 
   // local stress vector
   std::vector<std::vector<double>> fieldStress;
+  std::vector<std::vector<double>> fieldStressCells;
+
   std::vector<std::vector<double>> fieldShapeStress;
+  std::vector<std::vector<double>> fieldShapeStressCells;
 
   // contact network (vector, size N(N-1)/2), stores # vertex contacts between i-j (i,j are cells)
   // cij is structured as follows: (0-1, 0-2, 0-3, ... ,0- (N-1), 1-2, 1-3, ..., 1- (N-1), 2-3,...)

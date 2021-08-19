@@ -354,6 +354,18 @@ void dpm::initializeFieldStress() {
     for (int j = 0; j < NDIM * (NDIM + 1) / 2; j++)
       fieldShapeStress[i][j] = 0.0;
   }
+  fieldStressCells.resize(NCELLS);
+  for (int i = 0; i < NCELLS; i++) {
+    fieldStressCells[i].resize(NDIM * (NDIM + 1) / 2);
+    for (int j = 0; j < NDIM * (NDIM + 1) / 2; j++)
+      fieldStressCells[i][j] = 0.0;
+  }
+  fieldShapeStressCells.resize(NCELLS);
+  for (int i = 0; i < NCELLS; i++) {
+    fieldShapeStressCells[i].resize(NDIM * (NDIM + 1) / 2);
+    for (int j = 0; j < NDIM * (NDIM + 1) / 2; j++)
+      fieldShapeStressCells[i][j] = 0.0;
+  }
 }
 
 // initialize vertex indexing
@@ -1093,6 +1105,8 @@ void dpm::resetForcesAndEnergy() {
   fill(stress.begin(), stress.end(), 0.0);
   fill(fieldStress.begin(), fieldStress.end(), vector<double>(3, 0.0));
   fill(fieldShapeStress.begin(), fieldShapeStress.end(), vector<double>(3, 0.0));
+  fill(fieldStressCells.begin(), fieldStressCells.end(), vector<double>(3, 0.0));
+  fill(fieldShapeStressCells.begin(), fieldShapeStressCells.end(), vector<double>(3, 0.0));
   U = 0.0;
   fill(cellU.begin(), cellU.end(), 0.0);
 }
@@ -1314,6 +1328,20 @@ void dpm::shapeForces2D() {
     // update old preferred segment length
     l0im1 = l0i;
   }
+
+  // normalize per-cell stress by preferred cell area
+  for (int ci = 0; ci < NCELLS; ci++) {
+    for (int vi = 0; vi < nv[ci]; vi++) {
+      int gi = gindex(ci, vi);
+      fieldShapeStressCells[ci][0] += fieldShapeStress[gi][0];
+      fieldShapeStressCells[ci][1] += fieldShapeStress[gi][1];
+      fieldShapeStressCells[ci][2] += fieldShapeStress[gi][2];
+    }
+    // nondimensionalize the stress
+    fieldShapeStressCells[ci][0] *= rho0 / a0[ci];
+    fieldShapeStressCells[ci][1] *= rho0 / a0[ci];
+    fieldShapeStressCells[ci][2] *= rho0 / a0[ci];
+  }
 }
 
 void dpm::vertexRepulsiveForces2D() {
@@ -1492,9 +1520,25 @@ void dpm::vertexRepulsiveForces2D() {
   }
 
   // normalize stress by box area, make dimensionless
+  // units explanation (Andrew): pressure is force/area. up til now, stress has been force times distance.
+  // so after dividing by area, we have force / distance. We need to multiply one last time by rho0, done.
+
   stress[0] *= (rho0 / (L[0] * L[1]));
   stress[1] *= (rho0 / (L[0] * L[1]));
   stress[2] *= (rho0 / (L[0] * L[1]));
+
+  // normalize per-cell stress by preferred cell area
+  for (int ci = 0; ci < NCELLS; ci++) {
+    for (int vi = 0; vi < nv[ci]; vi++) {
+      int gi = gindex(ci, vi);
+      fieldStressCells[ci][0] += fieldStress[gi][0];
+      fieldStressCells[ci][1] += fieldStress[gi][1];
+      fieldStressCells[ci][2] += fieldStress[gi][2];
+    }
+    fieldStressCells[ci][0] *= rho0 / a0[ci];
+    fieldStressCells[ci][1] *= rho0 / a0[ci];
+    fieldStressCells[ci][2] *= rho0 / a0[ci];
+  }
 }
 
 void dpm::vertexAttractiveForces2D() {
@@ -1720,6 +1764,19 @@ void dpm::vertexAttractiveForces2D() {
   stress[0] *= (rho0 / (L[0] * L[1]));
   stress[1] *= (rho0 / (L[0] * L[1]));
   stress[2] *= (rho0 / (L[0] * L[1]));
+
+  // normalize per-cell stress by cell area
+  for (int ci = 0; ci < NCELLS; ci++) {
+    for (int vi = 0; vi < nv[ci]; vi++) {
+      int gi = gindex(ci, vi);
+      fieldStressCells[ci][0] += fieldStress[gi][0];
+      fieldStressCells[ci][1] += fieldStress[gi][1];
+      fieldStressCells[ci][2] += fieldStress[gi][2];
+    }
+    fieldStressCells[ci][0] *= rho0 / a0[ci];
+    fieldStressCells[ci][1] *= rho0 / a0[ci];
+    fieldStressCells[ci][2] *= rho0 / a0[ci];
+  }
 }
 
 void dpm::repulsiveForceUpdate() {

@@ -14,7 +14,7 @@
 // ./main/epi2D/laserAblation.o 24 20 5 1.08 0.2 0.85 1.0 0.1 0 1.0 0.5 1 1 1000 pos.test energy.test stress.test
 // ./main/epi2D/laserAblation.o 24 20 5 1.08 0.2 0.85 1.0 0 0 1.0 0.1 0 1 100 pos.test energy.test stress.test
 // ./main/epi2D/laserAblation.o 24 20 5 1.08 0.2 0.85 1.0 0.3 0 1.0 0.1 0 1 100 pos.test energy.test stress.test
-// ./main/epi2D/laserAblation.o 24 20 4 1.08 0.85 0.86 1.0 0.3 0.5 1.0 0.5 0 1 300 pos.test energy.test stress.test
+// ./main/epi2D/laserAblation.o 24 20 4 1.08 0.85 0.855 1.0 0.3 0.5 1.0 0.5 0 1 2000 pos.test energy.test stress.test
 // ./main/epi2D/laserAblation.o 48 20 10 1.08 0.85 0.86 1.0 0.3 0.5 1.0 0.5 0 1 100 pos.test energy.test stress.test
 //
 // Parameter input list

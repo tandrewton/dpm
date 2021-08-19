@@ -369,6 +369,19 @@ void epi2D::vertexAttractiveForces2D_2() {
   stress[0] *= (rho0 / (L[0] * L[1]));
   stress[1] *= (rho0 / (L[0] * L[1]));
   stress[2] *= (rho0 / (L[0] * L[1]));
+
+  // normalize per-cell stress by preferred cell area
+  for (int ci = 0; ci < NCELLS; ci++) {
+    for (int vi = 0; vi < nv[ci]; vi++) {
+      int gi = gindex(ci, vi);
+      fieldStressCells[ci][0] += fieldStress[gi][0];
+      fieldStressCells[ci][1] += fieldStress[gi][1];
+      fieldStressCells[ci][2] += fieldStress[gi][2];
+    }
+    fieldStressCells[ci][0] *= rho0 / a0[ci];
+    fieldStressCells[ci][1] *= rho0 / a0[ci];
+    fieldStressCells[ci][2] *= rho0 / a0[ci];
+  }
 }
 
 void epi2D::attractiveForceUpdate_2() {
@@ -747,10 +760,10 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duratio
 
         if (stressout.is_open()) {
           double shapeStressXX = 0.0, shapeStressYY = 0.0, shapeStressXY = 0.0;
-          for (int gi = 0; gi < NVTOT; gi++) {
-            shapeStressXX += fieldShapeStress[gi][0];
-            shapeStressYY += fieldShapeStress[gi][1];
-            shapeStressXY += fieldShapeStress[gi][2];
+          for (int ci = 0; ci < NCELLS; ci++) {
+            shapeStressXX += fieldShapeStressCells[ci][0];
+            shapeStressYY += fieldShapeStressCells[ci][1];
+            shapeStressXY += fieldShapeStressCells[ci][2];
           }
           // print to stress file
           cout << "** printing stress" << endl;
@@ -871,10 +884,10 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
 
         if (stressout.is_open()) {
           double shapeStressXX = 0.0, shapeStressYY = 0.0, shapeStressXY = 0.0;
-          for (int gi = 0; gi < NVTOT; gi++) {
-            shapeStressXX += fieldShapeStress[gi][0];
-            shapeStressYY += fieldShapeStress[gi][1];
-            shapeStressXY += fieldShapeStress[gi][2];
+          for (int ci = 0; ci < NCELLS; ci++) {
+            shapeStressXX += fieldShapeStressCells[ci][0];
+            shapeStressYY += fieldShapeStressCells[ci][1];
+            shapeStressXY += fieldShapeStressCells[ci][2];
           }
           // print to stress file
           cout << "** printing stress" << endl;
@@ -1154,6 +1167,8 @@ void epi2D::deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc) {
   flagPos.erase(flagPos.begin() + deleteIndex);
   activePropulsionFactor.erase(activePropulsionFactor.begin() + deleteIndex);
   cellU.erase(cellU.begin() + deleteIndex);
+  fieldStressCells.erase(fieldStressCells.begin() + deleteIndex);
+  fieldShapeStressCells.erase(fieldShapeStressCells.begin() + deleteIndex);
 
   int deleteIndexGlobal = gindex(deleteIndex, 0);
 
@@ -1329,8 +1344,7 @@ void epi2D::printConfiguration2D() {
   // overloaded to print out psi as well
   // local variables
   int ci, cj, vi, gi, ctmp, zc, zv;
-  double xi, yi, dx, dy, Lx, Ly, cellStressXX = 0.0, cellStressYY = 0.0, cellStressXY = 0.0, cellStressTrace = 0.0;
-  double cellShapeStressXX = 0.0, cellShapeStressYY = 0.0, cellShapeStressXY = 0.0;
+  double xi, yi, dx, dy, Lx, Ly;
 
   // check if pos object is open
   if (!posout.is_open()) {
@@ -1357,9 +1371,9 @@ void epi2D::printConfiguration2D() {
 
   // print stress info
   posout << setw(w) << left << "STRSS";
-  posout << setw(wnum) << setprecision(pnum) << left << stress[0];
-  posout << setw(wnum) << setprecision(pnum) << left << stress[1];
-  posout << setw(wnum) << setprecision(pnum) << left << stress[2];
+  posout << setw(wnum) << setprecision(pnum) << left << -stress[0];
+  posout << setw(wnum) << setprecision(pnum) << left << -stress[1];
+  posout << setw(wnum) << setprecision(pnum) << left << -stress[2];
   posout << setw(wnum) << setprecision(pnum) << left << L[0] / initialLx - 1;
   posout << endl;
 
@@ -1382,23 +1396,6 @@ void epi2D::printConfiguration2D() {
           zc++;
       }
     }
-    cellStressXX = 0.0;
-    cellStressYY = 0.0;
-    cellStressXY = 0.0;
-    cellStressTrace = 0.0;
-    cellShapeStressXX = 0.0;
-    cellShapeStressYY = 0.0;
-    cellShapeStressXY = 0.0;
-    for (vi = 0; vi < nv.at(ci); vi++) {
-      gi = gindex(ci, vi);
-      cellStressXX += fieldStress[gi][0];
-      cellStressYY += fieldStress[gi][1];
-      cellStressXY += fieldStress[gi][2];
-      cellShapeStressXX += fieldShapeStress[gi][0];
-      cellShapeStressYY += fieldShapeStress[gi][1];
-      cellShapeStressXY += fieldShapeStress[gi][2];
-    }
-    cellStressTrace = cellStressXX + cellStressYY;
 
     // cell information
     posout << setw(w) << left << "CINFO";
@@ -1409,13 +1406,13 @@ void epi2D::printConfiguration2D() {
     posout << setw(wnum) << left << area(ci);
     posout << setw(wnum) << left << perimeter(ci);
     posout << setw(wnum) << left << psi[ci];
-    posout << setw(wnum) << left << -cellStressXX;  //virial contribution to stress tensor comes with a minus sign
-    posout << setw(wnum) << left << -cellStressYY;
-    posout << setw(wnum) << left << -cellStressXY;
-    posout << setw(wnum) << left << -cellStressTrace;
-    posout << setw(wnum) << left << -cellShapeStressXX;
-    posout << setw(wnum) << left << -cellShapeStressYY;
-    posout << setw(wnum) << left << -cellShapeStressXY;
+    posout << setw(wnum) << left << -fieldStressCells[ci][0];  //virial contribution to stress tensor comes with a minus sign
+    posout << setw(wnum) << left << -fieldStressCells[ci][1];
+    posout << setw(wnum) << left << -fieldStressCells[ci][2];
+    posout << setw(wnum) << left << -(fieldStressCells[ci][0] + fieldStressCells[ci][1]);
+    posout << setw(wnum) << left << -fieldShapeStressCells[ci][0];
+    posout << setw(wnum) << left << -fieldShapeStressCells[ci][1];
+    posout << setw(wnum) << left << -fieldShapeStressCells[ci][2];
     posout << setw(wnum) << left << cellU[ci];
     posout << setw(wnum) << left << flag[ci];
     posout << setw(wnum) << left << flagPos[ci][0];
