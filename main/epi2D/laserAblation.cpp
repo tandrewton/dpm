@@ -14,7 +14,7 @@
 // ./main/epi2D/laserAblation.o 24 20 5 1.08 0.2 0.85 1.0 0.1 0 1.0 0.5 1 1 1000 pos.test energy.test stress.test
 // ./main/epi2D/laserAblation.o 24 20 5 1.08 0.2 0.85 1.0 0 0 1.0 0.1 0 1 100 pos.test energy.test stress.test
 // ./main/epi2D/laserAblation.o 24 20 5 1.08 0.2 0.85 1.0 0.3 0 1.0 0.1 0 1 100 pos.test energy.test stress.test
-// ./main/epi2D/laserAblation.o 24 20 4 1.08 0.85 0.855 1.0 0.3 0.5 1.0 0.5 0 1 2000 pos.test energy.test stress.test
+// ./main/epi2D/laserAblation.o 24 20 4 1.08 0.85 0.855 1.0 0.3 0.5 1.0 0.5 0 1 1000 pos.test energy.test stress.test
 // ./main/epi2D/laserAblation.o 48 20 10 1.08 0.85 0.86 1.0 0.3 0.5 1.0 0.5 0 1 100 pos.test energy.test stress.test
 //
 // Parameter input list
@@ -171,7 +171,7 @@ int main(int argc, char const* argv[]) {
 
   //after compress, turn on damped NVE
   double T = 1e-4;
-  double relaxTime = 100.0;
+  double relaxTime = 10.0;
   epithelial.drawVelocities2D(T);
   epithelial.dampedNP0(attractiveForceUpdate, B, dt0, relaxTime, 0, wallsOff);
   //double boxSizeMultiplier = 1.2;
@@ -183,9 +183,9 @@ int main(int argc, char const* argv[]) {
   epithelial.laserAblate(numCellsToAblate, sizeratio, nsmall, xLoc, yLoc);
   epithelial.zeroMomentum();
 
-  epithelial.dampedNVE2D(attractiveForceUpdate, B, dt0, relaxTime, relaxTime / 5);
+  epithelial.dampedNVE2D(attractiveForceUpdate, B, dt0, relaxTime, relaxTime / 5.0);
 
-  epithelial.dampedNP0(substrateAdhesionForceUpdate, B, dt0, time_dbl, time_dbl / 20, wallsOff);
+  epithelial.dampedNP0(substrateAdhesionForceUpdate, B, dt0, time_dbl, time_dbl / 40.0, wallsOff);
 
   cout << "\n** Finished laserAblation.cpp, ending. " << endl;
   return 0;

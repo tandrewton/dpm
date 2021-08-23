@@ -449,7 +449,7 @@ void epi2D::substrateadhesionAttractiveForceUpdate() {
   //compute forces for shape, attractive, and substrate adhesion contributions
   int gi = 0, argmin, flagcount = 0;
   int numVerticesAttracted = 1;
-  double k = 1;
+  double k = 2;
   double refreshInterval = 1;
 
   //reset forces, then get shape and attractive forces.
@@ -459,8 +459,13 @@ void epi2D::substrateadhesionAttractiveForceUpdate() {
 
   for (int ci = 0; ci < NCELLS; ci++) {
     std::vector<double> distSqVertToFlag(nv[0], 0.0);
-    // check for protrusions
+    // check for protrusions (unimpeded flag toss, and flag location inside box)
     if (flag[ci]) {
+      //if (flagPos[ci][0] > 0 && flagPos[ci][0] < L[0] && flagPos[ci][1] > 0 && flagPos[ci][1] < L[1]) {
+      /*double cx, cy;
+        com2D(ci, cx, cy);
+        cout << "cell ci = " << ci << " has a flag! cell is located at " << cx << '\t' << cy << "\n\n";*/
+
       // find nearest vertices
       for (int vi = 0; vi < nv[ci]; vi++) {
         gi = gindex(ci, vi);
@@ -474,6 +479,7 @@ void epi2D::substrateadhesionAttractiveForceUpdate() {
       F[gi * NDIM] += -k * (x[gi * NDIM] - flagPos[ci][0]);
       F[gi * NDIM + 1] += -k * (x[gi * NDIM + 1] - flagPos[ci][1]);
       flagcount++;
+      //}
     }
   }
   //if (boolCIL == true)
@@ -645,20 +651,23 @@ void epi2D::updateSubstrateSprings(double refreshInterval) {
     for (int ci = 0; ci < NCELLS; ci++) {
       cancelFlagToss = false;
       if (!flag[ci]) {
+        // probably not a good idea to vary flag distance at this stage
+        // double randFlagDistance = flagDistance * (drand48() / 2 + 1);
+        randFlagDistance = flagDistance;
         // pick a direction, throw a flag in that direction
-        flagPos[ci][0] = center[ci][0] + flagDistance * cos(psi[ci]);
-        flagPos[ci][1] = center[ci][1] + flagDistance * sin(psi[ci]);
+        flagPos[ci][0] = center[ci][0] + randFlagDistance * cos(psi[ci]);
+        flagPos[ci][1] = center[ci][1] + randFlagDistance * sin(psi[ci]);
         // loop over cells near enough to block flag
         for (int cj = 0; cj < NCELLS; cj++) {
           if (cancelFlagToss == true)
             continue;
           if (ci != cj) {
             // check if centers are near enough to possibly block flag
-            if (pow(center[ci][0] - center[cj][0], 2) + pow(center[ci][1] - center[cj][1], 2) < 3 * pow(flagDistance, 2)) {
+            if (pow(center[ci][0] - center[cj][0], 2) + pow(center[ci][1] - center[cj][1], 2) < 3 * pow(randFlagDistance, 2)) {
               // check if vertices actually block flag
               for (int vj = 0; vj < nv[cj]; vj++) {
                 gj = gindex(cj, vj);
-                if (distanceLineAndPoint(cx, cy, flagPos[ci][0], flagPos[ci][1], x[gj * NDIM], x[gj * NDIM + 1]) < 4 * r[gj]) {
+                if (distanceLineAndPoint(center[ci][0], center[ci][1], flagPos[ci][0], flagPos[ci][1], x[gj * NDIM], x[gj * NDIM + 1]) < 2 * r[gj]) {
                   // yes, flag has been blocked. Move on to next cell's flag toss attempt.
                   cancelFlagToss = true;
                   // inhibited, so director goes in opposite direction.
@@ -767,12 +776,12 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duratio
           }
           // print to stress file
           cout << "** printing stress" << endl;
-          cout << "field shape stresses: " << shapeStressXX << '\t' << shapeStressYY << '\t' << shapeStressXY << '\n';
+          cout << "field shape stresses: " << -shapeStressXX << '\t' << -shapeStressYY << '\t' << -shapeStressXY << '\n';
           stressout << setw(wnum) << left << simclock;
           stressout << setw(wnum) << left << L[0] / initialLx - 1;
-          stressout << setw(wnum) << stress[0] + shapeStressXX;
-          stressout << setw(wnum) << stress[1] + shapeStressYY;
-          stressout << setw(wnum) << stress[2] + shapeStressXY;
+          stressout << setw(wnum) << -(stress[0] + shapeStressXX);
+          stressout << setw(wnum) << -(stress[1] + shapeStressYY);
+          stressout << setw(wnum) << -(stress[2] + shapeStressXY);
           stressout << endl;
         }
 
@@ -891,12 +900,12 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
           }
           // print to stress file
           cout << "** printing stress" << endl;
-          cout << "field shape stresses: " << shapeStressXX << '\t' << shapeStressYY << '\t' << shapeStressXY << '\n';
+          cout << "field shape stresses: " << -shapeStressXX << '\t' << -shapeStressYY << '\t' << -shapeStressXY << '\n';
           stressout << setw(wnum) << left << simclock;
           stressout << setw(wnum) << left << L[0] / initialLx - 1;
-          stressout << setw(wnum) << stress[0] + shapeStressXX;
-          stressout << setw(wnum) << stress[1] + shapeStressYY;
-          stressout << setw(wnum) << stress[2] + shapeStressXY;
+          stressout << setw(wnum) << -(stress[0] + shapeStressXX);
+          stressout << setw(wnum) << -(stress[1] + shapeStressYY);
+          stressout << setw(wnum) << -(stress[2] + shapeStressXY);
           stressout << endl;
         }
 
