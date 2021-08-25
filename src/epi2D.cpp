@@ -252,6 +252,13 @@ void epi2D::vertexAttractiveForces2D_2() {
 
               // add to contacts
               if (ci != cj) {
+                for (int i = 0; i < vnn[gi].size(); i++) {
+                  if (vnn[gi][i] < 0) {
+                    vnn[gi][i] = gj;
+                    // do i need to double it up since attraction is 2-sided?
+                    break;
+                  }
+                }
                 if (ci > cj)
                   cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2]++;
                 else if (ci < cj)
@@ -347,6 +354,12 @@ void epi2D::vertexAttractiveForces2D_2() {
                 fieldStress[gi][2] += 0.5 * (dx * fy + dy * fx);
 
                 if (ci != cj) {
+                  for (int i = 0; i < vnn[gi].size(); i++) {
+                    if (vnn[gi][i] < 0) {
+                      vnn[gi][i] = gj;
+                      break;
+                    }
+                  }
                   if (ci > cj)
                     cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2]++;
                   else if (ci < cj)
@@ -461,11 +474,6 @@ void epi2D::substrateadhesionAttractiveForceUpdate() {
     std::vector<double> distSqVertToFlag(nv[0], 0.0);
     // check for protrusions (unimpeded flag toss, and flag location inside box)
     if (flag[ci]) {
-      //if (flagPos[ci][0] > 0 && flagPos[ci][0] < L[0] && flagPos[ci][1] > 0 && flagPos[ci][1] < L[1]) {
-      /*double cx, cy;
-        com2D(ci, cx, cy);
-        cout << "cell ci = " << ci << " has a flag! cell is located at " << cx << '\t' << cy << "\n\n";*/
-
       // find nearest vertices
       for (int vi = 0; vi < nv[ci]; vi++) {
         gi = gindex(ci, vi);
@@ -479,7 +487,6 @@ void epi2D::substrateadhesionAttractiveForceUpdate() {
       F[gi * NDIM] += -k * (x[gi * NDIM] - flagPos[ci][0]);
       F[gi * NDIM + 1] += -k * (x[gi * NDIM + 1] - flagPos[ci][1]);
       flagcount++;
-      //}
     }
   }
   //if (boolCIL == true)
@@ -638,6 +645,8 @@ void epi2D::updateSubstrateSprings(double refreshInterval) {
   if (simclock - previousUpdateSimclock > refreshInterval) {
     double cx, cy, gj;
     double flagDistance = 1.5 * sqrt(a0[0] / PI);
+    // issue: if cell becomes too elongated, then flagDistance isn't large enough to anchor outside the cell
+    // idea: since updateSubstrate is only called in the force update, have the force update pass a vector of lengths instead of using flagDistance here
     bool cancelFlagToss;
     std::vector<std::vector<double>> center(NCELLS, std::vector<double>(2, 0.0));
     for (int ci = 0; ci < NCELLS; ci++) {
@@ -653,7 +662,7 @@ void epi2D::updateSubstrateSprings(double refreshInterval) {
       if (!flag[ci]) {
         // probably not a good idea to vary flag distance at this stage
         // double randFlagDistance = flagDistance * (drand48() / 2 + 1);
-        randFlagDistance = flagDistance;
+        double randFlagDistance = flagDistance;
         // pick a direction, throw a flag in that direction
         flagPos[ci][0] = center[ci][0] + randFlagDistance * cos(psi[ci]);
         flagPos[ci][1] = center[ci][1] + randFlagDistance * sin(psi[ci]);
@@ -721,6 +730,7 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duratio
         x[i] += L[i % NDIM];
     }
     // FORCE UPDATE
+    boundaries();  // build vnn for void detection
     std::vector<double> F_old = F;
     CALL_MEMBER_FN(*this, forceCall)
     ();
@@ -786,8 +796,10 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duratio
         }
 
         // print to configuration only if position file is open
-        if (posout.is_open())
+        if (posout.is_open()) {
           printConfiguration2D();
+          printBoundaries();
+        }
 
         cout << "Number of polarization deflections: " << polarizationCounter << '\n';
       }
@@ -824,6 +836,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
         x[i] += L[i % NDIM];
     }
     // FORCE UPDATE
+    boundaries();  // build vnn for void detection
     std::vector<double> F_old = F;
     CALL_MEMBER_FN(*this, forceCall)
     ();
@@ -910,8 +923,10 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
         }
 
         // print to configuration only if position file is open
-        if (posout.is_open())
+        if (posout.is_open()) {
           printConfiguration2D();
+          printBoundaries();
+        }
 
         cout << "Number of polarization deflections: " << polarizationCounter << '\n';
       }
@@ -1191,6 +1206,8 @@ void epi2D::deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc) {
                     fieldStress.begin() + deleteIndexGlobal + numVertsDeleted - 1);
   fieldShapeStress.erase(fieldShapeStress.begin() + deleteIndexGlobal,
                          fieldShapeStress.begin() + deleteIndexGlobal + numVertsDeleted - 1);
+  vnn.erase(vnn.begin() + deleteIndexGlobal, vnn.begin() + deleteIndexGlobal + numVertsDeleted - 1);
+  vnn_label.erase(vnn_label.begin() + deleteIndexGlobal, vnn_label.begin() + deleteIndexGlobal + numVertsDeleted - 1);
 
   // sum up number of vertices of each cell until reaching the cell to delete
   int sumVertsUntilGlobalIndex = szList[deleteIndex];
@@ -1228,6 +1245,122 @@ void epi2D::laserAblate(int numCellsAblated, double sizeRatio, int nsmall, doubl
   }
   cout << "deleted " << numCellsAblated << "cells!\n";
   zeroMomentum();
+}
+
+void epi2D::initializevnn() {
+  vnn.resize(NVTOT);
+  for (int gi = 0; gi < NVTOT; gi++) {
+    vnn[gi].resize(5);
+  }
+  vnn_label.resize(NVTOT);
+}
+
+void epi2D::boundaries() {
+  //cerr << "inside boundaries\n";
+  // construct vertex neighbor list for void detection. This routine only handles vertices in the same cell.
+  // Neighbors via adhesion are handled externally, in the force routine
+  int gi = 0, gi0 = 0;
+  for (int gi = 0; gi < vnn.size(); gi++) {
+    fill(vnn[gi].begin(), vnn[gi].end(), -1);
+  }
+
+  for (int ci = 0; ci < NCELLS; ci++) {
+    // get first index of cell ci
+    gi0 = gindex(ci, 0);
+
+    // loop over vertices in cell vi, put forward and backward neighbors into nn[0], nn[1]
+    for (int vi = 0; vi < nv[ci]; vi++) {
+      gi = gindex(ci, vi);
+      vnn[gi][0] = gi0 + (vi + 1) % nv[ci];
+      vnn[gi][1] = gi0 + (vi - 1) % nv[ci];
+    }
+  }
+  //cerr << "exiting boundaries\n";
+}
+
+std::vector<int> epi2D::refineBoundaries() {
+  // refine the boundaries, return site occupations for Newman-Ziff.
+  std::vector<int> voidFacingVertexIndices;
+
+  int counter, k;
+  fill(vnn_label.begin(), vnn_label.end(), -1);
+  // first refinement: vertices with 2 positive labels are non-adhering, therefore void-adjacent (label 0)
+  for (int gi = 0; gi < NVTOT; gi++) {
+    // tally up how many neighbors each cell has
+    counter = 0;
+    for (int i = 0; i < vnn[gi].size(); i++) {
+      counter += (vnn[gi][i] >= 0);
+    }
+    if (counter < 2)
+      cout << "warning: definitely should not have less than 2 neighbors for this vertex!!\n";
+    else if (counter == 2) {
+      vnn_label[gi] = 0;
+    }
+  }
+  // second refinement: a vertex gets a 1 label if it is unlabeled and is next to a void-adjacent vertex
+  // idea - loop through all the 0 labels (i) of vnn_label, and loop through j in vnn[i][j] to get indices k. if (vnn_label[k] != 0) then vnn_label[k] = 1
+  for (int gi = 0; gi < NVTOT; gi++) {
+    // check if gi is a non-adhering vertex
+    if (vnn_label[gi] == 0) {
+      for (int j = 0; j < vnn[gi].size(); j++) {
+        k = vnn[gi][j];
+        // check if k-th vertex isn't non-adhering.
+        if (k >= 0 && vnn_label[k] != 0)
+          vnn_label[k] = 1;
+      }
+    }
+  }
+  // third refinement: set all 1s to 0s. Now I've labeled all void-adjacent vertices as 0, and all bulk cells as -1.
+  for (int gi = 0; gi < NVTOT; gi++) {
+    // set 1s to 0
+    if (vnn_label[gi] == 1)
+      vnn_label[gi] = 0;
+    // get an occupation order for void-facing indices
+    if (vnn_label[gi] == 0)
+      voidFacingVertexIndices.push_back(gi);
+  }
+  return voidFacingVertexIndices;
+}
+
+void epi2D::printBoundaries() {
+  int empty = -NVTOT - 1;
+  std::vector<int> order = refineBoundaries();
+  std::vector<int> ptr(NVTOT, empty);
+  int i, j, s1, s2, r1, r2;
+  int big = 0;
+  for (i = 0; i < order.size(); i++) {
+    r1 = s1 = order[i];
+    ptr[s1] = -1;
+    for (j = 0; j < vnn[s1].size(); j++) {
+      // skip if neighbor list has -1 label (means no neighbor is there)
+      if (vnn[s1][j] == -1)
+        continue;
+      s2 = vnn[s1][j];
+      if (ptr[s2] != empty) {
+        r2 = findRoot(s2, ptr);
+        if (r2 != r1) {
+          if (ptr[r1] > ptr[r2]) {
+            ptr[r2] += ptr[r1];
+            ptr[r1] = r2;
+            r1 = r2;
+          } else {
+            ptr[r1] += ptr[r2];
+            ptr[r2] = r1;
+          }
+          if (-ptr[r1] > big)
+            big = -ptr[r1];
+        }
+      }
+    }
+    if (i + 1 == order.size())
+      cout << "order[i] = " << order[i] << ",\t occupation # = " << i + 1 << ",\t cluster size = " << big << '\n';
+  }
+}
+
+int epi2D::findRoot(int i, std::vector<int>& ptr) {
+  if (ptr[i] < 0)
+    return i;
+  return ptr[i] = findRoot(ptr[i], ptr);
 }
 
 void epi2D::notchTest(int numCellsToDelete, double strain, double strainRate, double boxLengthScale, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, double printInterval, std::string loadingType) {
@@ -1350,7 +1483,7 @@ void epi2D::deflectOverlappingDirectors() {
 }*/
 
 void epi2D::printConfiguration2D() {
-  // overloaded to print out psi as well
+  // overloaded to print out psi and other very specific quantities of interest
   // local variables
   int ci, cj, vi, gi, ctmp, zc, zv;
   double xi, yi, dx, dy, Lx, Ly;

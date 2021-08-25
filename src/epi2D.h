@@ -65,9 +65,14 @@ class epi2D : public dpm {
 
   std::vector<double> VL;
 
+  // stores nearest neighbors indices of each vertex according to adjacency (intracell) and adhesion (intercell)
+  std::vector<std::vector<int>> vnn;
+  std::vector<int> vnn_label;
+
   // specific output objects
   std::ofstream enout;
   std::ofstream stressout;
+  std::ofstream bout;
 
   // simulation time keeper (accumulates elapsed simulation time during MD routines)
   double simclock;
@@ -119,6 +124,16 @@ class epi2D : public dpm {
     stressout.open(str.c_str());
     if (!stressout.is_open()) {
       std::cout << "	ERROR: file could not open " << str << "..." << std::endl;
+      exit(1);
+    } else
+      std::cout << "** Opening file " << str << " ..." << std::endl;
+  }
+
+  // File openers
+  void openBoundaryObject(std::string& str) {
+    bout.open(str.c_str());
+    if (!bout.is_open()) {
+      std::cerr << "	ERROR: file could not open " << str << "..." << std::endl;
       exit(1);
     } else
       std::cout << "** Opening file " << str << " ..." << std::endl;
@@ -177,6 +192,13 @@ class epi2D : public dpm {
   // note: whenever adding member-level data structures that depend on NVTOT/NCELLS, need to make sure to modify the size in deleteCell appropriately
   void deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc);
   void laserAblate(int numCellsAblated, double sizeRatio, int nsmall, double xLoc, double yLoc);
+
+  // void detection algorithms (Newman-Ziff)
+  void initializevnn();
+  void boundaries();
+  std::vector<int> refineBoundaries();
+  void printBoundaries();
+  int findRoot(int i, std::vector<int>& ptr);
 
   void notchTest(int numCellsToDelete, double strain, double strainRate, double boxLengthScale, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, double printInterval, std::string loadingType);
   void orientDirector(int ci, double xLoc, double yLoc);
