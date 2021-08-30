@@ -6,8 +6,9 @@
 %     strain, strainRate, duration, ...
 %       showPeriodicImages, showverts, colorCellStress,...
 %       showPrincipalStressDirections, isTestData)
-isTestData = false;
+isTestData = true;
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
+addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
 
 %CHANGE THESE PARAMETERS AS NEEDED
 runType = "notch";
@@ -23,14 +24,13 @@ FSKIP = 1; %# frames skipped to lower sampling freq
 
 startSeed = 1;
 max_seed = 1;
-makeAMovie = 1;
-showPeriodicImages = 0;
+makeAMovie = 0;
+showPeriodicImages = 1;
 plotVoronoi = 0;
 showverts = 0;
 colorCellStress = 0;
 showPrincipalStressDirections = 1;
 colormap hot;
-
 
 %PC directory
 pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
@@ -57,6 +57,7 @@ for seed = startSeed:max_seed
         nvestr = pc_dir+'/pos.test';
         energystr = pc_dir+'/energy.test';
         stressstr = pc_dir+'/stress.test';
+        boundaryStr = pc_dir+'void.test';
     else
         run_name =runType+"_N"+N+"_calA0"+calA+...
             "_att"+att+"_B"+B+"_strain"+strain+"_strainRate"+strainRate+...
@@ -69,6 +70,7 @@ for seed = startSeed:max_seed
         nvestr = pipeline_dir+fileheader+'.pos';
         energystr = pipeline_dir+fileheader+'.energy';
         stressstr = pipeline_dir+fileheader+'.stress';
+        boundaryStr = pipeline_dir+fileheader+ ".void";
     end
     
 
@@ -98,6 +100,7 @@ for seed = startSeed:max_seed
     NFRAMES = trajectoryData.NFRAMES;
     NCELLS = trajectoryData.NCELLS;
     nv = trajectoryData.nv;
+    time = trajectoryData.time;
     %NVTOT = sum(nv);
     cellU = trajectoryData.cellU;
     strain = trajectoryData.strain;
@@ -154,6 +157,8 @@ for seed = startSeed:max_seed
         itHigh = 1;
         boxAxLow = -0.25;
         boxAxHigh = 1.25;
+        %boxAxLow = -1;
+        %boxAxHigh = 2;
     else
         itLow = 0;
         itHigh = 0;
@@ -167,6 +172,8 @@ for seed = startSeed:max_seed
     clf, hold on, box on;
     absStress = abs(cellStress);
     m_max = max(absStress,[], 'all');
+    voidLocations = readDataBlocks(boundaryStr, 2);
+    voidArea = zeros(ff,1);
     for ff = FSTART:FSTEP:FEND
         vor_cx = [];
         vor_cy = [];
@@ -202,92 +209,93 @@ for seed = startSeed:max_seed
 
         NCELLS = cell_count(ff);
         figure(fnum), clf, hold on, box on;
-        fprintf('printing frame ff = %d/%d\n',ff,FEND);
+        if (makeAMovie)
+            fprintf('printing frame ff = %d/%d\n',ff,FEND);
 
-        % get cell positions
-        xpos = trajectoryData.xpos(ff,:);
-        ypos = trajectoryData.ypos(ff,:);
-        l0 = trajectoryData.l0(ff,:);
+            % get cell positions
+            xpos = trajectoryData.xpos(ff,:);
+            ypos = trajectoryData.ypos(ff,:);
+            l0 = trajectoryData.l0(ff,:);
 
-        %if L is not constant, use the next 3 lines
-        L = trajectoryData.L(ff,:);
-        Lx = L(1);
-        Ly = L(2);
+            %if L is not constant, use the next 3 lines
+            L = trajectoryData.L(ff,:);
+            Lx = L(1);
+            Ly = L(2);
 
-        %idea: to keep the box size constant visually,
-        % just store Lx0, Ly0. Every frame, compute delta = Lx(new) - Lx(old),
-        % Ly(new) - Ly(old). Scale particle sizes by (1-delta). 
+            %idea: to keep the box size constant visually,
+            % just store Lx0, Ly0. Every frame, compute delta = Lx(new) - Lx(old),
+            % Ly(new) - Ly(old). Scale particle sizes by (1-delta). 
 
-        for nn = 1:NCELLS
-            xtmp = xpos{nn};
-            ytmp = ypos{nn};
-            l0tmp = l0(nn);
-            if (showPrincipalStressDirections)
-                ell_clr = ellCLR(nn,:);
-            end
-            if (colorCellStress)
-                %clr = [220/256 220/256 220/256];
-                clrWeight=cellCLR(nn,:);
-            else
-                %clr = cellCLR(IC(nn),:);
-                clr = [220/256 220/256 220/256];
-            end
-            
-            cx = mean(xtmp);
-            cy = mean(ytmp);
-            if showverts == 1
-                for vv = 1:nv(ff,nn)
-                    xplot = xtmp(vv) - 0.5*l0tmp;
-                    yplot = ytmp(vv) - 0.5*l0tmp;
+            for nn = 1:NCELLS
+                xtmp = xpos{nn};
+                ytmp = ypos{nn};
+                l0tmp = l0(nn);
+                if (showPrincipalStressDirections)
+                    ell_clr = ellCLR(nn,:);
+                end
+                if (colorCellStress)
+                    %clr = [220/256 220/256 220/256];
+                    clrWeight=cellCLR(nn,:);
+                else
+                    %clr = cellCLR(IC(nn),:);
+                    clr = [220/256 220/256 220/256];
+                end
+
+                cx = mean(xtmp);
+                cy = mean(ytmp);
+                if showverts == 1
+                    for vv = 1:nv(ff,nn)
+                        xplot = xtmp(vv) - 0.5*l0tmp;
+                        yplot = ytmp(vv) - 0.5*l0tmp;
+                        for xx = itLow:itHigh
+                            for yy = itLow:itHigh
+                                rectangle('Position',[xplot + xx*Lx, yplot + yy*Ly, l0tmp, l0tmp],...
+                                    'Curvature',[1 1],'EdgeColor','k','FaceColor',clr);
+                            end
+                        end
+                    end
+                else
+                    rx = xtmp - cx;
+                    ry = ytmp - cy;
+                    rads = sqrt(rx.^2 + ry.^2);
+                    xtmp = xtmp + 0.4*l0tmp*(rx./rads);
+                    ytmp = ytmp + 0.4*l0tmp*(ry./rads);
                     for xx = itLow:itHigh
                         for yy = itLow:itHigh
-                            rectangle('Position',[xplot + xx*Lx, yplot + yy*Ly, l0tmp, l0tmp],...
-                                'Curvature',[1 1],'EdgeColor','k','FaceColor',clr);
+                            vpos = [xtmp + xx*Lx, ytmp + yy*Ly];
+                            finfo = [1:nv(ff,nn) 1];
+                            if (colorCellStress)
+                                patch('Faces',finfo,'vertices',vpos,'CDataMapping','direct',...
+                                'FaceVertexCData',clrWeight,'FaceColor','flat',...
+                                'EdgeColor','k','linewidth',2);
+                                cbar = colorbar;
+                                set(cbar, 'Limits', [min(cellU,[],'all') max(cellU,[],'all')]);
+                            else
+                                patch('Faces',finfo,'vertices',vpos,...
+                                'FaceColor',clr,...
+                                'EdgeColor','k','linewidth',2);
+                            end
                         end
                     end
                 end
-            else
-                rx = xtmp - cx;
-                ry = ytmp - cy;
-                rads = sqrt(rx.^2 + ry.^2);
-                xtmp = xtmp + 0.4*l0tmp*(rx./rads);
-                ytmp = ytmp + 0.4*l0tmp*(ry./rads);
-                for xx = itLow:itHigh
-                    for yy = itLow:itHigh
-                        vpos = [xtmp + xx*Lx, ytmp + yy*Ly];
-                        finfo = [1:nv(ff,nn) 1];
-                        if (colorCellStress)
-                            patch('Faces',finfo,'vertices',vpos,'CDataMapping','direct',...
-                            'FaceVertexCData',clrWeight,'FaceColor','flat',...
-                            'EdgeColor','k','linewidth',2);
-                            cbar = colorbar;
-                            set(cbar, 'Limits', [min(cellU,[],'all') max(cellU,[],'all')]);
-                        else
-                            patch('Faces',finfo,'vertices',vpos,...
-                            'FaceColor',clr,...
-                            'EdgeColor','k','linewidth',2);
+
+                if (showPrincipalStressDirections)
+                stressDirs = squeeze(prinDir(ff,nn,:,:));
+                stressVals = squeeze(abs(prinStress(ff,nn,:,:)));
+                    for xx = itLow:itHigh
+                        for yy = itLow:itHigh                      
+                            stressValsTrace = stressVals(1,1) + stressVals(2,2);
+                            if (stressValsTrace < 1e-3)
+                                stressValsTrace = NaN;
+                            end
+                            plot_ellipse(0.4*stressVals(1,1)/stressValsTrace, ...
+                                0.4*stressVals(2,2)/stressValsTrace, cx+xx*Lx, cy+yy*Ly, ...
+                                atan2(stressDirs(2,1),  stressDirs(1,1)), ell_clr);
                         end
-                    end
-                end
-            end
-            
-            if (showPrincipalStressDirections)
-            stressDirs = squeeze(prinDir(ff,nn,:,:));
-            stressVals = squeeze(abs(prinStress(ff,nn,:,:)));
-                for xx = itLow:itHigh
-                    for yy = itLow:itHigh                      
-                        stressValsTrace = stressVals(1,1) + stressVals(2,2);
-                        if (stressValsTrace < 1e-3)
-                            stressValsTrace = NaN;
-                        end
-                        plot_ellipse(0.4*stressVals(1,1)/stressValsTrace, ...
-                            0.4*stressVals(2,2)/stressValsTrace, cx+xx*Lx, cy+yy*Ly, ...
-                            atan2(stressDirs(2,1),  stressDirs(1,1)), ell_clr);
                     end
                 end
             end
         end
-
         % plot box
         plot([0 Lx Lx 0 0], [0 0 Ly Ly 0], 'k-', 'linewidth', 1.5);
         axis equal;
@@ -301,10 +309,17 @@ for seed = startSeed:max_seed
             ax.XLim = [0 1]*Lx;
             ax.YLim = [0 1]*Ly;
         end
-        
+
         annotationStr = "$$\epsilon$$ = "+strain(ff);
         annotation('textbox',[0.5, 0.5, 0, 0],...
             'interpreter', 'latex', 'String', annotationStr, 'Edgecolor','none', 'FitBoxToText','on');
+        
+        
+        %scatter(voidLocations{ff}(:,1), voidLocations{ff}(:,2),'x');
+        plot([voidLocations{ff}(:,1); voidLocations{ff}(1,1)]...
+            , [voidLocations{ff}(:,2); voidLocations{ff}(1,2)]...
+            ,'k-', 'linewidth', 3);
+        voidArea(ff) = polyarea(voidLocations{ff}(:,1), voidLocations{ff}(:,2));
         
         % if making a movie, save frame
         if makeAMovie == 1
@@ -324,8 +339,8 @@ for seed = startSeed:max_seed
             plot([0 Lx Lx 0 0], [0 0 Ly Ly 0], 'k-', 'linewidth', 1.5);
             axis equal;
             ax = gca;
-            ax.XTick = [];
-            ax.YTick = [];
+            %ax.XTick = [];
+            %ax.YTick = [];
             if showPeriodicImages == 1
                 ax.XLim = [boxAxLow boxAxHigh]*Lx;
                 ax.YLim = [boxAxLow boxAxHigh]*Ly;
@@ -340,8 +355,7 @@ for seed = startSeed:max_seed
             end
         end
     end
-
-
+    
     % close video object
     if makeAMovie == 1
         close(vobj);
@@ -349,4 +363,7 @@ for seed = startSeed:max_seed
             close(vor_vobj);
         end
     end
+    
+    figure(14);
+    plot(time - time(1), voidArea./(1 + strain));
 end

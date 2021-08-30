@@ -256,6 +256,12 @@ void epi2D::vertexAttractiveForces2D_2() {
                   if (vnn[gi][i] < 0) {
                     vnn[gi][i] = gj;
                     // do i need to double it up since attraction is 2-sided?
+                    // can try not looping and doing instead vnn[gj][i] = gi
+                    /*for (int j = 0; j < vnn[gj].size(); j++) {
+                      if (vnn[gj][j] < 0)
+                        vnn[gj][j] = gi;
+                    }*/
+                    vnn[gj][i] = gi;
                     break;
                   }
                 }
@@ -357,6 +363,13 @@ void epi2D::vertexAttractiveForces2D_2() {
                   for (int i = 0; i < vnn[gi].size(); i++) {
                     if (vnn[gi][i] < 0) {
                       vnn[gi][i] = gj;
+                      // do i need to double it up since attraction is 2-sided?
+                      // can try not looping and doing instead vnn[gj][i] = gi
+                      /*for (int j = 0; j < vnn[gj].size(); j++) {
+                      if (vnn[gj][j] < 0)
+                        vnn[gj][j] = gi;
+                      }*/
+                      vnn[gj][i] = gi;
                       break;
                     }
                   }
@@ -551,7 +564,7 @@ void epi2D::vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0,
       cout << "	** P 			= " << P << endl;
       cout << "	** Sxy 			= " << Sxy << endl;
       cout << "	** U 			= " << U << endl;
-      printConfiguration2D();
+      //printConfiguration2D();
       cout << endl
            << endl;
     }
@@ -1250,13 +1263,12 @@ void epi2D::laserAblate(int numCellsAblated, double sizeRatio, int nsmall, doubl
 void epi2D::initializevnn() {
   vnn.resize(NVTOT);
   for (int gi = 0; gi < NVTOT; gi++) {
-    vnn[gi].resize(5);
+    vnn[gi].resize(7);
   }
   vnn_label.resize(NVTOT);
 }
 
 void epi2D::boundaries() {
-  //cerr << "inside boundaries\n";
   // construct vertex neighbor list for void detection. This routine only handles vertices in the same cell.
   // Neighbors via adhesion are handled externally, in the force routine
   int gi = 0, gi0 = 0;
@@ -1271,11 +1283,10 @@ void epi2D::boundaries() {
     // loop over vertices in cell vi, put forward and backward neighbors into nn[0], nn[1]
     for (int vi = 0; vi < nv[ci]; vi++) {
       gi = gindex(ci, vi);
-      vnn[gi][0] = gi0 + (vi + 1) % nv[ci];
-      vnn[gi][1] = gi0 + (vi - 1) % nv[ci];
+      vnn[gi][0] = gi0 + (vi + 1 + nv[ci]) % nv[ci];
+      vnn[gi][1] = gi0 + (vi - 1 + nv[ci]) % nv[ci];
     }
   }
-  //cerr << "exiting boundaries\n";
 }
 
 std::vector<int> epi2D::refineBoundaries() {
@@ -1297,22 +1308,22 @@ std::vector<int> epi2D::refineBoundaries() {
       vnn_label[gi] = 0;
     }
   }
+
   // second refinement: a vertex gets a 1 label if it is unlabeled and is next to a void-adjacent vertex
-  // idea - loop through all the 0 labels (i) of vnn_label, and loop through j in vnn[i][j] to get indices k. if (vnn_label[k] != 0) then vnn_label[k] = 1
   for (int gi = 0; gi < NVTOT; gi++) {
     // check if gi is a non-adhering vertex
     if (vnn_label[gi] == 0) {
       for (int j = 0; j < vnn[gi].size(); j++) {
         k = vnn[gi][j];
-        // check if k-th vertex isn't non-adhering.
+        // give 1 labels to all non-zero labeled valid neighbors
         if (k >= 0 && vnn_label[k] != 0)
           vnn_label[k] = 1;
       }
     }
   }
+
   // third refinement: set all 1s to 0s. Now I've labeled all void-adjacent vertices as 0, and all bulk cells as -1.
   for (int gi = 0; gi < NVTOT; gi++) {
-    // set 1s to 0
     if (vnn_label[gi] == 1)
       vnn_label[gi] = 0;
     // get an occupation order for void-facing indices
@@ -1326,13 +1337,13 @@ void epi2D::printBoundaries() {
   int empty = -NVTOT - 1;
   std::vector<int> order = refineBoundaries();
   std::vector<int> ptr(NVTOT, empty);
-  int i, j, s1, s2, r1, r2;
+  int i, j, s1, s2, r1, r2, gj;
   int big = 0;
   for (i = 0; i < order.size(); i++) {
     r1 = s1 = order[i];
     ptr[s1] = -1;
     for (j = 0; j < vnn[s1].size(); j++) {
-      // skip if neighbor list has -1 label (means no neighbor is there)
+      // key adjustment from Newman-Ziff: skip if neighbor list has -1 label (means no neighbor is there)
       if (vnn[s1][j] == -1)
         continue;
       s2 = vnn[s1][j];
@@ -1347,14 +1358,92 @@ void epi2D::printBoundaries() {
             ptr[r1] += ptr[r2];
             ptr[r2] = r1;
           }
-          if (-ptr[r1] > big)
+          if (-ptr[r1] > big) {
             big = -ptr[r1];
+          }
         }
       }
     }
     if (i + 1 == order.size())
       cout << "order[i] = " << order[i] << ",\t occupation # = " << i + 1 << ",\t cluster size = " << big << '\n';
   }
+
+  // identify the mode (positive) value of ptr
+  int mode = 0;
+  std::vector<int> histogram(2 * NVTOT, 0);
+  for (int i = 0; i < ptr.size(); i++) {
+    //if (ptr[i] >= 0)
+    ++histogram[ptr[i]];
+  }
+  mode = std::max_element(histogram.begin(), histogram.end()) - histogram.begin();
+  cout << "mode = " << mode << '\n';
+
+  /*  // in no particular order, print out the wrapped locations of all main cluster vertices
+  for (int gi = 0; gi < NVTOT; gi++) {
+    if (findRoot(gi, ptr) == mode) {
+      bout << x[gi * NDIM] << '\t' << x[gi * NDIM + 1] << '\n';
+    }
+  }*/
+
+  // in order, print out the unwrapped locations of all main cluster vertices
+
+  // find a vertex in the largest cluster
+  int current_vertex = -2;
+  double currentx, currenty, nextx, nexty;
+  std::vector<int> previous_vertex;
+  for (int gi = 0; gi < NVTOT; gi++) {
+    if (findRoot(gi, ptr) == mode) {
+      currentx = x[gi * NDIM];
+      currenty = x[gi * NDIM + 1];
+      bout << currentx << '\t' << currenty << '\n';
+      current_vertex = gi;
+      break;
+    }
+  }
+  while (previous_vertex.size() != big) {
+    // move current vertex to list of old vertices
+    previous_vertex.push_back(current_vertex);
+    for (auto i : vnn[current_vertex]) {
+      if (i >= 0 && findRoot(i, ptr) == mode && std::find(previous_vertex.begin(), previous_vertex.end(), i) == previous_vertex.end()) {
+        // switch focus to new vertex
+        current_vertex = i;
+        // (nextx, nexty) is the nearest image location of the next vertex
+        nextx = x[current_vertex * NDIM] - currentx;
+        nexty = x[current_vertex * NDIM + 1] - currenty;
+
+        nextx -= L[0] * round(nextx / L[0]);
+        nexty -= L[1] * round(nexty / L[1]);
+
+        nextx += currentx;
+        nexty += currenty;
+
+        bout << nextx << '\t' << nexty << '\n';
+
+        currentx = nextx;
+        currenty = nexty;
+
+        cout << "reached break point! vertex " << i << "with pointer to "
+             << ptr[i] << "prev vertex list size = " << previous_vertex.size()
+             << "cluster size = " << big << '\n';
+        break;
+      }
+    }
+    if (previous_vertex.size() > 2 && previous_vertex.end()[-1] == current_vertex)
+      break;
+  }
+
+  /*// for debugging
+  for (auto i : vnn[current_vertex]) {
+    cout << "current vertex's neighbor: vertex " << i << " with pointer to " << ptr[i] << '\n';
+  }
+  cout << "current vertex location: " << currentx << '\t' << currenty << '\n';
+
+  for (auto i : previous_vertex)
+    cout << "vertex " << i << '\n';
+  */
+
+  // indicate end of block, i.e. end of boundary matrix for this frame
+  bout << "*EOB\n";
 }
 
 int epi2D::findRoot(int i, std::vector<int>& ptr) {
@@ -1517,6 +1606,11 @@ void epi2D::printConfiguration2D() {
   posout << setw(wnum) << setprecision(pnum) << left << -stress[1];
   posout << setw(wnum) << setprecision(pnum) << left << -stress[2];
   posout << setw(wnum) << setprecision(pnum) << left << L[0] / initialLx - 1;
+  posout << endl;
+
+  // print simulation time
+  posout << setw(w) << left << "TIME";
+  posout << setw(wnum) << setprecision(pnum) << left << simclock;
   posout << endl;
 
   // print coordinate for rest of the cells

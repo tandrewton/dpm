@@ -10,12 +10,12 @@
 //
 // Compilation command:
 // g++ -O3 --std=c++11 -I src main/epi2D/laserAblation.cpp src/dpm.cpp src/epi2D.cpp -o main/epi2D/laserAblation.o
-// ./main/epi2D/laserAblation.o 48 20 10 1.08 0.2 0.85 1.0 0.3 0.5 1.0 0.5 1 1 1000 pos.test energy.test stress.test
-// ./main/epi2D/laserAblation.o 24 20 5 1.08 0.2 0.85 1.0 0.1 0 1.0 0.5 1 1 1000 pos.test energy.test stress.test
-// ./main/epi2D/laserAblation.o 24 20 5 1.08 0.2 0.85 1.0 0 0 1.0 0.1 0 1 100 pos.test energy.test stress.test
-// ./main/epi2D/laserAblation.o 24 20 5 1.08 0.2 0.85 1.0 0.3 0 1.0 0.1 0 1 100 pos.test energy.test stress.test
-// ./main/epi2D/laserAblation.o 24 20 4 1.08 0.85 0.855 1.0 0.3 0.5 1.0 0.5 0 1 1000 pos.test energy.test stress.test
-// ./main/epi2D/laserAblation.o 48 20 10 1.08 0.85 0.855 1.0 0.3 0.5 1.0 0.5 0 1 1000 pos.test energy.test stress.test
+// ./main/epi2D/laserAblation.o 48 20 10 1.08 0.2 0.85 1.0 0.3 0.5 1.0 0.5 1 1 1000 pos.test energy.test stress.test void.test
+// ./main/epi2D/laserAblation.o 24 20 5 1.08 0.2 0.85 1.0 0.1 0 1.0 0.5 1 1 1000 pos.test energy.test stress.test void.test
+// ./main/epi2D/laserAblation.o 24 20 5 1.08 0.2 0.85 1.0 0 0 1.0 0.1 0 1 100 pos.test energy.test stress.test void.test
+// ./main/epi2D/laserAblation.o 24 20 5 1.08 0.2 0.85 1.0 0.3 0 1.0 0.1 0 1 100 pos.test energy.test stress.test void.test
+// ./main/epi2D/laserAblation.o 24 20 4 1.08 0.85 0.855 1.0 0.3 0.5 1.0 0.5 0 1 1000 pos.test energy.test stress.test void.test
+// ./main/epi2D/laserAblation.o 48 20 10 1.08 0.85 0.855 1.0 0.3 0.5 1.0 0.5 0 1 1000 pos.test energy.test stress.test void.test
 //
 // Parameter input list
 // 1. NCELLS: 			number of particles
@@ -36,6 +36,7 @@
 // 15. positionFile: 	string of path to output file with position/configuration data
 // 16. energyFile:  string of path to output file with energy data
 // 17. stressFile:  string of path to output file with stress data
+// 18. voidFile:    string of path to output file with void location data
 
 // header files
 #include <sstream>
@@ -86,6 +87,7 @@ int main(int argc, char const* argv[]) {
   string positionFile = argv[15];
   string energyFile = argv[16];
   string stressFile = argv[17];
+  string voidFile = argv[18];
 
   // using sstreams to get parameters
   stringstream NCELLSss(NCELLS_str);
@@ -130,6 +132,7 @@ int main(int argc, char const* argv[]) {
   epithelial.openPosObject(positionFile);
   epithelial.openEnergyObject(energyFile);
   epithelial.openStressObject(stressFile);
+  epithelial.openBoundaryObject(voidFile);
 
   // set spring constants
   epithelial.setka(ka);
@@ -156,7 +159,6 @@ int main(int argc, char const* argv[]) {
   epithelial.initializevnn();
 
   epithelial.initializePositions2D(phi0, Ftol, false);
-  epithelial.printConfiguration2D();
 
   epithelial.initializeNeighborLinkedList2D(boxLengthScale);
 

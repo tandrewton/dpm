@@ -2149,7 +2149,7 @@ void dpm::vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, d
     cout << "	** P 			= " << P << endl;
     cout << "	** Sxy 			= " << Sxy << endl;
     cout << "	** U 			= " << U << endl;
-    printConfiguration2D();
+    //printConfiguration2D();
     cout << endl
          << endl;
 

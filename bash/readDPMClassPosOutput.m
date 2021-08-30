@@ -18,6 +18,8 @@ Ltmp        = textscan(fid,'BOXSZ %f %f',1);
 fline       = fgetl(fid);
 stresstmp   = textscan(fid,'STRSS %f %f %f %f',1);
 fline       = fgetl(fid);
+timetmp        = textscan(fid,'TIME %f',1); 
+fline       = fgetl(fid);
 S = fileread(fstr);
 t = regexp(S, 'NUMCL(\s+)(\d+)', 'tokens');
 %cell_count(i) counts the number of cells in frame i
@@ -41,6 +43,7 @@ psi     = zeros(NFRAMES,NCELLS);
 flag     = zeros(NFRAMES,NCELLS);
 flagPosX     = zeros(NFRAMES,NCELLS);
 flagPosY     = zeros(NFRAMES,NCELLS);
+time    = zeros(NFRAMES,1);
 phi     = zeros(NFRAMES, 1);
 cellStressXX = zeros(NFRAMES, 1);
 cellStressYY = zeros(NFRAMES, 1);
@@ -156,6 +159,11 @@ while ~feof(fid)
         stress(nf,3)         = stresstmp{3};
         strain(nf)           = stresstmp{4};
         fline = fgetl(fid);
+        
+        % update time
+        timetmp         = textscan(fid,'TIME %f',1);
+        time(nf,1)      = timetmp{1};
+        fline = fgetl(fid);
     end
 end
 
@@ -172,8 +180,10 @@ if (nf < NFRAMES)
     calA0(nf:end,:) = [];
     L(nf:end,:) = [];
     psi(nf:end,:) = [];
+    time(nf:end,:)   = [];
     %phi(nf:end) = [];
     stress(nf:end,:) = [];
+    strain(nf:end,:) = [];
     cellStressXX(nf:end,:)    = [];
     cellStressYY(nf:end,:)    = [];
     cellStressXY(nf:end,:)    = [];
@@ -208,6 +218,7 @@ cellTrajectoryData.strain       = strain;
 cellTrajectoryData.area         = area;
 cellTrajectoryData.perimeter    = perimeter;
 cellTrajectoryData.psi          = psi;
+cellTrajectoryData.time         = time;
 cellTrajectoryData.cellStressXX    = cellStressXX;
 cellTrajectoryData.cellStressYY    = cellStressYY;
 cellTrajectoryData.cellStressXY    = cellStressXY;

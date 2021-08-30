@@ -9,11 +9,12 @@
 //
 // Compilation command:
 // g++ -O3 --std=c++11 -I src main/epi2D/notchTest.cpp src/dpm.cpp src/epi2D.cpp -o main/epi2D/notchTest.o
-// ./main/epi2D/notchTest.o 12 20 1.08 0.8 0.9 1.0 0.3 1.0 0 0.5 0.001 1 100 pos.test energy.test stress.test uniaxial
-// ./main/epi2D/notchTest.o 24 20 1.08 0.8 0.82 1.0 0.3 1.0 0 0.2 0.01 1 100 pos.test energy.test stress.test uniaxial
-// ./main/epi2D/notchTest.o 96 20 1.08 0.8 0.9 1.0 0.3 1.0 0 0.5 0.001 1 100 pos.test energy.test stress.test uniaxial
-// ./main/epi2D/notchTest.o 192 20 1.08 0.8 0.9 1.0 0.3 1.0 0 0.5 0.001 1 100 pos.test energy.test stress.test uniaxial
-// ./main/epi2D/notchTest.o 960 20 1.08 0.8 0.94 1.0 0.3 1.0 0 0.5 0.001 1 100 pos.test energy.test stress.test uniaxial
+// ./main/epi2D/notchTest.o 12 24 1.08 0.8 0.805 1.0 0.3 1.0 0 0.5 0.001 1 100 pos.test energy.test stress.test void.test uniaxial
+// ./main/epi2D/notchTest.o 24 24 1.08 0.8 0.805 1.0 0.3 1.0 0 0.5 0.01 1 100 pos.test energy.test stress.test void.test uniaxial
+// ./main/epi2D/notchTest.o 48 24 1.08 0.8 0.805 1.0 0.3 1.0 0 0.5 0.001 1 100 pos.test energy.test stress.test void.test uniaxial
+// ./main/epi2D/notchTest.o 96 24 1.08 0.8 0.805 1.0 0.3 1.0 0 0.5 0.001 1 100 pos.test energy.test stress.test void.test uniaxial
+// ./main/epi2D/notchTest.o 192 24 1.08 0.8 0.805 1.0 0.3 1.0 0 0.5 0.001 1 100 pos.test energy.test stress.test void.test uniaxial
+// ./main/epi2D/notchTest.o 960 24 1.08 0.8 0.805 1.0 0.3 1.0 0 0.5 0.001 1 100 pos.test energy.test stress.test void.test uniaxial
 //
 //
 // Parameter input list
@@ -34,7 +35,8 @@
 // 14. positionFile:string of path to output file with position/configuration data'
 // 15. energyFile:  string of path to output file with energy data
 // 16. stressFile:  string of path to output file with stress data
-// 17. loadingType: string representing whether to conduct a uniaxial loading or isotropic loading experiment
+// 17. voidFile:    string of path to output file with void location data
+// 18. loadingType: string representing whether to conduct a uniaxial loading or isotropic loading experiment
 
 // header files
 #include <sstream>
@@ -82,7 +84,8 @@ int main(int argc, char const* argv[]) {
   string positionFile = argv[14];
   string energyFile = argv[15];
   string stressFile = argv[16];
-  string loadingType_str = argv[17];
+  string voidFile = argv[17];
+  string loadingType_str = argv[18];
 
   // using sstreams to get parameters
   stringstream NCELLSss(NCELLS_str);
@@ -140,8 +143,7 @@ int main(int argc, char const* argv[]) {
   epithelial.openPosObject(positionFile);
   epithelial.openEnergyObject(energyFile);
   epithelial.openStressObject(stressFile);
-  string boundaryFile = "boundaryIndices.txt";
-  epithelial.openBoundaryObject(boundaryFile);
+  epithelial.openBoundaryObject(voidFile);
 
   // set spring constants
   epithelial.setka(ka);
