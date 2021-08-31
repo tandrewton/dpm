@@ -1334,8 +1334,13 @@ std::vector<int> epi2D::refineBoundaries() {
 }
 
 void epi2D::printBoundaries() {
+  // empty is the maximum negative cluster size
   int empty = -NVTOT - 1;
+  // mode is the statistical mode of the cluster labels
+  int mode;
+  // order is the occupation/population order for our neighbor topology
   std::vector<int> order = refineBoundaries();
+  // ptr of a root node gives the negative cluster size, of a non-root gives the next level in the tree, of an empty gives empty
   std::vector<int> ptr(NVTOT, empty);
   int i, j, s1, s2, r1, r2, gj;
   int big = 0;
@@ -1360,6 +1365,7 @@ void epi2D::printBoundaries() {
           }
           if (-ptr[r1] > big) {
             big = -ptr[r1];
+            mode = r1;
           }
         }
       }
@@ -1368,26 +1374,20 @@ void epi2D::printBoundaries() {
       cout << "order[i] = " << order[i] << ",\t occupation # = " << i + 1 << ",\t cluster size = " << big << '\n';
   }
 
-  // identify the mode (positive) value of ptr
-  int mode = 0;
-  std::vector<int> histogram(2 * NVTOT, 0);
-  for (int i = 0; i < ptr.size(); i++) {
-    //if (ptr[i] >= 0)
-    ++histogram[ptr[i]];
-  }
-  mode = std::max_element(histogram.begin(), histogram.end()) - histogram.begin();
   cout << "mode = " << mode << '\n';
 
-  /*  // in no particular order, print out the wrapped locations of all main cluster vertices
+  /*// in no particular order, print out the wrapped locations of all main cluster vertices
   for (int gi = 0; gi < NVTOT; gi++) {
     if (findRoot(gi, ptr) == mode) {
       bout << x[gi * NDIM] << '\t' << x[gi * NDIM + 1] << '\n';
     }
+    cout << "gi = " << gi << ", mode = " << mode << ", ptr[gi] = " << ptr[gi] << ", findRoot = " << findRoot(gi, ptr) << '\n';
   }*/
 
   // in order, print out the unwrapped locations of all main cluster vertices
 
   // find a vertex in the largest cluster
+  int it = 0, maxit = 10;
   int current_vertex = -2;
   double currentx, currenty, nextx, nexty;
   std::vector<int> previous_vertex;
@@ -1402,7 +1402,10 @@ void epi2D::printBoundaries() {
   }
   while (previous_vertex.size() != big) {
     // move current vertex to list of old vertices
-    previous_vertex.push_back(current_vertex);
+    if (previous_vertex.size() < 2 || previous_vertex.end()[-1] != current_vertex) {
+      it = 0;
+      previous_vertex.push_back(current_vertex);
+    }
     for (auto i : vnn[current_vertex]) {
       if (i >= 0 && findRoot(i, ptr) == mode && std::find(previous_vertex.begin(), previous_vertex.end(), i) == previous_vertex.end()) {
         // switch focus to new vertex
@@ -1426,13 +1429,44 @@ void epi2D::printBoundaries() {
              << ptr[i] << "prev vertex list size = " << previous_vertex.size()
              << "cluster size = " << big << '\n';
         break;
+      } else if (it > 0) {
+        // we have formed a closed loop, but have not traversed the entire cluster. Seek an alternate route.
+        for (auto j : previous_vertex) {
+          // go through already printed vertices, look for their neighbors that are not already printed
+          for (auto k : vnn[j]) {
+            if (k >= 0 && findRoot(k, ptr) == mode && std::find(previous_vertex.begin(), previous_vertex.end(), k) == previous_vertex.end()) {
+              it = 0;
+              current_vertex = k;
+              nextx = x[current_vertex * NDIM] - currentx;
+              nexty = x[current_vertex * NDIM + 1] - currenty;
+
+              nextx -= L[0] * round(nextx / L[0]);
+              nexty -= L[1] * round(nexty / L[1]);
+
+              nextx += currentx;
+              nexty += currenty;
+
+              bout << nextx << '\t' << nexty << '\n';
+
+              currentx = nextx;
+              currenty = nexty;
+            }
+          }
+        }
       }
     }
-    if (previous_vertex.size() > 2 && previous_vertex.end()[-1] == current_vertex)
+    it++;
+    if (it >= maxit) {
+      for (auto i : vnn[current_vertex])
+        cout << "neighbors of broken vertex are: " << i << ", with root "
+             << findRoot(i, ptr) << ", and bool for whether it's in current list: "
+             << (std::find(previous_vertex.begin(), previous_vertex.end(), i) == previous_vertex.end())
+             << '\n';
       break;
+    }
   }
-
-  /*// for debugging
+  /*
+  // for debugging
   for (auto i : vnn[current_vertex]) {
     cout << "current vertex's neighbor: vertex " << i << " with pointer to " << ptr[i] << '\n';
   }
@@ -1441,7 +1475,6 @@ void epi2D::printBoundaries() {
   for (auto i : previous_vertex)
     cout << "vertex " << i << '\n';
   */
-
   // indicate end of block, i.e. end of boundary matrix for this frame
   bout << "*EOB\n";
 }
@@ -1456,7 +1489,7 @@ void epi2D::notchTest(int numCellsToDelete, double strain, double strainRate, do
   // select xloc, yloc. delete the nearest cell. scale particle sizes, loop.
   // our proxy for isotropic stretching is to scale the particle sizes down. Inter-vertex distances change,
   double xLoc, yLoc;
-  double tauRelax = 10.0;
+  double tauRelax = 1.0;
   std::cout << "inside notch test!\n";
 
   for (int i = 0; i < 1; i++) {
