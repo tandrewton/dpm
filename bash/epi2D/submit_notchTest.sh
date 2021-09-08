@@ -115,9 +115,10 @@ for seed in `seq $startSeed $numSeedsPerRun $endSeed`; do
         posf=$simdatadir/$filestr.pos
         energyf=$simdatadir/$filestr.energy
         stressf=$simdatadir/$filestr.stress
+        voidf=$simdatadir/$filestr.void
 
         # append to runString
-        runString="$runString ; ./$binf $NCELLS $NV $calA0 $phiMin $phiMax $kl $att $B $Dr0 $strain $strainRate $runseed $duration $posf $energyf $stressf $loadingType"
+        runString="$runString ; ./$binf $NCELLS $NV $calA0 $phiMin $phiMax $kl $att $B $Dr0 $strain $strainRate $runseed $duration $posf $energyf $stressf $voidf $loadingType"
     done
 
     # finish off run string
