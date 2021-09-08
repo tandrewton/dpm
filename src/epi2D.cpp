@@ -251,25 +251,17 @@ void epi2D::vertexAttractiveForces2D_2() {
               fieldStress[gi][2] += 0.5 * (dx * fy + dy * fx);
 
               // add to contacts
-              if (ci != cj) {
-                for (int i = 0; i < vnn[gi].size(); i++) {
-                  if (vnn[gi][i] < 0) {
-                    vnn[gi][i] = gj;
-                    // do i need to double it up since attraction is 2-sided?
-                    // can try not looping and doing instead vnn[gj][i] = gi
-                    /*for (int j = 0; j < vnn[gj].size(); j++) {
-                      if (vnn[gj][j] < 0)
-                        vnn[gj][j] = gi;
-                    }*/
-                    vnn[gj][i] = gi;
-                    break;
-                  }
+              for (int i = 0; i < vnn[gi].size(); i++) {
+                if (vnn[gi][i] < 0) {
+                  vnn[gi][i] = gj;
+                  vnn[gj][i] = gi;
+                  break;
                 }
-                if (ci > cj)
-                  cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2]++;
-                else if (ci < cj)
-                  cij[NCELLS * ci + cj - (ci + 1) * (ci + 2) / 2]++;
               }
+              if (ci > cj)
+                cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2]++;
+              else if (ci < cj)
+                cij[NCELLS * ci + cj - (ci + 1) * (ci + 2) / 2]++;
             }
           }
         }
@@ -1309,7 +1301,7 @@ std::vector<int> epi2D::refineBoundaries() {
     }
   }
 
-  // second refinement: a vertex gets a 1 label if it is unlabeled and is next to a void-adjacent vertex
+  // second refinement: a vertex gets a 1 label if it is unlabeled and is next to a void-adjacent vertex. It is an edge.
   for (int gi = 0; gi < NVTOT; gi++) {
     // check if gi is a non-adhering vertex
     if (vnn_label[gi] == 0) {
@@ -1322,14 +1314,25 @@ std::vector<int> epi2D::refineBoundaries() {
     }
   }
 
-  // third refinement: set all 1s to 0s. Now I've labeled all void-adjacent vertices as 0, and all bulk cells as -1.
+  // NEW: third refinement: a vertex gets a 2 label if it is 1-labeled and next to a 1 or a 2. It is a corner (2 or more edges).
   for (int gi = 0; gi < NVTOT; gi++) {
-    if (vnn_label[gi] == 1)
-      vnn_label[gi] = 0;
+    if (vnn_label[gi] == 1) {
+      for (auto i : vnn[gi]) {
+        if (vnn_label[i] == 1 || vnn_label[i] == 2) {
+          vnn_label[gi] = 2;
+          vnn_label[i] = 2;
+        }
+      }
+    }
+  }
+
+  // store void adjacent vertices and corner vertices.
+  for (int gi = 0; gi < NVTOT; gi++) {
     // get an occupation order for void-facing indices
-    if (vnn_label[gi] == 0)
+    if (vnn_label[gi] == 0 || vnn_label[gi] == 2)
       voidFacingVertexIndices.push_back(gi);
   }
+
   return voidFacingVertexIndices;
 }
 
@@ -1344,6 +1347,7 @@ void epi2D::printBoundaries() {
   std::vector<int> ptr(NVTOT, empty);
   int i, j, s1, s2, r1, r2, gj;
   int big = 0;
+  bool choseCorner;
   for (i = 0; i < order.size(); i++) {
     r1 = s1 = order[i];
     ptr[s1] = -1;
@@ -1376,38 +1380,51 @@ void epi2D::printBoundaries() {
 
   cout << "mode = " << mode << '\n';
 
-  /*// in no particular order, print out the wrapped locations of all main cluster vertices
+  /*
+  // in no particular order, print out the wrapped locations of all main cluster vertices
   for (int gi = 0; gi < NVTOT; gi++) {
     if (findRoot(gi, ptr) == mode) {
+      //if (vnn_label[gi] == 2) {
       bout << x[gi * NDIM] << '\t' << x[gi * NDIM + 1] << '\n';
     }
     cout << "gi = " << gi << ", mode = " << mode << ", ptr[gi] = " << ptr[gi] << ", findRoot = " << findRoot(gi, ptr) << '\n';
-  }*/
+  }
+  */
 
-  // in order, print out the unwrapped locations of all main cluster vertices
-
-  // find a vertex in the largest cluster
+  // in order, print out the unwrapped locations of all main cluster vertices, starting with a vertex in the big cluster
   int it = 0, maxit = 10;
   int current_vertex = -2;
+  bool stopSignal = false;
   double currentx, currenty, nextx, nexty;
   std::vector<int> previous_vertex;
+  std::vector<double> unwrapped_x;
   for (int gi = 0; gi < NVTOT; gi++) {
     if (findRoot(gi, ptr) == mode) {
       currentx = x[gi * NDIM];
       currenty = x[gi * NDIM + 1];
-      bout << currentx << '\t' << currenty << '\n';
+      //bout << currentx << '\t' << currenty << '\n';
+      unwrapped_x.push_back(currentx);
+      unwrapped_x.push_back(currenty);
       current_vertex = gi;
       break;
     }
   }
-  while (previous_vertex.size() != big) {
+  while (previous_vertex.size() != big && stopSignal == false) {
     // move current vertex to list of old vertices
     if (previous_vertex.size() < 2 || previous_vertex.end()[-1] != current_vertex) {
       it = 0;
       previous_vertex.push_back(current_vertex);
     }
-    for (auto i : vnn[current_vertex]) {
-      if (i >= 0 && findRoot(i, ptr) == mode && std::find(previous_vertex.begin(), previous_vertex.end(), i) == previous_vertex.end()) {
+
+    // decide the next vertex
+
+    //if current_vertex is a corner, preferentially choose corners as the next neighbor
+    /*for (auto i : vnn[current_vertex]) {
+      cout << i << '\t' << current_vertex << '\n';
+      if (i >= 0 && vnn_label[current_vertex] == 2 && vnn_label[i] == 2 &&
+          findRoot(i, ptr) == mode &&
+          std::find(previous_vertex.begin(), previous_vertex.end(), i) == previous_vertex.end()) {
+        choseCorner = true;
         // switch focus to new vertex
         current_vertex = i;
         // (nextx, nexty) is the nearest image location of the next vertex
@@ -1421,18 +1438,52 @@ void epi2D::printBoundaries() {
         nexty += currenty;
 
         bout << nextx << '\t' << nexty << '\n';
+        //cout << "chose a corner!\n";
+        //cout << i << '\t' << current_vertex << '\t' << previous_vertex.end()[-1] << '\n';
+        break;
+      }
+    }*/
+    for (auto i : vnn[current_vertex]) {
+      // skip selection process if corner was already chosen
+      /*if (choseCorner == true) {
+        choseCorner = false;
+        break;
+      }
+      cout << "did not choose a corner!\n";*/
+      // check i nonnegative, points to the biggest cluster, and is not already in the previous vertex list
+      if (i >= 0 && findRoot(i, ptr) == mode &&
+          std::find(previous_vertex.begin(), previous_vertex.end(), i) == previous_vertex.end()) {
+        // switch focus to new vertex
+        current_vertex = i;
+        // (nextx, nexty) is the nearest image location of the next vertex
+        nextx = x[current_vertex * NDIM] - currentx;
+        nexty = x[current_vertex * NDIM + 1] - currenty;
+
+        nextx -= L[0] * round(nextx / L[0]);
+        nexty -= L[1] * round(nexty / L[1]);
+
+        nextx += currentx;
+        nexty += currenty;
+
+        //bout << nextx << '\t' << nexty << '\n';
+        unwrapped_x.push_back(nextx);
+        unwrapped_x.push_back(nexty);
 
         currentx = nextx;
         currenty = nexty;
-
-        cout << "reached break point! vertex " << i << "with pointer to "
-             << ptr[i] << "prev vertex list size = " << previous_vertex.size()
-             << "cluster size = " << big << '\n';
         break;
+
       } else if (it > 0) {
-        // we have formed a closed loop, but have not traversed the entire cluster. Seek an alternate route.
+        // we have formed a closed loop, but have not traversed the entire cluster.
+        // if the closed loop is large enough, we'll accept it as the main closed loop and stop adding vertices
+        if (previous_vertex.size() >= big / 2) {
+          stopSignal = true;
+          cout << "truncating; found a closed loop that's large enough!\n";
+          break;
+        }
+        // If cluster is too small to be the main loop, seek an alternate route.
         for (auto j : previous_vertex) {
-          // go through already printed vertices, look for their neighbors that are not already printed
+          // go through previously added vertices, look for their neighbors that are not already added.
           for (auto k : vnn[j]) {
             if (k >= 0 && findRoot(k, ptr) == mode && std::find(previous_vertex.begin(), previous_vertex.end(), k) == previous_vertex.end()) {
               it = 0;
@@ -1446,10 +1497,16 @@ void epi2D::printBoundaries() {
               nextx += currentx;
               nexty += currenty;
 
-              bout << nextx << '\t' << nexty << '\n';
+              //bout << nextx << '\t' << nexty << '\n';
+
+              // forget the closed subloop, move onto a new one. Keep previous_vertex, which forbids subloop from joining new loop
+              unwrapped_x.clear();
+              unwrapped_x.push_back(nextx);
+              unwrapped_x.push_back(nexty);
 
               currentx = nextx;
               currenty = nexty;
+              break;
             }
           }
         }
@@ -1465,16 +1522,9 @@ void epi2D::printBoundaries() {
       break;
     }
   }
-  /*
-  // for debugging
-  for (auto i : vnn[current_vertex]) {
-    cout << "current vertex's neighbor: vertex " << i << " with pointer to " << ptr[i] << '\n';
+  for (int i = 0; i < unwrapped_x.size(); i += 2) {
+    bout << unwrapped_x[i] << '\t' << unwrapped_x[i + 1] << '\n';
   }
-  cout << "current vertex location: " << currentx << '\t' << currenty << '\n';
-
-  for (auto i : previous_vertex)
-    cout << "vertex " << i << '\n';
-  */
   // indicate end of block, i.e. end of boundary matrix for this frame
   bout << "*EOB\n";
 }

@@ -24,10 +24,11 @@ FSKIP = 1; %# frames skipped to lower sampling freq
 
 startSeed = 1;
 max_seed = 1;
-makeAMovie = 0;
-showPeriodicImages = 1;
-plotVoronoi = 0;
+makeAMovie = 1;
+showPeriodicImages = 0;
 showverts = 0;
+showBoundaries = 1;
+plotVoronoi = 0;
 colorCellStress = 0;
 showPrincipalStressDirections = 1;
 colormap hot;
@@ -173,7 +174,7 @@ for seed = startSeed:max_seed
     absStress = abs(cellStress);
     m_max = max(absStress,[], 'all');
     voidLocations = readDataBlocks(boundaryStr, 2);
-    voidArea = zeros(ff,1);
+    voidArea = zeros(NFRAMES,1);
     for ff = FSTART:FSTEP:FEND
         vor_cx = [];
         vor_cy = [];
@@ -300,8 +301,8 @@ for seed = startSeed:max_seed
         plot([0 Lx Lx 0 0], [0 0 Ly Ly 0], 'k-', 'linewidth', 1.5);
         axis equal;
         ax = gca;
-        ax.XTick = [];
-        ax.YTick = [];
+        %ax.XTick = [];
+        %ax.YTick = [];
         if showPeriodicImages == 1
             ax.XLim = [boxAxLow boxAxHigh]*Lx;
             ax.YLim = [boxAxLow boxAxHigh]*Ly;
@@ -314,12 +315,13 @@ for seed = startSeed:max_seed
         annotation('textbox',[0.5, 0.5, 0, 0],...
             'interpreter', 'latex', 'String', annotationStr, 'Edgecolor','none', 'FitBoxToText','on');
         
-        
-        %scatter(voidLocations{ff}(:,1), voidLocations{ff}(:,2),'x');
-        plot([voidLocations{ff}(:,1); voidLocations{ff}(1,1)]...
-            , [voidLocations{ff}(:,2); voidLocations{ff}(1,2)]...
-            ,'k-', 'linewidth', 3);
-        voidArea(ff) = polyarea(voidLocations{ff}(:,1), voidLocations{ff}(:,2));
+        if showBoundaries
+            %scatter(voidLocations{ff}(:,1), voidLocations{ff}(:,2),'x');
+            plot([voidLocations{ff}(:,1)]...
+                , [voidLocations{ff}(:,2)]...
+                ,'k-', 'linewidth', 3);
+            voidArea(ff) = polyarea(voidLocations{ff}(:,1), voidLocations{ff}(:,2));
+        end
         
         % if making a movie, save frame
         if makeAMovie == 1
@@ -364,6 +366,14 @@ for seed = startSeed:max_seed
         end
     end
     
-    figure(14);
-    plot(time - time(1), voidArea./(1 + strain));
+    if showBoundaries
+        figure(14); clf, hold on, box on
+        time= time - time(1);
+        voidArea = voidArea./(1+strain);
+        plot(time,voidArea, 'DisplayName', 'A', 'linewidth', 3);
+        plot(time, gradient(voidArea(:))./gradient(time(:)), 'DisplayName', 'dA/dt','linewidth', 3);
+        xlabel('$\tau$','Interpreter','latex');
+        ylabel('A, dA/dt');
+        legend
+    end
 end
