@@ -14,8 +14,8 @@
 // ./main/epi2D/laserAblation.o 24 20 5 1.08 0.2 0.85 1.0 0.1 0 1.0 0.5 1 1 1000 pos.test energy.test stress.test void.test
 // ./main/epi2D/laserAblation.o 24 20 5 1.08 0.2 0.85 1.0 0 0 1.0 0.1 0 1 100 pos.test energy.test stress.test void.test
 // ./main/epi2D/laserAblation.o 24 20 5 1.08 0.2 0.85 1.0 0.3 0 1.0 0.1 0 1 100 pos.test energy.test stress.test void.test
-// ./main/epi2D/laserAblation.o 24 20 4 1.08 0.85 0.855 1.0 0.3 0.5 1.0 0.5 0 1 1000 pos.test energy.test stress.test void.test
-// ./main/epi2D/laserAblation.o 48 20 10 1.08 0.85 0.855 1.0 0.3 0.5 1.0 0.5 0 1 1000 pos.test energy.test stress.test void.test
+// ./main/epi2D/laserAblation.o 24 20 4 1.08 0.9 0.9 1.0 0.3 0.5 1.0 0.5 0 1 200 pos.test energy.test stress.test void.test
+// ./main/epi2D/laserAblation.o 48 20 10 1.08 0.85 0.85 1.0 0.3 0.5 1.0 0.5 0 1 1000 pos.test energy.test stress.test void.test
 //
 // Parameter input list
 // 1. NCELLS: 			number of particles
@@ -170,7 +170,7 @@ int main(int argc, char const* argv[]) {
   dpmMemFn substrateAdhesionForceUpdate = static_cast<void (dpm::*)()>(&epi2D::substrateadhesionAttractiveForceUpdate);
 
   epithelial.vertexCompress2Target2D(repulsiveForceUpdateWithWalls, Ftol, dt0, phiMax, dphi0);
-  epithelial.printConfiguration2D();
+  //epithelial.printConfiguration2D();
 
   //after compress, turn on damped NVE
   double T = 1e-4;
@@ -186,7 +186,7 @@ int main(int argc, char const* argv[]) {
   epithelial.laserAblate(numCellsToAblate, sizeratio, nsmall, xLoc, yLoc);
   epithelial.zeroMomentum();
 
-  epithelial.dampedNVE2D(attractiveForceUpdate, B, dt0, relaxTime, relaxTime / 5.0);
+  epithelial.dampedNVE2D(attractiveForceUpdate, B, dt0, relaxTime, 0);
 
   epithelial.dampedNP0(substrateAdhesionForceUpdate, B, dt0, time_dbl, time_dbl / 40.0, wallsOff);
 

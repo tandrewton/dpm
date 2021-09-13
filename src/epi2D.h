@@ -197,7 +197,7 @@ class epi2D : public dpm {
   void initializevnn();
   void boundaries();
   std::vector<int> refineBoundaries();
-  void printBoundaries();
+  void printBoundaries(int nthLargestCluster = 1);
   int findRoot(int i, std::vector<int>& ptr);
 
   void notchTest(int numCellsToDelete, double strain, double strainRate, double boxLengthScale, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, double printInterval, std::string loadingType);

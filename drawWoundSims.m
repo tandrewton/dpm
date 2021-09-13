@@ -4,37 +4,40 @@
 %pwd should give ~/Documents/YalePhd/projects/dpm
 
 % function drawWoundSims(N, NV, ndelete, calA, kl, att, v0, B,...
-%     Dr0, NT, boolCIL, showPeriodicImages, showverts, isTestData)
+%     Dr0,duration, boolCIL, showPeriodicImages, showverts, isTestData)
 isTestData = true;
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
+addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
 
 %CHANGE THESE PARAMETERS                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   NEEDED
 
 runType = "ablate";
-N="96";
-ndelete="5";
+N="48";
+ndelete="10";
 calA="1.08";
-att="0.1";
+att="0.3";
 v0="0.5";
 B="1.0";
-Dr0="0.1";
-boolCil="1";
-NT="5000";
+Dr0="0.5";
+boolCIL="0";
+duration="5000";
 FSKIP = 1;
 eta = str2num(v0)^2 / str2num(Dr0) / str2num(att) / 2;
 eta = num2str(eta);
-etaStr = "$$\eta = $$" + eta;
-if (isTestData)
-    etaStr = " ";
-end
+%etaStr = "$$\eta = $$" + eta;
+%if (isTestData)
+etaStr = " ";
+%end
 
 startSeed = 1;
 max_seed = 1;
 makeAMovie = 1;
 showPeriodicImages = 0;
 showverts = 0;
+showBoundaries = 0;
 showQuiver = 0;
 walls = 0;
+showVoid = 1;
  
 %PC directory
 pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
@@ -62,9 +65,10 @@ for seed = startSeed:max_seed
         nvestr = pc_dir+'/pos.test';
         energystr = pc_dir+'/energy.test';
         stressstr = pc_dir+'/stress.test';
+        boundaryStr = pc_dir+'void.test';
     else
         run_name =runType+"_N"+N+"_ndel"+ndelete+"_calA0"+calA+...
-            "_att"+att+"_v0"+v0+"_B"+B+"_Dr0"+Dr0+"_CIL"+boolCIL+"_NT"+NT;     
+            "_att"+att+"_v0"+v0+"_B"+B+"_Dr0"+Dr0+"_CIL"+boolCIL+"_duration"+duration;     
         pipeline_dir =  subdir_pipeline + run_name + "/";
         output_dir = subdir_output + run_name + "/";
         mkdir(pipeline_dir)
@@ -73,6 +77,7 @@ for seed = startSeed:max_seed
         nvestr = pipeline_dir+fileheader+'.pos';
         energystr = pipeline_dir+fileheader+'.energy';
         stressstr = pipeline_dir+fileheader+'.stress';
+        boundaryStr = pipeline_dir+fileheader+ ".void";
     end
     
 
@@ -104,6 +109,7 @@ for seed = startSeed:max_seed
     flag = trajectoryData.flag;
     flagX = trajectoryData.flagPosX;
     flagY = trajectoryData.flagPosY;
+    time = trajectoryData.time;
     %NVTOT = sum(nv);
     
     %if L is constant, use the next 3 lines
@@ -144,7 +150,11 @@ for seed = startSeed:max_seed
 
     fnum = 1;
     figure(fnum), clf, hold on, box on;
-
+    if showVoid
+        voidLocations = readDataBlocks(boundaryStr, 2);
+        voidArea = zeros(NFRAMES,1);
+    end
+    
     for ff = FSTART:FSTEP:FEND
         %nv can change, so recompute color map each frame
         [nvUQ, ~, IC] = unique(nonzeros(nv(ff,:).*(flag(ff,:)+1)));
@@ -215,7 +225,7 @@ for seed = startSeed:max_seed
             end
         end
 
-        plot(nonzeros(flagX(ff,:).*flag(ff,:)), nonzeros(flagY(ff,:).*flag(ff,:)), 'ro', 'linewidth', 5);
+        plot(flagX(ff,:)./flag(ff,:), flagY(ff,:)./flag(ff,:), 'ro', 'linewidth', 5);
         ann = annotation('textbox', [.42 .05 .6 .05],'interpreter', 'latex',...
             'String', etaStr, 'Edgecolor','none');
         ann.FontSize = 30;
@@ -244,6 +254,21 @@ for seed = startSeed:max_seed
             % plot box
             plot([viewLxLow viewLx viewLx viewLxLow viewLxLow], [viewLyLow viewLyLow viewLy viewLy viewLyLow], 'k-', 'linewidth', 1.5);
         end
+        
+        annotationStr = "$$t/\tau$$ = "+round(time(ff));
+        annotation('textbox',[0.48, 0.5, 0, 0],...
+            'interpreter', 'latex', 'String', annotationStr, 'Edgecolor','none', 'FitBoxToText','on');
+        if showVoid
+            %scatter(voidLocations{ff}(:,1), voidLocations{ff}(:,2),30, 'black', 's','filled');
+            offset = 0;
+            nff = ff- offset;
+            if (nff > 0)
+                plot([voidLocations{nff}(:,1)]...
+                    , [voidLocations{nff}(:,2)]...
+                    ,'k-', 'linewidth', 3);
+                voidArea(ff) = polyarea(voidLocations{nff}(:,1), voidLocations{nff}(:,2));
+            end
+        end
 
         % if making a movie, save frame
         if makeAMovie == 1
@@ -257,5 +282,13 @@ for seed = startSeed:max_seed
     if makeAMovie == 1
         close(vobj);
     end
-    
+    if showVoid
+        figure(14); clf, hold on, box on
+        time= time - time(1);
+        plot(time,voidArea, 'DisplayName', 'A', 'linewidth', 3);
+        plot(time, gradient(voidArea(:))./gradient(time(:)), 'DisplayName', 'dA/dt','linewidth', 3);
+        xlabel('$\tau$','Interpreter','latex');
+        ylabel('A, dA/dt');
+        legend
+    end
 end

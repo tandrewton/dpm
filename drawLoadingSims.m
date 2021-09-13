@@ -6,13 +6,13 @@
 %     strain, strainRate, duration, ...
 %       showPeriodicImages, showverts, colorCellStress,...
 %       showPrincipalStressDirections, isTestData)
-isTestData = true;
+isTestData = false;
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
 
 %CHANGE THESE PARAMETERS AS NEEDED
 runType = "notch";
-N="960";
+N="192";
 calA="1.08";
 att="0.3";
 B="1.0";
@@ -369,9 +369,11 @@ for seed = startSeed:max_seed
     if showBoundaries
         figure(14); clf, hold on, box on
         time= time - time(1);
-        voidArea = voidArea./(1+strain);
-        plot(time,voidArea, 'DisplayName', 'A', 'linewidth', 3);
-        plot(time, gradient(voidArea(:))./gradient(time(:)), 'DisplayName', 'dA/dt','linewidth', 3);
+        voidAreaScaled = voidArea./(1+strain);
+        %plot(time,voidArea, 'DisplayName', 'A', 'linewidth', 3);
+        plot(time,voidAreaScaled, 'DisplayName', 'A/(1+\epsilon)', 'linewidth', 3);
+        %plot(time, gradient(voidArea,time), 'DisplayName', 'dA/dt', 'linewidth', 3);
+        plot(time,gradient(voidAreaScaled, time), 'DisplayName', 'd(A/(1+\epsilon))/dt', 'linewidth', 3);
         xlabel('$\tau$','Interpreter','latex');
         ylabel('A, dA/dt');
         legend

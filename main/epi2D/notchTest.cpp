@@ -11,7 +11,7 @@
 // g++ -O3 --std=c++11 -I src main/epi2D/notchTest.cpp src/dpm.cpp src/epi2D.cpp -o main/epi2D/notchTest.o
 // ./main/epi2D/notchTest.o 12 24 1.08 0.8 0.805 1.0 0.3 1.0 0 0.5 0.001 1 100 pos.test energy.test stress.test void.test uniaxial
 // ./main/epi2D/notchTest.o 24 24 1.08 0.8 0.805 1.0 0.3 1.0 0 0.5 0.01 1 100 pos.test energy.test stress.test void.test uniaxial
-// ./main/epi2D/notchTest.o 48 24 1.08 0.8 0.8 1.0 0.3 1.0 0 0.05 0.01 2 10 pos.test energy.test stress.test void.test uniaxial
+// ./main/epi2D/notchTest.o 48 24 1.08 0.8 0.8 1.0 0.3 1.0 0 0.5 0.01 2 10 pos.test energy.test stress.test void.test uniaxial
 // ./main/epi2D/notchTest.o 96 24 1.08 0.8 0.805 1.0 0.3 1.0 0 0.5 0.001 1 100 pos.test energy.test stress.test void.test uniaxial
 // ./main/epi2D/notchTest.o 192 24 1.08 0.8 0.805 1.0 0.3 1.0 0 0.5 0.001 1 100 pos.test energy.test stress.test void.test uniaxial
 // ./main/epi2D/notchTest.o 960 24 1.08 0.8 0.805 1.0 0.3 1.0 0 0.5 0.001 1 100 pos.test energy.test stress.test void.test uniaxial

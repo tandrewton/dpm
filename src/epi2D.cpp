@@ -804,9 +804,10 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duratio
         if (posout.is_open()) {
           printConfiguration2D();
           printBoundaries();
+          cout << "done printing in NVE\n";
         }
 
-        cout << "Number of polarization deflections: " << polarizationCounter << '\n';
+        cerr << "Number of polarization deflections: " << polarizationCounter << '\n';
       }
     }
   }
@@ -929,11 +930,13 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
 
         // print to configuration only if position file is open
         if (posout.is_open()) {
+          int nthLargestCluster = 2;
           printConfiguration2D();
-          printBoundaries();
+          printBoundaries(nthLargestCluster);
+          cerr << "done printing in NP0\n";
         }
 
-        cout << "Number of polarization deflections: " << polarizationCounter << '\n';
+        cerr << "Number of polarization deflections: " << polarizationCounter << '\n';
       }
     }
   }
@@ -1314,13 +1317,52 @@ std::vector<int> epi2D::refineBoundaries() {
     }
   }
 
-  // NEW: third refinement: a vertex gets a 2 label if it is 1-labeled and next to a 1 or a 2. It is a corner (2 or more edges).
+  // third refinement: a vertex gets a 2 label if it is 1-labeled and next to a 1 or a 2. It is a corner (2 or more edges).
   for (int gi = 0; gi < NVTOT; gi++) {
     if (vnn_label[gi] == 1) {
       for (auto i : vnn[gi]) {
         if (vnn_label[i] == 1 || vnn_label[i] == 2) {
           vnn_label[gi] = 2;
           vnn_label[i] = 2;
+        }
+      }
+    }
+  }
+
+  // NEW: fourth refinement: a dangling end is a 1-labeled vertex at this stage.
+  // To rescue two corner cases: cells with 1 or 2 vertices on the boundary, which aren't caught by
+  //    the previous refinements.
+  // Proceed by looking at the unlabeled neighbors of dangling ends. If an unlabeled neighbor attached to dangling
+  //    end gi has another unlabeled neighbor attached to dangling end gj != gi
+  //    Then we have found 3 or 4 corners, so we mark both dangling ends and 1 or 2 vertices in-between as corners.
+
+  std::vector<int> dangling_end_label(NVTOT, -1);
+  for (int gi = 0; gi < NVTOT; gi++) {
+    if (vnn_label[gi] == 1) {
+      for (auto i : vnn[gi]) {
+        // assign unlabeled neighbors of dangling ends a -2 label.
+        if (vnn_label[i] == -1) {
+          vnn_label[i] = -2;
+          dangling_end_label[i] = gi;
+          dangling_end_label[gi] = gi;
+        }
+      }
+    }
+  }
+  for (int gi = 0; gi < NVTOT; gi++) {
+    // if vertex is an unlabeled neighbor of a dangling end
+    if (vnn_label[gi] == -2) {
+      // check that vertex's neighbors
+      for (auto j : vnn[gi]) {
+        // if its neighbor is also an unlabeled neighbor of a dangling end, and of a different dangling end, all are corners
+        if (vnn_label[j] == -2 && dangling_end_label[gi] != dangling_end_label[j] && dangling_end_label[j] > 0) {
+          vnn_label[gi] = 2;
+          vnn_label[j] = 2;
+          vnn_label[dangling_end_label[j]] = 2;
+          vnn_label[dangling_end_label[gi]] = 2;
+          cout << "gi,j,dangle j, dangle gi = " << gi << '\t' << j << '\t'
+               << dangling_end_label[j] << '\t' << dangling_end_label[gi] << '\n';
+          cout << vnn_label.size() << '\n';
         }
       }
     }
@@ -1336,7 +1378,8 @@ std::vector<int> epi2D::refineBoundaries() {
   return voidFacingVertexIndices;
 }
 
-void epi2D::printBoundaries() {
+void epi2D::printBoundaries(int nthLargestCluster) {
+  cerr << "entering printBoundaries\n";
   // empty is the maximum negative cluster size
   int empty = -NVTOT - 1;
   // mode is the statistical mode of the cluster labels
@@ -1379,19 +1422,41 @@ void epi2D::printBoundaries() {
   }
 
   cout << "mode = " << mode << '\n';
+  // if I want something other than the largest cluster, change mode to identify one of the smaller sized clusters
+  if (nthLargestCluster > 1) {
+    cout << "requested " << nthLargestCluster
+         << "-th most populated cluster, so recalculating "
+         << nthLargestCluster << "-mode value\n";
+    std::vector<int> clusterSize;
+    std::vector<int> clusterRoot;
+    for (int gi = 0; gi < NVTOT; gi++) {
+      if (ptr[gi] < 0 && ptr[gi] != empty) {
+        clusterSize.push_back(-ptr[gi]);
+        clusterRoot.push_back(gi);
+      }
+    }
+    sort(clusterSize.begin(), clusterSize.end(), greater<int>());
+    int nthClusterSize = clusterSize[nthLargestCluster - 1];
+    for (auto i : clusterRoot) {
+      if (-ptr[i] == nthClusterSize)
+        mode = i;
+    }
+    cout << "new mode = " << mode << '\n';
+    big = nthClusterSize;
+    cout << "new size (big) = " << big << '\n';
+  }
 
-  /*
-  // in no particular order, print out the wrapped locations of all main cluster vertices
+  /*// in no particular order, print out the wrapped locations of all main cluster vertices
   for (int gi = 0; gi < NVTOT; gi++) {
     if (findRoot(gi, ptr) == mode) {
       //if (vnn_label[gi] == 2) {
       bout << x[gi * NDIM] << '\t' << x[gi * NDIM + 1] << '\n';
     }
-    cout << "gi = " << gi << ", mode = " << mode << ", ptr[gi] = " << ptr[gi] << ", findRoot = " << findRoot(gi, ptr) << '\n';
-  }
-  */
+    //cout << "gi = " << gi << ", mode = " << mode << ", ptr[gi] = " << ptr[gi] << ", findRoot = " << findRoot(gi, ptr) << '\n';
+  }*/
 
   // in order, print out the unwrapped locations of all main cluster vertices, starting with a vertex in the big cluster
+  cerr << "before ordering vertices\n";
   int it = 0, maxit = 10;
   int current_vertex = -2;
   bool stopSignal = false;
@@ -1402,7 +1467,6 @@ void epi2D::printBoundaries() {
     if (findRoot(gi, ptr) == mode) {
       currentx = x[gi * NDIM];
       currenty = x[gi * NDIM + 1];
-      //bout << currentx << '\t' << currenty << '\n';
       unwrapped_x.push_back(currentx);
       unwrapped_x.push_back(currenty);
       current_vertex = gi;
@@ -1416,41 +1480,8 @@ void epi2D::printBoundaries() {
       previous_vertex.push_back(current_vertex);
     }
 
-    // decide the next vertex
-
-    //if current_vertex is a corner, preferentially choose corners as the next neighbor
-    /*for (auto i : vnn[current_vertex]) {
-      cout << i << '\t' << current_vertex << '\n';
-      if (i >= 0 && vnn_label[current_vertex] == 2 && vnn_label[i] == 2 &&
-          findRoot(i, ptr) == mode &&
-          std::find(previous_vertex.begin(), previous_vertex.end(), i) == previous_vertex.end()) {
-        choseCorner = true;
-        // switch focus to new vertex
-        current_vertex = i;
-        // (nextx, nexty) is the nearest image location of the next vertex
-        nextx = x[current_vertex * NDIM] - currentx;
-        nexty = x[current_vertex * NDIM + 1] - currenty;
-
-        nextx -= L[0] * round(nextx / L[0]);
-        nexty -= L[1] * round(nexty / L[1]);
-
-        nextx += currentx;
-        nexty += currenty;
-
-        bout << nextx << '\t' << nexty << '\n';
-        //cout << "chose a corner!\n";
-        //cout << i << '\t' << current_vertex << '\t' << previous_vertex.end()[-1] << '\n';
-        break;
-      }
-    }*/
     for (auto i : vnn[current_vertex]) {
-      // skip selection process if corner was already chosen
-      /*if (choseCorner == true) {
-        choseCorner = false;
-        break;
-      }
-      cout << "did not choose a corner!\n";*/
-      // check i nonnegative, points to the biggest cluster, and is not already in the previous vertex list
+      // check i valid neighbor, points to the biggest cluster, and is not already in the previous vertex list
       if (i >= 0 && findRoot(i, ptr) == mode &&
           std::find(previous_vertex.begin(), previous_vertex.end(), i) == previous_vertex.end()) {
         // switch focus to new vertex
@@ -1465,16 +1496,15 @@ void epi2D::printBoundaries() {
         nextx += currentx;
         nexty += currenty;
 
-        //bout << nextx << '\t' << nexty << '\n';
         unwrapped_x.push_back(nextx);
         unwrapped_x.push_back(nexty);
 
         currentx = nextx;
         currenty = nexty;
+        //cout << "breaking out of first for loop, in if statement\n";
         break;
 
-      } else if (it > 0) {
-        // we have formed a closed loop, but have not traversed the entire cluster.
+      } else if (it > 0) {  // we have formed a closed loop, but have not traversed the entire cluster.
         // if the closed loop is large enough, we'll accept it as the main closed loop and stop adding vertices
         if (previous_vertex.size() >= big / 2) {
           stopSignal = true;
@@ -1497,8 +1527,6 @@ void epi2D::printBoundaries() {
               nextx += currentx;
               nexty += currenty;
 
-              //bout << nextx << '\t' << nexty << '\n';
-
               // forget the closed subloop, move onto a new one. Keep previous_vertex, which forbids subloop from joining new loop
               unwrapped_x.clear();
               unwrapped_x.push_back(nextx);
@@ -1515,18 +1543,22 @@ void epi2D::printBoundaries() {
     it++;
     if (it >= maxit) {
       for (auto i : vnn[current_vertex])
-        cout << "neighbors of broken vertex are: " << i << ", with root "
+        cout << "broken vertex is: " << current_vertex << "\nneighbors of broken vertex are: " << i << ", with root "
              << findRoot(i, ptr) << ", and bool for whether it's in current list: "
-             << (std::find(previous_vertex.begin(), previous_vertex.end(), i) == previous_vertex.end())
-             << '\n';
+             << (std::find(previous_vertex.begin(), previous_vertex.end(), i) != previous_vertex.end())
+             << '\n'
+             << "at position " << x[i * NDIM] << '\t' << x[i * NDIM + 1] << '\n'
+             << "size of vertex list = " << previous_vertex.size() << '\n';
       break;
     }
   }
   for (int i = 0; i < unwrapped_x.size(); i += 2) {
     bout << unwrapped_x[i] << '\t' << unwrapped_x[i + 1] << '\n';
   }
+
   // indicate end of block, i.e. end of boundary matrix for this frame
   bout << "*EOB\n";
+  cout << "leaving printBoundaries\n";
 }
 
 int epi2D::findRoot(int i, std::vector<int>& ptr) {
