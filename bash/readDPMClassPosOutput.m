@@ -92,7 +92,7 @@ while ~feof(fid)
         flagPosY(nf,nn)             = cInfoTmp{18};
         % compute l0 from calA0 and a0       
         calA0(nf,nn)    = perimeter(nf,nn)^2/(4*pi*area(nf,nn));
-        l0(nf,nn)       = sqrt(4.0*pi*calA0(nf,nn)*a0(nf,nn))/nv(nf,nn);
+        %l0(nf,nn)       = sqrt(4.0*pi*calA0(nf,nn)*a0(nf,nn))/nv(nf,nn);
         
         % get vertex positions
         vPosTmp = textscan(fid,'VINFO %*f %*f %f %f %f %f %f',NVTMP); 
@@ -103,12 +103,14 @@ while ~feof(fid)
         xposTmp = vPosTmp{1};
         yposTmp = vPosTmp{2};
         vradTmp = vPosTmp{3};
-        %there are also 4 and 5 which are going to be ignored by me for now.
+        l0radTmp = vPosTmp{4};
+        %also 5 which are going to be ignored by me for now.
         
         % save in cell
         xpos{nf,nn} = xposTmp;
         ypos{nf,nn} = yposTmp;
         vrad{nf,nn} = vradTmp;
+        l0rad{nf,nn} = l0radTmp;
     end
     % increment frame count
     nf = nf + 1;
@@ -173,6 +175,7 @@ if (nf < NFRAMES)
     vrad(nf:end,:) = [];
     xpos(nf:end,:) = [];
     ypos(nf:end,:) = [];
+    l0(nf:end,:)   = [];
     nv(nf:end,:) = [];
     zc(nf:end,:) = [];
     zv(nf:end,:) = [];
@@ -211,7 +214,7 @@ cellTrajectoryData.zc           = zc;
 cellTrajectoryData.zv           = zv;
 cellTrajectoryData.calA0        = calA0;
 cellTrajectoryData.a0           = a0;
-cellTrajectoryData.l0           = l0;
+cellTrajectoryData.l0           = l0rad;
 cellTrajectoryData.L            = L;
 cellTrajectoryData.stress       = stress;
 cellTrajectoryData.strain       = strain;

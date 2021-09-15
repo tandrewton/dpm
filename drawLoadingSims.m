@@ -6,7 +6,7 @@
 %     strain, strainRate, duration, ...
 %       showPeriodicImages, showverts, colorCellStress,...
 %       showPrincipalStressDirections, isTestData)
-isTestData = false;
+isTestData = true;
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
 
@@ -217,6 +217,8 @@ for seed = startSeed:max_seed
             xpos = trajectoryData.xpos(ff,:);
             ypos = trajectoryData.ypos(ff,:);
             l0 = trajectoryData.l0(ff,:);
+            vrad = trajectoryData.vrad(ff,:);
+            psi = trajectoryData.psi(ff,:);
 
             %if L is not constant, use the next 3 lines
             L = trajectoryData.L(ff,:);
@@ -246,12 +248,11 @@ for seed = startSeed:max_seed
                 cy = mean(ytmp);
                 if showverts == 1
                     for vv = 1:nv(ff,nn)
-                        xplot = xtmp(vv) - 0.5*l0tmp;
-                        yplot = ytmp(vv) - 0.5*l0tmp;
+                        xplot = xtmp(vv) - vradtmp(vv);
+                        yplot = ytmp(vv) - vradtmp(vv);
                         for xx = itLow:itHigh
                             for yy = itLow:itHigh
-                                rectangle('Position',[xplot + xx*Lx, yplot + yy*Ly, l0tmp, l0tmp],...
-                                    'Curvature',[1 1],'EdgeColor','k','FaceColor',clr);
+                                rectangle('Position',[xplot+xx*Lx, yplot + yy*Ly, 2*vradtmp(vv), 2*vradtmp(vv)],'Curvature',[1 1],'EdgeColor','k','FaceColor',clr);
                             end
                         end
                     end
@@ -289,8 +290,10 @@ for seed = startSeed:max_seed
                             if (stressValsTrace < 1e-3)
                                 stressValsTrace = NaN;
                             end
-                            plot_ellipse(0.4*stressVals(1,1)/stressValsTrace, ...
-                                0.4*stressVals(2,2)/stressValsTrace, cx+xx*Lx, cy+yy*Ly, ...
+                            ratio = stressValsTrace/m_max;
+                            plot_ellipse(0.4*stressVals(1,1)/stressValsTrace * ratio, ...
+                                0.4*stressVals(2,2)/stressValsTrace * ratio, ...
+                                cx+xx*Lx, cy+yy*Ly, ...
                                 atan2(stressDirs(2,1),  stressDirs(1,1)), ell_clr);
                         end
                     end

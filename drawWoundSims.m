@@ -33,7 +33,7 @@ startSeed = 1;
 max_seed = 1;
 makeAMovie = 1;
 showPeriodicImages = 0;
-showverts = 0;
+showverts = 1;
 showBoundaries = 0;
 showQuiver = 0;
 walls = 0;
@@ -169,6 +169,7 @@ for seed = startSeed:max_seed
         xpos = trajectoryData.xpos(ff,:);
         ypos = trajectoryData.ypos(ff,:);
         l0 = trajectoryData.l0(ff,:);
+        vrad = trajectoryData.vrad(ff,:);
         psi = trajectoryData.psi(ff,:);
 
         %if L is not constant, use the next 3 lines
@@ -179,7 +180,8 @@ for seed = startSeed:max_seed
         for nn = 1:NCELLS
             xtmp = xpos{nn};
             ytmp = ypos{nn};
-            l0tmp = l0(nn);
+            l0tmp = l0{nn};
+            vradtmp = vrad{nn};
             psitmp = psi(nn);
             costmp = cos(psitmp);
             sintmp = sin(psitmp);
@@ -190,11 +192,11 @@ for seed = startSeed:max_seed
             cy = mean(ytmp);
             if showverts == 1
                 for vv = 1:nv(ff,nn)
-                    xplot = xtmp(vv) - 0.5*l0tmp;
-                    yplot = ytmp(vv) - 0.5*l0tmp;
+                    xplot = xtmp(vv) - vradtmp(vv);
+                    yplot = ytmp(vv) - vradtmp(vv);
                     for xx = itLow:itHigh
                         for yy = itLow:itHigh
-                            rectangle('Position',[xplot + xx*Lx, yplot + yy*Ly, l0tmp, l0tmp],'Curvature',[1 1],'EdgeColor','k','FaceColor',clr);
+                            rectangle('Position',[xplot+xx*Lx, yplot + yy*Ly, 2*vradtmp(vv), 2*vradtmp(vv)],'Curvature',[1 1],'EdgeColor','k','FaceColor',clr);
                         end
                     end
                 end
@@ -202,8 +204,8 @@ for seed = startSeed:max_seed
                 rx = xtmp - cx;
                 ry = ytmp - cy;
                 rads = sqrt(rx.^2 + ry.^2);
-                xtmp = xtmp + 0.4*l0tmp*(rx./rads);
-                ytmp = ytmp + 0.4*l0tmp*(ry./rads);
+                xtmp = xtmp + 0.4*l0tmp(vv)*(rx./rads);
+                ytmp = ytmp + 0.4*l0tmp(vv)*(ry./rads);
                 for xx = itLow:itHigh
                     for yy = itLow:itHigh
                         vpos = [xtmp + xx*Lx, ytmp + yy*Ly];
@@ -263,8 +265,8 @@ for seed = startSeed:max_seed
             offset = 0;
             nff = ff- offset;
             if (nff > 0)
-                plot([voidLocations{nff}(:,1)]...
-                    , [voidLocations{nff}(:,2)]...
+                plot(voidLocations{nff}(:,1)...
+                    , voidLocations{nff}(:,2)...
                     ,'k-', 'linewidth', 3);
                 voidArea(ff) = polyarea(voidLocations{nff}(:,1), voidLocations{nff}(:,2));
             end
@@ -289,6 +291,7 @@ for seed = startSeed:max_seed
         plot(time, gradient(voidArea(:))./gradient(time(:)), 'DisplayName', 'dA/dt','linewidth', 3);
         xlabel('$\tau$','Interpreter','latex');
         ylabel('A, dA/dt');
+        saveas(gcf, output_dir + 'Area'+startSeed+'_'+max_seed, 'epsc')
         legend
     end
 end
