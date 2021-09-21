@@ -68,6 +68,7 @@ class epi2D : public dpm {
   // stores nearest neighbors indices of each vertex according to adjacency (intracell) and adhesion (intercell)
   std::vector<std::vector<int>> vnn;
   std::vector<int> vnn_label;
+  std::vector<int> order;
 
   // specific output objects
   std::ofstream enout;
@@ -191,19 +192,21 @@ class epi2D : public dpm {
   int getIndexOfCellLocatedHere(double xLoc, double yLoc);
   // note: whenever adding member-level data structures that depend on NVTOT/NCELLS, need to make sure to modify the size in deleteCell appropriately
   void deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc);
+  void deleteVertex(std::vector<int>& deleteList);
   void laserAblate(int numCellsAblated, double sizeRatio, int nsmall, double xLoc, double yLoc);
 
   // void detection algorithms (Newman-Ziff)
   void initializevnn();
   void boundaries();
   std::vector<int> refineBoundaries();
+  void NewmanZiff(std::vector<int>& ptr, int empty, int& mode, int& big);
   void printBoundaries(int nthLargestCluster = 1);
   int findRoot(int i, std::vector<int>& ptr);
 
   void notchTest(int numCellsToDelete, double strain, double strainRate, double boxLengthScale, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, double printInterval, std::string loadingType);
   void orientDirector(int ci, double xLoc, double yLoc);
   void deflectOverlappingDirectors();
-
+  void purseStringContraction(double trate);
   // polymorphism: write configuration information to file
   void printConfiguration2D();
 };

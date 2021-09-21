@@ -832,6 +832,13 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
   // loop over time, print energy
   while (simclock - t0 < duration) {
     // VV POSITION UPDATE
+    if (simclock - t0 > 10 && simclock - t0 < 10 + 1.1 * dt) {
+      cout << "deleting vertex, simclock = " << simclock << '\n';
+      std::vector<int> oneVec(1, 1);
+      deleteVertex(oneVec);
+      //purseStringContraction(0.01);
+    }
+
     for (i = 0; i < vertDOF; i++) {
       // update position
       x[i] += dt * v[i] + 0.5 * dt * dt * F[i];
@@ -1189,11 +1196,10 @@ void epi2D::deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc) {
 
   szList.erase(szList.begin() + deleteIndex);
 
-  // nv,a0,l0,calA0 have dimension (NCELLS), so need to remove the correct cell
+  // nv,a0,calA0 have dimension (NCELLS), so need to remove the correct cell
   // entry
   nv.erase(nv.begin() + deleteIndex);
   a0.erase(a0.begin() + deleteIndex);
-  l0.erase(l0.begin() + deleteIndex);
   psi.erase(psi.begin() + deleteIndex);
   flag.erase(flag.begin() + deleteIndex);
   flagPos.erase(flagPos.begin() + deleteIndex);
@@ -1208,14 +1214,20 @@ void epi2D::deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc) {
   // (NVTOT)
   list.erase(list.begin() + deleteIndexGlobal,
              list.begin() + deleteIndexGlobal + numVertsDeleted);
+  cout << "NVTOT = " << NVTOT << ", r.size() = " << r.size() << '\n';
   r.erase(r.begin() + deleteIndexGlobal,
-          r.begin() + deleteIndexGlobal + numVertsDeleted - 1);
+          r.begin() + deleteIndexGlobal + numVertsDeleted);
+  cout << "NVTOT = " << NVTOT << ", r.size() = " << r.size() << '\n';
+  l0.erase(l0.begin() + deleteIndexGlobal,
+           l0.begin() + deleteIndexGlobal + numVertsDeleted);
+  cout << "NVTOT = " << NVTOT << ", fieldStress.size() = " << fieldStress.size() << '\n';
   fieldStress.erase(fieldStress.begin() + deleteIndexGlobal,
-                    fieldStress.begin() + deleteIndexGlobal + numVertsDeleted - 1);
+                    fieldStress.begin() + deleteIndexGlobal + numVertsDeleted);
+  cout << "NVTOT = " << NVTOT << ", fieldStress.size() = " << fieldStress.size() << '\n';
   fieldShapeStress.erase(fieldShapeStress.begin() + deleteIndexGlobal,
-                         fieldShapeStress.begin() + deleteIndexGlobal + numVertsDeleted - 1);
-  vnn.erase(vnn.begin() + deleteIndexGlobal, vnn.begin() + deleteIndexGlobal + numVertsDeleted - 1);
-  vnn_label.erase(vnn_label.begin() + deleteIndexGlobal, vnn_label.begin() + deleteIndexGlobal + numVertsDeleted - 1);
+                         fieldShapeStress.begin() + deleteIndexGlobal + numVertsDeleted);
+  vnn.erase(vnn.begin() + deleteIndexGlobal, vnn.begin() + deleteIndexGlobal + numVertsDeleted);
+  vnn_label.erase(vnn_label.begin() + deleteIndexGlobal, vnn_label.begin() + deleteIndexGlobal + numVertsDeleted);
 
   // sum up number of vertices of each cell until reaching the cell to delete
   int sumVertsUntilGlobalIndex = szList[deleteIndex];
@@ -1245,6 +1257,64 @@ void epi2D::deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc) {
       ip1[gi] = gindex(ci, vip1);
     }
   }
+}
+
+void epi2D::deleteVertex(std::vector<int>& deleteList) {
+  cout << "\n\n\ndeleting vertices!!!\n simclock = " << simclock << '\n';
+  cout << "NVTOT = " << NVTOT << '\n';
+  cout << "deleteList size = " << deleteList.size() << '\n';
+  for (auto i : deleteList)
+    cout << " element of deleteList = " << i << '\n';
+  // need to delete an index from anything that depends on NVTOT, nv, szList?
+  // deleteList holds gi of indices to delete
+  int vim1, vip1;
+  for (auto i : deleteList) {
+    int ci, vi;
+    cindices(ci, vi, i);
+    nv[ci] -= 1;
+    NVTOT -= 1;
+    vertDOF = NDIM * NVTOT;
+    // cij deletion is wrong atm
+    cij.erase(cij.begin());
+
+    list.erase(list.begin() + i);
+    r.erase(r.begin() + i);
+    l0.erase(l0.begin() + i);
+    vnn.erase(vnn.begin() + i);
+    vnn_label.erase(vnn_label.begin() + i);
+
+    cout << "fieldStress.size = " << fieldStress.size() << '\n';
+    fieldStress.pop_back();
+    fieldShapeStress.pop_back();
+
+    v.erase(v.begin() + NDIM * i, v.begin() + NDIM * i + 1);
+    x.erase(x.begin() + NDIM * i, x.begin() + NDIM * i + 1);
+    F.erase(F.begin() + NDIM * i, F.begin() + NDIM * i + 1);
+    im1 = vector<int>(NVTOT, 0);
+    ip1 = vector<int>(NVTOT, 0);
+    for (int j = 1; j < NCELLS; j++) {
+      szList[j] = szList[j - 1] + nv[j - 1];
+    }
+  }
+  //vertDOF = NDIM * NVTOT;
+
+  // save list of adjacent vertices
+  im1 = vector<int>(NVTOT, 0);
+  ip1 = vector<int>(NVTOT, 0);
+
+  for (int ci = 0; ci < NCELLS; ci++) {
+    for (int vi = 0; vi < nv[ci]; vi++) {
+      // wrap local indices
+      vim1 = (vi - 1 + nv[ci]) % nv[ci];
+      vip1 = (vi + 1) % nv[ci];
+
+      // get global wrapped indices
+      int gi = gindex(ci, vi);
+      im1[gi] = gindex(ci, vim1);
+      ip1[gi] = gindex(ci, vip1);
+    }
+  }
+  cout << "exiting deleteVertex\n";
 }
 
 void epi2D::laserAblate(int numCellsAblated, double sizeRatio, int nsmall, double xLoc, double yLoc) {
@@ -1360,9 +1430,9 @@ std::vector<int> epi2D::refineBoundaries() {
           vnn_label[j] = 2;
           vnn_label[dangling_end_label[j]] = 2;
           vnn_label[dangling_end_label[gi]] = 2;
-          cout << "gi,j,dangle j, dangle gi = " << gi << '\t' << j << '\t'
-               << dangling_end_label[j] << '\t' << dangling_end_label[gi] << '\n';
-          cout << vnn_label.size() << '\n';
+          //cout << "gi,j,dangle j, dangle gi = " << gi << '\t' << j << '\t'
+          //     << dangling_end_label[j] << '\t' << dangling_end_label[gi] << '\n';
+          //cout << vnn_label.size() << '\n';
         }
       }
     }
@@ -1378,23 +1448,16 @@ std::vector<int> epi2D::refineBoundaries() {
   return voidFacingVertexIndices;
 }
 
-void epi2D::printBoundaries(int nthLargestCluster) {
-  cerr << "entering printBoundaries\n";
-  // empty is the maximum negative cluster size
-  int empty = -NVTOT - 1;
-  // mode is the statistical mode of the cluster labels
-  int mode;
-  // order is the occupation/population order for our neighbor topology
-  std::vector<int> order = refineBoundaries();
-  // ptr of a root node gives the negative cluster size, of a non-root gives the next level in the tree, of an empty gives empty
-  std::vector<int> ptr(NVTOT, empty);
-  int i, j, s1, s2, r1, r2, gj;
-  int big = 0;
-  bool choseCorner;
-  for (i = 0; i < order.size(); i++) {
+void epi2D::NewmanZiff(std::vector<int>& ptr, int empty, int& mode, int& big) {
+  // union/find algorithm that seeks contiguous clusters of points.
+  //  the root (ptr) of each node is the first vertex in its cluster, and the root of that node is the negative size of the cluster
+  // order is the occupation order for void-facing indices. It is a set of void-facing vi.
+  //  mode is the cluster with largest size, big is the largest size
+  int s1, s2, r1, r2;
+  for (int i = 0; i < order.size(); i++) {
     r1 = s1 = order[i];
     ptr[s1] = -1;
-    for (j = 0; j < vnn[s1].size(); j++) {
+    for (int j = 0; j < vnn[s1].size(); j++) {
       // key adjustment from Newman-Ziff: skip if neighbor list has -1 label (means no neighbor is there)
       if (vnn[s1][j] == -1)
         continue;
@@ -1417,9 +1480,23 @@ void epi2D::printBoundaries(int nthLargestCluster) {
         }
       }
     }
-    if (i + 1 == order.size())
-      cout << "order[i] = " << order[i] << ",\t occupation # = " << i + 1 << ",\t cluster size = " << big << '\n';
   }
+}
+
+void epi2D::printBoundaries(int nthLargestCluster) {
+  cerr << "entering printBoundaries\n";
+  // empty is the maximum negative cluster size
+  int empty = -NVTOT - 1;
+  // mode is the statistical mode of the cluster labels
+  int mode;
+  // order is the occupation/population order for our neighbor topology
+  order = refineBoundaries();
+  // ptr of a root node gives the negative cluster size, of a non-root gives the next level in the tree, of an empty gives empty
+  std::vector<int> ptr(NVTOT, empty);
+  int big = 0;
+  bool choseCorner;
+  // fill ptr with a clustered network of nodes
+  NewmanZiff(ptr, empty, mode, big);
 
   cout << "mode = " << mode << '\n';
   // if I want something other than the largest cluster, change mode to identify one of the smaller sized clusters
@@ -1670,21 +1747,85 @@ void epi2D::deflectOverlappingDirectors() {
   }
 }
 
-/*void epi2D::purseStringContraction() {
-  // in wounded epithelia, actomyosin accumulates in cells at the edge of wounds
-  // it forms a ring that shrinks in size, sewing the wound shut
-  // we will model it by shrinking the length between vertices on the wound edge
-  // which will pull cells into the wound by cortical tension
+void epi2D::purseStringContraction(double trate) {
+  // in epithelia, actomyosin accumulates in cells at wound edges, forms a ring that shrinks - sewing the wound shut
+  // model by shrinking vertices and length between vertices on the wound edge, pulls cells into wound by cortical tension
+  //  no PBC with wound healing, so PBC aren't accounted for here
+  int empty = -NVTOT - 1;
+  int mode, big = 0;
+  int ci, cj, vi, vj;
+  std::vector<int> ptr(NVTOT, empty);
+  std::vector<int> deleteList;
+  // (squared) distance between vertices i and j, and 1/2 the contact distance between vertices
+  double dij, rij;
+  order = refineBoundaries();
+  NewmanZiff(ptr, empty, mode, big);
 
-  // require some kind of edge detection to see which cells are on the edge
-  // what happens if a cell did not start as an edge cell, but becomes an edge cell? does this occur?
-  // what happens if a cell started as an edge cell, but is no longer an edge cell? does this occur?
+  // sort clusters, pick the 2nd largest to get the wound segment
+  std::vector<int> clusterSize;
+  std::vector<int> clusterRoot;
+  for (int gi = 0; gi < NVTOT; gi++) {
+    if (ptr[gi] < 0 && ptr[gi] != empty) {
+      clusterSize.push_back(-ptr[gi]);
+      clusterRoot.push_back(gi);
+    }
+  }
 
-  // if on edge,
-  //    l0 *= scaleFactor
-  //    after l0 shrinks by 10%, delete a vertex
-  //    iterate
-}*/
+  sort(clusterSize.begin(), clusterSize.end(), greater<int>());
+
+  int nthLargestCluster = 2;
+  int nthClusterSize = clusterSize[nthLargestCluster - 1];
+  for (auto i : clusterRoot) {
+    if (-ptr[i] == nthClusterSize)
+      mode = i;
+  }
+
+  for (int gi = 0; gi < NVTOT; gi++) {
+    if (findRoot(gi, ptr) == mode) {
+      //r[gi] *= exp(-trate * dt);
+      l0[gi] *= exp(-trate * dt);
+    }
+  }
+
+  for (int gi = 0; gi < NVTOT - 1; gi++) {
+    /*if (findRoot(gi, ptr) == mode) {
+      cindices(ci, vi, gi);
+      for (int gj = gi + 1; gj < NVTOT; gj++) {
+        if (findRoot(gj, ptr) == mode) {
+          cindices(cj, vj, gj);
+          if (ci == cj) {
+            dij = pow(x[gi * NDIM] - x[gj * NDIM], 2) + pow(x[gi * NDIM + 1] - x[gj * NDIM + 1], 2);
+            rij = pow(0.5 * (r[gi] + r[gj]), 2);
+            if (dij < rij) {
+              cout << "dij = " << dij << "\t, rij = " << rij << '\n';
+              cout << "ci = " << ci << "\t , cj = " << cj << '\n';
+              cout << "gi = " << gi << "\t , gj = " << gj << '\n';
+              deleteList.push_back(gi);
+              break;
+            }
+          }
+        }
+      }
+    }*/
+    int gj;
+    if (findRoot(gi, ptr) == mode) {
+      cindices(ci, vi, gi);
+      int i = 1;
+      gj = gi + i;
+      dij = pow(x[gi * NDIM] - x[gj * NDIM], 2) + pow(x[gi * NDIM + 1] - x[gj * NDIM + 1], 2);
+      rij = pow(0.5 * (r[gi] + r[gj]), 2);
+      if (dij < rij) {
+        cout << "dij = " << dij << "\t, rij = " << rij << '\n';
+        cout << "ci = " << ci << "\t , cj = " << cj << '\n';
+        cout << "gi = " << gi << "\t , gj = " << gj << '\n';
+        deleteList.push_back(gi);
+        gi++;
+      }
+    }
+  }
+  if (!deleteList.empty())
+    deleteVertex(deleteList);
+}
 
 void epi2D::printConfiguration2D() {
   // overloaded to print out psi and other very specific quantities of interest
