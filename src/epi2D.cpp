@@ -832,11 +832,10 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
   // loop over time, print energy
   while (simclock - t0 < duration) {
     // VV POSITION UPDATE
-    if (simclock - t0 > 10 && simclock - t0 < 10 + 1.1 * dt) {
-      cout << "deleting vertex, simclock = " << simclock << '\n';
-      std::vector<int> oneVec(1, 1);
-      deleteVertex(oneVec);
-      //purseStringContraction(0.01);
+    if (simclock - t0 > 10) {
+      //std::vector<int> oneVec(1, 1);
+      //deleteVertex(oneVec);
+      purseStringContraction(0.01);
     }
 
     for (i = 0; i < vertDOF; i++) {
@@ -1175,7 +1174,7 @@ void epi2D::deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc) {
   // contact matrix is reset each integration step.
   std::cout << "NCELLS = " << NCELLS << '\n';
 
-  cij.erase(cij.begin(), cij.begin() + (NCELLS - 1) - 1);
+  cij.erase(cij.begin(), cij.begin() + (NCELLS - 1));
 
   // number of vertices to delete
   int numVertsDeleted = largeNV * isDeleteLarge + smallNV * !isDeleteLarge;
@@ -1260,7 +1259,7 @@ void epi2D::deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc) {
 }
 
 void epi2D::deleteVertex(std::vector<int>& deleteList) {
-  cout << "\n\n\ndeleting vertices!!!\n simclock = " << simclock << '\n';
+  cout << "\n\n\ndeleting vertices!!!\n\n\n\n\n simclock = " << simclock << '\n';
   cout << "NVTOT = " << NVTOT << '\n';
   cout << "deleteList size = " << deleteList.size() << '\n';
   for (auto i : deleteList)
@@ -1273,7 +1272,7 @@ void epi2D::deleteVertex(std::vector<int>& deleteList) {
     cindices(ci, vi, i);
     nv[ci] -= 1;
     NVTOT -= 1;
-    vertDOF = NDIM * NVTOT;
+    vertDOF -= NDIM;
     // cij deletion is wrong atm
     cij.erase(cij.begin());
 
@@ -1283,15 +1282,20 @@ void epi2D::deleteVertex(std::vector<int>& deleteList) {
     vnn.erase(vnn.begin() + i);
     vnn_label.erase(vnn_label.begin() + i);
 
-    cout << "fieldStress.size = " << fieldStress.size() << '\n';
     fieldStress.pop_back();
     fieldShapeStress.pop_back();
 
-    v.erase(v.begin() + NDIM * i, v.begin() + NDIM * i + 1);
-    x.erase(x.begin() + NDIM * i, x.begin() + NDIM * i + 1);
-    F.erase(F.begin() + NDIM * i, F.begin() + NDIM * i + 1);
-    im1 = vector<int>(NVTOT, 0);
-    ip1 = vector<int>(NVTOT, 0);
+    // vector.erase erases [start,stop) so this deletes 2 elements
+    v.erase(v.begin() + NDIM * i, v.begin() + NDIM * (i + 1));
+    x.erase(x.begin() + NDIM * i, x.begin() + NDIM * (i + 1));
+    F.erase(F.begin() + NDIM * i, F.begin() + NDIM * (i + 1));
+
+    for (int j = 0; j < 10; j += 2) {
+      cout << x[j] << '\t' << x[j + 1] << '\n';
+    }
+
+    //im1 = vector<int>(NVTOT, 0);
+    //ip1 = vector<int>(NVTOT, 0);
     for (int j = 1; j < NCELLS; j++) {
       szList[j] = szList[j - 1] + nv[j - 1];
     }
@@ -1299,8 +1303,8 @@ void epi2D::deleteVertex(std::vector<int>& deleteList) {
   //vertDOF = NDIM * NVTOT;
 
   // save list of adjacent vertices
-  im1 = vector<int>(NVTOT, 0);
-  ip1 = vector<int>(NVTOT, 0);
+  im1.resize(NVTOT);
+  ip1.resize(NVTOT);
 
   for (int ci = 0; ci < NCELLS; ci++) {
     for (int vi = 0; vi < nv[ci]; vi++) {
@@ -1812,19 +1816,26 @@ void epi2D::purseStringContraction(double trate) {
       cindices(ci, vi, gi);
       int i = 1;
       gj = gi + i;
+      cindices(cj, vj, gj);
       dij = pow(x[gi * NDIM] - x[gj * NDIM], 2) + pow(x[gi * NDIM + 1] - x[gj * NDIM + 1], 2);
       rij = pow(0.5 * (r[gi] + r[gj]), 2);
-      if (dij < rij) {
+      if (dij < rij && ci == cj) {
         cout << "dij = " << dij << "\t, rij = " << rij << '\n';
         cout << "ci = " << ci << "\t , cj = " << cj << '\n';
         cout << "gi = " << gi << "\t , gj = " << gj << '\n';
         deleteList.push_back(gi);
+        // if successful delete, skip next vertex to space out the deletions
         gi++;
       }
     }
   }
-  if (!deleteList.empty())
+  if (!deleteList.empty()) {
+    for (auto i : deleteList)
+      r[i] *= 3;
+    printConfiguration2D();
     deleteVertex(deleteList);
+    printConfiguration2D();
+  }
 }
 
 void epi2D::printConfiguration2D() {

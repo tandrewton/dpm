@@ -1101,28 +1101,14 @@ void dpm::drawVelocities2D(double T) {
 *******************************/
 
 void dpm::resetForcesAndEnergy() {
-  if (NCELLS < 21) {
-    cout << "resetting forces and energy!\n"
-         << "fieldStress.size() = " << fieldStress.size() << '\n';
-    /*for (auto i : fieldStress) {
-      for (auto j : i) {
-        cout << j << '\t';
-      }
-    }
-    cout << '\n';*/
-  }
   fill(F.begin(), F.end(), 0.0);
   fill(stress.begin(), stress.end(), 0.0);
   fill(fieldStress.begin(), fieldStress.end(), vector<double>(3, 0.0));
-  if (NCELLS < 21)
-    cout << " successfully reset fieldStress!\n";
   fill(fieldShapeStress.begin(), fieldShapeStress.end(), vector<double>(3, 0.0));
   fill(fieldStressCells.begin(), fieldStressCells.end(), vector<double>(3, 0.0));
   fill(fieldShapeStressCells.begin(), fieldShapeStressCells.end(), vector<double>(3, 0.0));
   U = 0.0;
   fill(cellU.begin(), cellU.end(), 0.0);
-  if (NCELLS < 21)
-    cout << " exiting resetForces!\n";
 }
 
 void dpm::shapeForces2D() {
