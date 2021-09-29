@@ -81,6 +81,12 @@ class epi2D : public dpm {
   // simclock's last value before substrate adhesion springs update
   double previousUpdateSimclock;
 
+  // simclock's value for the most recent vertex deletion during purseStringContraction
+  double previousDeletionSimclock = 0;
+
+  // initial vertex radii before purseString shrinkage
+  std::vector<double> initialRadius;
+
  public:
   // constructor and destructor
   epi2D(int n, double att1, double att2, double Dr, int seed)
@@ -176,6 +182,7 @@ class epi2D : public dpm {
   void attractiveForceUpdate_2();
   void activeAttractiveForceUpdate();
   void substrateadhesionAttractiveForceUpdate();
+  void repulsiveForceWithCircularApertureWall();
 
   // protocols
   void vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0);
@@ -188,11 +195,12 @@ class epi2D : public dpm {
   void dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval);
   void dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, bool wallsOn);
   void wallForces(bool top, bool bottom, bool left, bool right, double& forceTop, double& forceBottom, double& forceLeft, double& forceRight);
+  void circularApertureForces(double radius);
 
   int getIndexOfCellLocatedHere(double xLoc, double yLoc);
   // note: whenever adding member-level data structures that depend on NVTOT/NCELLS, need to make sure to modify the size in deleteCell appropriately
   void deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc);
-  void deleteVertex(std::vector<int>& deleteList);
+  void deleteVertex(std::vector<int>& deleteList, bool interpolate);
   void laserAblate(int numCellsAblated, double sizeRatio, int nsmall, double xLoc, double yLoc);
 
   // void detection algorithms (Newman-Ziff)

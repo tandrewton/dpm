@@ -142,6 +142,14 @@ void epi2D::repulsiveForceUpdateWithWalls() {
   wallForces(false, false, false, false, a, b, c, d);
 }
 
+void epi2D::repulsiveForceWithCircularApertureWall(){
+  double radius = 2.0;
+  resetForcesAndEnergy();
+  shapeForces2D();
+  vertexRepulsiveForces2D();
+  circularApertureForces(radius);
+}
+
 void epi2D::vertexAttractiveForces2D_2() {
   // altered from dpm attractive force code, because it works with larger l2 values. (warning: probably won't work with bending.)
   // local variables
@@ -687,7 +695,8 @@ void epi2D::updateSubstrateSprings(double refreshInterval) {
                   // inhibited, so director goes in opposite direction.
                   //psi[cj] += PI;
                   //psi[cj] -= 2 * PI * round(psi[cj] / (2 * PI));
-                  continue;
+                  // maybe this should be a break instead of a continue
+                  break;
                 }
               }
             }
@@ -829,10 +838,12 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
   setdt(dt0);
   int NPRINTSKIP = printInterval / dt;
 
+  initialRadius = r;
+
   // loop over time, print energy
   while (simclock - t0 < duration) {
     // VV POSITION UPDATE
-    if (simclock - t0 > 10) {
+    if (simclock - t0 > 10 && (simclock - previousDeletionSimclock) > 1.0) {
       //std::vector<int> oneVec(1, 1);
       //deleteVertex(oneVec);
       purseStringContraction(0.01);
@@ -945,6 +956,42 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
         cerr << "Number of polarization deflections: " << polarizationCounter << '\n';
       }
     }
+  }
+}
+
+void epi2D::circularApertureForces(double radius){
+  // if any cells have their centers inside the aperture, force them away from the aperture
+  double cx, cy, gi, s, cut, shell, rx, ry, disti, overlap, theta;
+  for (int ci = 0; ci < NCELLS; ci++) {
+    com2D(ci, cx, cy);
+    cx -= L[0]/2;
+    cy -= L[1]/2;
+    if (cx*cx + cy*cy < radius*radius) {
+      for (int vi = 0; vi < nv[ci]; vi++) {
+        gi = gindex(ci, vi);
+        F[gi * NDIM] += -0.5 * (L[0]/ 2 - cx);
+        F[gi * NDIM + 1] += - 0.5 * (L[1] / 2 - cy);
+      }
+    }
+  }
+  
+  // aperture has volume exclusion with any vertices.
+  for (int gi = 0; gi < NVTOT; gi++){
+    s = 2 * r[gi];
+    cut = (1.0 + l1) * s;
+    shell = (1.0 + l2) * s;
+    rx = x[gi*NDIM];
+    ry = x[gi*NDIM + 1];
+    rx -= L[0]/2;
+    ry -= L[1]/2;
+    disti = sqrt(rx*rx + ry*ry);
+    overlap = disti - fabs(radius - r[gi]);
+    if (disti < 0){
+      theta = atan2(rx, ry);
+      F[gi * NDIM] += 0.5 * overlap / s * cos(theta);
+      F[gi * NDIM + 1] += 0.5 * overlap / s * sin(theta);
+    }
+
   }
 }
 
@@ -1258,16 +1305,31 @@ void epi2D::deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc) {
   }
 }
 
-void epi2D::deleteVertex(std::vector<int>& deleteList) {
+void epi2D::deleteVertex(std::vector<int>& deleteList, bool interpolate) {
+  // delete the vertices with indices in deleteList. option to interpolate (attempt to distribute remaining vertices into space left behind by deleted old vertex)
   cout << "\n\n\ndeleting vertices!!!\n\n\n\n\n simclock = " << simclock << '\n';
   cout << "NVTOT = " << NVTOT << '\n';
   cout << "deleteList size = " << deleteList.size() << '\n';
+  // sort descending so deletion doesn't interfere with itself
+  std::sort(deleteList.begin(), deleteList.end(), std::greater<int>());
   for (auto i : deleteList)
     cout << " element of deleteList = " << i << '\n';
   // need to delete an index from anything that depends on NVTOT, nv, szList?
   // deleteList holds gi of indices to delete
-  int vim1, vip1;
+  int vim1, vip1, ci, vi;
   for (auto i : deleteList) {
+    // from print to print, these lines of code are for debugging. delete later! 9/27/21
+    printConfiguration2D();
+    r[i] *= 5;
+    if (interpolate) {
+      //cindices(ci, vi, i);
+      // j is the index of the next vertex in the same cell, accounting for mod nv
+      //int j = (((i + 1) % szList[ci]) % nv[ci]) + szList[ci];
+      // interpolate the deleted vertex's neighbor towards the deleted vertex
+      //x[j * NDIM] = (x[i * NDIM] + x[j * NDIM]) / 2;
+      //x[j * NDIM + 1] = (x[i * NDIM + 1] + x[j * NDIM + 1]) / 2;
+    }
+    printConfiguration2D();
     int ci, vi;
     cindices(ci, vi, i);
     nv[ci] -= 1;
@@ -1319,6 +1381,7 @@ void epi2D::deleteVertex(std::vector<int>& deleteList) {
     }
   }
   cout << "exiting deleteVertex\n";
+  printConfiguration2D();
 }
 
 void epi2D::laserAblate(int numCellsAblated, double sizeRatio, int nsmall, double xLoc, double yLoc) {
@@ -1784,33 +1847,68 @@ void epi2D::purseStringContraction(double trate) {
       mode = i;
   }
 
+  // get a list of all indices for cells with wound-facing vertices
+  std::vector<int> woundCells;
   for (int gi = 0; gi < NVTOT; gi++) {
     if (findRoot(gi, ptr) == mode) {
-      //r[gi] *= exp(-trate * dt);
-      l0[gi] *= exp(-trate * dt);
+      cindices(ci, vi, gi);
+      woundCells.push_back(ci);
+    }
+  }
+  std::sort(woundCells.begin(), woundCells.end());
+  auto last = std::unique(woundCells.begin(), woundCells.end());
+  woundCells.erase(last, woundCells.end());
+
+  // get a list of all indices for wound-facing vertices in a given cell ci
+  std::vector<std::vector<int>> woundVerts(NCELLS);  //, vector<int> (int (NVTOT/NCELLS), -1));
+  for (auto ci : woundCells) {
+    for (int vi = 0; vi < nv[ci]; vi++) {
+      int gi = gindex(ci, vi);
+      if (findRoot(gi, ptr) == mode) {
+        //r[gi] *= exp(-trate * dt);
+        //l0[gi] *= exp(-trate * dt);
+        woundVerts[ci].push_back(gi);
+      }
+    }
+  }
+  // tol represents how much the vertices in the same cell are allowed to overlap (tol * contact distance) before we start deleting them
+  double tol = 0.5;
+  bool growAndDeleteSignal = false;
+  // shrink preferred lengths (= actomyosin tension) and delete vertices if significant overlap, all only if >1 vertex is wound-facing
+  for (auto ci : woundCells) {
+    int sz = woundVerts[ci].size();
+    if (sz > 1) {
+      for (int i = 0; i < woundVerts[ci].size(); i++) {
+        int gi = woundVerts[ci][i];
+        int gj;
+        if (szList[ci] == 0)
+          gj = (gi + 1) % nv[ci];
+        else 
+          gj = (((gi + 1) % szList[ci] % nv[ci]) + szList[ci]);
+        cindices(cj, vj, gj);
+        l0[gi] *= exp(-trate * dt);
+        r[gi] *= exp(-trate * dt);
+        dij = pow(x[gi * NDIM] - x[gj * NDIM], 2) + pow(x[gi * NDIM + 1] - x[gj * NDIM + 1], 2);
+        rij = pow((r[gi] + r[gj]) * tol, 2);
+        //if (dij < rij && ci == cj) { // old condition : if overlapping
+        if (r[gi] < 0.5 * initialRadius[gi] || growAndDeleteSignal) {
+          growAndDeleteSignal = true;
+          deleteList.push_back(gi);
+          // if vertices are both small, then delete one, expand the other, and place it in the midpoint
+          if (fabs(r[gi] - r[gj]) < 0.1) {
+            r[gj] = initialRadius[gj];
+            x[gj * NDIM] = (x[gj * NDIM] + x[gi * NDIM]) / 2;
+            x[gj * NDIM + 1] = (x[gj * NDIM + 1] + x[gi * NDIM + 1]) / 2;
+            i++;
+          }
+          cout << "deleted a vertex!\n\n\n\n";
+          break;
+        }
+      }
     }
   }
 
-  for (int gi = 0; gi < NVTOT - 1; gi++) {
-    /*if (findRoot(gi, ptr) == mode) {
-      cindices(ci, vi, gi);
-      for (int gj = gi + 1; gj < NVTOT; gj++) {
-        if (findRoot(gj, ptr) == mode) {
-          cindices(cj, vj, gj);
-          if (ci == cj) {
-            dij = pow(x[gi * NDIM] - x[gj * NDIM], 2) + pow(x[gi * NDIM + 1] - x[gj * NDIM + 1], 2);
-            rij = pow(0.5 * (r[gi] + r[gj]), 2);
-            if (dij < rij) {
-              cout << "dij = " << dij << "\t, rij = " << rij << '\n';
-              cout << "ci = " << ci << "\t , cj = " << cj << '\n';
-              cout << "gi = " << gi << "\t , gj = " << gj << '\n';
-              deleteList.push_back(gi);
-              break;
-            }
-          }
-        }
-      }
-    }*/
+  /*for (int gi = 0; gi < NVTOT - 1; gi++) {
     int gj;
     if (findRoot(gi, ptr) == mode) {
       cindices(ci, vi, gi);
@@ -1829,12 +1927,36 @@ void epi2D::purseStringContraction(double trate) {
       }
     }
   }
+  */
+
+  std::vector<double> x2 = x;
   if (!deleteList.empty()) {
-    for (auto i : deleteList)
-      r[i] *= 3;
-    printConfiguration2D();
-    deleteVertex(deleteList);
-    printConfiguration2D();
+    /*printConfiguration2D();
+    // searchRange is how many vertices from the deleted vertex I will use to interpolate new positions after deleting a vertex
+    int searchRange = 1;
+    for (auto gi : deleteList) {
+      cindices(ci, vi, gi);
+      for (int i = 0; i < searchRange; i++) {
+        int cn, vn, cp, vp;
+        int gnext = (((gi + searchRange - i) % szList[ci]) % nv[ci]) + szList[ci];
+        //int gprev = (((gi - searchRange + i) % szList[ci]) % nv[ci]) + szList[ci];
+        cindices(cn, vn, gnext);
+        //cindices(cp, vp, gprev);
+        if (ci == cn && findRoot(gnext, ptr) == mode) {
+          int gnn = (((gnext - 1) % szList[ci]) % nv[ci]) + szList[ci];
+          x[gnn * NDIM] =  (x[gnn * NDIM] + 3*x[gnext * NDIM])/4;
+          x[gnn * NDIM + 1] = (x[gnn * NDIM + 1] + 3*x[gnext * NDIM + 1])/4;
+        }
+        /*if (ci == cp && findRoot(gprev, ptr) == mode) {
+          int gpp = (((gprev + 1) % szList[ci]) % nv[ci]) + szList[ci];
+          x[gpp * NDIM] = (x[gpp * NDIM] + 3*x[gprev * NDIM])/4;
+          x[gpp * NDIM + 1] = (x[gpp * NDIM + 1] + 3*x[gprev * NDIM + 1])/4;
+        }
+      }
+    }*/
+    bool interpolate = true;
+    deleteVertex(deleteList, interpolate);
+    previousDeletionSimclock = simclock;
   }
 }
 
