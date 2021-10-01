@@ -84,8 +84,11 @@ class epi2D : public dpm {
   // simclock's value for the most recent vertex deletion during purseStringContraction
   double previousDeletionSimclock = 0;
 
+  bool boolStopDeleting = false;
+
   // initial vertex radii before purseString shrinkage
   std::vector<double> initialRadius;
+  std::vector<double> initiall0;
 
  public:
   // constructor and destructor
@@ -165,6 +168,7 @@ class epi2D : public dpm {
 
   // main double
   double getPsi(int ci) { return psi.at(ci); };
+  double vertDistNoPBC(int gi, int gj);
 
   // initialization
   void monodisperse2D(double calA0, int n);
@@ -175,6 +179,7 @@ class epi2D : public dpm {
   double meankb();
   double distanceLineAndPoint(double x1, double y1, double x2, double y2, double x0, double y0);
   void directorDiffusion();
+  void regridCell(int ci, double vrad);
 
   // epi cell interactions
   void repulsiveForceUpdateWithWalls();
@@ -200,7 +205,7 @@ class epi2D : public dpm {
   int getIndexOfCellLocatedHere(double xLoc, double yLoc);
   // note: whenever adding member-level data structures that depend on NVTOT/NCELLS, need to make sure to modify the size in deleteCell appropriately
   void deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc);
-  void deleteVertex(std::vector<int>& deleteList, bool interpolate);
+  void deleteVertex(std::vector<int>& deleteList);
   void laserAblate(int numCellsAblated, double sizeRatio, int nsmall, double xLoc, double yLoc);
 
   // void detection algorithms (Newman-Ziff)
