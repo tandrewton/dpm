@@ -180,6 +180,7 @@ class epi2D : public dpm {
   double distanceLineAndPoint(double x1, double y1, double x2, double y2, double x0, double y0);
   void directorDiffusion();
   void regridCell(int ci, double vrad);
+  void partialRegridCell(int ci, double vrad);
 
   // epi cell interactions
   void repulsiveForceUpdateWithWalls();

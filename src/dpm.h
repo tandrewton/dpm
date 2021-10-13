@@ -202,7 +202,7 @@ class dpm {
   }
 
   // Initialize particles (two dimensions)
-  void monodisperse2D(int n);
+  void monodisperse2D(double calA0, int n);
   void bidisperse2D(double calA0, int nsmall, double smallfrac, double sizefrac);
   void gaussian2D(double dispersion, double calA0, int n1);
   void sinusoidalPreferredAngle(double thA, double thK);

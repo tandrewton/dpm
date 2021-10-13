@@ -455,6 +455,38 @@ void dpm::initializeVertexShapeParameters(double calA0, int nref) {
   }
 }
 
+
+// initialize monodisperse cell system, single calA0
+void dpm::monodisperse2D(double calA0, int n) {
+  // local variables
+  double calA0tmp, calAntmp, rtmp, areaSum;
+  int vim1, vip1, gi, ci, vi, nlarge, smallN, largeN, NVSMALL;
+
+  // print to console
+  cout << "** initializing monodisperse DPM particles in 2D ..." << endl;
+
+  // total number of vertices
+  NVTOT = n * NCELLS;
+  vertDOF = NDIM * NVTOT;
+
+  // szList and nv (keep track of global vertex indices)
+  nv.resize(NCELLS);
+  szList.resize(NCELLS);
+
+  nv.at(0) = n;
+  for (ci = 1; ci < NCELLS; ci++) {
+    nv.at(ci) = n;
+    szList.at(ci) = szList.at(ci - 1) + nv.at(ci - 1);
+  }
+
+  // initialize vertex shape parameters
+  initializeVertexShapeParameters(calA0, n);
+
+  // initialize vertex indexing
+  initializeVertexIndexing2D();
+}
+
+
 // initialize bidisperse cell system, single calA0
 void dpm::bidisperse2D(double calA0, int nsmall, double smallfrac, double sizefrac) {
   // local variables
@@ -1117,7 +1149,7 @@ void dpm::shapeForces2D() {
   double fa, fli, flim1, fb, cx, cy, xi, yi;
   double rho0, l0im1, l0i, a0tmp, atmp;
   double dx, dy, da, dli, dlim1, dtim1, dti, dtip1;
-  double lim2x, lim2y, lim1x, lim1y, lix, liy, lip1x, lip1y, li, lim1;
+  double lim2x, lim2y, lim1x, lim1y, lix, liy, lip1x, lip1y, li, lim1; // im1 is the last segment index?
   double rim2x, rim2y, rim1x, rim1y, rix, riy, rip1x, rip1y, rip2x, rip2y;
   double nim1x, nim1y, nix, niy, sinim1, sini, sinip1, cosim1, cosi, cosip1;
   double ddtim1, ddti;
@@ -1408,7 +1440,7 @@ void dpm::vertexRepulsiveForces2D() {
               F[NDIM * gj] += fx;
               F[NDIM * gj + 1] += fy;
 
-              // increae potential energy
+              // increase potential energy
               U += 0.5 * kc * pow((1 - (rij / sij)), 2.0);
 
               // add to virial stress
@@ -1482,7 +1514,7 @@ void dpm::vertexRepulsiveForces2D() {
                 F[NDIM * gj] += fx;
                 F[NDIM * gj + 1] += fy;
 
-                // increae potential energy
+                // increase potential energy
                 U += 0.5 * kc * pow((1 - (rij / sij)), 2.0);
 
                 // add to virial stress
