@@ -78,6 +78,7 @@ protected:
   std::ofstream enout;
   std::ofstream stressout;
   std::ofstream bout;
+  std::ofstream edgeout;
 
   // simulation time keeper (accumulates elapsed simulation time during MD
   // routines)
@@ -154,6 +155,17 @@ public:
   void openBoundaryObject(std::string &str) {
     bout.open(str.c_str());
     if (!bout.is_open()) {
+      std::cerr << "	ERROR: file could not open " << str << "..."
+                << std::endl;
+      exit(1);
+    } else
+      std::cout << "** Opening file " << str << " ..." << std::endl;
+  }
+
+    // File openers
+  void openEdgeObject(std::string &str) {
+    edgeout.open(str.c_str());
+    if (!edgeout.is_open()) {
       std::cerr << "	ERROR: file could not open " << str << "..."
                 << std::endl;
       exit(1);

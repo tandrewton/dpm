@@ -37,7 +37,10 @@ showverts = 1;
 showBoundaries = 0;
 showQuiver = 0;
 walls = 0;
+%disable showVoid if using printConfig on its own, outside of
+%dampedNVE/dampedNP0 routines
 showVoid = 1;
+showCornersOrEdges = 0;
  
 %PC directory
 pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
@@ -62,10 +65,11 @@ for seed = startSeed:max_seed
         mkdir(pipeline_dir)
         mkdir(output_dir)
         fileheader=run_name + "_seed" + seed;
-        nvestr = pc_dir+'/pos.test';
-        energystr = pc_dir+'/energy.test';
-        stressstr = pc_dir+'/stress.test';
+        nvestr = pc_dir+'pos.test';
+        energystr = pc_dir+'energy.test';
+        stressstr = pc_dir+'stress.test';
         boundaryStr = pc_dir+'void.test';
+        edgeStr = pc_dir+'edge.test';
     else
         run_name =runType+"_N"+N+"_ndel"+ndelete+"_calA0"+calA+...
             "_att"+att+"_v0"+v0+"_B"+B+"_Dr0"+Dr0+"_CIL"+boolCIL+"_duration"+duration;     
@@ -153,6 +157,9 @@ for seed = startSeed:max_seed
     if showVoid
         voidLocations = readDataBlocks(boundaryStr, 2);
         voidArea = zeros(NFRAMES,1);
+    end
+    if showCornersOrEdges
+        edgeLocations = readDataBlocks(edgeStr, 2);
     end
     
     for ff = FSTART:FSTEP:FEND
@@ -257,21 +264,26 @@ for seed = startSeed:max_seed
             plot([viewLxLow viewLx viewLx viewLxLow viewLxLow], [viewLyLow viewLyLow viewLy viewLy viewLyLow], 'k-', 'linewidth', 1.5);
         end
         
-        annotationStr = "$$t/\tau$$ = "+round(time(ff));
+        annotationStr = "$$t/\tau$$ = "+time(ff);
         annotation('textbox',[0.48, 0.5, 0, 0],...
             'interpreter', 'latex', 'String', annotationStr, 'Edgecolor','none', 'FitBoxToText','on');
         if showVoid
-            %scatter(voidLocations{ff}(:,1), voidLocations{ff}(:,2),30, 'black', 's','filled');
+            scatter(voidLocations{ff}(:,1), voidLocations{ff}(:,2),30, 'black', 's','filled');
             offset = 0;
             nff = ff- offset;
+            if (nff > length(voidLocations))
+                continue
+            end
             if (nff > 0)
-                plot(voidLocations{nff}(:,1)...
-                    , voidLocations{nff}(:,2)...
-                    ,'k-', 'linewidth', 3);
-                voidArea(ff) = polyarea(voidLocations{nff}(:,1), voidLocations{nff}(:,2));
+                %plot(voidLocations{nff}(:,1)...
+                %    , voidLocations{nff}(:,2)...
+                %    ,'k-', 'linewidth', 3);
+                %voidArea(ff) = polyarea(voidLocations{nff}(:,1), voidLocations{nff}(:,2));
             end
         end
-
+        if showCornersOrEdges
+            scatter(edgeLocations{ff}(:,1), edgeLocations{ff}(:,2), 30, 'black', 'x');
+        end
         % if making a movie, save frame
         if makeAMovie == 1
             currframe = getframe(gcf);

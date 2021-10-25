@@ -9,12 +9,12 @@
 // damped MD dynamics.
 //
 // Compilation command:
-// g++ -O3 --std=c++11 -I src main/epi2D/laserAblation.cpp src/dpm.cpp src/epi2D.cpp -o main/epi2D/laserAblation.o
+// g++ -O3 --std=c++11 -g -I src main/epi2D/laserAblation.cpp src/dpm.cpp src/epi2D.cpp -o main/epi2D/laserAblation.o
 // ./main/epi2D/laserAblation.o 48 20 10 1.08 0.2 0.85 1.0 0.3 0.5 1.0 0.5 1 1 1000 pos.test energy.test stress.test void.test
 // ./main/epi2D/laserAblation.o 24 20 5 1.08 0.2 0.85 1.0 0.1 0 1.0 0.5 1 1 1000 pos.test energy.test stress.test void.test
 // ./main/epi2D/laserAblation.o 24 20 5 1.08 0.2 0.85 1.0 0 0 1.0 0.1 0 1 100 pos.test energy.test stress.test void.test
 // ./main/epi2D/laserAblation.o 24 20 5 1.08 0.2 0.85 1.0 0.3 0 1.0 0.1 0 1 100 pos.test energy.test stress.test void.test
-// ./main/epi2D/laserAblation.o 24 20 4 1.08 0.9 0.9 1.0 0.3 0.5 1.0 0.5 0 1 50 pos.test energy.test stress.test void.test
+// ./main/epi2D/laserAblation.o 24 20 4 1.08 0.9 0.9 1.0 0.3 0.5 1.0 0.5 0 1 300 pos.test energy.test stress.test void.test
 // ./main/epi2D/laserAblation.o 48 20 10 1.08 0.85 0.85 1.0 0.3 0.5 1.0 0.5 0 1 1000 pos.test energy.test stress.test void.test
 //
 // Parameter input list
@@ -88,6 +88,7 @@ int main(int argc, char const* argv[]) {
   string energyFile = argv[16];
   string stressFile = argv[17];
   string voidFile = argv[18];
+  string edgeFile = "edge.test";
 
   // using sstreams to get parameters
   stringstream NCELLSss(NCELLS_str);
@@ -133,6 +134,7 @@ int main(int argc, char const* argv[]) {
   epithelial.openEnergyObject(energyFile);
   epithelial.openStressObject(stressFile);
   epithelial.openBoundaryObject(voidFile);
+  epithelial.openEdgeObject(edgeFile);
 
   // set spring constants
   epithelial.setka(ka);

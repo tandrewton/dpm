@@ -444,12 +444,7 @@ void epi2D::regridSegment(int wVertIndex, double vrad) {
     cout << "deleteList has " << deleteList.size()
          << "vertices in it, and we are asked to delete " << numVertsToDelete
          << " vertices\n";
-    // for (auto i : deleteList)
-    //   cout << "deleteList has element " << i << '\n';
-    //  printConfiguration2D();
     deleteVertex(deleteList);
-    //printConfiguration2D();
-    // printBoundaries();
   }
 }
 
@@ -587,6 +582,7 @@ void epi2D::vertexAttractiveForces2D_2() {
 
               // add to contacts
               for (int i = 0; i < vnn[gi].size(); i++) {
+                if (ci == cj) break;
                 if (vnn[gi][i] < 0) {
                   vnn[gi][i] = gj;
                   vnn[gj][i] = gi;
@@ -1709,13 +1705,6 @@ void epi2D::deleteVertex(std::vector<int> &deleteList) {
   // deleteList holds gi of indices to delete
   int vim1, vip1, ci, vi;
   for (auto i : deleteList) {
-    // from print to print, these lines of code are for debugging. delete later!
-    // 9/27/21
-    // printConfiguration2D();
-    // printBoundaries();
-    // printBoundaries();
-    // r[i] *= 2;
-    // printConfiguration2D();
     int ci, vi;
     cindices(ci, vi, i);
     nv[ci] -= 1;
@@ -1737,13 +1726,10 @@ void epi2D::deleteVertex(std::vector<int> &deleteList) {
     x.erase(x.begin() + NDIM * i, x.begin() + NDIM * (i + 1));
     F.erase(F.begin() + NDIM * i, F.begin() + NDIM * (i + 1));
 
-    // im1 = vector<int>(NVTOT, 0);
-    // ip1 = vector<int>(NVTOT, 0);
     for (int j = 1; j < NCELLS; j++) {
       szList[j] = szList[j - 1] + nv[j - 1];
     }
   }
-  // vertDOF = NDIM * NVTOT;
 
   // save list of adjacent vertices
   im1.resize(NVTOT);
@@ -1762,7 +1748,6 @@ void epi2D::deleteVertex(std::vector<int> &deleteList) {
     }
   }
   cout << "exiting deleteVertex\n";
-  // printConfiguration2D();
 }
 
 void epi2D::laserAblate(int numCellsAblated, double sizeRatio, int nsmall,
@@ -1811,7 +1796,7 @@ std::vector<int> epi2D::refineBoundaries() {
 
   int counter, k;
   fill(vnn_label.begin(), vnn_label.end(), -1);
-  // first refinement: vertices with 2 positive labels are non-adhering,
+  // first refinement: vertices with exactly 2 positive labels are non-adhering,
   // therefore void-adjacent (label 0)
   for (int gi = 0; gi < NVTOT; gi++) {
     // tally up how many neighbors each cell has
@@ -1891,10 +1876,6 @@ std::vector<int> epi2D::refineBoundaries() {
           vnn_label[j] = 2;
           vnn_label[dangling_end_label[j]] = 2;
           vnn_label[dangling_end_label[gi]] = 2;
-          // cout << "gi,j,dangle j, dangle gi = " << gi << '\t' << j << '\t'
-          //      << dangling_end_label[j] << '\t' << dangling_end_label[gi] <<
-          //      '\n';
-          // cout << vnn_label.size() << '\n';
         }
       }
     }
@@ -1902,7 +1883,7 @@ std::vector<int> epi2D::refineBoundaries() {
 
   // store void adjacent vertices and corner vertices.
   for (int gi = 0; gi < NVTOT; gi++) {
-    // get an occupation order for void-facing indices
+    // get an occupation order for void-facing indices. 0 is edge, 2 is corner
     if (vnn_label[gi] == 0 || vnn_label[gi] == 2)
       voidFacingVertexIndices.push_back(gi);
   }
@@ -1990,15 +1971,20 @@ void epi2D::printBoundaries(int nthLargestCluster) {
     cout << "new size (big) = " << big << '\n';
   }
 
-  /*// in no particular order, print out the wrapped locations of all main
-  cluster vertices for (int gi = 0; gi < NVTOT; gi++) { if (findRoot(gi, ptr) ==
-  mode) {
-      //if (vnn_label[gi] == 2) {
-      bout << x[gi * NDIM] << '\t' << x[gi * NDIM + 1] << '\n';
-    }
+  // in no particular order, print out the wrapped locations of all main
+  //  cluster vertices 
+  for (int gi = 0; gi < NVTOT; gi++) { 
+    //if (findRoot(gi, ptr) == mode) {
+    //if (vnn_label[gi] == 0 || vnn_label[gi] == 2 || vnn_label[gi] == 1 || vnn_label[gi] == -1 || vnn_label[gi] == -2) {
+    if (vnn_label[gi] == 0 || vnn_label[gi] == 2) {
+      edgeout << x[gi * NDIM] << '\t' << x[gi * NDIM + 1] << '\n';
+    }/* else 
+      cout << "I am vertex " << gi << "with label " << vnn_label[gi] 
+      << " at position " << x[gi * NDIM] << '\t' << x[gi * NDIM + 1] 
+      << ", simclock = " << simclock << '\n';*/
     //cout << "gi = " << gi << ", mode = " << mode << ", ptr[gi] = " << ptr[gi]
-  << ", findRoot = " << findRoot(gi, ptr) << '\n';
-  }*/
+    //    << ", findRoot = " << findRoot(gi, ptr) << '\n';
+  }
 
   // in order, print out the unwrapped locations of all main cluster vertices,
   // starting with a vertex in the big cluster
@@ -2115,6 +2101,7 @@ void epi2D::printBoundaries(int nthLargestCluster) {
 
   // indicate end of block, i.e. end of boundary matrix for this frame
   bout << "*EOB\n";
+  edgeout << "*EOB\n";
   cout << "leaving printBoundaries\n";
 }
 
