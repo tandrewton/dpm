@@ -107,6 +107,15 @@ double epi2D::meankb() {
   return val;
 }
 
+double epi2D::getPreferredPerimeter(int ci){
+  int gi0 = gindex(ci, 0);
+  double prefPerimeter = 0.0;
+  for (int gi = gi0; gi < gi0 + nv[ci]; gi++){
+    prefPerimeter += l0[gi];
+  }
+  return prefPerimeter;
+}
+
 double epi2D::vertDistNoPBC(int gi, int gj) {
   // not valid for PBC
   double dist = 0;
@@ -365,12 +374,44 @@ void epi2D::partialRegridCell(int ci, double vrad) {
 void epi2D::regridSegment(int wVertIndex, double vrad) {
   if (vnn_label[wVertIndex] != 0)
     return;
+
   // wVertIndex = index of one of the wound cells. from here we'll calculate the
   // rest take in a list of vertices that form a chain of line segments, and
   // return a linearly interpolated equivalent list of vertices
   int ci, vi, gi = wVertIndex, gj = wVertIndex;
   double d_T, newx, newy, T = 0, lerp, vdiam = vrad * 2, arc_length = 0;
+  double cx, cy, rip1x, rip1y, rix, riy, lix, liy, li;
   cindices(ci, vi, wVertIndex);
+  double L0tmp = getPreferredPerimeter(ci), L0new;
+  double LCurrent = perimeter(ci);
+
+  // regridSegment will adjust a cell's wound-adjacent # vertices and vertex positions to not overlap, deleting vertices and shifting as needed.
+  //   to maintain constant energy before and after regridding, need to calculate a number c and use it 
+  //   to adjust preferred total perimeter after regridding
+
+  // compute cell center of mass - don't necessarily need it, but it makes it easier to handle pbc if they are present.
+  com2D(ci, cx, cy);
+  // need ip1 to get rip1x, rip1y. need ? to get rix, riy. then rip1x, rix give lix. then li = lix^2 + liy^2.
+
+  double c_regrid = 0;
+  double deltaESegment = 0;
+  for (int gi = gindex(ci,0); gi < gindex(ci,0) + nv[ci]; gi++){
+    // get coordinates relative to center of mass
+    rix = x[NDIM * gi];
+    riy = x[NDIM * gi + 1];
+
+    // get next adjacent vertices
+    rip1x = x[NDIM * ip1[gi]];
+    rip1y = x[NDIM * ip1[gi] + 1];
+
+    lix = rip1x - rix;
+    liy = rip1y - riy;
+
+    li = sqrt(lix * lix + liy * liy);
+
+    deltaESegment += pow(li/l0[gi] - 1, 2);
+    //cout << li/l0[gi] << '\n';
+  }
 
   std::vector<int> unorderedWoundList = {wVertIndex}, deleteList;
   std::vector<double> result;
@@ -420,9 +461,8 @@ void epi2D::regridSegment(int wVertIndex, double vrad) {
     T += d_T;
   }
 
-  if (numVertsToDelete > 0) {
-    // cout << "deleting " << numVertsToDelete << " vertices in
-    // regridSegment!\n";
+  if (numVertsToDelete > 1) {
+    cout << "deleting " << numVertsToDelete << " vertices in regridSegment!\n";
     //printConfiguration2D();
     //  printBoundaries();
   }
@@ -441,10 +481,58 @@ void epi2D::regridSegment(int wVertIndex, double vrad) {
                          // in this interpolation algorithm?
 
   if (!deleteList.empty()) {
+    cout << "before delete\t" << nv[ci] << '\n';
+
     cout << "deleteList has " << deleteList.size()
-         << "vertices in it, and we are asked to delete " << numVertsToDelete
+         << " vertices in it, and we are asked to delete " << numVertsToDelete
          << " vertices\n";
     deleteVertex(deleteList);
+    cout << "after delete\t" << nv[ci] << '\n';
+
+    // after regridding and deleting, have all wound vertices set their preferred lengths to their current length. gives rigidity.
+    for (int i = 0; i < orderedWVerts.size(); i++){
+      gi = orderedWVerts[i];
+      l0[gi] = vertDistNoPBC(gi, ip1[gi]);
+    }
+    /*
+    // c_regrid is a difference between squared segment deviations before and after regridding 
+    for (int gi = gindex(ci,0); gi < gindex(ci,0) + nv[ci]; gi++){
+      // get coordinates relative to center of mass
+      rix = x[NDIM * gi];
+      riy = x[NDIM * gi + 1];
+
+      // get next adjacent vertices
+      rip1x = x[NDIM * ip1[gi]];
+      rip1y = x[NDIM * ip1[gi] + 1];
+
+      lix = rip1x - rix;
+      liy = rip1y - riy;
+
+      li = sqrt(lix * lix + liy * liy);
+
+      deltaESegment -= pow(li/l0[gi] - 1, 2);
+      cout << li/l0[gi] << '\n';
+
+
+    }
+    cout << "deltaESegment = " << deltaESegment << '\n';
+    c_regrid = -deltaESegment * kl/kL;
+    c_regrid += -pow(LCurrent/L0tmp,2) + 2 * LCurrent/L0tmp; 
+    cout << "c_regrid = " << c_regrid << '\n';
+    cout << "Lold - Lnew = " << LCurrent - perimeter(ci) << '\n';
+    LCurrent = perimeter(ci);
+    // calculate required new preferred total perimeter
+    //L0new = LCurrent / (1 + sqrt(1 - c_regrid));
+    cout << "LCurrent, L0new " << LCurrent << "," << L0new << '\n';
+
+    // redistribute perimeter to satisfy L0new
+    double missingPreferredPerimeterPerVertex = -(L0new - L0tmp)/nv[ci];
+    cout << "missing perimeter per particle = " << missingPreferredPerimeterPerVertex << '\n';
+    for (int gi = gindex(ci,0); gi < gindex(ci,0) + nv[ci]; gi++){
+      //l0[gi] += missingPreferredPerimeterPerVertex;
+      // schema 1: all vertices bear perimeter stress. <- current expectation
+      // schema 2: only wound edge vertices bear perimeter stress.
+    }*/
   }
 }
 
@@ -462,6 +550,256 @@ void epi2D::repulsiveForceWithCircularApertureWall() {
   shapeForces2D();
   vertexRepulsiveForces2D();
   circularApertureForces(radius);
+}
+
+void epi2D::epi_shapeForces2D() {
+  // difference from dpm::shapeForces2D is that this has an actual perimeter (L) force 
+  //   as opposed to a segment length force
+  // local variables
+  int ci, gi, vi, nvtmp;
+  double fa, fL, fli, flim1, fb, cx, cy, xi, yi;
+  double rho0, l0im1, l0i, L0tmp, Ltmp, a0tmp, atmp;
+  double dx, dy, da, dL, dli, dlim1, dtim1, dti, dtip1;
+  double lim2x, lim2y, lim1x, lim1y, lix, liy, lip1x, lip1y, li, lim1;
+  double rim2x, rim2y, rim1x, rim1y, rix, riy, rip1x, rip1y, rip2x, rip2y;
+  double nim1x, nim1y, nix, niy, sinim1, sini, sinip1, cosim1, cosi, cosip1;
+  double ddtim1, ddti;
+  double forceX, forceY;
+  double unwrappedX, unwrappedY;
+
+  // loop over vertices, add to force
+  rho0 = sqrt(a0.at(0));
+  ci = 0;
+  for (gi = 0; gi < NVTOT; gi++) {
+    // -- Area force (and get cell index ci)
+    if (ci < NCELLS) {
+      if (gi == szList[ci]) {
+        // shape information
+        nvtmp = nv[ci];
+        a0tmp = a0[ci];
+        L0tmp = getPreferredPerimeter(ci);
+
+        // preferred segment length of last segment
+        l0im1 = l0[im1[gi]];
+
+        // compute area deviation
+        atmp = area(ci);
+        da = (atmp / a0tmp) - 1.0;
+
+        // compute perimeter deviation
+        Ltmp = perimeter(ci);
+        dL = (Ltmp / L0tmp) - 1.0;
+
+        // update potential energy
+        U += 0.5 * ka * (da * da);
+        cellU[ci] += 0.5 * ka * (da * da);
+
+        // shape force parameters
+        fa = ka * da * (rho0 / a0tmp);
+        fb = kb * rho0;
+
+        // compute cell center of mass
+        xi = x[NDIM * gi];
+        yi = x[NDIM * gi + 1];
+        cx = xi;
+        cy = yi;
+        for (vi = 1; vi < nvtmp; vi++) {
+          // get distances between vim1 and vi
+          dx = x[NDIM * (gi + vi)] - xi;
+          dy = x[NDIM * (gi + vi) + 1] - yi;
+          if (pbc[0])
+            dx -= L[0] * round(dx / L[0]);
+          if (pbc[1])
+            dy -= L[1] * round(dy / L[1]);
+
+          // add to centers
+          xi += dx;
+          yi += dy;
+
+          cx += xi;
+          cy += yi;
+        }
+        cx /= nvtmp;
+        cy /= nvtmp;
+
+        // get coordinates relative to center of mass
+        rix = x[NDIM * gi] - cx;
+        riy = x[NDIM * gi + 1] - cy;
+
+        // get prior adjacent vertices
+        rim2x = x[NDIM * im1[im1[gi]]] - cx;
+        rim2y = x[NDIM * im1[im1[gi]] + 1] - cy;
+        if (pbc[0])
+          rim2x -= L[0] * round(rim2x / L[0]);
+        if (pbc[1])
+          rim2y -= L[1] * round(rim2y / L[1]);
+
+        rim1x = x[NDIM * im1[gi]] - cx;
+        rim1y = x[NDIM * im1[gi] + 1] - cy;
+        if (pbc[0])
+          rim1x -= L[0] * round(rim1x / L[0]);
+        if (pbc[1])
+          rim1y -= L[1] * round(rim1y / L[1]);
+
+        // get prior segment vectors
+        lim2x = rim1x - rim2x;
+        lim2y = rim1y - rim2y;
+
+        lim1x = rix - rim1x;
+        lim1y = riy - rim1y;
+
+        // increment cell index
+        ci++;
+      }
+    }
+    //unwrapped vertex coordinate
+    unwrappedX = cx + rix;
+    unwrappedY = cy + riy;
+
+    // preferred segment length
+    l0i = l0[gi];
+
+    // get next adjacent vertices
+    rip1x = x[NDIM * ip1[gi]] - cx;
+    rip1y = x[NDIM * ip1[gi] + 1] - cy;
+    if (pbc[0])
+      rip1x -= L[0] * round(rip1x / L[0]);
+    if (pbc[1])
+      rip1y -= L[1] * round(rip1y / L[1]);
+
+    // -- Area force (comes from a cross product)
+    forceX = 0.5 * fa * (rim1y - rip1y);
+    forceY = 0.5 * fa * (rip1x - rim1x);
+    F[NDIM * gi] += forceX;
+    F[NDIM * gi + 1] += forceY;
+
+    fieldShapeStress[gi][0] += unwrappedX * forceX;
+    fieldShapeStress[gi][1] += unwrappedY * forceY;
+    fieldShapeStress[gi][2] += unwrappedX * forceY;
+
+    // -- Perimeter force
+    lix = rip1x - rix;
+    liy = rip1y - riy;
+
+    // segment lengths
+    lim1 = sqrt(lim1x * lim1x + lim1y * lim1y);
+    li = sqrt(lix * lix + liy * liy);
+
+    // segment deviations (note: m is prior vertex, p is next vertex i.e. gi - 1, gi + 1 mod the right number of vertices)
+    dlim1 = (lim1 / l0im1) - 1.0;
+    dli = (li / l0i) - 1.0;
+
+    // segment forces
+    flim1 = kl * (rho0 / l0im1);
+    fli = kl * (rho0 / l0i);
+
+    // perimeter force 
+    fL = kL * (rho0 / L0tmp);
+
+    // add to forces
+    forceX = (fli * dli * lix / li) - (flim1 * dlim1 * lim1x / lim1);
+    forceY = (fli * dli * liy / li) - (flim1 * dlim1 * lim1y / lim1);
+    F[NDIM * gi] += forceX;
+    F[NDIM * gi + 1] += forceY;
+
+    // fL, dL - Andrew 10/28/21 - total perimeter force for cts. energy while regridding
+    //   (distinct from original segment force)
+    forceX = fL * dL * (lix - lim1x) / L0tmp;
+    forceY = fL * dL * (liy - lim1y) / L0tmp;
+    F[NDIM * gi] += forceX;
+    F[NDIM * gi + 1] += forceY;
+
+    // note - Andrew here, confirmed that the shape stress matrix is diagonal as written
+    fieldShapeStress[gi][0] += unwrappedX * forceX;
+    fieldShapeStress[gi][1] += unwrappedY * forceY;
+    fieldShapeStress[gi][2] += unwrappedX * forceY;
+
+    // update potential energy
+    U += 0.5 * kl * (dli * dli);
+    cellU[ci] += 0.5 * kl * (dli * dli);
+
+    // -- Bending force
+    if (kb > 0) {
+      // get ip2 for third angle
+      rip2x = x[NDIM * ip1[ip1[gi]]] - cx;
+      rip2y = x[NDIM * ip1[ip1[gi]] + 1] - cy;
+      if (pbc[0])
+        rip2x -= L[0] * round(rip2x / L[0]);
+      if (pbc[1])
+        rip2y -= L[1] * round(rip2y / L[1]);
+
+      // get last segment length
+      lip1x = rip2x - rip1x;
+      lip1y = rip2y - rip1y;
+
+      // get angles
+      sinim1 = lim1x * lim2y - lim1y * lim2x;
+      cosim1 = lim1x * lim2x + lim1y * lim2y;
+
+      sini = lix * lim1y - liy * lim1x;
+      cosi = lix * lim1x + liy * lim1y;
+
+      sinip1 = lip1x * liy - lip1y * lix;
+      cosip1 = lip1x * lix + lip1y * liy;
+
+      // get normal vectors
+      nim1x = lim1y;
+      nim1y = -lim1x;
+
+      nix = liy;
+      niy = -lix;
+
+      // get change in angles
+      dtim1 = atan2(sinim1, cosim1) - t0[im1[gi]];
+      dti = atan2(sini, cosi) - t0[gi];
+      dtip1 = atan2(sinip1, cosip1) - t0[ip1[gi]];
+
+      // get delta delta theta's
+      ddtim1 = (dti - dtim1) / (lim1 * lim1);
+      ddti = (dti - dtip1) / (li * li);
+
+      // add to force
+      F[NDIM * gi] += fb * (ddtim1 * nim1x + ddti * nix);
+      F[NDIM * gi + 1] += fb * (ddtim1 * nim1y + ddti * niy);
+
+      // update potential energy
+      U += 0.5 * kb * (dti * dti);
+      cellU[ci] += 0.5 * kb * (dti * dti);
+    }
+
+    // update old coordinates
+    rim2x = rim1x;
+    rim1x = rix;
+    rix = rip1x;
+
+    rim2y = rim1y;
+    rim1y = riy;
+    riy = rip1y;
+
+    // update old segment vectors
+    lim2x = lim1x;
+    lim2y = lim1y;
+
+    lim1x = lix;
+    lim1y = liy;
+
+    // update old preferred segment length
+    l0im1 = l0i;
+  }
+
+  // normalize per-cell stress by preferred cell area
+  for (int ci = 0; ci < NCELLS; ci++) {
+    for (int vi = 0; vi < nv[ci]; vi++) {
+      int gi = gindex(ci, vi);
+      fieldShapeStressCells[ci][0] += fieldShapeStress[gi][0];
+      fieldShapeStressCells[ci][1] += fieldShapeStress[gi][1];
+      fieldShapeStressCells[ci][2] += fieldShapeStress[gi][2];
+    }
+    // nondimensionalize the stress
+    fieldShapeStressCells[ci][0] *= rho0 / a0[ci];
+    fieldShapeStressCells[ci][1] *= rho0 / a0[ci];
+    fieldShapeStressCells[ci][2] *= rho0 / a0[ci];
+  }
 }
 
 void epi2D::vertexAttractiveForces2D_2() {
@@ -743,7 +1081,7 @@ void epi2D::vertexAttractiveForces2D_2() {
 
 void epi2D::attractiveForceUpdate_2() {
   resetForcesAndEnergy();
-  shapeForces2D();
+  epi_shapeForces2D();
   vertexAttractiveForces2D_2();
 }
 
@@ -1215,7 +1553,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
       for (int i = 0; i < nv[0]; i++) {
         initialPreferredPerimeter += l0[i];
       }
-      purseStringContraction(0.01);
+      purseStringContraction(0.001);
     }
 
     for (i = 0; i < vertDOF; i++) {
@@ -1573,7 +1911,11 @@ int epi2D::getIndexOfCellLocatedHere(double xLoc, double yLoc) {
       std::distance(distanceSq.begin(),
                     std::min_element(distanceSq.begin(), distanceSq.end()));
 
-  std::cout << "\nexiting getCellIndexHere\n";
+  com2D(argmin, cx, cy);
+
+  std::cout << "\ndistanceSq[argmin] = " << distanceSq[argmin] << ", armgin = " << argmin << '\n';
+  std::cout << "cx[argmin], cy[argmin] = " << cx << '\t' << cy << '\n';
+  //std::cout << "\nexiting getCellIndexHere\n";
   return argmin;
 }
 
@@ -1592,6 +1934,9 @@ void epi2D::deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc) {
 
   // cell index of center cell, to be deleted
   int deleteIndex = getIndexOfCellLocatedHere(xLoc, yLoc);
+  double cx, cy;
+  com2D(deleteIndex, cx, cy);
+  cout << "deleting cell " << deleteIndex << " at position " <<  cx << '\t' << cy << '\n';
 
   // isDeleteLarge is true if deleting a large particle, false if small.
   bool isDeleteLarge = (nv[deleteIndex] == largeNV);
@@ -1614,6 +1959,10 @@ void epi2D::deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc) {
 
   // degree of freedom counts
   vertDOF = NDIM * NVTOT;
+
+    // sum up number of vertices of each cell until reaching the cell to delete
+  int sumVertsUntilGlobalIndex = szList[deleteIndex];
+
 
   // adjust szList and nv, which keep track of global vertex indices
   // szList stores gi of each cell. To account for a deleted particle, delete
@@ -1638,6 +1987,7 @@ void epi2D::deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc) {
   fieldShapeStressCells.erase(fieldShapeStressCells.begin() + deleteIndex);
 
   int deleteIndexGlobal = gindex(deleteIndex, 0);
+  cout << "deleteIndexGlobal = " << deleteIndexGlobal << '\n';
 
   // remove one largeNV or smallNV worth of indices from vectors with dimension
   // (NVTOT)
@@ -1657,8 +2007,10 @@ void epi2D::deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc) {
   vnn_label.erase(vnn_label.begin() + deleteIndexGlobal,
                   vnn_label.begin() + deleteIndexGlobal + numVertsDeleted);
 
-  // sum up number of vertices of each cell until reaching the cell to delete
-  int sumVertsUntilGlobalIndex = szList[deleteIndex];
+
+  for (int i = 0; i < nv[deleteIndex]; i++){
+    cout << x[NDIM*sumVertsUntilGlobalIndex+2*i] << '\t' << x[NDIM*sumVertsUntilGlobalIndex + 2*i + 1] << '\n';
+  }
 
   // remove an entire cell of indices (NDIM*numVertsDeleted), for vectors of
   // dimension (vertDOF)
@@ -1668,6 +2020,13 @@ void epi2D::deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc) {
           x.begin() + NDIM * (sumVertsUntilGlobalIndex + numVertsDeleted));
   F.erase(F.begin() + NDIM * sumVertsUntilGlobalIndex,
           F.begin() + NDIM * (sumVertsUntilGlobalIndex + numVertsDeleted));
+
+  /*for (int i = 0; i < nv[deleteIndex]; i++){
+    cout << x[NDIM*sumVertsUntilGlobalIndex+2*i] << '\t' << x[NDIM*sumVertsUntilGlobalIndex + 2*i + 1] << '\n';
+  }*/
+
+  cout << "done printing copy \n";
+
 
   // save list of adjacent vertices
   im1 = vector<int>(NVTOT, 0);
@@ -1976,14 +2335,9 @@ void epi2D::printBoundaries(int nthLargestCluster) {
   for (int gi = 0; gi < NVTOT; gi++) { 
     //if (findRoot(gi, ptr) == mode) {
     //if (vnn_label[gi] == 0 || vnn_label[gi] == 2 || vnn_label[gi] == 1 || vnn_label[gi] == -1 || vnn_label[gi] == -2) {
-    if (vnn_label[gi] == 0 || vnn_label[gi] == 2) {
-      edgeout << x[gi * NDIM] << '\t' << x[gi * NDIM + 1] << '\n';
-    }/* else 
-      cout << "I am vertex " << gi << "with label " << vnn_label[gi] 
-      << " at position " << x[gi * NDIM] << '\t' << x[gi * NDIM + 1] 
-      << ", simclock = " << simclock << '\n';*/
-    //cout << "gi = " << gi << ", mode = " << mode << ", ptr[gi] = " << ptr[gi]
-    //    << ", findRoot = " << findRoot(gi, ptr) << '\n';
+    if (vnn_label[gi] == 0 || vnn_label[gi] == 2 || vnn_label[gi] == 1 || vnn_label[gi] == -2) {
+      edgeout << x[gi * NDIM] << '\t' << x[gi * NDIM + 1] << '\t' << vnn_label[gi] << '\n';
+    }
   }
 
   // in order, print out the unwrapped locations of all main cluster vertices,

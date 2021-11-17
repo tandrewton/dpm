@@ -29,6 +29,9 @@ protected:
   // NOTE: will need to add different Hessian computation
   std::vector<double> kbi;
 
+  // perimeter energy
+  double kL;
+
   // vertex-vertex contact network
   std::vector<bool> gij;
 
@@ -175,6 +178,7 @@ public:
 
   // setters
   void setkbi(double val) { fill(kbi.begin(), kbi.end(), val); };
+  void setkL(double val) { kL = val;}
   void setRandPsi() {
     for (int ci = 0; ci < NCELLS; ci++)
       psi[ci] = (2.0 * drand48() - 1.0) * PI;
@@ -201,6 +205,7 @@ public:
   double meanl0();
   double meancalA0();
   double meankb();
+  double getPreferredPerimeter(int ci);
   double distanceLineAndPoint(double x1, double y1, double x2, double y2,
                               double x0, double y0);
   void directorDiffusion();
@@ -212,6 +217,7 @@ public:
   void repulsiveForceUpdateWithWalls();
   void vertexAttractiveForces2D_2();
   void attractiveForceUpdate_2();
+  void epi_shapeForces2D();
   void activeAttractiveForceUpdate();
   void substrateadhesionAttractiveForceUpdate();
   void repulsiveForceWithCircularApertureWall();
