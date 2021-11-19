@@ -1149,7 +1149,7 @@ void dpm::shapeForces2D() {
   double fa, fli, flim1, fb, cx, cy, xi, yi;
   double rho0, l0im1, l0i, a0tmp, atmp;
   double dx, dy, da, dli, dlim1, dtim1, dti, dtip1;
-  double lim2x, lim2y, lim1x, lim1y, lix, liy, lip1x, lip1y, li, lim1; // im1 is the last segment index?
+  double lim2x, lim2y, lim1x, lim1y, lix, liy, lip1x, lip1y, li, lim1;
   double rim2x, rim2y, rim1x, rim1y, rix, riy, rip1x, rip1y, rip2x, rip2y;
   double nim1x, nim1y, nix, niy, sinim1, sini, sinip1, cosim1, cosi, cosip1;
   double ddtim1, ddti;
@@ -1269,7 +1269,7 @@ void dpm::shapeForces2D() {
     lim1 = sqrt(lim1x * lim1x + lim1y * lim1y);
     li = sqrt(lix * lix + liy * liy);
 
-    // segment deviations
+    // segment deviations (note: m is prior vertex, p is next vertex i.e. gi - 1, gi + 1 mod the right number of vertices)
     dlim1 = (lim1 / l0im1) - 1.0;
     dli = (li / l0i) - 1.0;
 

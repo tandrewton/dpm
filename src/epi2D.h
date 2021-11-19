@@ -90,10 +90,6 @@ protected:
   // simclock's last value before substrate adhesion springs update
   double previousUpdateSimclock;
 
-  // simclock's value for the most recent vertex deletion during
-  // purseStringContraction
-  double previousDeletionSimclock = 0;
-
   bool boolStopDeleting = false;
 
   // initial vertex radii before purseString shrinkage

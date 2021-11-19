@@ -1546,14 +1546,15 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
   // loop over time, print energy
   while (simclock - t0 < duration) {
     // VV POSITION UPDATE
-    if (simclock - t0 > 10 && (simclock - previousDeletionSimclock) > 1.0) {
+    if (simclock - t0 > 10) {
       // std::vector<int> oneVec(1, 1);
       // deleteVertex(oneVec);
       initialPreferredPerimeter = 0;
       for (int i = 0; i < nv[0]; i++) {
         initialPreferredPerimeter += l0[i];
       }
-      purseStringContraction(0.001);
+      // purseStringContraction(0.01) is fast (~100 tau), 0.001 is slow (~1000 tau).
+      purseStringContraction(0.01);
     }
 
     for (i = 0; i < vertDOF; i++) {
@@ -1605,8 +1606,9 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
     simclock += dt;
     // print to console and file
     if (int(printInterval) != 0) {
-      if (int((simclock - t0) / dt) % NPRINTSKIP == 0 &&
-          (simclock - temp_simclock) > printInterval / 2) {
+      /*if (int((simclock - t0) / dt) % NPRINTSKIP == 0 &&
+          (simclock - temp_simclock) > printInterval / 2) {*/
+      if (int((simclock - t0) / dt) % NPRINTSKIP == 0) {
         temp_simclock = simclock;
         // compute kinetic energy
         K = vertexKineticEnergy();
@@ -2221,6 +2223,21 @@ std::vector<int> epi2D::refineBoundaries() {
       }
     }
   }
+
+  for (int gi = 0; gi < NVTOT; gi++){
+    // for all dangling ends, if it has more than 2 dangling end
+    //  neighbors then it is not a corner and should be ignored (set to -3)
+    if (vnn_label[gi] == -2){
+      int danglingCounter = 0;
+      for (auto i : vnn[gi]){
+        if (vnn_label[i] == -2 || vnn_label[i] == -3) danglingCounter++;
+      }
+      if (danglingCounter > 2){
+        vnn_label[gi] = -3;
+      }
+    }
+  }
+
   for (int gi = 0; gi < NVTOT; gi++) {
     // if vertex is an unlabeled neighbor of a dangling end
     if (vnn_label[gi] == -2) {
@@ -2240,7 +2257,7 @@ std::vector<int> epi2D::refineBoundaries() {
     }
   }
 
-  // store void adjacent vertices and corner vertices.
+  // Done with refineminets. Store void adjacent vertices and corner vertices.
   for (int gi = 0; gi < NVTOT; gi++) {
     // get an occupation order for void-facing indices. 0 is edge, 2 is corner
     if (vnn_label[gi] == 0 || vnn_label[gi] == 2)
@@ -2288,6 +2305,8 @@ void epi2D::NewmanZiff(std::vector<int> &ptr, int empty, int &mode, int &big) {
   }
 }
 
+// printBoundaries will determine the (nth) largest cluster size, save it to the epi2D object, and print it. 
+//  affects where purse-string is
 void epi2D::printBoundaries(int nthLargestCluster) {
   cerr << "entering printBoundaries\n";
   // empty is the maximum negative cluster size

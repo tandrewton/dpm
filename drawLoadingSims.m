@@ -232,7 +232,7 @@ for seed = startSeed:max_seed
             for nn = 1:NCELLS
                 xtmp = xpos{nn};
                 ytmp = ypos{nn};
-                l0tmp = l0(nn);
+                l0tmp = l0{nn};
                 if (showPrincipalStressDirections)
                     ell_clr = ellCLR(nn,:);
                 end
@@ -260,8 +260,10 @@ for seed = startSeed:max_seed
                     rx = xtmp - cx;
                     ry = ytmp - cy;
                     rads = sqrt(rx.^2 + ry.^2);
-                    xtmp = xtmp + 0.4*l0tmp*(rx./rads);
-                    ytmp = ytmp + 0.4*l0tmp*(ry./rads);
+                    %note: l0tmp(1) hardcoded here, since l0 does not
+                    %change in this simulation
+                    xtmp = xtmp + 0.4*l0tmp(1)*(rx./rads);
+                    ytmp = ytmp + 0.4*l0tmp(1)*(ry./rads);
                     for xx = itLow:itHigh
                         for yy = itLow:itHigh
                             vpos = [xtmp + xx*Lx, ytmp + yy*Ly];

@@ -40,7 +40,7 @@ walls = 0;
 %disable showVoid if using printConfig on its own, outside of
 %dampedNVE/dampedNP0 routines
 showVoid = 1;
-showCornersOrEdges = 0;
+showCornersOrEdges = 1;
  
 %PC directory
 pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
@@ -159,7 +159,7 @@ for seed = startSeed:max_seed
         voidArea = zeros(NFRAMES,1);
     end
     if showCornersOrEdges
-        edgeLocations = readDataBlocks(edgeStr, 2);
+        edgeLocations = readDataBlocks(edgeStr, 3);
     end
     
     for ff = FSTART:FSTEP:FEND
@@ -211,8 +211,8 @@ for seed = startSeed:max_seed
                 rx = xtmp - cx;
                 ry = ytmp - cy;
                 rads = sqrt(rx.^2 + ry.^2);
-                xtmp = xtmp + 0.4*l0tmp(vv)*(rx./rads);
-                ytmp = ytmp + 0.4*l0tmp(vv)*(ry./rads);
+                xtmp = xtmp + 0.4*l0tmp(1)*(rx./rads);
+                ytmp = ytmp + 0.4*l0tmp(1)*(ry./rads);
                 for xx = itLow:itHigh
                     for yy = itLow:itHigh
                         vpos = [xtmp + xx*Lx, ytmp + yy*Ly];
@@ -282,7 +282,13 @@ for seed = startSeed:max_seed
             end
         end
         if showCornersOrEdges
-            scatter(edgeLocations{ff}(:,1), edgeLocations{ff}(:,2), 30, 'black', 'x');
+            %scatter(edgeLocations{ff}(:,1), edgeLocations{ff}(:,2), 30, 'black', 'x');
+            for k = 1:length(edgeLocations{ff}(:,1))
+                % plot text centered on an (x,y) point with label equal to the 3rd column value 
+                text(edgeLocations{ff}(k,1), edgeLocations{ff}(k,2),...
+                    num2str(edgeLocations{ff}(k,3)),...
+                    'HorizontalAlignment', 'Center', 'VerticalAlignment', 'Middle');
+            end
         end
         % if making a movie, save frame
         if makeAMovie == 1
