@@ -921,9 +921,17 @@ void epi2D::vertexAttractiveForces2D_2() {
               // add to contacts
               for (int i = 0; i < vnn[gi].size(); i++) {
                 if (ci == cj) break;
+
                 if (vnn[gi][i] < 0) {
-                  vnn[gi][i] = gj;
-                  vnn[gj][i] = gi;
+                  vnn[gi][i] = gj; // set the first unused array element to gj, in gi's neighbor list
+                  
+                  for (int j = 0; j < vnn[gj].size(); j++){
+                    if (vnn[gj][j] < 0) {
+                      vnn[gj][j] = gi; // set the first unused array element to gi, in gj's neighbor list
+                      break;
+                    }
+                  }
+                  
                   break;
                 }
               }
@@ -2200,7 +2208,7 @@ std::vector<int> epi2D::refineBoundaries() {
     }
   }
 
-  // NEW: fourth refinement: a dangling end is a 1-labeled vertex at this stage.
+  // NEW: fourth refinement: a dangling end is defined as a 1-labeled vertex at this stage.
   // To rescue two corner cases: cells with 1 or 2 vertices on the boundary,
   // which aren't caught by
   //    the previous refinements.
@@ -2225,14 +2233,15 @@ std::vector<int> epi2D::refineBoundaries() {
   }
 
   for (int gi = 0; gi < NVTOT; gi++){
-    // for all dangling ends, if it has more than 2 dangling end
+    // for all dangling ends, if it has more than 3 dangling end
     //  neighbors then it is not a corner and should be ignored (set to -3)
-    if (vnn_label[gi] == -2){
+    // 11/29/21 : not sure if this is a good criterion..
+    if (vnn_label[gi] == 1){
       int danglingCounter = 0;
       for (auto i : vnn[gi]){
         if (vnn_label[i] == -2 || vnn_label[i] == -3) danglingCounter++;
       }
-      if (danglingCounter > 2){
+      if (danglingCounter > 3){
         vnn_label[gi] = -3;
       }
     }
@@ -2257,11 +2266,26 @@ std::vector<int> epi2D::refineBoundaries() {
     }
   }
 
-  // Done with refineminets. Store void adjacent vertices and corner vertices.
+  // Done with refinements. Store void adjacent vertices and corner vertices.
   for (int gi = 0; gi < NVTOT; gi++) {
     // get an occupation order for void-facing indices. 0 is edge, 2 is corner
     if (vnn_label[gi] == 0 || vnn_label[gi] == 2)
       voidFacingVertexIndices.push_back(gi);
+  }
+
+  if (simclock < 104.994 && simclock > 104.993){
+     cout << "debug report: simclock = " << simclock << '\n';
+    for (int gi = 0; gi < NVTOT; gi++){
+      if (x[gi*NDIM] < 4.5 && x[gi*NDIM] > 4.3){
+        if (x[gi*NDIM + 1] < 3.4 && x[gi*NDIM + 1] > 3.2){
+          cout << "gi = " << gi << ", position of gi = " << x[gi * NDIM] << '\t' << x[gi*NDIM + 1] << "\n";
+          for (auto i : vnn[gi]){
+            cout << "neighbor of gi = " << vnn[gi][i] << "\t, label[neighbor] = " << vnn_label[i] << '\n';
+            cout << "position = " << x[i*NDIM] << '\t' << x[i*NDIM + 1] << '\n';
+          }
+        }
+      }
+    }
   }
 
   return voidFacingVertexIndices;
@@ -2354,7 +2378,8 @@ void epi2D::printBoundaries(int nthLargestCluster) {
   for (int gi = 0; gi < NVTOT; gi++) { 
     //if (findRoot(gi, ptr) == mode) {
     //if (vnn_label[gi] == 0 || vnn_label[gi] == 2 || vnn_label[gi] == 1 || vnn_label[gi] == -1 || vnn_label[gi] == -2) {
-    if (vnn_label[gi] == 0 || vnn_label[gi] == 2 || vnn_label[gi] == 1 || vnn_label[gi] == -2) {
+    if (vnn_label[gi] == 0 || vnn_label[gi] == 2 || vnn_label[gi] == 1 
+          || vnn_label[gi] == -1 || vnn_label[gi] == -2 || vnn_label[gi] == -3) {
       edgeout << x[gi * NDIM] << '\t' << x[gi * NDIM + 1] << '\t' << vnn_label[gi] << '\n';
     }
   }
