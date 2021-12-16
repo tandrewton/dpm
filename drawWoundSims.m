@@ -31,7 +31,7 @@ etaStr = " ";
 
 startSeed = 1;
 max_seed = 1;
-makeAMovie = 1;
+makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately
 showPeriodicImages = 0;
 showverts = 1;
 showBoundaries = 0;
@@ -39,7 +39,8 @@ showQuiver = 0;
 walls = 0;
 %disable showVoid if using printConfig on its own, outside of
 %dampedNVE/dampedNP0 routines
-showVoid = 1;
+showVoid = 0;
+showVoidBlack = 0; % print void in larger black circles to see easier
 showCornersOrEdges = 1;
  
 %PC directory
@@ -56,6 +57,7 @@ mkdir(subdir_output);
 %txt = 'N = '+N+', NV = '+NV+', calA_o='+calA+', att='+att+', B='+B;
 txt='test';
 
+fnum = 1;
 figure(13), clf, hold on, box on;
 for seed = startSeed:max_seed
     if (isTestData)
@@ -152,8 +154,9 @@ for seed = startSeed:max_seed
         boxAxHigh = 1;
     end
 
-    fnum = 1;
+
     figure(fnum), clf, hold on, box on;
+    
     if showVoid
         voidLocations = readDataBlocks(boundaryStr, 2);
         voidArea = zeros(NFRAMES,1);
@@ -165,11 +168,17 @@ for seed = startSeed:max_seed
     for ff = FSTART:FSTEP:FEND
         %nv can change, so recompute color map each frame
         [nvUQ, ~, IC] = unique(nonzeros(nv(ff,:).*(flag(ff,:)+1)));
+        %IC = IC * 0 + 1; % <- use for single colored configurations
         NUQ = length(nvUQ);
+        %NUQ = 8; % 1<- use for single colored configurations
         cellCLR = jet(NUQ);
-
         NCELLS = cell_count(ff);
+        
+        if ~makeAMovie
+            fnum = fnum+1;
+        end
         figure(fnum), clf, hold on, box on;
+
         fprintf('printing frame ff = %d/%d\n',ff,FEND);
 
         % get cell positions
@@ -268,7 +277,13 @@ for seed = startSeed:max_seed
         annotation('textbox',[0.48, 0.5, 0, 0],...
             'interpreter', 'latex', 'String', annotationStr, 'Edgecolor','none', 'FitBoxToText','on');
         if showVoid
-            scatter(voidLocations{ff}(:,1), voidLocations{ff}(:,2),30, 'black', 's','filled');
+            if showVoidBlack 
+                scatter(voidLocations{ff}(:,1), voidLocations{ff}(:,2),...
+                20, 'black', 's','filled');
+            else
+                scatter(voidLocations{ff}(:,1), voidLocations{ff}(:,2),...
+                10, 'red', '_');
+            end
             offset = 0;
             nff = ff- offset;
             if (nff > length(voidLocations))
@@ -287,7 +302,8 @@ for seed = startSeed:max_seed
                 % plot text centered on an (x,y) point with label equal to the 3rd column value 
                 text(edgeLocations{ff}(k,1), edgeLocations{ff}(k,2),...
                     num2str(edgeLocations{ff}(k,3)),...
-                    'HorizontalAlignment', 'Center', 'VerticalAlignment', 'Middle');
+                    'HorizontalAlignment', 'Center',...
+                    'VerticalAlignment', 'Middle', 'FontSize', 8);
             end
         end
         % if making a movie, save frame

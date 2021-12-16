@@ -186,7 +186,6 @@ void epi2D::regridCell(int ci, double vrad) {
       gi = gindex(ci, nv[ci] - 1 - i);
       cindices(cj, vj, gi);
       deleteList.push_back(gi);
-      assert(ci == cj);
     }
   } else {
     cout << "warning: nv_new >= nv[ci]\n";
@@ -374,9 +373,13 @@ void epi2D::partialRegridCell(int ci, double vrad) {
 void epi2D::regridSegment(int wVertIndex, double vrad) {
   if (vnn_label[wVertIndex] != 0)
     return;
+    
+  // regridSegment will adjust a cell's wound-adjacent # vertices and vertex positions to not overlap, deleting vertices and shifting as needed.
+  //   to maintain constant energy before and after regridding, need to calculate a number c and use it 
+  //   to adjust preferred total perimeter after regridding?
 
   // wVertIndex = index of one of the wound cells. from here we'll calculate the
-  // rest take in a list of vertices that form a chain of line segments, and
+  // rest, take in a list of vertices that form a chain of line segments, and
   // return a linearly interpolated equivalent list of vertices
   int ci, vi, gi = wVertIndex, gj = wVertIndex;
   double d_T, newx, newy, T = 0, lerp, vdiam = vrad * 2, arc_length = 0;
@@ -384,10 +387,6 @@ void epi2D::regridSegment(int wVertIndex, double vrad) {
   cindices(ci, vi, wVertIndex);
   double L0tmp = getPreferredPerimeter(ci), L0new;
   double LCurrent = perimeter(ci);
-
-  // regridSegment will adjust a cell's wound-adjacent # vertices and vertex positions to not overlap, deleting vertices and shifting as needed.
-  //   to maintain constant energy before and after regridding, need to calculate a number c and use it 
-  //   to adjust preferred total perimeter after regridding
 
   // compute cell center of mass - don't necessarily need it, but it makes it easier to handle pbc if they are present.
   com2D(ci, cx, cy);
@@ -419,19 +418,23 @@ void epi2D::regridSegment(int wVertIndex, double vrad) {
   // find all the adjacent wound vertices, unordered
   // im1 = back neighbor, ip1 = front neighbor
   for (int i = 0; i < nv[ci]; i++) {
-    if (vnn_label[gi] == 0) {
+    // for later: might want to check that everyone is in the same segmentation
+    if (vnn_label[gi] == 0 || vnn_label[gi] == 2) { // if we are at an edge or a corner
       gi = im1[gi];
-      if (vnn_label[gi] == 0)
+      if (vnn_label[gi] == 0 || vnn_label[gi] == 2 || vnn_label[gi] == -3 || vnn_label[gi] == 1) // look for a neighbor that's an edge or a corner
         unorderedWoundList.insert(unorderedWoundList.begin(), gi);
     }
-    if (vnn_label[gj] == 0) {
+    if (vnn_label[gj] == 0 || vnn_label[gj] == 2) {
       gj = ip1[gj];
-      if (vnn_label[gj] == 0)
+      if (vnn_label[gj] == 0 || vnn_label[gj] == 2 || vnn_label[gj] == -3 || vnn_label[gj] == 1)
         unorderedWoundList.push_back(gj);
     }
   }
 
   std::vector<int> orderedWVerts = unorderedWoundList;
+
+  //orderedWVerts.push_back(ip1[gj]); // try extending the vertices to interpolate by one on each end
+  //orderedWVerts.insert(orderedWVerts.begin(), im1[gi]);
 
   for (int i = 0; i < orderedWVerts.size() - 1; i++) {
     arc_length += vertDistNoPBC(orderedWVerts[i], orderedWVerts[i + 1]);
@@ -477,6 +480,7 @@ void epi2D::regridSegment(int wVertIndex, double vrad) {
       deleteList.push_back(gi);
   }
 
+  //if (!deleteList.empty())
   deleteList.pop_back(); // don't delete the last vertex, it's not accounted for
                          // in this interpolation algorithm?
 
@@ -494,45 +498,6 @@ void epi2D::regridSegment(int wVertIndex, double vrad) {
       gi = orderedWVerts[i];
       l0[gi] = vertDistNoPBC(gi, ip1[gi]);
     }
-    /*
-    // c_regrid is a difference between squared segment deviations before and after regridding 
-    for (int gi = gindex(ci,0); gi < gindex(ci,0) + nv[ci]; gi++){
-      // get coordinates relative to center of mass
-      rix = x[NDIM * gi];
-      riy = x[NDIM * gi + 1];
-
-      // get next adjacent vertices
-      rip1x = x[NDIM * ip1[gi]];
-      rip1y = x[NDIM * ip1[gi] + 1];
-
-      lix = rip1x - rix;
-      liy = rip1y - riy;
-
-      li = sqrt(lix * lix + liy * liy);
-
-      deltaESegment -= pow(li/l0[gi] - 1, 2);
-      cout << li/l0[gi] << '\n';
-
-
-    }
-    cout << "deltaESegment = " << deltaESegment << '\n';
-    c_regrid = -deltaESegment * kl/kL;
-    c_regrid += -pow(LCurrent/L0tmp,2) + 2 * LCurrent/L0tmp; 
-    cout << "c_regrid = " << c_regrid << '\n';
-    cout << "Lold - Lnew = " << LCurrent - perimeter(ci) << '\n';
-    LCurrent = perimeter(ci);
-    // calculate required new preferred total perimeter
-    //L0new = LCurrent / (1 + sqrt(1 - c_regrid));
-    cout << "LCurrent, L0new " << LCurrent << "," << L0new << '\n';
-
-    // redistribute perimeter to satisfy L0new
-    double missingPreferredPerimeterPerVertex = -(L0new - L0tmp)/nv[ci];
-    cout << "missing perimeter per particle = " << missingPreferredPerimeterPerVertex << '\n';
-    for (int gi = gindex(ci,0); gi < gindex(ci,0) + nv[ci]; gi++){
-      //l0[gi] += missingPreferredPerimeterPerVertex;
-      // schema 1: all vertices bear perimeter stress. <- current expectation
-      // schema 2: only wound edge vertices bear perimeter stress.
-    }*/
   }
 }
 
@@ -1039,14 +1004,15 @@ void epi2D::vertexAttractiveForces2D_2() {
                 if (ci != cj) {
                   for (int i = 0; i < vnn[gi].size(); i++) {
                     if (vnn[gi][i] < 0) {
-                      vnn[gi][i] = gj;
-                      // do i need to double it up since attraction is 2-sided?
-                      // can try not looping and doing instead vnn[gj][i] = gi
-                      /*for (int j = 0; j < vnn[gj].size(); j++) {
-                      if (vnn[gj][j] < 0)
-                        vnn[gj][j] = gi;
-                      }*/
-                      vnn[gj][i] = gi;
+                      vnn[gi][i] = gj; // set the first unused array element to gj, in gi's neighbor list
+                      
+                      for (int j = 0; j < vnn[gj].size(); j++){
+                        if (vnn[gj][j] < 0) {
+                          vnn[gj][j] = gi; // set the first unused array element to gi, in gj's neighbor list
+                          break;
+                        }
+                      }
+                      
                       break;
                     }
                   }
@@ -2162,6 +2128,7 @@ void epi2D::boundaries() {
 std::vector<int> epi2D::refineBoundaries() {
   // refine the boundaries, return site occupations for Newman-Ziff.
   std::vector<int> voidFacingVertexIndices;
+  int c1, c2, c3, v1, v2, v3; // stores dangling_end_labels for neighbor decision later
 
   int counter, k;
   fill(vnn_label.begin(), vnn_label.end(), -1);
@@ -2218,15 +2185,33 @@ std::vector<int> epi2D::refineBoundaries() {
   //    Then we have found 3 or 4 corners, so we mark both dangling ends and 1
   //    or 2 vertices in-between as corners.
 
-  std::vector<int> dangling_end_label(NVTOT, -1);
+  std::vector<int> dangling_end_label(NVTOT, -1); // stores which vertex the dangling neighbor is a neighbor of
   for (int gi = 0; gi < NVTOT; gi++) {
     if (vnn_label[gi] == 1) {
       for (auto i : vnn[gi]) {
         // assign unlabeled neighbors of dangling ends a -2 label.
-        if (vnn_label[i] == -1) {
+        if (vnn_label[i] == -1 || vnn_label[i] == -2) {
           vnn_label[i] = -2;
-          dangling_end_label[i] = gi;
-          dangling_end_label[gi] = gi;
+
+          // if i (a dangling neighbor) already belongs to another vertex
+          //  let i belong to whichever vertex is in the same cell.
+          // Here, gi is the new potential owner, and dangling_end_label[i] is the old owner           
+          if (dangling_end_label[i] != -1) { 
+            cindices(c1, v1, i);
+            cindices(c2,v2, dangling_end_label[i]);
+            cindices(c3,v3, gi);
+            if (c1 == c3 && c1 != c2){ // i is in same cell as gi, but not its old owner
+              dangling_end_label[i] = gi;
+              dangling_end_label[gi] = gi;
+            }
+            // otherwise, do nothing (i.e. keep the old owner)
+          }
+          // otherwise, assign labels as normal.
+          else {
+            dangling_end_label[i] = gi;
+            dangling_end_label[gi] = gi;
+          }
+            
         }
       }
     }
@@ -2348,6 +2333,7 @@ void epi2D::printBoundaries(int nthLargestCluster) {
   NewmanZiff(ptr, empty, mode, big);
 
   cout << "mode = " << mode << '\n';
+  cout << "with size = " << big << '\n';
   // if I want something other than the largest cluster, change mode to identify
   // one of the smaller sized clusters
   if (nthLargestCluster > 1) {
@@ -2387,7 +2373,7 @@ void epi2D::printBoundaries(int nthLargestCluster) {
   // in order, print out the unwrapped locations of all main cluster vertices,
   // starting with a vertex in the big cluster
   cerr << "before ordering vertices\n";
-  int it = 0, maxit = 10;
+  int it = 0, middleit = 1000, maxit = 2000;
   int current_vertex = -2;
   bool stopSignal = false;
   double currentx, currenty, nextx, nexty;
@@ -2410,8 +2396,20 @@ void epi2D::printBoundaries(int nthLargestCluster) {
       it = 0;
       previous_vertex.push_back(current_vertex);
     }
+    // for debugging:
+    int badVertexIndex;
+    // end debugging
 
     for (auto i : vnn[current_vertex]) {
+      badVertexIndex = i;
+      // if i == -1, then we've found a dead end. backtrack (go back by one current_vertex) and try again
+      if (i == -1) {
+        current_vertex = previous_vertex.end()[-2];
+        //unwrapped_x.pop_back();
+        //unwrapped_x.pop_back();
+        break;
+      }
+
       // check i valid neighbor, points to the biggest cluster, and is not
       // already in the previous vertex list
       if (i >= 0 && findRoot(i, ptr) == mode &&
@@ -2436,11 +2434,12 @@ void epi2D::printBoundaries(int nthLargestCluster) {
         // cout << "breaking out of first for loop, in if statement\n";
         break;
 
-      } else if (it > 0) { // we have formed a closed loop, but have not
+      } else if (it > middleit) { // we have formed a closed loop, but have not
                            // traversed the entire cluster.
         // if the closed loop is large enough, we'll accept it as the main
         // closed loop and stop adding vertices
-        if (previous_vertex.size() >= big / 2) {
+        //if (previous_vertex.size() >= big / 2) {
+          if (previous_vertex.size() >= big / 2) {
           stopSignal = true;
           cout << "truncating; found a closed loop that's large enough!\n";
           break;
@@ -2472,6 +2471,7 @@ void epi2D::printBoundaries(int nthLargestCluster) {
 
               currentx = nextx;
               currenty = nexty;
+              cout << "cluster is too small, seeking alternate route\n";
               break;
             }
           }
@@ -2479,6 +2479,15 @@ void epi2D::printBoundaries(int nthLargestCluster) {
       }
     }
     it++;
+    /*// for debugging purposes:
+
+    cout << "exited void segmentation on vertex " << badVertexIndex << " at coordinates " 
+      << x[badVertexIndex*NDIM] << '\t' << x[badVertexIndex*NDIM + 1] << '\n';
+    for (int i = 0; i < unwrapped_x.size(); i+= 2){
+      int j = i/2;
+      cout << "vertex # " << j << "at position: " << unwrapped_x[i] << '\t' << unwrapped_x[i+1] << '\n';
+    }
+    // end debugging*/
     if (it >= maxit) {
       for (auto i : vnn[current_vertex])
         cout << "broken vertex is: " << current_vertex
@@ -2670,8 +2679,7 @@ void epi2D::purseStringContraction(double trate) {
   woundCells.erase(last, woundCells.end());
 
   // get a list of all indices for wound-facing vertices in a given cell ci
-  std::vector<std::vector<int>> woundVerts(
-      NCELLS); //, vector<int> (int (NVTOT/NCELLS), -1));
+  std::vector<std::vector<int>> woundVerts(NCELLS); //, vector<int> (int (NVTOT/NCELLS), -1));
   for (auto ci : woundCells) {
     for (int vi = 0; vi < nv[ci]; vi++) {
       int gi = gindex(ci, vi);
@@ -2701,6 +2709,9 @@ void epi2D::purseStringContraction(double trate) {
         // calculate new l0 for wound vertices, and keep track of loss of
         // perimeter
         int gi = woundVerts[ci][i];
+        // only shrink segments that point towards a wounded vertex
+        if (vnn_label[ip1[gi]] != 0 && vnn_label[ip1[gi]] != 2)
+          continue;
 
         remainderPerimeter -= l0[gi];
         l0[gi] *= exp(-trate * dt);
@@ -2708,19 +2719,21 @@ void epi2D::purseStringContraction(double trate) {
 
         shrunkV.push_back(gi);
 
-        int gj;
-        if (szList[ci] == 0)
-          gj = (gi + 1) % nv[ci];
-        else
-          gj = (((gi + 1) % szList[ci] % nv[ci]) + szList[ci]);
-        cindices(cj, vj, gj);
+        int gj; // j is a vertex next to i
+        for (int k = -1; k < 2; k+=2){
+          if (szList[ci] == 0)
+            gj = (gi + k) % nv[ci];
+          else
+            gj = (((gi + k) % szList[ci] % nv[ci]) + szList[ci]);
+          cindices(cj, vj, gj);
 
-        dij = pow(x[gi * NDIM] - x[gj * NDIM], 2) +
-              pow(x[gi * NDIM + 1] - x[gj * NDIM + 1], 2);
-        rij = pow((r[gi] + r[gj]) * tol, 2);
-        if (dij < rij) {
-          regridSegment(gi, r[gj]);
-          break;
+          dij = pow(x[gi * NDIM] - x[gj * NDIM], 2) +
+                pow(x[gi * NDIM + 1] - x[gj * NDIM + 1], 2);
+          rij = pow((r[gi] + r[gj]) * tol, 2);
+          if (dij < rij) {
+            regridSegment(gi, r[gj]); // regrid a chain of line segments around vertex gi
+            break;
+          }
         }
       }
       for (int i = 0; i < nv[ci]; i++) {
