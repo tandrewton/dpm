@@ -107,10 +107,10 @@ double epi2D::meankb() {
   return val;
 }
 
-double epi2D::getPreferredPerimeter(int ci){
+double epi2D::getPreferredPerimeter(int ci) {
   int gi0 = gindex(ci, 0);
   double prefPerimeter = 0.0;
-  for (int gi = gi0; gi < gi0 + nv[ci]; gi++){
+  for (int gi = gi0; gi < gi0 + nv[ci]; gi++) {
     prefPerimeter += l0[gi];
   }
   return prefPerimeter;
@@ -124,16 +124,15 @@ double epi2D::vertDistNoPBC(int gi, int gj) {
   return sqrt(dist);
 }
 
-double epi2D::distanceLineAndPoint(double x1, double y1, double x2, double y2,
-                                   double x0, double y0) {
+double epi2D::distanceLineAndPoint(double x1, double y1, double x2, double y2, double x0, double y0) {
   // get the distance from a line segment going through (x1,y1), (x2,y2) and a
   // point located at (x0,y0)
-  double l2 = pow(x2 - x1, 2) + pow(y2 - y1, 2); // |(pt2 - pt1)|^2
-  if (l2 == 0.0)                                 // pt2 == pt1 case
+  double l2 = pow(x2 - x1, 2) + pow(y2 - y1, 2);  // |(pt2 - pt1)|^2
+  if (l2 == 0.0)                                  // pt2 == pt1 case
     return sqrt(pow(x0 - x1, 2) + pow(y0 - y1, 2));
 
   double dot = (x0 - x1) * (x2 - x1) +
-               (y0 - y1) * (y2 - y1); // (pt0 - pt1) dot (pt2 - pt1)
+               (y0 - y1) * (y2 - y1);  // (pt0 - pt1) dot (pt2 - pt1)
   const double t = max(0.0, min(1.0, dot / l2));
   const double projectionx = x1 + t * (x2 - x1);
   const double projectiony = y1 + t * (y2 - y1);
@@ -283,8 +282,8 @@ void epi2D::partialRegridCell(int ci, double vrad) {
           break;
         }
       }
-    } else { // next elements of wverts needs to be non-corner adjacent. Last
-             // one should be corner adjacent.
+    } else {  // next elements of wverts needs to be non-corner adjacent. Last
+              // one should be corner adjacent.
       gi = wverts.back();
       // since gi + 1 is a corner of the first entry of wverts, the other edges
       // should start at gi - 1
@@ -373,9 +372,9 @@ void epi2D::partialRegridCell(int ci, double vrad) {
 void epi2D::regridSegment(int wVertIndex, double vrad) {
   if (vnn_label[wVertIndex] != 0)
     return;
-    
+
   // regridSegment will adjust a cell's wound-adjacent # vertices and vertex positions to not overlap, deleting vertices and shifting as needed.
-  //   to maintain constant energy before and after regridding, need to calculate a number c and use it 
+  //   to maintain constant energy before and after regridding, need to calculate a number c and use it
   //   to adjust preferred total perimeter after regridding?
 
   // wVertIndex = index of one of the wound cells. from here we'll calculate the
@@ -394,7 +393,7 @@ void epi2D::regridSegment(int wVertIndex, double vrad) {
 
   double c_regrid = 0;
   double deltaESegment = 0;
-  for (int gi = gindex(ci,0); gi < gindex(ci,0) + nv[ci]; gi++){
+  for (int gi = gindex(ci, 0); gi < gindex(ci, 0) + nv[ci]; gi++) {
     // get coordinates relative to center of mass
     rix = x[NDIM * gi];
     riy = x[NDIM * gi + 1];
@@ -408,8 +407,8 @@ void epi2D::regridSegment(int wVertIndex, double vrad) {
 
     li = sqrt(lix * lix + liy * liy);
 
-    deltaESegment += pow(li/l0[gi] - 1, 2);
-    //cout << li/l0[gi] << '\n';
+    deltaESegment += pow(li / l0[gi] - 1, 2);
+    // cout << li/l0[gi] << '\n';
   }
 
   std::vector<int> unorderedWoundList = {wVertIndex}, deleteList;
@@ -419,9 +418,9 @@ void epi2D::regridSegment(int wVertIndex, double vrad) {
   // im1 = back neighbor, ip1 = front neighbor
   for (int i = 0; i < nv[ci]; i++) {
     // for later: might want to check that everyone is in the same segmentation
-    if (vnn_label[gi] == 0 || vnn_label[gi] == 2) { // if we are at an edge or a corner
+    if (vnn_label[gi] == 0 || vnn_label[gi] == 2) {  // if we are at an edge or a corner
       gi = im1[gi];
-      if (vnn_label[gi] == 0 || vnn_label[gi] == 2 || vnn_label[gi] == -3 || vnn_label[gi] == 1) // look for a neighbor that's an edge or a corner
+      if (vnn_label[gi] == 0 || vnn_label[gi] == 2 || vnn_label[gi] == -3 || vnn_label[gi] == 1)  // look for a neighbor that's an edge or a corner
         unorderedWoundList.insert(unorderedWoundList.begin(), gi);
     }
     if (vnn_label[gj] == 0 || vnn_label[gj] == 2) {
@@ -433,8 +432,8 @@ void epi2D::regridSegment(int wVertIndex, double vrad) {
 
   std::vector<int> orderedWVerts = unorderedWoundList;
 
-  //orderedWVerts.push_back(ip1[gj]); // try extending the vertices to interpolate by one on each end
-  //orderedWVerts.insert(orderedWVerts.begin(), im1[gi]);
+  // orderedWVerts.push_back(ip1[gj]); // try extending the vertices to interpolate by one on each end
+  // orderedWVerts.insert(orderedWVerts.begin(), im1[gi]);
 
   for (int i = 0; i < orderedWVerts.size() - 1; i++) {
     arc_length += vertDistNoPBC(orderedWVerts[i], orderedWVerts[i + 1]);
@@ -466,8 +465,8 @@ void epi2D::regridSegment(int wVertIndex, double vrad) {
 
   if (numVertsToDelete > 1) {
     cout << "deleting " << numVertsToDelete << " vertices in regridSegment!\n";
-    //printConfiguration2D();
-    //  printBoundaries();
+    // printConfiguration2D();
+    //   printBoundaries();
   }
 
   for (int i = 0; i < orderedWVerts.size(); i++) {
@@ -480,9 +479,9 @@ void epi2D::regridSegment(int wVertIndex, double vrad) {
       deleteList.push_back(gi);
   }
 
-  //if (!deleteList.empty())
-  deleteList.pop_back(); // don't delete the last vertex, it's not accounted for
-                         // in this interpolation algorithm?
+  // if (!deleteList.empty())
+  deleteList.pop_back();  // don't delete the last vertex, it's not accounted for
+                          // in this interpolation algorithm?
 
   if (!deleteList.empty()) {
     cout << "before delete\t" << nv[ci] << '\n';
@@ -494,7 +493,7 @@ void epi2D::regridSegment(int wVertIndex, double vrad) {
     cout << "after delete\t" << nv[ci] << '\n';
 
     // after regridding and deleting, have all wound vertices set their preferred lengths to their current length. gives rigidity.
-    for (int i = 0; i < orderedWVerts.size(); i++){
+    for (int i = 0; i < orderedWVerts.size(); i++) {
       gi = orderedWVerts[i];
       l0[gi] = vertDistNoPBC(gi, ip1[gi]);
     }
@@ -518,7 +517,7 @@ void epi2D::repulsiveForceWithCircularApertureWall() {
 }
 
 void epi2D::epi_shapeForces2D() {
-  // difference from dpm::shapeForces2D is that this has an actual perimeter (L) force 
+  // difference from dpm::shapeForces2D is that this has an actual perimeter (L) force
   //   as opposed to a segment length force
   // local variables
   int ci, gi, vi, nvtmp;
@@ -617,7 +616,7 @@ void epi2D::epi_shapeForces2D() {
         ci++;
       }
     }
-    //unwrapped vertex coordinate
+    // unwrapped vertex coordinate
     unwrappedX = cx + rix;
     unwrappedY = cy + riy;
 
@@ -658,7 +657,7 @@ void epi2D::epi_shapeForces2D() {
     flim1 = kl * (rho0 / l0im1);
     fli = kl * (rho0 / l0i);
 
-    // perimeter force 
+    // perimeter force
     fL = kL * (rho0 / L0tmp);
 
     // add to forces
@@ -845,6 +844,9 @@ void epi2D::vertexAttractiveForces2D_2() {
                   cellU[ci] += 0.5 * kc * pow((1 - (rij / sij)), 2.0);
                 } else
                   ftmp = 0;
+              } else if (std::find(listTurnOffRepulsion.begin(), listTurnOffRepulsion.end(), gi) != listTurnOffRepulsion.end()) {
+                // if purseStringContraction determines that a vertex should not repel others intercellularly, turn it off here.
+                ftmp = 0;
               } else if (rij > cutij) {
                 // force scale
                 ftmp = kint * (xij - 1.0 - l2) / sij;
@@ -885,18 +887,19 @@ void epi2D::vertexAttractiveForces2D_2() {
 
               // add to contacts
               for (int i = 0; i < vnn[gi].size(); i++) {
-                if (ci == cj) break;
+                if (ci == cj)
+                  break;
 
                 if (vnn[gi][i] < 0) {
-                  vnn[gi][i] = gj; // set the first unused array element to gj, in gi's neighbor list
-                  
-                  for (int j = 0; j < vnn[gj].size(); j++){
+                  vnn[gi][i] = gj;  // set the first unused array element to gj, in gi's neighbor list
+
+                  for (int j = 0; j < vnn[gj].size(); j++) {
                     if (vnn[gj][j] < 0) {
-                      vnn[gj][j] = gi; // set the first unused array element to gi, in gj's neighbor list
+                      vnn[gj][j] = gi;  // set the first unused array element to gi, in gj's neighbor list
                       break;
                     }
                   }
-                  
+
                   break;
                 }
               }
@@ -963,6 +966,9 @@ void epi2D::vertexAttractiveForces2D_2() {
                     cellU[ci] += 0.5 * kc * pow((1 - (rij / sij)), 2.0);
                   } else
                     ftmp = 0;
+                } else if (std::find(listTurnOffRepulsion.begin(), listTurnOffRepulsion.end(), gi) != listTurnOffRepulsion.end()) {
+                  // if purseStringContraction determines that a vertex should not repel others intercellularly, turn it off here.
+                  ftmp = 0;
                 } else if (rij > cutij) {
                   // force scale
                   ftmp = kint * (xij - 1.0 - l2) / sij;
@@ -1004,15 +1010,15 @@ void epi2D::vertexAttractiveForces2D_2() {
                 if (ci != cj) {
                   for (int i = 0; i < vnn[gi].size(); i++) {
                     if (vnn[gi][i] < 0) {
-                      vnn[gi][i] = gj; // set the first unused array element to gj, in gi's neighbor list
-                      
-                      for (int j = 0; j < vnn[gj].size(); j++){
+                      vnn[gi][i] = gj;  // set the first unused array element to gj, in gi's neighbor list
+
+                      for (int j = 0; j < vnn[gj].size(); j++) {
                         if (vnn[gj][j] < 0) {
-                          vnn[gj][j] = gi; // set the first unused array element to gi, in gj's neighbor list
+                          vnn[gj][j] = gi;  // set the first unused array element to gi, in gj's neighbor list
                           break;
                         }
                       }
-                      
+
                       break;
                     }
                   }
@@ -1071,8 +1077,8 @@ void epi2D::activeAttractiveForceUpdate() {
   double xi, yi, nvtmp, dx, dy, cx, cy, r1, r2, grv, v0tmp, vmin, Ds, rnorm, ux,
       uy, rix, riy;
 
-  vmin = 1e-1 * v0; // min velocity
-  Ds = 0.2;         // active velocity spread parameter
+  vmin = 1e-1 * v0;  // min velocity
+  Ds = 0.2;          // active velocity spread parameter
 
   directorDiffusion();
 
@@ -1166,8 +1172,7 @@ void epi2D::substrateadhesionAttractiveForceUpdate() {
 
 *******************************/
 
-void epi2D::vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0,
-                                    double phi0Target, double dphi0) {
+void epi2D::vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0) {
   // same as for dpm, but with less printing at the end
   // local variables
   int it = 0, itmax = 1e4;
@@ -1193,7 +1198,8 @@ void epi2D::vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0,
 
     // print to console
     if (it % 50 == 0) {
-      cout << endl << endl;
+      cout << endl
+           << endl;
       cout << "===============================" << endl;
       cout << "								"
            << endl;
@@ -1213,7 +1219,8 @@ void epi2D::vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0,
       cout << "	** Sxy 			= " << Sxy << endl;
       cout << "	** U 			= " << U << endl;
       // printConfiguration2D();
-      cout << endl << endl;
+      cout << endl
+           << endl;
     }
 
     // update iterate
@@ -1379,8 +1386,7 @@ void epi2D::updateSubstrateSprings(double refreshInterval) {
   }
 }
 
-void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0,
-                        double duration, double printInterval) {
+void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval) {
   // make sure velocities exist or are already initialized before calling this
   int i;
   double K, t0 = simclock;
@@ -1404,7 +1410,7 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0,
         x[i] += L[i % NDIM];
     }
     // FORCE UPDATE
-    boundaries(); // build vnn for void detection
+    boundaries();  // build vnn for void detection
     std::vector<double> F_old = F;
     CALL_MEMBER_FN(*this, forceCall)
     ();
@@ -1428,7 +1434,8 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0,
         K = vertexKineticEnergy();
 
         // print to console
-        cout << endl << endl;
+        cout << endl
+             << endl;
         cout << "===============================" << endl;
         cout << "	D P M  						"
              << endl;
@@ -1491,8 +1498,7 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0,
   }
 }
 
-void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
-                      double printInterval, bool wallsOn) {
+void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, bool wallsOn) {
   // make sure velocities exist or are already initialized before calling this
   // assuming zero temperature - ignore thermostat (not implemented)
   // allow box lengths to move as a dynamical variable - rudimentary barostat,
@@ -1521,6 +1527,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
   while (simclock - t0 < duration) {
     // VV POSITION UPDATE
     if (simclock - t0 > 10) {
+      listTurnOffRepulsion.clear();
       // std::vector<int> oneVec(1, 1);
       // deleteVertex(oneVec);
       initialPreferredPerimeter = 0;
@@ -1528,7 +1535,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
         initialPreferredPerimeter += l0[i];
       }
       // purseStringContraction(0.01) is fast (~100 tau), 0.001 is slow (~1000 tau).
-      purseStringContraction(0.01);
+      purseStringContraction(0.001);
     }
 
     for (i = 0; i < vertDOF; i++) {
@@ -1541,7 +1548,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
         x[i] += L[i % NDIM];
     }
     // FORCE UPDATE
-    boundaries(); // build vnn for void detection
+    boundaries();  // build vnn for void detection
     std::vector<double> F_old = F;
     CALL_MEMBER_FN(*this, forceCall)
     ();
@@ -1588,7 +1595,8 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
         K = vertexKineticEnergy();
 
         // print to console
-        cout << endl << endl;
+        cout << endl
+             << endl;
         cout << "===============================" << endl;
         cout << "	D P M  						"
              << endl;
@@ -1688,9 +1696,7 @@ void epi2D::circularApertureForces(double radius) {
   }
 }
 
-void epi2D::wallForces(bool top, bool bottom, bool left, bool right,
-                       double &forceTop, double &forceBottom, double &forceLeft,
-                       double &forceRight) {
+void epi2D::wallForces(bool top, bool bottom, bool left, bool right, double& forceTop, double& forceBottom, double& forceLeft, double& forceRight) {
   // compute particle-wall forces and wall-particle forces. Only the latter
   // exists, unless bool is
   //  set to true, in which case the wall can be pushed on. bool set to true =
@@ -1806,8 +1812,7 @@ void epi2D::zeroMomentum() {
   }
 }
 
-void epi2D::scaleBoxSize(double boxLengthScale, double scaleFactorX,
-                         double scaleFactorY) {
+void epi2D::scaleBoxSize(double boxLengthScale, double scaleFactorX, double scaleFactorY) {
   // scale box size while accounting for periodic boundary conditions
   // takes in the original coordinates, alters the box length, and updates the
   // coordinates according to the new boundary conditions local variables
@@ -1876,8 +1881,8 @@ int epi2D::getIndexOfCellLocatedHere(double xLoc, double yLoc) {
     // first global index for ci
     int gi = szList[ci];
 
-    com2D(ci, cx, cy); // cx, cy use coordinates such that bottom left corner of
-                       // sim box = origin
+    com2D(ci, cx, cy);  // cx, cy use coordinates such that bottom left corner of
+                        // sim box = origin
 
     distanceSq[ci] =
         pow(cx - (L[0] / 2 + xLoc), 2) + pow(cy - (L[1] / 2 + yLoc), 2);
@@ -1891,7 +1896,7 @@ int epi2D::getIndexOfCellLocatedHere(double xLoc, double yLoc) {
 
   std::cout << "\ndistanceSq[argmin] = " << distanceSq[argmin] << ", armgin = " << argmin << '\n';
   std::cout << "cx[argmin], cy[argmin] = " << cx << '\t' << cy << '\n';
-  //std::cout << "\nexiting getCellIndexHere\n";
+  // std::cout << "\nexiting getCellIndexHere\n";
   return argmin;
 }
 
@@ -1912,7 +1917,7 @@ void epi2D::deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc) {
   int deleteIndex = getIndexOfCellLocatedHere(xLoc, yLoc);
   double cx, cy;
   com2D(deleteIndex, cx, cy);
-  cout << "deleting cell " << deleteIndex << " at position " <<  cx << '\t' << cy << '\n';
+  cout << "deleting cell " << deleteIndex << " at position " << cx << '\t' << cy << '\n';
 
   // isDeleteLarge is true if deleting a large particle, false if small.
   bool isDeleteLarge = (nv[deleteIndex] == largeNV);
@@ -1936,9 +1941,8 @@ void epi2D::deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc) {
   // degree of freedom counts
   vertDOF = NDIM * NVTOT;
 
-    // sum up number of vertices of each cell until reaching the cell to delete
+  // sum up number of vertices of each cell until reaching the cell to delete
   int sumVertsUntilGlobalIndex = szList[deleteIndex];
-
 
   // adjust szList and nv, which keep track of global vertex indices
   // szList stores gi of each cell. To account for a deleted particle, delete
@@ -1983,9 +1987,8 @@ void epi2D::deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc) {
   vnn_label.erase(vnn_label.begin() + deleteIndexGlobal,
                   vnn_label.begin() + deleteIndexGlobal + numVertsDeleted);
 
-
-  for (int i = 0; i < nv[deleteIndex]; i++){
-    cout << x[NDIM*sumVertsUntilGlobalIndex+2*i] << '\t' << x[NDIM*sumVertsUntilGlobalIndex + 2*i + 1] << '\n';
+  for (int i = 0; i < nv[deleteIndex]; i++) {
+    cout << x[NDIM * sumVertsUntilGlobalIndex + 2 * i] << '\t' << x[NDIM * sumVertsUntilGlobalIndex + 2 * i + 1] << '\n';
   }
 
   // remove an entire cell of indices (NDIM*numVertsDeleted), for vectors of
@@ -2002,7 +2005,6 @@ void epi2D::deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc) {
   }*/
 
   cout << "done printing copy \n";
-
 
   // save list of adjacent vertices
   im1 = vector<int>(NVTOT, 0);
@@ -2022,7 +2024,7 @@ void epi2D::deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc) {
   }
 }
 
-void epi2D::deleteVertex(std::vector<int> &deleteList) {
+void epi2D::deleteVertex(std::vector<int>& deleteList) {
   // delete the vertices with indices in deleteList. option to interpolate
   // (attempt to distribute remaining vertices into space left behind by deleted
   // old vertex)
@@ -2085,8 +2087,7 @@ void epi2D::deleteVertex(std::vector<int> &deleteList) {
   cout << "exiting deleteVertex\n";
 }
 
-void epi2D::laserAblate(int numCellsAblated, double sizeRatio, int nsmall,
-                        double xLoc, double yLoc) {
+void epi2D::laserAblate(int numCellsAblated, double sizeRatio, int nsmall, double xLoc, double yLoc) {
   for (int i = 0; i < numCellsAblated; i++) {
     deleteCell(sizeRatio, nsmall, xLoc, yLoc);
   }
@@ -2128,7 +2129,7 @@ void epi2D::boundaries() {
 std::vector<int> epi2D::refineBoundaries() {
   // refine the boundaries, return site occupations for Newman-Ziff.
   std::vector<int> voidFacingVertexIndices;
-  int c1, c2, c3, v1, v2, v3; // stores dangling_end_labels for neighbor decision later
+  int c1, c2, c3, v1, v2, v3;  // stores dangling_end_labels for neighbor decision later
 
   int counter, k;
   fill(vnn_label.begin(), vnn_label.end(), -1);
@@ -2177,15 +2178,14 @@ std::vector<int> epi2D::refineBoundaries() {
 
   // NEW: fourth refinement: a dangling end is defined as a 1-labeled vertex at this stage.
   // To rescue two corner cases: cells with 1 or 2 vertices on the boundary,
-  // which aren't caught by
-  //    the previous refinements.
+  // which aren't caught by the previous refinements.
   // Proceed by looking at the unlabeled neighbors of dangling ends. If an
   // unlabeled neighbor attached to dangling
   //    end gi has another unlabeled neighbor attached to dangling end gj != gi
   //    Then we have found 3 or 4 corners, so we mark both dangling ends and 1
   //    or 2 vertices in-between as corners.
 
-  std::vector<int> dangling_end_label(NVTOT, -1); // stores which vertex the dangling neighbor is a neighbor of
+  std::vector<int> dangling_end_label(NVTOT, -1);  // stores which vertex the dangling neighbor is a neighbor of
   for (int gi = 0; gi < NVTOT; gi++) {
     if (vnn_label[gi] == 1) {
       for (auto i : vnn[gi]) {
@@ -2195,12 +2195,12 @@ std::vector<int> epi2D::refineBoundaries() {
 
           // if i (a dangling neighbor) already belongs to another vertex
           //  let i belong to whichever vertex is in the same cell.
-          // Here, gi is the new potential owner, and dangling_end_label[i] is the old owner           
-          if (dangling_end_label[i] != -1) { 
+          // Here, gi is the new potential owner, and dangling_end_label[i] is the old owner
+          if (dangling_end_label[i] != -1) {
             cindices(c1, v1, i);
-            cindices(c2,v2, dangling_end_label[i]);
-            cindices(c3,v3, gi);
-            if (c1 == c3 && c1 != c2){ // i is in same cell as gi, but not its old owner
+            cindices(c2, v2, dangling_end_label[i]);
+            cindices(c3, v3, gi);
+            if (c1 == c3 && c1 != c2) {  // i is in same cell as gi, but not its old owner
               dangling_end_label[i] = gi;
               dangling_end_label[gi] = gi;
             }
@@ -2211,22 +2211,22 @@ std::vector<int> epi2D::refineBoundaries() {
             dangling_end_label[i] = gi;
             dangling_end_label[gi] = gi;
           }
-            
         }
       }
     }
   }
 
-  for (int gi = 0; gi < NVTOT; gi++){
+  for (int gi = 0; gi < NVTOT; gi++) {
     // for all dangling ends, if it has more than 3 dangling end
     //  neighbors then it is not a corner and should be ignored (set to -3)
     // 11/29/21 : not sure if this is a good criterion..
-    if (vnn_label[gi] == 1){
+    if (vnn_label[gi] == 1) {
       int danglingCounter = 0;
-      for (auto i : vnn[gi]){
-        if (vnn_label[i] == -2 || vnn_label[i] == -3) danglingCounter++;
+      for (auto i : vnn[gi]) {
+        if (vnn_label[i] == -2 || vnn_label[i] == -3)
+          danglingCounter++;
       }
-      if (danglingCounter > 3){
+      if (danglingCounter > 3) {
         vnn_label[gi] = -3;
       }
     }
@@ -2258,15 +2258,15 @@ std::vector<int> epi2D::refineBoundaries() {
       voidFacingVertexIndices.push_back(gi);
   }
 
-  if (simclock < 104.994 && simclock > 104.993){
-     cout << "debug report: simclock = " << simclock << '\n';
-    for (int gi = 0; gi < NVTOT; gi++){
-      if (x[gi*NDIM] < 4.5 && x[gi*NDIM] > 4.3){
-        if (x[gi*NDIM + 1] < 3.4 && x[gi*NDIM + 1] > 3.2){
-          cout << "gi = " << gi << ", position of gi = " << x[gi * NDIM] << '\t' << x[gi*NDIM + 1] << "\n";
-          for (auto i : vnn[gi]){
+  if (simclock < 104.994 && simclock > 104.993) {
+    cout << "debug report: simclock = " << simclock << '\n';
+    for (int gi = 0; gi < NVTOT; gi++) {
+      if (x[gi * NDIM] < 4.5 && x[gi * NDIM] > 4.3) {
+        if (x[gi * NDIM + 1] < 3.4 && x[gi * NDIM + 1] > 3.2) {
+          cout << "gi = " << gi << ", position of gi = " << x[gi * NDIM] << '\t' << x[gi * NDIM + 1] << "\n";
+          for (auto i : vnn[gi]) {
             cout << "neighbor of gi = " << vnn[gi][i] << "\t, label[neighbor] = " << vnn_label[i] << '\n';
-            cout << "position = " << x[i*NDIM] << '\t' << x[i*NDIM + 1] << '\n';
+            cout << "position = " << x[i * NDIM] << '\t' << x[i * NDIM + 1] << '\n';
           }
         }
       }
@@ -2276,7 +2276,7 @@ std::vector<int> epi2D::refineBoundaries() {
   return voidFacingVertexIndices;
 }
 
-void epi2D::NewmanZiff(std::vector<int> &ptr, int empty, int &mode, int &big) {
+void epi2D::NewmanZiff(std::vector<int>& ptr, int empty, int& mode, int& big) {
   // union/find algorithm that seeks contiguous clusters of points.
   //  the root (ptr) of each node is the first vertex in its cluster, and the
   //  root of that node is the negative size of the cluster
@@ -2314,7 +2314,7 @@ void epi2D::NewmanZiff(std::vector<int> &ptr, int empty, int &mode, int &big) {
   }
 }
 
-// printBoundaries will determine the (nth) largest cluster size, save it to the epi2D object, and print it. 
+// printBoundaries will determine the (nth) largest cluster size, save it to the epi2D object, and print it.
 //  affects where purse-string is
 void epi2D::printBoundaries(int nthLargestCluster) {
   cerr << "entering printBoundaries\n";
@@ -2360,13 +2360,15 @@ void epi2D::printBoundaries(int nthLargestCluster) {
   }
 
   // in no particular order, print out the wrapped locations of all main
-  //  cluster vertices 
-  for (int gi = 0; gi < NVTOT; gi++) { 
-    //if (findRoot(gi, ptr) == mode) {
-    //if (vnn_label[gi] == 0 || vnn_label[gi] == 2 || vnn_label[gi] == 1 || vnn_label[gi] == -1 || vnn_label[gi] == -2) {
-    if (vnn_label[gi] == 0 || vnn_label[gi] == 2 || vnn_label[gi] == 1 
-          || vnn_label[gi] == -1 || vnn_label[gi] == -2 || vnn_label[gi] == -3) {
-      edgeout << x[gi * NDIM] << '\t' << x[gi * NDIM + 1] << '\t' << vnn_label[gi] << '\n';
+  //  cluster vertices
+  for (int gi = 0; gi < NVTOT; gi++) {
+    // if (findRoot(gi, ptr) == mode) {
+    // if (vnn_label[gi] == 0 || vnn_label[gi] == 2 || vnn_label[gi] == 1 || vnn_label[gi] == -1 || vnn_label[gi] == -2) {
+    bool isDisabled = std::find(listTurnOffRepulsion.begin(), listTurnOffRepulsion.end(), gi) !=
+                      listTurnOffRepulsion.end();
+
+    if (vnn_label[gi] == 0 || vnn_label[gi] == 2 || vnn_label[gi] == 1 || vnn_label[gi] == -1 || vnn_label[gi] == -2 || vnn_label[gi] == -3) {
+      edgeout << x[gi * NDIM] << '\t' << x[gi * NDIM + 1] << '\t' << vnn_label[gi] + (findRoot(gi, ptr) == mode) * 10 + isDisabled * 100 << '\n';
     }
   }
 
@@ -2405,8 +2407,8 @@ void epi2D::printBoundaries(int nthLargestCluster) {
       // if i == -1, then we've found a dead end. backtrack (go back by one current_vertex) and try again
       if (i == -1) {
         current_vertex = previous_vertex.end()[-2];
-        //unwrapped_x.pop_back();
-        //unwrapped_x.pop_back();
+        // unwrapped_x.pop_back();
+        // unwrapped_x.pop_back();
         break;
       }
 
@@ -2434,12 +2436,12 @@ void epi2D::printBoundaries(int nthLargestCluster) {
         // cout << "breaking out of first for loop, in if statement\n";
         break;
 
-      } else if (it > middleit) { // we have formed a closed loop, but have not
-                           // traversed the entire cluster.
-        // if the closed loop is large enough, we'll accept it as the main
-        // closed loop and stop adding vertices
-        //if (previous_vertex.size() >= big / 2) {
-          if (previous_vertex.size() >= big / 2) {
+      } else if (it > middleit) {  // we have formed a closed loop, but have not
+                                   // traversed the entire cluster.
+                                   // if the closed loop is large enough, we'll accept it as the main
+                                   // closed loop and stop adding vertices
+                                   // if (previous_vertex.size() >= big / 2) {
+        if (previous_vertex.size() >= big / 2) {
           stopSignal = true;
           cout << "truncating; found a closed loop that's large enough!\n";
           break;
@@ -2481,7 +2483,7 @@ void epi2D::printBoundaries(int nthLargestCluster) {
     it++;
     /*// for debugging purposes:
 
-    cout << "exited void segmentation on vertex " << badVertexIndex << " at coordinates " 
+    cout << "exited void segmentation on vertex " << badVertexIndex << " at coordinates "
       << x[badVertexIndex*NDIM] << '\t' << x[badVertexIndex*NDIM + 1] << '\n';
     for (int i = 0; i < unwrapped_x.size(); i+= 2){
       int j = i/2;
@@ -2512,16 +2514,13 @@ void epi2D::printBoundaries(int nthLargestCluster) {
   cout << "leaving printBoundaries\n";
 }
 
-int epi2D::findRoot(int i, std::vector<int> &ptr) {
+int epi2D::findRoot(int i, std::vector<int>& ptr) {
   if (ptr[i] < 0)
     return i;
   return ptr[i] = findRoot(ptr[i], ptr);
 }
 
-void epi2D::notchTest(int numCellsToDelete, double strain, double strainRate,
-                      double boxLengthScale, double sizeRatio, int nsmall,
-                      dpmMemFn forceCall, double B, double dt0,
-                      double printInterval, std::string loadingType) {
+void epi2D::notchTest(int numCellsToDelete, double strain, double strainRate, double boxLengthScale, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, double printInterval, std::string loadingType) {
   // select xloc, yloc. delete the nearest cell. scale particle sizes, loop.
   // our proxy for isotropic stretching is to scale the particle sizes down.
   // Inter-vertex distances change,
@@ -2617,7 +2616,7 @@ void epi2D::deflectOverlappingDirectors() {
 
             activePropulsionFactor[ci] = 1.0;
             activePropulsionFactor[cj] = 1.0;
-            counter++; // indicate that a swap has occurred for cell ci
+            counter++;  // indicate that a swap has occurred for cell ci
             polarizationCounter++;
           }
         }
@@ -2679,7 +2678,7 @@ void epi2D::purseStringContraction(double trate) {
   woundCells.erase(last, woundCells.end());
 
   // get a list of all indices for wound-facing vertices in a given cell ci
-  std::vector<std::vector<int>> woundVerts(NCELLS); //, vector<int> (int (NVTOT/NCELLS), -1));
+  std::vector<std::vector<int>> woundVerts(NCELLS);  //, vector<int> (int (NVTOT/NCELLS), -1));
   for (auto ci : woundCells) {
     for (int vi = 0; vi < nv[ci]; vi++) {
       int gi = gindex(ci, vi);
@@ -2701,8 +2700,8 @@ void epi2D::purseStringContraction(double trate) {
   // significant overlap, all only if >1 vertex is wound-facing
   for (auto ci : woundCells) {
     int sz = woundVerts[ci].size();
-    if (sz > 1) {
-      //set up initial perimeter to calculate how much needs to be distributed
+    if (sz > 2) {
+      // set up initial perimeter to calculate how much needs to be distributed
       double remainderPerimeter = initialPreferredPerimeter;
 
       for (int i = 0; i < woundVerts[ci].size(); i++) {
@@ -2719,8 +2718,8 @@ void epi2D::purseStringContraction(double trate) {
 
         shrunkV.push_back(gi);
 
-        int gj; // j is a vertex next to i
-        for (int k = -1; k < 2; k+=2){
+        int gj;  // j is a vertex next to i
+        for (int k = -1; k < 2; k += 2) {
           if (szList[ci] == 0)
             gj = (gi + k) % nv[ci];
           else
@@ -2731,27 +2730,30 @@ void epi2D::purseStringContraction(double trate) {
                 pow(x[gi * NDIM + 1] - x[gj * NDIM + 1], 2);
           rij = pow((r[gi] + r[gj]) * tol, 2);
           if (dij < rij) {
-            regridSegment(gi, r[gj]); // regrid a chain of line segments around vertex gi
+            regridSegment(gi, r[gj]);  // regrid a chain of line segments around vertex gi
             break;
           }
         }
       }
       for (int i = 0; i < nv[ci]; i++) {
         gi = gindex(ci, i);
-        //double remainderLength = (initialPreferredPerimeter - remainderPerimeter) / nv[ci];
-        // check that gi is not in shrunkV
+        // double remainderLength = (initialPreferredPerimeter - remainderPerimeter) / nv[ci];
+        //  check that gi is not in shrunkV
         if (std::find(shrunkV.begin(), shrunkV.end(), gi) == shrunkV.end()) {
           // then give gi remainderPerimeter / (nv[ci] - shrunkV)
           double remainderLength = (initialPreferredPerimeter - remainderPerimeter) / (nv[ci] - shrunkV.size());
-          l0[gi] += remainderLength;
-          //r[gi] += remainderLength/2;
+          // l0[gi] += remainderLength;
+          // r[gi] += remainderLength/2;
         }
 
-        //l0[gi] += remainderLength;
-        //cout << "simclock = " << simclock << ", remainderLength = " << remainderLength << ", current l0[gi] = " << l0[gi] << '\n';
+        // l0[gi] += remainderLength;
+        // cout << "simclock = " << simclock << ", remainderLength = " << remainderLength << ", current l0[gi] = " << l0[gi] << '\n';
       }
       // remove contents of shrunkV after finishing with the regridding and reapportionment
       shrunkV.clear();
+    } else if (sz == 1 || sz == 2) {
+      // turn off intercellular attraction and repulsion for the vertex in question
+      listTurnOffRepulsion.push_back(woundVerts[ci][0]);
     }
   }
 }
@@ -2832,8 +2834,8 @@ void epi2D::printConfiguration2D() {
     posout << setw(wnum) << left << perimeter(ci);
     posout << setw(wnum) << left << psi[ci];
     posout << setw(wnum) << left
-           << -fieldStressCells[ci][0]; // virial contribution to stress tensor
-                                        // comes with a minus sign
+           << -fieldStressCells[ci][0];  // virial contribution to stress tensor
+                                         // comes with a minus sign
     posout << setw(wnum) << left << -fieldStressCells[ci][1];
     posout << setw(wnum) << left << -fieldStressCells[ci][2];
     posout << setw(wnum) << left

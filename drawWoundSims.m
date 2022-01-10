@@ -297,7 +297,7 @@ for seed = startSeed:max_seed
             end
         end
         if showCornersOrEdges
-            %scatter(edgeLocations{ff}(:,1), edgeLocations{ff}(:,2), 30, 'black', 'x');
+            % scatter(edgeLocations{ff}(:,1), edgeLocations{ff}(:,2), 30, 'black', 'x');
             for k = 1:length(edgeLocations{ff}(:,1))
                 % plot text centered on an (x,y) point with label equal to the 3rd column value 
                 text(edgeLocations{ff}(k,1), edgeLocations{ff}(k,2),...

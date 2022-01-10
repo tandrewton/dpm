@@ -97,6 +97,9 @@ protected:
   std::vector<double> initiall0;
   double initialPreferredPerimeter;
 
+  // flag for vertex repulsion (if a cell has only 1 wound vertex, then turn off repulsion so that it gets sucked into the bulk)
+  std::vector<int> listTurnOffRepulsion;
+
 public:
   // constructor and destructor
   epi2D(int n, double att1, double att2, double Dr, int seed) : dpm(n, seed) {
