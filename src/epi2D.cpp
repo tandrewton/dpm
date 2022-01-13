@@ -844,10 +844,11 @@ void epi2D::vertexAttractiveForces2D_2() {
                   cellU[ci] += 0.5 * kc * pow((1 - (rij / sij)), 2.0);
                 } else
                   ftmp = 0;
-              } else if (std::find(listTurnOffRepulsion.begin(), listTurnOffRepulsion.end(), gi) != listTurnOffRepulsion.end()) {
+              } /*else if (std::find(listTurnOffRepulsion.begin(), listTurnOffRepulsion.end(), gi) != listTurnOffRepulsion.end()) {
                 // if purseStringContraction determines that a vertex should not repel others intercellularly, turn it off here.
                 ftmp = 0;
-              } else if (rij > cutij) {
+              } */
+              else if (rij > cutij) {
                 // force scale
                 ftmp = kint * (xij - 1.0 - l2) / sij;
 
@@ -966,10 +967,11 @@ void epi2D::vertexAttractiveForces2D_2() {
                     cellU[ci] += 0.5 * kc * pow((1 - (rij / sij)), 2.0);
                   } else
                     ftmp = 0;
-                } else if (std::find(listTurnOffRepulsion.begin(), listTurnOffRepulsion.end(), gi) != listTurnOffRepulsion.end()) {
+                } /*else if (std::find(listTurnOffRepulsion.begin(), listTurnOffRepulsion.end(), gi) != listTurnOffRepulsion.end()) {
                   // if purseStringContraction determines that a vertex should not repel others intercellularly, turn it off here.
                   ftmp = 0;
-                } else if (rij > cutij) {
+                } */
+                else if (rij > cutij) {
                   // force scale
                   ftmp = kint * (xij - 1.0 - l2) / sij;
 
@@ -1526,17 +1528,6 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
   // loop over time, print energy
   while (simclock - t0 < duration) {
     // VV POSITION UPDATE
-    if (simclock - t0 > 10) {
-      listTurnOffRepulsion.clear();
-      // std::vector<int> oneVec(1, 1);
-      // deleteVertex(oneVec);
-      initialPreferredPerimeter = 0;
-      for (int i = 0; i < nv[0]; i++) {
-        initialPreferredPerimeter += l0[i];
-      }
-      // purseStringContraction(0.01) is fast (~100 tau), 0.001 is slow (~1000 tau).
-      purseStringContraction(0.001);
-    }
 
     for (i = 0; i < vertDOF; i++) {
       // update position
@@ -1547,11 +1538,24 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
       else if (x[i] < 0 && pbc[i % NDIM])
         x[i] += L[i % NDIM];
     }
+
     // FORCE UPDATE
     boundaries();  // build vnn for void detection
     std::vector<double> F_old = F;
+
+    if (simclock - t0 > 10) {
+      //.clear();
+      initialPreferredPerimeter = 0;
+      for (int i = 0; i < nv[0]; i++) {
+        initialPreferredPerimeter += l0[i];
+      }
+      // purseStringContraction(0.01) is fast (~100 tau), 0.001 is slow (~1000 tau).
+      purseStringContraction(0.001);
+      // evaluateGhostDPForces(woundVertexList, 0.001);
+    }
+
     CALL_MEMBER_FN(*this, forceCall)
-    ();
+    ();  // calls main force routine
 
     // VV VELOCITY UPDATE #2
     for (i = 0; i < vertDOF; i++) {
@@ -2673,20 +2677,24 @@ void epi2D::purseStringContraction(double trate) {
       woundCells.push_back(ci);
     }
   }
+
   std::sort(woundCells.begin(), woundCells.end());
   auto last = std::unique(woundCells.begin(), woundCells.end());
   woundCells.erase(last, woundCells.end());
 
   // get a list of all indices for wound-facing vertices in a given cell ci
   std::vector<std::vector<int>> woundVerts(NCELLS);  //, vector<int> (int (NVTOT/NCELLS), -1));
+  std::vector<int> unsortedWoundIndices;
   for (auto ci : woundCells) {
     for (int vi = 0; vi < nv[ci]; vi++) {
       int gi = gindex(ci, vi);
       if (findRoot(gi, ptr) == mode) {
         woundVerts[ci].push_back(gi);
+        unsortedWoundIndices.push_back(gi);
       }
     }
   }
+
   // tol represents how much the vertices in the same cell are allowed to
   // overlap (tol * contact distance) before we start deleting them
   double tol = 0.8;
@@ -2695,12 +2703,29 @@ void epi2D::purseStringContraction(double trate) {
   // unshrunk vertices
   std::vector<int> shrunkV;
 
-  bool growAndDeleteSignal = false;
+  // sort unsortedWoundIndices
+  std::vector<int> woundVertexList;
+  woundVertexList.push_back(unsortedWoundIndices[0]);
+
+  for (int i = 1; i < unsortedWoundIndices.size(); i++) {
+    for (int j = 0; j < vnn[unsortedWoundIndices[i - 1]].size(); j++) {  // check neighbors of latest entry to woundVertexList
+      if (std::find(unsortedWoundIndices.begin(), unsortedWoundIndices.end(), j) != unsortedWoundIndices.end() && std::find(woundVertexList.begin(), woundVertexList.end(), j) == woundVertexList.end()) {
+        // if a neighbor is not in woundVertexList but IS in unsortedWoundIndices, then it's our next vertex (probably). Add to woundVertexList.
+
+        // add to woundVertexList here
+      }
+    }
+  }
+
+  // code here to remove any gi in woundVertexList if it is the only such vertex of any given cell ci
+
+  evaluateGhostDPForces(woundVertexList, trate);
+
   // shrink preferred lengths (= actomyosin tension) and delete vertices if
   // significant overlap, all only if >1 vertex is wound-facing
-  for (auto ci : woundCells) {
+  /*for (auto ci : woundCells) {
     int sz = woundVerts[ci].size();
-    if (sz > 2) {
+    if (sz > 1) {
       // set up initial perimeter to calculate how much needs to be distributed
       double remainderPerimeter = initialPreferredPerimeter;
 
@@ -2751,10 +2776,160 @@ void epi2D::purseStringContraction(double trate) {
       }
       // remove contents of shrunkV after finishing with the regridding and reapportionment
       shrunkV.clear();
-    } else if (sz == 1 || sz == 2) {
-      // turn off intercellular attraction and repulsion for the vertex in question
-      listTurnOffRepulsion.push_back(woundVerts[ci][0]);
+    }  // else if (sz == 1 || sz == 2) {
+       //  turn off intercellular attraction and repulsion for the vertex in question
+       // listTurnOffRepulsion.push_back(woundVerts[ci][0]);
+    //}
+  }*/
+}
+
+void epi2D::evaluateGhostDPForces(vector<int>& giList, double trate) {
+  // create a DP with no preferred area, no repulsions, and no attraction. Its component
+  //  vertices are existing vertices within the simulation, that belong to other non-ghost DPs.
+  // The ghost DP's purpose is to apply forces (i.e. purse-string forces) between vertices of
+  //  different cells.
+  // Ghost DP has no preferred shape, no preferred area.
+  //
+  // input: vector of global indices for vertices of the ghost DP. These global indices already exist
+  //    and are pre-sorted in coordinate space such that giList[0] and giList[giList.size()-1] are neighbors
+
+  std::vector<int> ghostVList = giList;
+  int nvGhost = giList.size();
+  std::vector<bool> isCorner;  // vector of ghostVList indices (i.e. 0,1,2,3, etc) that are corners (interact with ghost purse-string)
+  std::vector<int> l0Ghost;
+  // establish purse-string between each consecutive pair of vertices, treating segments spanning 2 cells specially
+  double ghostKa = 0, distBetweeniandj = 0;
+  // loop over vertices in ghost wound
+  // if corner, set preferred length l0Ghost[i] to be exp(-trate*dt)* current contact length
+  //  else it is normal, set preferred length exp(-trate*dt) * l0[gi]
+  // then compute shape forces
+  for (int i = 0; i < nvGhost; i++) {
+    // find cell index of vertex i and j
+    int j = (i + 1) % nvGhost;
+    int ci, vi, cj, vj;
+    int gi = ghostVList[i];
+    int gj = ghostVList[j];
+    cindices(ci, vi, gi);
+    cindices(cj, vj, gj);
+    if (ci != cj) {  // then i and j are neighbors and wound corners belonging to different cells
+      distBetweeniandj = vertDistNoPBC(gi, gj);
+      // isCorner.push_back(i);
+      l0Ghost.push_back(exp(-trate * dt) * distBetweeniandj);
+      cout << "checking: " << ci << " != " << cj << '\n';
+
+    } else {
+      // use default preferred segment length if segment is within one cell
+      l0Ghost.push_back(exp(-trate * dt * l0[gi]));
+      cout << "checking: " << ci << " = " << cj << '\n';
     }
+  }
+
+  // already set preferred lengths, so now just compute the shape forces for preferred lengths multiplied by the bool vector
+  // check shapeForces2D(), left a draft on Atom
+
+  double fli, flim1, fb, cx, cy, xi, yi, gip1, xip1, yip1;
+  double rho0, l0im1, l0i;
+  double dx, dy, dli, dlim1;
+  double lim1x, lim1y, lix, liy, lip1x, lip1y, li, lim1;
+  double rim1x, rim1y, rix, riy, rip1x, rip1y;
+  double forceX, forceY;
+
+  rho0 = sqrt(a0.at(0));
+  // initialize center of mass coordinates
+  xi = x[NDIM * ghostVList[0]];
+  yi = x[NDIM * ghostVList[0] + 1];
+  cx = xi;
+  cy = yi;
+
+  // loop over vertices of cell ci, get perimeter
+  for (int vi = 0; vi < nvGhost - 1; vi++) {
+    // next vertex
+    gip1 = ghostVList[vi + 1 % nvGhost];
+
+    // get positions (check minimum images)
+    dx = x[NDIM * gip1] - xi;
+    if (pbc[0])
+      dx -= L[0] * round(dx / L[0]);
+    xip1 = xi + dx;
+
+    dy = x[NDIM * gip1 + 1] - yi;
+    if (pbc[1])
+      dy -= L[1] * round(dy / L[1]);
+    yip1 = yi + dy;
+
+    // add to center of mass
+    cx += xip1;
+    cy += yip1;
+
+    // update coordinates
+    xi = xip1;
+    yi = yip1;
+  }
+
+  // take average to get com
+  cx /= nvGhost;
+  cy /= nvGhost;
+
+  // ----
+
+  // loop over vertices, add to force
+  for (int i = 0; i < nvGhost; i++) {
+    // preferred segment length
+    int gi = ghostVList[i];
+    int ipi = ghostVList[i + 1 % nvGhost];
+    int imi = ghostVList[i - 1 % nvGhost];
+    l0i = l0Ghost[i];
+    l0im1 = l0Ghost[i - 1 % nvGhost];
+    l0[gi] = l0i;  // update the l0 list
+
+    // get coordinates relative to center of mass
+    rix = x[NDIM * gi] - cx;
+    riy = x[NDIM * gi + 1] - cy;
+
+    // get next adjacent vertices
+    rip1x = x[NDIM * ipi] - cx;
+    rip1y = x[NDIM * ipi + 1] - cy;
+    if (pbc[0])
+      rip1x -= L[0] * round(rip1x / L[0]);
+    if (pbc[1])
+      rip1y -= L[1] * round(rip1y / L[1]);
+
+    // get next adjacent vertices
+    rim1x = x[NDIM * imi] - cx;
+    rim1y = x[NDIM * imi + 1] - cy;
+    if (pbc[0])
+      rim1x -= L[0] * round(rim1x / L[0]);
+    if (pbc[1])
+      rim1y -= L[1] * round(rim1y / L[1]);
+
+    // -- Perimeter force
+    lix = rip1x - rix;
+    liy = rip1y - riy;
+
+    lim1x = rix - rim1x;
+    lim1y = riy - rim1y;
+
+    // segment lengths
+    lim1 = sqrt(lim1x * lim1x + lim1y * lim1y);
+    li = sqrt(lix * lix + liy * liy);
+
+    // segment deviations (note: m is prior vertex, p is next vertex i.e. gi - 1, gi + 1 mod the right number of vertices)
+    dlim1 = (lim1 / l0im1) - 1.0;
+    dli = (li / l0i) - 1.0;
+
+    // segment forces
+    flim1 = kl * (rho0 / l0im1);
+    fli = kl * (rho0 / l0i);
+
+    // add to forces
+    forceX = (fli * dli * lix / li) - (flim1 * dlim1 * lim1x / lim1);
+    forceY = (fli * dli * liy / li) - (flim1 * dlim1 * lim1y / lim1);
+    F[NDIM * gi] += forceX;
+    F[NDIM * gi + 1] += forceY;
+
+    // update potential energy
+    U += 0.5 * kl * (dli * dli);
+    // per cell energy will no longer be proportional to total energy due to wound energy
   }
 }
 

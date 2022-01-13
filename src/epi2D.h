@@ -12,10 +12,10 @@
 
 */
 
-#include "dpm.h"
-#include <algorithm>
 #include <math.h>
+#include <algorithm>
 #include <stdexcept>
+#include "dpm.h"
 
 // namespace
 using namespace std;
@@ -24,7 +24,7 @@ class epi2D;
 typedef void (epi2D::*epi2DMemFn)(void);
 
 class epi2D : public dpm {
-protected:
+ protected:
   // bending energy per vertex
   // NOTE: will need to add different Hessian computation
   std::vector<double> kbi;
@@ -100,9 +100,10 @@ protected:
   // flag for vertex repulsion (if a cell has only 1 wound vertex, then turn off repulsion so that it gets sucked into the bulk)
   std::vector<int> listTurnOffRepulsion;
 
-public:
+ public:
   // constructor and destructor
-  epi2D(int n, double att1, double att2, double Dr, int seed) : dpm(n, seed) {
+  epi2D(int n, double att1, double att2, double Dr, int seed)
+      : dpm(n, seed) {
     z.resize(n);
     // att = attraction;
     l1 = att1;
@@ -121,7 +122,7 @@ public:
     for (int ci = 0; ci < NCELLS; ci++) {
       psi.at(ci) =
           PI / 2 * (ci % 2) -
-          PI / 2 * ((ci + 1) % 2); // should be : up if odd, down if even
+          PI / 2 * ((ci + 1) % 2);  // should be : up if odd, down if even
       flagPos[ci].resize(NDIM);
       flag[ci] = false;
     }
@@ -133,7 +134,7 @@ public:
   };
 
   // File openers
-  void openEnergyObject(std::string &str) {
+  void openEnergyObject(std::string& str) {
     enout.open(str.c_str());
     if (!enout.is_open()) {
       std::cout << "	ERROR: file could not open " << str << "..."
@@ -143,7 +144,7 @@ public:
       std::cout << "** Opening file " << str << " ..." << std::endl;
   }
 
-  void openStressObject(std::string &str) {
+  void openStressObject(std::string& str) {
     stressout.open(str.c_str());
     if (!stressout.is_open()) {
       std::cout << "	ERROR: file could not open " << str << "..."
@@ -154,7 +155,7 @@ public:
   }
 
   // File openers
-  void openBoundaryObject(std::string &str) {
+  void openBoundaryObject(std::string& str) {
     bout.open(str.c_str());
     if (!bout.is_open()) {
       std::cerr << "	ERROR: file could not open " << str << "..."
@@ -164,8 +165,8 @@ public:
       std::cout << "** Opening file " << str << " ..." << std::endl;
   }
 
-    // File openers
-  void openEdgeObject(std::string &str) {
+  // File openers
+  void openEdgeObject(std::string& str) {
     edgeout.open(str.c_str());
     if (!edgeout.is_open()) {
       std::cerr << "	ERROR: file could not open " << str << "..."
@@ -177,7 +178,7 @@ public:
 
   // setters
   void setkbi(double val) { fill(kbi.begin(), kbi.end(), val); };
-  void setkL(double val) { kL = val;}
+  void setkL(double val) { kL = val; }
   void setRandPsi() {
     for (int ci = 0; ci < NCELLS; ci++)
       psi[ci] = (2.0 * drand48() - 1.0) * PI;
@@ -205,8 +206,7 @@ public:
   double meancalA0();
   double meankb();
   double getPreferredPerimeter(int ci);
-  double distanceLineAndPoint(double x1, double y1, double x2, double y2,
-                              double x0, double y0);
+  double distanceLineAndPoint(double x1, double y1, double x2, double y2, double x0, double y0);
   void directorDiffusion();
   void regridCell(int ci, double vrad);
   void partialRegridCell(int ci, double vrad);
@@ -222,23 +222,17 @@ public:
   void repulsiveForceWithCircularApertureWall();
 
   // protocols
-  void vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0,
-                               double phi0Target, double dphi0);
+  void vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0);
   void expandBoxAndCenterParticles(double boxLengthScaleFactor,
                                    double boxLengthScale);
   void ageCellAreas(double areaScaleFactor);
   void tensileLoading(double scaleFactorX, double scaleFactorY);
   void updateSubstrateSprings(double refreshInterval);
   void zeroMomentum();
-  void scaleBoxSize(double boxLengthScale, double scaleFactorX,
-                    double scaleFactorY);
-  void dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duration,
-                   double printInterval);
-  void dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
-                 double printInterval, bool wallsOn);
-  void wallForces(bool top, bool bottom, bool left, bool right,
-                  double &forceTop, double &forceBottom, double &forceLeft,
-                  double &forceRight);
+  void scaleBoxSize(double boxLengthScale, double scaleFactorX, double scaleFactorY);
+  void dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval);
+  void dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, bool wallsOn);
+  void wallForces(bool top, bool bottom, bool left, bool right, double& forceTop, double& forceBottom, double& forceLeft, double& forceRight);
   void circularApertureForces(double radius);
 
   int getIndexOfCellLocatedHere(double xLoc, double yLoc);
@@ -246,24 +240,21 @@ public:
   // NVTOT/NCELLS, need to make sure to modify the size in deleteCell
   // appropriately
   void deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc);
-  void deleteVertex(std::vector<int> &deleteList);
-  void laserAblate(int numCellsAblated, double sizeRatio, int nsmall,
-                   double xLoc, double yLoc);
+  void deleteVertex(std::vector<int>& deleteList);
+  void laserAblate(int numCellsAblated, double sizeRatio, int nsmall, double xLoc, double yLoc);
 
   // void detection algorithms (Newman-Ziff)
   void initializevnn();
   void boundaries();
   std::vector<int> refineBoundaries();
-  void NewmanZiff(std::vector<int> &ptr, int empty, int &mode, int &big);
+  void NewmanZiff(std::vector<int>& ptr, int empty, int& mode, int& big);
   void printBoundaries(int nthLargestCluster = 1);
-  int findRoot(int i, std::vector<int> &ptr);
+  int findRoot(int i, std::vector<int>& ptr);
 
-  void notchTest(int numCellsToDelete, double strain, double strainRate,
-                 double boxLengthScale, double sizeRatio, int nsmall,
-                 dpmMemFn forceCall, double B, double dt0, double printInterval,
-                 std::string loadingType);
+  void notchTest(int numCellsToDelete, double strain, double strainRate, double boxLengthScale, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, double printInterval, std::string loadingType);
   void orientDirector(int ci, double xLoc, double yLoc);
   void deflectOverlappingDirectors();
+  void evaluateGhostDPForces(std::vector<int>& giList, double trate);
   void purseStringContraction(double trate);
   // polymorphism: write configuration information to file
   void printConfiguration2D();
