@@ -99,6 +99,7 @@ class epi2D : public dpm {
 
   // flag for vertex repulsion (if a cell has only 1 wound vertex, then turn off repulsion so that it gets sucked into the bulk)
   std::vector<int> listTurnOffRepulsion;
+  std::vector<int> unsortedWoundIndices;
 
  public:
   // constructor and destructor
@@ -249,6 +250,7 @@ class epi2D : public dpm {
   std::vector<int> refineBoundaries();
   void NewmanZiff(std::vector<int>& ptr, int empty, int& mode, int& big);
   void printBoundaries(int nthLargestCluster = 1);
+  void getWoundVertices(int nthLargestCluster = 1);
   int findRoot(int i, std::vector<int>& ptr);
 
   void notchTest(int numCellsToDelete, double strain, double strainRate, double boxLengthScale, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, double printInterval, std::string loadingType);

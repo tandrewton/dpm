@@ -287,7 +287,7 @@ void epi2D::partialRegridCell(int ci, double vrad) {
       gi = wverts.back();
       // since gi + 1 is a corner of the first entry of wverts, the other edges
       // should start at gi - 1
-      gj = (((gi - 1) % szList[ci] % nv[ci]) + szList[ci]);
+      gj = (((gi - 1) % szList[ci] % nv[ci]) + szList[ci]);  // might want to add nv[ci] back to gi - 1 before mod to make sure positive definite?
       if (vnn_label[gj] == 0 && std::find(wverts_tmp.begin(), wverts_tmp.end(),
                                           gj) != wverts_tmp.end()) {
         wverts.push_back(gj);
@@ -1540,8 +1540,11 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
     }
 
     // FORCE UPDATE
-    boundaries();  // build vnn for void detection
+    boundaries();  // build vnn for void detection, only intracellularly. The rest (due to adhesion) is done in forceCall.
     std::vector<double> F_old = F;
+
+    CALL_MEMBER_FN(*this, forceCall)
+    ();  // calls main force routine
 
     if (simclock - t0 > 10) {
       //.clear();
@@ -1550,12 +1553,9 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
         initialPreferredPerimeter += l0[i];
       }
       // purseStringContraction(0.01) is fast (~100 tau), 0.001 is slow (~1000 tau).
-      purseStringContraction(0.001);
+      purseStringContraction(0.005);  // must be called after forceCall, beacuse forceCall reestablishes the boundaries() properly.
       // evaluateGhostDPForces(woundVertexList, 0.001);
     }
-
-    CALL_MEMBER_FN(*this, forceCall)
-    ();  // calls main force routine
 
     // VV VELOCITY UPDATE #2
     for (i = 0; i < vertDOF; i++) {
@@ -2320,14 +2320,17 @@ void epi2D::NewmanZiff(std::vector<int>& ptr, int empty, int& mode, int& big) {
 
 // printBoundaries will determine the (nth) largest cluster size, save it to the epi2D object, and print it.
 //  affects where purse-string is
+//  also saves unsortedWoundIndices
 void epi2D::printBoundaries(int nthLargestCluster) {
   cerr << "entering printBoundaries\n";
-  // empty is the maximum negative cluster size
+  // unsortedWoundIndices.clear();
+  //  empty is the maximum negative cluster size
   int empty = -NVTOT - 1;
   // mode is the statistical mode of the cluster labels
   int mode;
   // order is the occupation/population order for our neighbor topology
   order = refineBoundaries();
+  cout << "order size in printBoundaries = " << order.size() << '\n';
   // ptr of a root node gives the negative cluster size, of a non-root gives the
   // next level in the tree, of an empty gives empty
   std::vector<int> ptr(NVTOT, empty);
@@ -2391,6 +2394,7 @@ void epi2D::printBoundaries(int nthLargestCluster) {
       currenty = x[gi * NDIM + 1];
       unwrapped_x.push_back(currentx);
       unwrapped_x.push_back(currenty);
+      // unsortedWoundIndices.push_back(gi);
       current_vertex = gi;
       break;
     }
@@ -2435,6 +2439,7 @@ void epi2D::printBoundaries(int nthLargestCluster) {
 
         unwrapped_x.push_back(nextx);
         unwrapped_x.push_back(nexty);
+        // unsortedWoundIndices.push_back(current_vertex);
         currentx = nextx;
         currenty = nexty;
         // cout << "breaking out of first for loop, in if statement\n";
@@ -2472,8 +2477,10 @@ void epi2D::printBoundaries(int nthLargestCluster) {
               // forget the closed subloop, move onto a new one. Keep
               // previous_vertex, which forbids subloop from joining new loop
               unwrapped_x.clear();
+              // unsortedWoundIndices.clear();
               unwrapped_x.push_back(nextx);
               unwrapped_x.push_back(nexty);
+              // unsortedWoundIndices.push_back(current_vertex);
 
               currentx = nextx;
               currenty = nexty;
@@ -2485,15 +2492,6 @@ void epi2D::printBoundaries(int nthLargestCluster) {
       }
     }
     it++;
-    /*// for debugging purposes:
-
-    cout << "exited void segmentation on vertex " << badVertexIndex << " at coordinates "
-      << x[badVertexIndex*NDIM] << '\t' << x[badVertexIndex*NDIM + 1] << '\n';
-    for (int i = 0; i < unwrapped_x.size(); i+= 2){
-      int j = i/2;
-      cout << "vertex # " << j << "at position: " << unwrapped_x[i] << '\t' << unwrapped_x[i+1] << '\n';
-    }
-    // end debugging*/
     if (it >= maxit) {
       for (auto i : vnn[current_vertex])
         cout << "broken vertex is: " << current_vertex
@@ -2516,6 +2514,139 @@ void epi2D::printBoundaries(int nthLargestCluster) {
   bout << "*EOB\n";
   edgeout << "*EOB\n";
   cout << "leaving printBoundaries\n";
+}
+
+void epi2D::getWoundVertices(int nthLargestCluster) {
+  unsortedWoundIndices.clear();
+  // empty is the maximum negative cluster size
+  int empty = -NVTOT - 1;
+  // mode is the statistical mode of the cluster labels
+  int mode;
+  // order is the occupation/population order for our neighbor topology
+  order = refineBoundaries();
+  // ptr of a root node gives the negative cluster size, of a non-root gives the
+  // next level in the tree, of an empty gives empty
+  std::vector<int> ptr(NVTOT, empty);
+  int big = 0;
+  // fill ptr with a clustered network of nodes
+  NewmanZiff(ptr, empty, mode, big);
+
+  if (nthLargestCluster > 1) {
+    std::vector<int> clusterSize;
+    std::vector<int> clusterRoot;
+    for (int gi = 0; gi < NVTOT; gi++) {
+      if (ptr[gi] < 0 && ptr[gi] != empty) {
+        clusterSize.push_back(-ptr[gi]);
+        clusterRoot.push_back(gi);
+      }
+    }
+    sort(clusterSize.begin(), clusterSize.end(), greater<int>());
+    int nthClusterSize = clusterSize[nthLargestCluster - 1];
+    for (auto i : clusterRoot) {
+      if (-ptr[i] == nthClusterSize)
+        mode = i;
+    }
+    // cout << "new mode in getWoundVertices() = " << mode << '\n';
+    big = nthClusterSize;
+    // cout << "new size (big) in getWoundVertices() = " << big << '\n';
+  }
+
+  // in order, print out the unwrapped locations of all main cluster vertices,
+  // starting with a vertex in the big cluster
+  // cerr << "before ordering vertices\n";
+  int it = 0, middleit = 1000, maxit = 2000;
+  int current_vertex = -2;
+  bool stopSignal = false;
+  double currentx, currenty, nextx, nexty;
+  std::vector<int> previous_vertex;
+  // std::vector<double> unwrapped_x;
+  for (int gi = 0; gi < NVTOT; gi++) {
+    if (findRoot(gi, ptr) == mode) {
+      unsortedWoundIndices.push_back(gi);
+      current_vertex = gi;
+      break;
+    }
+  }
+  while (previous_vertex.size() != big && stopSignal == false) {
+    // move current vertex to list of old vertices
+    if (previous_vertex.size() < 2 ||
+        previous_vertex.end()[-1] != current_vertex) {
+      it = 0;
+      previous_vertex.push_back(current_vertex);
+    }
+    // for debugging:
+    int badVertexIndex;
+    // end debugging
+
+    for (auto i : vnn[current_vertex]) {
+      badVertexIndex = i;
+      // if i == -1, then we've found a dead end. backtrack (go back by one current_vertex) and try again
+      if (i == -1) {
+        current_vertex = previous_vertex.end()[-2];
+        // unwrapped_x.pop_back();
+        // unwrapped_x.pop_back();
+        break;
+      }
+
+      // check i valid neighbor, points to the biggest cluster, and is not
+      // already in the previous vertex list
+      if (i >= 0 && findRoot(i, ptr) == mode &&
+          std::find(previous_vertex.begin(), previous_vertex.end(), i) ==
+              previous_vertex.end()) {
+        // switch focus to new vertex
+        current_vertex = i;
+
+        unsortedWoundIndices.push_back(current_vertex);
+        break;
+
+      } else if (it > middleit) {  // we have formed a closed loop, but have not
+                                   // traversed the entire cluster.
+                                   // if the closed loop is large enough, we'll accept it as the main
+                                   // closed loop and stop adding vertices
+                                   // if (previous_vertex.size() >= big / 2) {
+        if (previous_vertex.size() >= big / 2) {
+          stopSignal = true;
+          cout << "truncating; found a closed loop that's large enough!\n";
+          break;
+        }
+        // If cluster is too small to be the main loop, seek an alternate route.
+        for (auto j : previous_vertex) {
+          // go through previously added vertices, look for their neighbors that
+          // are not already added.
+          for (auto k : vnn[j]) {
+            if (k >= 0 && findRoot(k, ptr) == mode &&
+                std::find(previous_vertex.begin(), previous_vertex.end(), k) ==
+                    previous_vertex.end()) {
+              it = 0;
+              current_vertex = k;
+
+              // forget the closed subloop, move onto a new one. Keep
+              // previous_vertex, which forbids subloop from joining new loop
+              unsortedWoundIndices.clear();
+              unsortedWoundIndices.push_back(current_vertex);
+
+              cout << "cluster is too small, seeking alternate route\n";
+              break;
+            }
+          }
+        }
+      }
+    }
+    it++;
+    if (it >= maxit) {
+      for (auto i : vnn[current_vertex])
+        cout << "broken vertex is: " << current_vertex
+             << "\nneighbors of broken vertex are: " << i << ", with root "
+             << findRoot(i, ptr)
+             << ", and bool for whether it's in current list: "
+             << (std::find(previous_vertex.begin(), previous_vertex.end(), i) !=
+                 previous_vertex.end())
+             << '\n'
+             << "at position " << x[i * NDIM] << '\t' << x[i * NDIM + 1] << '\n'
+             << "size of vertex list = " << previous_vertex.size() << '\n';
+      break;
+    }
+  }
 }
 
 int epi2D::findRoot(int i, std::vector<int>& ptr) {
@@ -2669,10 +2800,15 @@ void epi2D::purseStringContraction(double trate) {
       mode = i;
   }
 
+  getWoundVertices(nthLargestCluster);
+
+  std::vector<std::vector<int>> woundVerts(NCELLS);  //, vector<int> (int (NVTOT/NCELLS), -1));
+  // std::vector<int> unsortedWoundIndices;
+
   // get a list of all indices for cells with wound-facing vertices
   std::vector<int> woundCells;
   for (int gi = 0; gi < NVTOT; gi++) {
-    if (findRoot(gi, ptr) == mode) {
+    if (std::find(unsortedWoundIndices.begin(), unsortedWoundIndices.end(), gi) != unsortedWoundIndices.end()) {
       cindices(ci, vi, gi);
       woundCells.push_back(ci);
     }
@@ -2682,15 +2818,18 @@ void epi2D::purseStringContraction(double trate) {
   auto last = std::unique(woundCells.begin(), woundCells.end());
   woundCells.erase(last, woundCells.end());
 
+  if (woundCells.size() > 13 || woundCells.size() < 7) {  // catch bad cases where cells have fallen apart
+    cout << "# wound cells = " << woundCells.size() << '\n';
+    cout << "exiting\n";
+    return;
+  }
+
   // get a list of all indices for wound-facing vertices in a given cell ci
-  std::vector<std::vector<int>> woundVerts(NCELLS);  //, vector<int> (int (NVTOT/NCELLS), -1));
-  std::vector<int> unsortedWoundIndices;
   for (auto ci : woundCells) {
     for (int vi = 0; vi < nv[ci]; vi++) {
       int gi = gindex(ci, vi);
-      if (findRoot(gi, ptr) == mode) {
+      if (std::find(unsortedWoundIndices.begin(), unsortedWoundIndices.end(), gi) != unsortedWoundIndices.end()) {
         woundVerts[ci].push_back(gi);
-        unsortedWoundIndices.push_back(gi);
       }
     }
   }
@@ -2705,24 +2844,55 @@ void epi2D::purseStringContraction(double trate) {
 
   // sort unsortedWoundIndices
   std::vector<int> woundVertexList;
+  std::vector<int> woundVertexCiCounter(NCELLS, 0);  // counts # of occurrences of each ci in the wound
+
+  // cerr << "unsortedWoundIndices.size() = " << unsortedWoundIndices.size() << '\n';
+
   woundVertexList.push_back(unsortedWoundIndices[0]);
+  cindices(ci, vi, unsortedWoundIndices[0]);
+  woundVertexCiCounter[ci]++;
+
+  /*for (auto i : unsortedWoundIndices) {
+    cindices(ci, vi, i);
+    cout << "ci, vi, gi = " << ci << '\t' << vi << '\t' << i << '\n';
+  }*/
 
   for (int i = 1; i < unsortedWoundIndices.size(); i++) {
-    for (int j = 0; j < vnn[unsortedWoundIndices[i - 1]].size(); j++) {  // check neighbors of latest entry to woundVertexList
+    for (auto j : vnn[unsortedWoundIndices[i - 1]]) {  // check neighbors of latest entry to woundVertexList
       if (std::find(unsortedWoundIndices.begin(), unsortedWoundIndices.end(), j) != unsortedWoundIndices.end() && std::find(woundVertexList.begin(), woundVertexList.end(), j) == woundVertexList.end()) {
-        // if a neighbor is not in woundVertexList but IS in unsortedWoundIndices, then it's our next vertex (probably). Add to woundVertexList.
-
-        // add to woundVertexList here
+        // if a neighbor j is not in woundVertexList but IS in unsortedWoundIndices,
+        //    then it's our next vertex (probably). Add to woundVertexList.
+        woundVertexList.push_back(j);
+        cindices(cj, vj, j);
+        woundVertexCiCounter[cj]++;
+        break;
       }
     }
   }
 
-  // code here to remove any gi in woundVertexList if it is the only such vertex of any given cell ci
+  /*
+  cout << "before pruning, woundVertexList.size() = " << woundVertexList.size() << '\n';
+  cout << "unsortedWoundIndices.size() = " << unsortedWoundIndices.size() << '\n';
+  */
 
+  // cout << "woundVertexList, unsortedWoundIndices size = " << woundVertexList.size() << '\t' << unsortedWoundIndices.size() << '\n';
+
+  // remove (prune) any gi in woundVertexList if it is the only such vertex of any given cell ci
+  for (int i = 0; i < woundVertexList.size(); i++) {
+    cindices(ci, vi, woundVertexList[i]);
+    if (woundVertexCiCounter[ci] == 1) {  // not 0 (cell is not on wound) and not 2 or larger (cell is significantly on wound)
+      // excommunicate vertex i from the wound
+      // cout << "removing vertex " << woundVertexList[i] << " in cell " << ci << " from wound\n timestep = " << simclock << '\n';
+      woundVertexList.erase(woundVertexList.begin() + i);
+      woundVertexCiCounter[ci]--;
+    }
+  }
+
+  // cout << "before evaluateGhostDPForces, woundVertexList.size() = " << woundVertexList.size() << '\n';
   evaluateGhostDPForces(woundVertexList, trate);
 
-  // shrink preferred lengths (= actomyosin tension) and delete vertices if
-  // significant overlap, all only if >1 vertex is wound-facing
+  //  shrink preferred lengths (= actomyosin tension) and delete vertices if
+  //  significant overlap, all only if >1 vertex is wound-facing
   /*for (auto ci : woundCells) {
     int sz = woundVerts[ci].size();
     if (sz > 1) {
@@ -2794,11 +2964,18 @@ void epi2D::evaluateGhostDPForces(vector<int>& giList, double trate) {
   //    and are pre-sorted in coordinate space such that giList[0] and giList[giList.size()-1] are neighbors
 
   std::vector<int> ghostVList = giList;
+  // cout << "ghostVList.size() = " << ghostVList.size() << '\n';
+  /*for (auto i : ghostVList) {
+    cout << "vertex gi = " << i << '\n';
+    cout << "\t at position = " << x[NDIM * i] << '\t' << x[NDIM * i + 1] << '\n';
+  }*/
   int nvGhost = giList.size();
+  if (nvGhost == 0)
+    cout << "giList is empty, will mod by 0 leading to nan\n";
   std::vector<bool> isCorner;  // vector of ghostVList indices (i.e. 0,1,2,3, etc) that are corners (interact with ghost purse-string)
-  std::vector<int> l0Ghost;
+  std::vector<double> l0Ghost;
   // establish purse-string between each consecutive pair of vertices, treating segments spanning 2 cells specially
-  double ghostKa = 0, distBetweeniandj = 0;
+  double distBetweeniandj = 0;
   // loop over vertices in ghost wound
   // if corner, set preferred length l0Ghost[i] to be exp(-trate*dt)* current contact length
   //  else it is normal, set preferred length exp(-trate*dt) * l0[gi]
@@ -2815,19 +2992,16 @@ void epi2D::evaluateGhostDPForces(vector<int>& giList, double trate) {
       distBetweeniandj = vertDistNoPBC(gi, gj);
       // isCorner.push_back(i);
       l0Ghost.push_back(exp(-trate * dt) * distBetweeniandj);
-      cout << "checking: " << ci << " != " << cj << '\n';
-
     } else {
       // use default preferred segment length if segment is within one cell
-      l0Ghost.push_back(exp(-trate * dt * l0[gi]));
-      cout << "checking: " << ci << " = " << cj << '\n';
+      l0Ghost.push_back(exp(-trate * dt) * l0[gi]);
     }
   }
 
   // already set preferred lengths, so now just compute the shape forces for preferred lengths multiplied by the bool vector
   // check shapeForces2D(), left a draft on Atom
 
-  double fli, flim1, fb, cx, cy, xi, yi, gip1, xip1, yip1;
+  double fli, flim1, cx, cy, xi, yi, gip1, xip1, yip1;
   double rho0, l0im1, l0i;
   double dx, dy, dli, dlim1;
   double lim1x, lim1y, lix, liy, lip1x, lip1y, li, lim1;
@@ -2841,10 +3015,12 @@ void epi2D::evaluateGhostDPForces(vector<int>& giList, double trate) {
   cx = xi;
   cy = yi;
 
+  // cerr << rho0 << '\t' << xi << '\n';
+
   // loop over vertices of cell ci, get perimeter
   for (int vi = 0; vi < nvGhost - 1; vi++) {
     // next vertex
-    gip1 = ghostVList[vi + 1 % nvGhost];
+    gip1 = ghostVList[(vi + 1) % nvGhost];
 
     // get positions (check minimum images)
     dx = x[NDIM * gip1] - xi;
@@ -2866,6 +3042,8 @@ void epi2D::evaluateGhostDPForces(vector<int>& giList, double trate) {
     yi = yip1;
   }
 
+  // cerr << xi << '\n';
+
   // take average to get com
   cx /= nvGhost;
   cy /= nvGhost;
@@ -2876,10 +3054,11 @@ void epi2D::evaluateGhostDPForces(vector<int>& giList, double trate) {
   for (int i = 0; i < nvGhost; i++) {
     // preferred segment length
     int gi = ghostVList[i];
-    int ipi = ghostVList[i + 1 % nvGhost];
-    int imi = ghostVList[i - 1 % nvGhost];
+    int ipi = ghostVList[(i + 1 + nvGhost) % nvGhost];
+    int imi = ghostVList[(i - 1 + nvGhost) % nvGhost];
     l0i = l0Ghost[i];
-    l0im1 = l0Ghost[i - 1 % nvGhost];
+    l0im1 = l0Ghost[(i - 1 + nvGhost) % nvGhost];
+    // cout << "l0i = " << l0i << "\t, l0[gi] = " << l0[gi] << '\n';
     l0[gi] = l0i;  // update the l0 list
 
     // get coordinates relative to center of mass
@@ -2920,6 +3099,12 @@ void epi2D::evaluateGhostDPForces(vector<int>& giList, double trate) {
     // segment forces
     flim1 = kl * (rho0 / l0im1);
     fli = kl * (rho0 / l0i);
+
+    // cerr << "kl, l0im1 = " << kl << '\t' << l0im1 << '\n';
+
+    // cerr << fli << '\t' << dli << '\t' << lix << '\t' << li << '\n';
+
+    // cerr << "forceX = " << forceX << '\n';
 
     // add to forces
     forceX = (fli * dli * lix / li) - (flim1 * dlim1 * lim1x / lim1);
