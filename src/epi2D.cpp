@@ -369,9 +369,9 @@ void epi2D::partialRegridCell(int ci, double vrad) {
   }
 }
 
-void epi2D::regridSegment(int wVertIndex, double vrad) {
+std::vector<int> epi2D::regridSegment(int wVertIndex, double vrad) {  // return value is the indices of the deleted vertices for proper gi counting later
   if (vnn_label[wVertIndex] != 0)
-    return;
+    return {};
 
   // regridSegment will adjust a cell's wound-adjacent # vertices and vertex positions to not overlap, deleting vertices and shifting as needed.
   //   to maintain constant energy before and after regridding, need to calculate a number c and use it
@@ -447,7 +447,7 @@ void epi2D::regridSegment(int wVertIndex, double vrad) {
 
   int numVertsToDelete = orderedWVerts.size() - nv_new;
   if (numVertsToDelete <= 0)
-    return;
+    return {};
 
   for (int i = 0; i < orderedWVerts.size() - 1; i++) {
     gi = orderedWVerts[i];
@@ -481,7 +481,7 @@ void epi2D::regridSegment(int wVertIndex, double vrad) {
 
   // if (!deleteList.empty())
   deleteList.pop_back();  // don't delete the last vertex, it's not accounted for
-                          // in this interpolation algorithm?
+  // in this interpolation algorithm
 
   if (!deleteList.empty()) {
     cout << "before delete\t" << nv[ci] << '\n';
@@ -489,6 +489,11 @@ void epi2D::regridSegment(int wVertIndex, double vrad) {
     cout << "deleteList has " << deleteList.size()
          << " vertices in it, and we are asked to delete " << numVertsToDelete
          << " vertices\n";
+    for (auto i : deleteList)
+      cout << "vertex to delete: " << i << '\n';
+    cout << "wVertIndex = " << wVertIndex << '\n';
+    for (auto i : orderedWVerts)
+      cout << "orderedWVerts : " << i << '\n';
     deleteVertex(deleteList);
     cout << "after delete\t" << nv[ci] << '\n';
 
@@ -498,6 +503,7 @@ void epi2D::regridSegment(int wVertIndex, double vrad) {
       l0[gi] = vertDistNoPBC(gi, ip1[gi]);
     }
   }
+  return deleteList;
 }
 
 void epi2D::repulsiveForceUpdateWithWalls() {
@@ -1553,7 +1559,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
         initialPreferredPerimeter += l0[i];
       }
       // purseStringContraction(0.01) is fast (~100 tau), 0.001 is slow (~1000 tau).
-      purseStringContraction(0.005);  // must be called after forceCall, beacuse forceCall reestablishes the boundaries() properly.
+      purseStringContraction(0.01);  // must be called after forceCall, beacuse forceCall reestablishes the boundaries() properly.
       // evaluateGhostDPForces(woundVertexList, 0.001);
     }
 
@@ -2032,9 +2038,10 @@ void epi2D::deleteVertex(std::vector<int>& deleteList) {
   // delete the vertices with indices in deleteList. option to interpolate
   // (attempt to distribute remaining vertices into space left behind by deleted
   // old vertex)
-  cout << "\n\n\ndeleting vertices!!!\n\n\n\n\n simclock = " << simclock
+  cout << "\ndeleting vertices!!!\n\n simclock = " << simclock
        << '\n';
   cout << "NVTOT = " << NVTOT << '\n';
+  cout << "r.size() = " << r.size() << '\n';
   cout << "deleteList size = " << deleteList.size() << '\n';
   // sort descending so deletion doesn't interfere with itself
   std::sort(deleteList.begin(), deleteList.end(), std::greater<int>());
@@ -2058,6 +2065,8 @@ void epi2D::deleteVertex(std::vector<int>& deleteList) {
     l0.erase(l0.begin() + i);
     vnn.erase(vnn.begin() + i);
     vnn_label.erase(vnn_label.begin() + i);
+    // initialRadius, initiall0 are handled in dampedNP0
+    unsortedWoundIndices.erase(std::remove(unsortedWoundIndices.begin(), unsortedWoundIndices.end(), i), unsortedWoundIndices.end());
 
     fieldStress.pop_back();
     fieldShapeStress.pop_back();
@@ -2323,7 +2332,6 @@ void epi2D::NewmanZiff(std::vector<int>& ptr, int empty, int& mode, int& big) {
 //  also saves unsortedWoundIndices
 void epi2D::printBoundaries(int nthLargestCluster) {
   cerr << "entering printBoundaries\n";
-  // unsortedWoundIndices.clear();
   //  empty is the maximum negative cluster size
   int empty = -NVTOT - 1;
   // mode is the statistical mode of the cluster labels
@@ -2388,13 +2396,14 @@ void epi2D::printBoundaries(int nthLargestCluster) {
   double currentx, currenty, nextx, nexty;
   std::vector<int> previous_vertex;
   std::vector<double> unwrapped_x;
+  std::vector<int> unwrapped_x_gi;  // indices of vertices in unwrapped_x
   for (int gi = 0; gi < NVTOT; gi++) {
     if (findRoot(gi, ptr) == mode) {
       currentx = x[gi * NDIM];
       currenty = x[gi * NDIM + 1];
       unwrapped_x.push_back(currentx);
       unwrapped_x.push_back(currenty);
-      // unsortedWoundIndices.push_back(gi);
+      unwrapped_x_gi.push_back(gi);
       current_vertex = gi;
       break;
     }
@@ -2439,10 +2448,10 @@ void epi2D::printBoundaries(int nthLargestCluster) {
 
         unwrapped_x.push_back(nextx);
         unwrapped_x.push_back(nexty);
-        // unsortedWoundIndices.push_back(current_vertex);
+        unwrapped_x_gi.push_back(current_vertex);
+
         currentx = nextx;
         currenty = nexty;
-        // cout << "breaking out of first for loop, in if statement\n";
         break;
 
       } else if (it > middleit) {  // we have formed a closed loop, but have not
@@ -2477,10 +2486,9 @@ void epi2D::printBoundaries(int nthLargestCluster) {
               // forget the closed subloop, move onto a new one. Keep
               // previous_vertex, which forbids subloop from joining new loop
               unwrapped_x.clear();
-              // unsortedWoundIndices.clear();
               unwrapped_x.push_back(nextx);
               unwrapped_x.push_back(nexty);
-              // unsortedWoundIndices.push_back(current_vertex);
+              unwrapped_x_gi.push_back(current_vertex);
 
               currentx = nextx;
               currenty = nexty;
@@ -2506,10 +2514,14 @@ void epi2D::printBoundaries(int nthLargestCluster) {
       break;
     }
   }
-  for (int i = 0; i < unwrapped_x.size(); i += 2) {
-    bout << unwrapped_x[i] << '\t' << unwrapped_x[i + 1] << '\n';
+  if (checkWoundClosed(unwrapped_x_gi)) {
+    for (int i = 0; i < unwrapped_x.size(); i += 2)
+      bout << unwrapped_x[i] << '\t' << unwrapped_x[i + 1] << '\n';
+  } else {  // unwrapped_x_gi is not closed, hence does not represent what I'm using for the void segmentation
+    for (int i = 0; i < unsortedWoundIndices.size() / 2; i += 2) {
+      bout << x[NDIM * unsortedWoundIndices[i]] << '\t' << x[NDIM * unsortedWoundIndices[i] + 1] << '\n';
+    }
   }
-
   // indicate end of block, i.e. end of boundary matrix for this frame
   bout << "*EOB\n";
   edgeout << "*EOB\n";
@@ -2517,7 +2529,7 @@ void epi2D::printBoundaries(int nthLargestCluster) {
 }
 
 void epi2D::getWoundVertices(int nthLargestCluster) {
-  unsortedWoundIndices.clear();
+  std::vector<int> temporaryWoundIndices;
   // empty is the maximum negative cluster size
   int empty = -NVTOT - 1;
   // mode is the statistical mode of the cluster labels
@@ -2560,9 +2572,9 @@ void epi2D::getWoundVertices(int nthLargestCluster) {
   double currentx, currenty, nextx, nexty;
   std::vector<int> previous_vertex;
   // std::vector<double> unwrapped_x;
-  for (int gi = 0; gi < NVTOT; gi++) {
+  for (int gi = 0; gi < NVTOT; gi++) {  // the lowest gi is the first entry of temporaryWoundIndices, the rest are sorted in based on connectivity
     if (findRoot(gi, ptr) == mode) {
-      unsortedWoundIndices.push_back(gi);
+      temporaryWoundIndices.push_back(gi);
       current_vertex = gi;
       break;
     }
@@ -2583,8 +2595,6 @@ void epi2D::getWoundVertices(int nthLargestCluster) {
       // if i == -1, then we've found a dead end. backtrack (go back by one current_vertex) and try again
       if (i == -1) {
         current_vertex = previous_vertex.end()[-2];
-        // unwrapped_x.pop_back();
-        // unwrapped_x.pop_back();
         break;
       }
 
@@ -2596,7 +2606,7 @@ void epi2D::getWoundVertices(int nthLargestCluster) {
         // switch focus to new vertex
         current_vertex = i;
 
-        unsortedWoundIndices.push_back(current_vertex);
+        temporaryWoundIndices.push_back(current_vertex);
         break;
 
       } else if (it > middleit) {  // we have formed a closed loop, but have not
@@ -2622,8 +2632,8 @@ void epi2D::getWoundVertices(int nthLargestCluster) {
 
               // forget the closed subloop, move onto a new one. Keep
               // previous_vertex, which forbids subloop from joining new loop
-              unsortedWoundIndices.clear();
-              unsortedWoundIndices.push_back(current_vertex);
+              temporaryWoundIndices.clear();
+              temporaryWoundIndices.push_back(current_vertex);
 
               cout << "cluster is too small, seeking alternate route\n";
               break;
@@ -2647,6 +2657,20 @@ void epi2D::getWoundVertices(int nthLargestCluster) {
       break;
     }
   }
+  if (checkWoundClosed(temporaryWoundIndices)) {
+    unsortedWoundIndices = temporaryWoundIndices;
+  } else {
+    // cout << "temporaryWoundIndices was not a closed shape, use old shape for unsortedWoundIndices.\n";
+  }
+}
+
+bool epi2D::checkWoundClosed(std::vector<int>& listOfIndices) {  // true if listOfIndices (wound) is closed, false if not
+  if (listOfIndices.size() == 0)
+    return false;
+  int firstVertex = listOfIndices[0];
+  int lastVertex = listOfIndices.back();
+  return (std::find(vnn[firstVertex].begin(), vnn[firstVertex].end(), lastVertex) !=
+          vnn[firstVertex].end());
 }
 
 int epi2D::findRoot(int i, std::vector<int>& ptr) {
@@ -2765,11 +2789,13 @@ void epi2D::deflectOverlappingDirectors() {
 }
 
 void epi2D::purseStringContraction(double trate) {
-  // in epithelia, actomyosin accumulates in cells at wound edges, forms a ring
-  // that shrinks - sewing the wound shut model by shrinking vertices and length
-  // between vertices on the wound edge, pulls cells into wound by cortical
-  // tension
-  //  no PBC with wound healing, so PBC aren't accounted for here
+  woundIsClosed = checkWoundClosed(unsortedWoundIndices);
+  // cout << "wound is closed? = " << woundIsClosed << '\n';
+  //    in epithelia, actomyosin accumulates in cells at wound edges, forms a ring
+  //    that shrinks - sewing the wound shut model by shrinking vertices and length
+  //    between vertices on the wound edge, pulls cells into wound by cortical
+  //    tension
+  //     no PBC with wound healing, so PBC aren't accounted for here
   int empty = -NVTOT - 1;
   int mode, big = 0;
   int ci, cj, vi, vj, gi;
@@ -2803,7 +2829,6 @@ void epi2D::purseStringContraction(double trate) {
   getWoundVertices(nthLargestCluster);
 
   std::vector<std::vector<int>> woundVerts(NCELLS);  //, vector<int> (int (NVTOT/NCELLS), -1));
-  // std::vector<int> unsortedWoundIndices;
 
   // get a list of all indices for cells with wound-facing vertices
   std::vector<int> woundCells;
@@ -2819,8 +2844,8 @@ void epi2D::purseStringContraction(double trate) {
   woundCells.erase(last, woundCells.end());
 
   if (woundCells.size() > 13 || woundCells.size() < 7) {  // catch bad cases where cells have fallen apart
-    cout << "# wound cells = " << woundCells.size() << '\n';
-    cout << "exiting\n";
+    // cout << "# wound cells = " << woundCells.size() << '\n';
+    // cout << "exiting\n";
     return;
   }
 
@@ -2870,19 +2895,14 @@ void epi2D::purseStringContraction(double trate) {
     }
   }
 
-  /*
-  cout << "before pruning, woundVertexList.size() = " << woundVertexList.size() << '\n';
-  cout << "unsortedWoundIndices.size() = " << unsortedWoundIndices.size() << '\n';
-  */
-
   // cout << "woundVertexList, unsortedWoundIndices size = " << woundVertexList.size() << '\t' << unsortedWoundIndices.size() << '\n';
 
   // remove (prune) any gi in woundVertexList if it is the only such vertex of any given cell ci
   for (int i = 0; i < woundVertexList.size(); i++) {
     cindices(ci, vi, woundVertexList[i]);
-    if (woundVertexCiCounter[ci] == 1) {  // not 0 (cell is not on wound) and not 2 or larger (cell is significantly on wound)
+    if (woundVertexCiCounter[ci] == 1 || woundVertexCiCounter[ci] == 0) {  // 0 or 1 (cell is not/hardly on wound) = remove.  2 or larger (cell is significantly on wound) = stay.
+      // 0 case arises when I reject the void segmentation and use an old wound configuration.
       // excommunicate vertex i from the wound
-      // cout << "removing vertex " << woundVertexList[i] << " in cell " << ci << " from wound\n timestep = " << simclock << '\n';
       woundVertexList.erase(woundVertexList.begin() + i);
       woundVertexCiCounter[ci]--;
     }
@@ -2891,9 +2911,8 @@ void epi2D::purseStringContraction(double trate) {
   // cout << "before evaluateGhostDPForces, woundVertexList.size() = " << woundVertexList.size() << '\n';
   evaluateGhostDPForces(woundVertexList, trate);
 
-  //  shrink preferred lengths (= actomyosin tension) and delete vertices if
-  //  significant overlap, all only if >1 vertex is wound-facing
-  /*for (auto ci : woundCells) {
+  //  delete vertices if significant overlap, only if >1 vertex is wound-facing
+  for (auto ci : woundCells) {
     int sz = woundVerts[ci].size();
     if (sz > 1) {
       // set up initial perimeter to calculate how much needs to be distributed
@@ -2907,9 +2926,9 @@ void epi2D::purseStringContraction(double trate) {
         if (vnn_label[ip1[gi]] != 0 && vnn_label[ip1[gi]] != 2)
           continue;
 
-        remainderPerimeter -= l0[gi];
+        /*remainderPerimeter -= l0[gi];
         l0[gi] *= exp(-trate * dt);
-        remainderPerimeter += l0[gi];
+        remainderPerimeter += l0[gi];*/
 
         shrunkV.push_back(gi);
 
@@ -2925,7 +2944,19 @@ void epi2D::purseStringContraction(double trate) {
                 pow(x[gi * NDIM + 1] - x[gj * NDIM + 1], 2);
           rij = pow((r[gi] + r[gj]) * tol, 2);
           if (dij < rij) {
-            regridSegment(gi, r[gj]);  // regrid a chain of line segments around vertex gi
+            std::vector<int> deletedVertices = regridSegment(gi, r[gj]);  // regrid a chain of line segments around vertex gi
+            // adjust woundVerts[ci] values to account for newly deleted vertices
+            for (auto i : deletedVertices) {
+              for (int j = 0; j < woundVerts.size(); j++) {
+                for (auto& k : woundVerts[j]) {
+                  cout << "i and k = " << i << '\t' << k << '\n';
+                  if (k > i) {
+                    cout << "k > i !\n";
+                    k--;
+                  }
+                }
+              }
+            }
             break;
           }
         }
@@ -2950,7 +2981,7 @@ void epi2D::purseStringContraction(double trate) {
        //  turn off intercellular attraction and repulsion for the vertex in question
        // listTurnOffRepulsion.push_back(woundVerts[ci][0]);
     //}
-  }*/
+  }
 }
 
 void epi2D::evaluateGhostDPForces(vector<int>& giList, double trate) {
