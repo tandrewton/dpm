@@ -380,7 +380,7 @@ std::vector<int> epi2D::regridSegment(int wVertIndex, double vrad) {  // return 
   // wVertIndex = index of one of the wound cells. from here we'll calculate the
   // rest, take in a list of vertices that form a chain of line segments, and
   // return a linearly interpolated equivalent list of vertices
-  int ci, vi, gi = wVertIndex, gj = wVertIndex;
+  int ci, vi;
   double d_T, newx, newy, T = 0, lerp, vdiam = vrad * 2, arc_length = 0;
   double cx, cy, rip1x, rip1y, rix, riy, lix, liy, li;
   cindices(ci, vi, wVertIndex);
@@ -411,22 +411,16 @@ std::vector<int> epi2D::regridSegment(int wVertIndex, double vrad) {  // return 
     // cout << li/l0[gi] << '\n';
   }
 
-  std::vector<int> unorderedWoundList = {wVertIndex}, deleteList;
+  std::vector<int> deleteList;
   std::vector<double> result;
+  std::vector<int> unorderedWoundList;
 
-  // find all the adjacent wound vertices, unordered
-  // im1 = back neighbor, ip1 = front neighbor
-  for (int i = 0; i < nv[ci]; i++) {
-    // for later: might want to check that everyone is in the same segmentation
-    if (vnn_label[gi] == 0 || vnn_label[gi] == 2) {  // if we are at an edge or a corner
-      gi = im1[gi];
-      if (vnn_label[gi] == 0 || vnn_label[gi] == 2 || vnn_label[gi] == -3 || vnn_label[gi] == 1)  // look for a neighbor that's an edge or a corner
-        unorderedWoundList.insert(unorderedWoundList.begin(), gi);
-    }
-    if (vnn_label[gj] == 0 || vnn_label[gj] == 2) {
-      gj = ip1[gj];
-      if (vnn_label[gj] == 0 || vnn_label[gj] == 2 || vnn_label[gj] == -3 || vnn_label[gj] == 1)
-        unorderedWoundList.push_back(gj);
+  // use unsortedWoundIndices to find ci's wound-adjacent vertices
+  int cj, vj, gi, gj;
+  for (int j = 0; j < unsortedWoundIndices.size(); j++) {
+    cindices(cj, vj, unsortedWoundIndices[j]);
+    if (cj == ci) {  // collect all indices for cell ci that are wound-adjacent
+      unorderedWoundList.push_back(unsortedWoundIndices[j]);
     }
   }
 
@@ -490,17 +484,32 @@ std::vector<int> epi2D::regridSegment(int wVertIndex, double vrad) {  // return 
          << " vertices in it, and we are asked to delete " << numVertsToDelete
          << " vertices\n";
     for (auto i : deleteList)
-      cout << "vertex to delete: " << i << '\n';
+      cout << "vertex to delete: " << i << '\t' << x[NDIM * i] << '\t' << x[NDIM * i + 1] << '\n';
     cout << "wVertIndex = " << wVertIndex << '\n';
     for (auto i : orderedWVerts)
-      cout << "orderedWVerts : " << i << '\n';
+      cout << "orderedWVerts : " << i << '\t' << x[NDIM * i] << '\t' << x[NDIM * i + 1] << '\n';
+
     deleteVertex(deleteList);
-    cout << "after delete\t" << nv[ci] << '\n';
+
+    for (auto i : deleteList) {
+      orderedWVerts.erase(std::remove(orderedWVerts.begin(), orderedWVerts.end(), i), orderedWVerts.end());
+      for (int j = 0; j < orderedWVerts.size(); j++) {
+        if (orderedWVerts[j] > i)
+          orderedWVerts[j]--;
+      }
+    }
 
     // after regridding and deleting, have all wound vertices set their preferred lengths to their current length. gives rigidity.
+
+    for (auto i : szList) {
+      cout << "szList = " << i << '\n';
+    }
+
     for (int i = 0; i < orderedWVerts.size(); i++) {
       gi = orderedWVerts[i];
+      cout << "gi, l0(before), l0(after) = " << gi << '\t' << l0[gi] << "\t" << vertDistNoPBC(gi, ip1[gi]) << '\n';
       l0[gi] = vertDistNoPBC(gi, ip1[gi]);
+      cout << "orderedWVerts after regrid: " << gi << ", ip1[gi] = " << ip1[gi] << '\t' << x[NDIM * gi] << '\t' << x[NDIM * gi + 1] << '\n';
     }
   }
   return deleteList;
@@ -2843,12 +2852,6 @@ void epi2D::purseStringContraction(double trate) {
   auto last = std::unique(woundCells.begin(), woundCells.end());
   woundCells.erase(last, woundCells.end());
 
-  if (woundCells.size() > 13 || woundCells.size() < 7) {  // catch bad cases where cells have fallen apart
-    // cout << "# wound cells = " << woundCells.size() << '\n';
-    // cout << "exiting\n";
-    return;
-  }
-
   // get a list of all indices for wound-facing vertices in a given cell ci
   for (auto ci : woundCells) {
     for (int vi = 0; vi < nv[ci]; vi++) {
@@ -2861,7 +2864,7 @@ void epi2D::purseStringContraction(double trate) {
 
   // tol represents how much the vertices in the same cell are allowed to
   // overlap (tol * contact distance) before we start deleting them
-  double tol = 0.8;
+  double tol = 0.7;
   std::vector<int> deleteV(1, 0);
   // shrunkV keeps track of shrunk vertices, so I can redistribute perimeter to
   // unshrunk vertices
@@ -2930,7 +2933,7 @@ void epi2D::purseStringContraction(double trate) {
         l0[gi] *= exp(-trate * dt);
         remainderPerimeter += l0[gi];*/
 
-        shrunkV.push_back(gi);
+        // shrunkV.push_back(gi);
 
         int gj;  // j is a vertex next to i
         for (int k = -1; k < 2; k += 2) {
@@ -2949,9 +2952,7 @@ void epi2D::purseStringContraction(double trate) {
             for (auto i : deletedVertices) {
               for (int j = 0; j < woundVerts.size(); j++) {
                 for (auto& k : woundVerts[j]) {
-                  cout << "i and k = " << i << '\t' << k << '\n';
                   if (k > i) {
-                    cout << "k > i !\n";
                     k--;
                   }
                 }
@@ -2965,18 +2966,18 @@ void epi2D::purseStringContraction(double trate) {
         gi = gindex(ci, i);
         // double remainderLength = (initialPreferredPerimeter - remainderPerimeter) / nv[ci];
         //  check that gi is not in shrunkV
-        if (std::find(shrunkV.begin(), shrunkV.end(), gi) == shrunkV.end()) {
+        /*if (std::find(shrunkV.begin(), shrunkV.end(), gi) == shrunkV.end()) {
           // then give gi remainderPerimeter / (nv[ci] - shrunkV)
           double remainderLength = (initialPreferredPerimeter - remainderPerimeter) / (nv[ci] - shrunkV.size());
           // l0[gi] += remainderLength;
           // r[gi] += remainderLength/2;
-        }
+        }*/
 
         // l0[gi] += remainderLength;
         // cout << "simclock = " << simclock << ", remainderLength = " << remainderLength << ", current l0[gi] = " << l0[gi] << '\n';
       }
       // remove contents of shrunkV after finishing with the regridding and reapportionment
-      shrunkV.clear();
+      // shrunkV.clear();
     }  // else if (sz == 1 || sz == 2) {
        //  turn off intercellular attraction and repulsion for the vertex in question
        // listTurnOffRepulsion.push_back(woundVerts[ci][0]);
