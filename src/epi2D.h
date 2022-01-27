@@ -101,6 +101,7 @@ class epi2D : public dpm {
   std::vector<int> listTurnOffRepulsion;
   std::vector<int> unsortedWoundIndices;  // these actually are sorted, should rename later.
   bool woundIsClosed;
+  bool regridChecker;
 
  public:
   // constructor and destructor
