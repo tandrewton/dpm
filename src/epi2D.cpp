@@ -8,7 +8,7 @@
   PARTICLE DELETION AND ADDITION PROTOCOLS, SO SHOULD HAVE EASY ACCESS TO
   RESIZING ITS SIZE-DEPENDENT VECTORS
 
-
+Warning to the new reader and myself - I use a few global-style variables defined inside of epi2D.h that are repeatedly modified throughout the code. This is bad engineering, and it would be good to instead pass needed information through function arguments and only through function arguments. This will be a focus of a major refactoring effort once I've managed to get a working wound simulation.
 */
 
 #include "epi2D.h"
@@ -154,221 +154,6 @@ void epi2D::directorDiffusion() {
   }
 }
 
-void epi2D::regridCell(int ci, double vrad) {
-  // if (boolStopDeleting) return;
-  // cout << "NVTOT = " << NVTOT << '\n';
-  //  ci is the index of the cell to regrid
-  //  vrad is the vertex radius desired
-  //  end result is the appropriate number of vertices added or deleted, and a
-  //  new cell with same polygonal shape but with evenly distributed vertices
-  //     used to prevent excessive overlap of vertices during purseString
-  //     algorithm
-  double vi, gi, gj, d_T, newx, newy;
-  double T = 0;
-
-  // linear interpolation parameter
-  double lerp;
-  double vdiam = vrad * 2;
-  double peri = perimeter(ci);
-  int nv_new = peri / vdiam;
-  double arc_length = peri / nv_new;
-
-  gi = gindex(ci, 0);
-  std::vector<double> result = {x[gi * NDIM], x[gi * NDIM + 1]};
-
-  std::vector<int> deleteList;
-  // decide how many vertices to delete at the end
-
-  int cj, vj;
-  if (nv_new < nv[ci]) {
-    for (int i = 0; i < nv[ci] - nv_new; i++) {
-      gi = gindex(ci, nv[ci] - 1 - i);
-      cindices(cj, vj, gi);
-      deleteList.push_back(gi);
-    }
-  } else {
-    cout << "warning: nv_new >= nv[ci]\n";
-    return;
-  }
-
-  for (int vi = 0; vi < nv[ci]; vi++) {
-    gi = gindex(ci, vi);
-    gj = gindex(ci, (vi + 1) % nv[ci]);
-    d_T = vertDistNoPBC(gi, gj) / arc_length;
-    while (result.size() / 2 <= T + d_T && result.size() / 2 < nv_new) {
-      lerp = (result.size() / 2 - T) / d_T;
-      newx = (1 - lerp) * x[gi * NDIM] + lerp * x[gj * NDIM];
-      newy = (1 - lerp) * x[gi * NDIM + 1] + lerp * x[gj * NDIM + 1];
-      result.push_back(newx);
-      result.push_back(newy);
-    }
-    T += d_T;
-  }
-
-  int nv_old = nv[ci];
-  if (!deleteList.empty()) {
-    boolStopDeleting = true;
-    printConfiguration2D();
-    cout << "actually deleting cells\n";
-    deleteVertex(deleteList);
-    // global index of first vertex of ci
-    gi = gindex(ci, 0);
-    // move coordinates into place, and adjust preferred lengths appropriately
-    // to conserve preferred perimeter
-    for (int i = 0; i < result.size(); i++) {
-      x[gi * NDIM + i] = result[i];
-    }
-    for (int i = 0; i < result.size() / 2; i++) {
-      l0[gi + i] *= nv_old / nv[ci];
-    }
-    printConfiguration2D();
-    for (int i = 0; i < nv[ci]; i++) {
-      int gi = gindex(ci, i);
-      int gj = gindex(ci, (i + 1) % nv[ci]);
-      cout << "gi, gj = " << gi << '\t' << gj << ", szList[ci] = " << szList[ci]
-           << ",nv[ci] = " << nv[ci] << ",vertex distances \t"
-           << vertDistNoPBC(gi, gj) << '\n';
-    }
-  }
-}
-
-void epi2D::partialRegridCell(int ci, double vrad) {
-  int gi, gj;
-  // wverts stores vertex indices of wound vertices
-  std::vector<int> wverts_tmp, wverts, deleteList;
-  double vdiam = 2 * vrad;
-  double peri = 0, T = 0, d_T, lerp, newx, newy;
-  int sentinel1 = 0, sentinel2 = 0;
-
-  // store wound edge vertices
-  for (int vi = 0; vi < nv[ci]; vi++) {
-    gi = gindex(ci, vi);
-    // check if vertex is a wound edge
-    if (vnn_label[gi] == 0) {
-      wverts_tmp.push_back(gi);
-    }
-  }
-
-  // reorder wverts_tmp into wverts based on real-space contact order
-  while (!wverts_tmp.empty()) {
-    sentinel1++;
-    if (sentinel1 > 100) {
-      cout << "sentinel1 is stuck\n";
-      cout << "wverts.size() = " << wverts.size()
-           << ", wverts_tmp.size() = " << wverts_tmp.size() << '\n';
-      cout << "gi " << gi << ", gj " << gj
-           << ", vnn_label[gi] = " << vnn_label[gi]
-           << ", vnn_label[gj] = " << vnn_label[gj] << '\n';
-      cout << "szList[ci] " << szList[ci] << ", nv[ci] " << nv[ci]
-           << " (((gi - 1) % szList[ci] % nv[ci]) + szList[ci])\t"
-           << (((gi - 1) % szList[ci] % nv[ci]) + szList[ci]) << '\n';
-      cout << " (((gi + 1) % szList[ci] % nv[ci]) + szList[ci])\t"
-           << (((gi + 1) % szList[ci] % nv[ci]) + szList[ci]) << '\n';
-      for (auto j : wverts_tmp)
-        cout << "wverts_tmp[j] = " << j << '\n';
-      assert(false);
-    }
-    // first element of wverts needs to be a corner-adjacent wound edge vertex
-    if (wverts.empty()) {
-      for (auto gi : wverts_tmp) {
-        // check if edge gi has neighbor gi + 1 that's a corner or not
-        gj = (((gi + 1) % szList[ci] % nv[ci]) + szList[ci]);
-        if (vnn_label[gj] == 2) {
-          // add gi to wverts, remove it from wverts_tmp.
-          wverts.push_back(gi);
-          wverts_tmp.erase(
-              std::remove(wverts_tmp.begin(), wverts_tmp.end(), gi),
-              wverts_tmp.end());
-          break;
-        }
-      }
-    } else {  // next elements of wverts needs to be non-corner adjacent. Last
-              // one should be corner adjacent.
-      gi = wverts.back();
-      // since gi + 1 is a corner of the first entry of wverts, the other edges
-      // should start at gi - 1
-      gj = (((gi - 1) % szList[ci] % nv[ci]) + szList[ci]);  // might want to add nv[ci] back to gi - 1 before mod to make sure positive definite?
-      if (vnn_label[gj] == 0 && std::find(wverts_tmp.begin(), wverts_tmp.end(),
-                                          gj) != wverts_tmp.end()) {
-        wverts.push_back(gj);
-        wverts_tmp.erase(std::remove(wverts_tmp.begin(), wverts_tmp.end(), gj),
-                         wverts_tmp.end());
-      } else if (vnn_label[gj] == 2)
-        // found the other corner, so exit the while loop. the other
-        // exit condition is if wverts_tmp has been fully emptied
-        // into wverts
-        break;
-      else {
-        cout << "error: found an edge whose neighbor is neither corner nor "
-                "edge\n";
-        cout << "wverts_tmp size = " << wverts_tmp.size() << '\n';
-        cout << "wverts size = " << wverts.size() << '\n';
-        break;
-      }
-    }
-  }
-  if (wverts.size() > 2) {
-    cout << "wverts.size() = " << wverts.size() << '\n';
-    // compute arc perimeter
-    for (int i = 0; i < wverts.size() - 1; i++) {
-      peri += vertDistNoPBC(wverts[i], wverts[i + 1]);
-    }
-    int k = peri / vdiam;
-    if (k == 0)
-      return;
-    double arc_length = peri / k;
-    std::vector<double> result = {x[wverts[0] * NDIM], x[wverts[0] * NDIM + 1]};
-
-    for (int i = 0; i < wverts.size() - 1; i++) {
-      gi = wverts[i];
-      gj = wverts[i + 1];
-      d_T = vertDistNoPBC(wverts[i], wverts[i + 1]) / arc_length;
-      while (result.size() / 2 <= T + d_T && result.size() / 2 < k) {
-        sentinel2++;
-        if (sentinel2 > 100) {
-          cout << "sentinel2 is stuck\n";
-          assert(false);
-        }
-        lerp = (result.size() / 2 - T) / d_T;
-        newx = (1 - lerp) * x[gi * NDIM] + lerp * x[gj * NDIM];
-        newy = (1 - lerp) * x[gi * NDIM + 1] + lerp * x[gj * NDIM + 1];
-        result.push_back(newx);
-        result.push_back(newy);
-      }
-      T += d_T;
-    }
-
-    // now need to delete the wound edges and replace them with the ones in
-    // result, but keeping the right order.
-    int numVertsToDelete = wverts.size() - k;
-    // mark last elements of wverts for deletion
-    for (int i = 0; i < numVertsToDelete; i++) {
-      if (wverts[wverts.size() - 1 - i])
-        cout << "partialRegrid: deleting vertices: wverts.size() = \t"
-             << wverts.size() << "\twverts.size() - 1 - i\t"
-             << wverts.size() - 1 - i << "\tnumVertsToDelete\t"
-             << numVertsToDelete << '\n';
-      deleteList.push_back(wverts[wverts.size() - 1 - i]);
-      wverts.pop_back();
-    }
-    if (!deleteList.empty()) {
-      printConfiguration2D();
-      cout << "actually deleting " << deleteList.size()
-           << " vertices in partialRegrid\n";
-      // delete vertices in tail of wverts
-      deleteVertex(deleteList);
-      for (int i = 0; i < wverts.size(); i++) {
-        gi = wverts[i];
-        x[gi * NDIM] = result[2 * i];
-        x[gi * NDIM + 1] = result[2 * i + 1];
-        // retain overall cell's shape parameter?
-        l0[gi] *= (numVertsToDelete + k) / k;
-      }
-      printConfiguration2D();
-    }
-  }
-}
-
 std::vector<int> epi2D::regridSegment(int wVertIndex, double vrad) {  // return value is the indices of the deleted vertices for proper gi counting later
   if (vnn_label[wVertIndex] != 0)
     return {};
@@ -425,26 +210,33 @@ std::vector<int> epi2D::regridSegment(int wVertIndex, double vrad) {  // return 
   }
 
   std::vector<int> orderedWVerts = unorderedWoundList;
+
+  cout << "NOT rotated orderedWVerts looks like (before deletion): \n";
+  for (auto i : orderedWVerts) {
+    cout << "gi = " << i << "\t, ip1[gi] = " << ip1[i] << "\t, im1[gi] = " << im1[i] << '\n';
+  }
+
   for (int i = 0; i < orderedWVerts.size(); i++) {
     // check if ip1[orderedWVerts[j]] == orderedWVerts[j+1] for all j
     // if not, then do a cyclic permutation
 
-    bool isOrdered = true;
+    bool isOrderedRight = true;
+    bool isOrderedLeft = true;
     for (int j = 0; j < orderedWVerts.size() - 1; j++) {
-      isOrdered *= (ip1[orderedWVerts[j]] == orderedWVerts[j + 1]);
+      isOrderedRight *= (ip1[orderedWVerts[j]] == orderedWVerts[j + 1]);
+      isOrderedLeft *= (im1[orderedWVerts[(j + orderedWVerts.size()) % orderedWVerts.size()]] == orderedWVerts[(j - 1 + orderedWVerts.size()) % orderedWVerts.size()]);
     }
-    if (isOrdered) {
-      cout << "successfully ordered orderedWVerts.\n";
-      for (auto k : orderedWVerts) {
-        cout << "ordered vertex " << k << ", with ip1[k] = " << ip1[k] << '\n';
-      }
-      cout << "before break\n";
+    if (isOrderedRight || isOrderedLeft) {
       break;
     } else {
       std::rotate(orderedWVerts.begin(), orderedWVerts.begin() + 1, orderedWVerts.end());
     }
   }
-  // cout << "before arc-length calculation\n";
+
+  cout << "rotated orderedWVerts looks like (before deletion): \n";
+  for (auto i : orderedWVerts) {
+    cout << "gi = " << i << "\t, ip1[gi] = " << ip1[i] << "\t, im1[gi] = " << im1[i] << '\n';
+  }
 
   // orderedWVerts.push_back(ip1[gj]); // try extending the vertices to interpolate by one on each end
   // orderedWVerts.insert(orderedWVerts.begin(), im1[gi]);
@@ -2631,13 +2423,8 @@ void epi2D::getWoundVertices(int nthLargestCluster) {
       // another possibility is if i==-1, then we've closed the wound. Check for this
       if (i == -1) {
         current_vertex = previous_vertex.end()[-2];
-        /*for (auto j : vnn[current_vertex])
-          cout << "dead end in getWoundVertices, backtracking. neighbor list of current vertex " << current_vertex << " is : " << j << '\n';
-        for (auto j : temporaryWoundIndices)
-          cout << "temporaryWoundIndices element: " << j << '\n';*/
         if (checkWoundClosed(temporaryWoundIndices)) {
           tempWoundIsClosed = true;
-          // cout << "closed the wound in getWoundVertices!\n";
         }
         break;
       }
@@ -2929,7 +2716,15 @@ void epi2D::purseStringContraction(double trate) {
       }
     }
   }
+  if (simclock < 142.0 && simclock > 140.0) {
+    cout << "woundVertexList.size() = " << woundVertexList.size() << "\t, unsortedWoundIndices.size() = " << unsortedWoundIndices.size() << '\n';
 
+    for (auto i : woundVertexList)
+      cout << "woundVertex " << i << '\n';
+    for (auto i : unsortedWoundIndices)
+      cout << "unsortedWoundIndex " << i << '\n';
+  }
+  /*
   // remove (prune) any gi in woundVertexList if it is the only such vertex of any given cell ci
   for (int i = 0; i < woundVertexList.size(); i++) {
     cindices(ci, vi, woundVertexList[i]);
@@ -2939,7 +2734,7 @@ void epi2D::purseStringContraction(double trate) {
       woundVertexList.erase(woundVertexList.begin() + i);
       woundVertexCiCounter[ci]--;
     }
-  }
+  }*/
 
   // cout << "before evaluateGhostDPForces, woundVertexList.size() = " << woundVertexList.size() << '\n';
   evaluateGhostDPForces(woundVertexList, trate);
