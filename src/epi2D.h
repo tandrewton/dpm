@@ -102,6 +102,7 @@ class epi2D : public dpm {
   std::vector<int> unsortedWoundIndices;  // these actually are sorted, should rename later.
   bool woundIsClosedPolygon;
   bool regridChecker;
+  std::vector<int> cellsLeavingPurseString;
 
  public:
   // constructor and destructor
