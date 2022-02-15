@@ -82,6 +82,7 @@ class epi2D : public dpm {
   std::ofstream stressout;
   std::ofstream bout;
   std::ofstream edgeout;
+  std::ofstream purseout;
 
   // simulation time keeper (accumulates elapsed simulation time during MD
   // routines)
@@ -99,10 +100,17 @@ class epi2D : public dpm {
 
   // flag for vertex repulsion (if a cell has only 1 wound vertex, then turn off repulsion so that it gets sucked into the bulk)
   std::vector<int> listTurnOffRepulsion;
-  std::vector<int> unsortedWoundIndices;  // these actually are sorted, should rename later.
+  std::vector<int> sortedWoundIndices;
   bool woundIsClosedPolygon;
   bool regridChecker;
   std::vector<int> cellsLeavingPurseString;
+
+  // virtual purseString variables
+  std::vector<double> x_ps;
+  std::vector<double> v_ps;
+  std::vector<double> F_ps;
+  std::vector<double> l0_ps;
+  std::vector<int> psContacts;
 
  public:
   // constructor and destructor
@@ -173,6 +181,17 @@ class epi2D : public dpm {
   void openEdgeObject(std::string& str) {
     edgeout.open(str.c_str());
     if (!edgeout.is_open()) {
+      std::cerr << "	ERROR: file could not open " << str << "..."
+                << std::endl;
+      exit(1);
+    } else
+      std::cout << "** Opening file " << str << " ..." << std::endl;
+  }
+
+  // File openers
+  void openPurseStringObject(std::string& str) {
+    purseout.open(str.c_str());
+    if (!purseout.is_open()) {
       std::cerr << "	ERROR: file could not open " << str << "..."
                 << std::endl;
       exit(1);
@@ -261,6 +280,11 @@ class epi2D : public dpm {
   void evaluateGhostDPForces(std::vector<int>& giList, double trate);
   double rotateAndCalculateArcLength(int ci, std::vector<int>& woundIndicesBelongingToCi);
   void purseStringContraction(double trate);
+  void purseStringContraction2(double trate, double deltaSq, double k_wp, double B);
+  void initializePurseStringVariables();
+  // void updatePurseStringContacts();
+  void evaluatePurseStringForces(double deltasq, double k_wp, double B);
+  void integratePurseString(double deltaSq, double k_wp, double B);
   // polymorphism: write configuration information to file
   void printConfiguration2D();
 };

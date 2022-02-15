@@ -185,12 +185,12 @@ std::vector<int> epi2D::regridSegment(int wVertIndex, double vrad) {
   std::vector<double> result;
   std::vector<int> unorderedWoundList;
 
-  // use unsortedWoundIndices to find ci's wound-adjacent vertices
+  // use sortedWoundIndices to find ci's wound-adjacent vertices
   int cj, vj, gi, gj;
-  for (int j = 0; j < unsortedWoundIndices.size(); j++) {
-    cindices(cj, vj, unsortedWoundIndices[j]);
+  for (int j = 0; j < sortedWoundIndices.size(); j++) {
+    cindices(cj, vj, sortedWoundIndices[j]);
     if (cj == ci) {  // collect all indices for cell ci that are wound-adjacent
-      unorderedWoundList.push_back(unsortedWoundIndices[j]);
+      unorderedWoundList.push_back(sortedWoundIndices[j]);
     }
   }
 
@@ -487,6 +487,14 @@ void epi2D::epi_shapeForces2D() {
     forceY = (fli * dli * liy / li) - (flim1 * dlim1 * lim1y / lim1);
     F[NDIM * gi] += forceX;
     F[NDIM * gi + 1] += forceY;
+
+    /*// leaving some comments for tracking forces and comparing interior epi2D
+    // to the pursestring forces
+    cout << "\n\nforceX, forceY in epi2Dshapeforces = " << forceX << '\t' << forceY << ", simclock = " << simclock << '\n';
+    cout << fli << '\t' << dli << '\t' << lix << '\t' << li << '\n';
+    cout << flim1 << '\t' << dlim1 << '\t' << lim1x << '\t' << lim1 << '\n';
+    cout << l0i << '\t' << l0im1 << '\n';
+    cout << "wound center = " << cx << '\t' << cy << '\n';*/
 
     // fL, dL - Andrew 10/28/21 - total perimeter force for cts. energy while regridding
     //   (distinct from original segment force)
@@ -1339,6 +1347,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
   // set time step magnitude
   setdt(dt0);
   int NPRINTSKIP = printInterval / dt;
+  int nthLargestCluster = 2;
 
   initialRadius = r;
   initiall0 = l0;
@@ -1375,12 +1384,20 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
         initialPreferredPerimeter += l0[i];
       }
       // purseStringContraction(0.01) is fast (~100 tau), 0.001 is slow (~1000 tau).
-      purseStringContraction(0.01);  // must be called after forceCall, beacuse forceCall reestablishes the boundaries() properly.
-      if (regridChecker) {
+      // purseStringContraction(0.01);  // must be called after forceCall, beacuse forceCall reestablishes the boundaries() properly.
+      /*if (regridChecker) {
         // printConfiguration2D();
         // printBoundaries();
         regridChecker = false;
+      }*/
+      // trying out deltaSq = 1.0, k_wp = 1.0
+      if (psContacts.size() == 0 && simclock - t0 < 100) {
+        getWoundVertices(nthLargestCluster);
+        cout << "initializing purseString variables\n";
+        initializePurseStringVariables();
+        cout << psContacts.size() << '\n';
       }
+      purseStringContraction2(0.01, 1.0, 1.0, B);
     }
 
     // VV VELOCITY UPDATE #2
@@ -1886,9 +1903,9 @@ void epi2D::deleteVertex(std::vector<int>& deleteList) {
     vnn.erase(vnn.begin() + i);
     vnn_label.erase(vnn_label.begin() + i);
     // initialRadius, initiall0 are handled in dampedNP0
-    unsortedWoundIndices.erase(std::remove(unsortedWoundIndices.begin(), unsortedWoundIndices.end(), i), unsortedWoundIndices.end());
-    // unsortedWoundIndices relies on gi, so need to decrement after deletion
-    for (auto& j : unsortedWoundIndices)
+    sortedWoundIndices.erase(std::remove(sortedWoundIndices.begin(), sortedWoundIndices.end(), i), sortedWoundIndices.end());
+    // sortedWoundIndices relies on gi, so need to decrement after deletion
+    for (auto& j : sortedWoundIndices)
       if (j > i)
         j--;
 
@@ -2142,7 +2159,7 @@ void epi2D::NewmanZiff(std::vector<int>& ptr, int empty, int& mode, int& big) {
 
 // printBoundaries will determine the (nth) largest cluster size, save it to the epi2D object, and print it.
 //  affects where purse-string is
-//  also saves unsortedWoundIndices
+//  also saves sortedWoundIndices
 void epi2D::printBoundaries(int nthLargestCluster) {
   cerr << "entering printBoundaries\n";
   //  empty is the maximum negative cluster size
@@ -2331,8 +2348,8 @@ void epi2D::printBoundaries(int nthLargestCluster) {
     for (int i = 0; i < unwrapped_x.size(); i += 2)
       bout << unwrapped_x[i] << '\t' << unwrapped_x[i + 1] << '\n';
   } else {  // unwrapped_x_gi is not closed, hence does not represent what I'm using for the void segmentation
-    for (int i = 0; i < unsortedWoundIndices.size() / 2; i += 2) {
-      bout << x[NDIM * unsortedWoundIndices[i]] << '\t' << x[NDIM * unsortedWoundIndices[i] + 1] << '\n';
+    for (int i = 0; i < sortedWoundIndices.size() / 2; i += 2) {
+      bout << x[NDIM * sortedWoundIndices[i]] << '\t' << x[NDIM * sortedWoundIndices[i] + 1] << '\n';
     }
   }
   // indicate end of block, i.e. end of boundary matrix for this frame
@@ -2479,9 +2496,9 @@ void epi2D::getWoundVertices(int nthLargestCluster) {
     }
   }
   if (checkWoundClosedPolygon(temporaryWoundIndices)) {
-    unsortedWoundIndices = temporaryWoundIndices;
+    sortedWoundIndices = temporaryWoundIndices;
   } else {
-    // cout << "temporaryWoundIndices was not a closed shape, use old shape for unsortedWoundIndices.\n";
+    // cout << "temporaryWoundIndices was not a closed shape, use old shape for sortedWoundIndices.\n";
   }
 }
 
@@ -2615,7 +2632,7 @@ void epi2D::purseStringContraction(double trate) {
   //    between vertices on the wound edge, pulls cells into wound by cortical
   //    tension
   //     no PBC with wound healing, so PBC aren't accounted for here
-  woundIsClosedPolygon = checkWoundClosedPolygon(unsortedWoundIndices);
+  woundIsClosedPolygon = checkWoundClosedPolygon(sortedWoundIndices);
   int empty = -NVTOT - 1;
   int mode, big = 0;
   int ci, cj, vi, vj, gi;
@@ -2644,15 +2661,15 @@ void epi2D::purseStringContraction(double trate) {
       mode = i;
   }
 
-  // sort unsortedWoundIndices
+  // sort sortedWoundIndices
   std::vector<int> woundVertexCiCounter(NCELLS, 0);  // counts # of occurrences of each ci in the wound
 
-  // getWoundVertices computes unsortedWoundIndices, which is modified below to exclude excomm'd cells
+  // getWoundVertices computes sortedWoundIndices, which is modified below to exclude excomm'd cells
   getWoundVertices(nthLargestCluster);
-  for (int i = 0; i < unsortedWoundIndices.size(); i++) {
-    cindices(ci, vi, unsortedWoundIndices[i]);
+  for (int i = 0; i < sortedWoundIndices.size(); i++) {
+    cindices(ci, vi, sortedWoundIndices[i]);
     if (std::find(cellsLeavingPurseString.begin(), cellsLeavingPurseString.end(), ci) != cellsLeavingPurseString.end()) {
-      unsortedWoundIndices.erase(unsortedWoundIndices.begin() + i);
+      sortedWoundIndices.erase(sortedWoundIndices.begin() + i);
       i--;
     } else {
       woundVertexCiCounter[ci]++;
@@ -2664,7 +2681,7 @@ void epi2D::purseStringContraction(double trate) {
   // get a list of all indices for cells with wound-facing vertices
   std::vector<int> woundCells;
   for (int gi = 0; gi < NVTOT; gi++) {
-    if (std::find(unsortedWoundIndices.begin(), unsortedWoundIndices.end(), gi) != unsortedWoundIndices.end()) {
+    if (std::find(sortedWoundIndices.begin(), sortedWoundIndices.end(), gi) != sortedWoundIndices.end()) {
       cindices(ci, vi, gi);
       woundCells.push_back(ci);
     }
@@ -2680,7 +2697,7 @@ void epi2D::purseStringContraction(double trate) {
   for (auto ci : woundCells) {
     for (int vi = 0; vi < nv[ci]; vi++) {
       int gi = gindex(ci, vi);
-      if (std::find(unsortedWoundIndices.begin(), unsortedWoundIndices.end(), gi) != unsortedWoundIndices.end()) {
+      if (std::find(sortedWoundIndices.begin(), sortedWoundIndices.end(), gi) != sortedWoundIndices.end()) {
         woundVerts[ci].push_back(gi);
       }
     }
@@ -2689,10 +2706,10 @@ void epi2D::purseStringContraction(double trate) {
   // tally # wound vertices and store arcLengths for each wound ci. Will be used to determine whether to regrid or not.
   for (auto ci : woundCells) {
     std::vector<int> woundIndicesBelongingToCi;
-    for (int j = 0; j < unsortedWoundIndices.size(); j++) {
-      cindices(cj, vj, unsortedWoundIndices[j]);
+    for (int j = 0; j < sortedWoundIndices.size(); j++) {
+      cindices(cj, vj, sortedWoundIndices[j]);
       if (ci == cj) {
-        woundIndicesBelongingToCi.push_back(unsortedWoundIndices[j]);
+        woundIndicesBelongingToCi.push_back(sortedWoundIndices[j]);
         numWoundVertsCi[ci]++;
       }
     }
@@ -2702,25 +2719,25 @@ void epi2D::purseStringContraction(double trate) {
   // tol represents how much the vertices in the same cell are allowed to
   double tol = 0.7;
 
-  // remove (prune) any gi in unsortedWoundIndices if it is the only such vertex of any given cell ci
-  /*for (int i = 0; i < unsortedWoundIndices.size(); i++) {
-    cindices(ci, vi, unsortedWoundIndices[i]);
+  // remove (prune) any gi in sortedWoundIndices if it is the only such vertex of any given cell ci
+  /*for (int i = 0; i < sortedWoundIndices.size(); i++) {
+    cindices(ci, vi, sortedWoundIndices[i]);
     if (woundVertexCiCounter[ci] == 1 || woundVertexCiCounter[ci] == 0) {  // 0 or 1 (cell is not/hardly on wound) = remove.  2 or larger (cell is significantly on wound) = stay. cell was kicked out of purse-string by regrid = remove
       // 0 case arises when I reject the void segmentation and use an old wound configuration.
       // excommunicate vertex i from the wound
-      cout << "just excommunicated ci = " << ci << ", simclock = " << simclock << " by removing gi " << unsortedWoundIndices[i] << ", located at " << x[unsortedWoundIndices[i] * NDIM] << '\t' << x[unsortedWoundIndices[i] * NDIM + 1] << '\n';
-      unsortedWoundIndices.erase(unsortedWoundIndices.begin() + i);
+      cout << "just excommunicated ci = " << ci << ", simclock = " << simclock << " by removing gi " << sortedWoundIndices[i] << ", located at " << x[sortedWoundIndices[i] * NDIM] << '\t' << x[sortedWoundIndices[i] * NDIM + 1] << '\n';
+      sortedWoundIndices.erase(sortedWoundIndices.begin() + i);
       woundVertexCiCounter[ci]--;
       i--;
     }
   }*/
 
-  if (unsortedWoundIndices.size() == 0) {
-    // cout << "exiting prematurely from purseString because unsortedWoundIndices is empty\n";
+  if (sortedWoundIndices.size() == 0) {
+    // cout << "exiting prematurely from purseString because sortedWoundIndices is empty\n";
     return;
   }
-  // cout << "before evaluateGhostDPForces, unsortedWoundIndices.size() = " << unsortedWoundIndices.size() << '\n';
-  evaluateGhostDPForces(unsortedWoundIndices, trate);
+  // cout << "before evaluateGhostDPForces, sortedWoundIndices.size() = " << sortedWoundIndices.size() << '\n';
+  evaluateGhostDPForces(sortedWoundIndices, trate);
 
   //  delete vertices if significant overlap, only if >1 vertex is wound-facing
   for (auto ci : woundCells) {
@@ -2744,7 +2761,7 @@ void epi2D::purseStringContraction(double trate) {
           cout << "wound cell = " << ci << ", simclock = " << simclock << '\n';
           cout << "arc length in vdiam units = " << arc_length << ", numVerts = " << numVerts << '\n';
           cout << "location of gi before regridding is " << x[gi * NDIM] << '\t' << x[gi * NDIM + 1] << '\n';
-          for (auto k : unsortedWoundIndices) {
+          for (auto k : sortedWoundIndices) {
             int ck, vk, gk;
             cindices(ck, vk, k);
             if (ck == ci) {
@@ -2764,42 +2781,6 @@ void epi2D::purseStringContraction(double trate) {
                   woundVerts[j][k]--;
         }
       }
-
-      /*[&] {  // lambda here is so I can break out of nested for loops (over i and k) using a return statement
-        for (int i = 0; i < woundVerts[ci].size(); i++) {
-          // calculate new l0 for wound vertices, and keep track of loss of
-          // perimeter
-          int gi = woundVerts[ci][i];
-          // only shrink segments that point towards a wounded vertex
-          if (vnn_label[ip1[gi]] != 0 && vnn_label[ip1[gi]] != 2)
-            continue;
-
-          int gj;  // j is a vertex next to i
-          for (int k = -1; k < 2; k += 2) {
-            if (szList[ci] == 0)
-              gj = (gi + k) % nv[ci];
-            else
-              gj = (((gi + k) % szList[ci] % nv[ci]) + szList[ci]);
-            cindices(cj, vj, gj);
-
-            dij = pow(x[gi * NDIM] - x[gj * NDIM], 2) +
-                  pow(x[gi * NDIM + 1] - x[gj * NDIM + 1], 2);
-            rij = pow((r[gi] + r[gj]) * tol, 2);
-            if (dij < rij) {
-              std::vector<int> deletedVertices = regridSegment(gi, r[gj]);  // regrid a chain of line segments around vertex gi
-              // adjust woundVerts[ci] values to account for newly deleted vertices
-              for (auto i : deletedVertices) {
-                regridChecker = true;
-                for (int j = 0; j < woundVerts.size(); j++)
-                  for (auto& k : woundVerts[j])
-                    if (k > i)
-                      k--;
-              }
-              return;
-            }
-          }
-        }
-      }();*/
     }
   }
 }
@@ -2985,6 +2966,196 @@ void epi2D::evaluateGhostDPForces(vector<int>& giList, double trate) {
   }
 }
 
+void epi2D::purseStringContraction2(double trate, double deltaSq, double k_wp, double B) {
+  // updatePurseStringContacts();
+  integratePurseString(deltaSq, k_wp, B);
+  for (int psi = 0; psi < psContacts.size(); psi++) {
+    l0_ps[psi] *= exp(-trate * dt);
+  }
+}
+
+void epi2D::initializePurseStringVariables() {
+  // using sortedWoundIndices, establish a list of virtual purse-string particles
+  std::vector<double> x_ps_temp;
+  std::vector<double> v_ps_temp;
+  std::vector<double> F_ps_temp;
+  std::vector<double> l0_ps_temp;
+  std::vector<int> psContacts_temp;
+  int gi, gnext;
+  for (int i = 0; i < sortedWoundIndices.size(); i++) {
+    gi = sortedWoundIndices[i];
+    gnext = sortedWoundIndices[(i + 1 + sortedWoundIndices.size()) % sortedWoundIndices.size()];
+    x_ps_temp.push_back(x[gi * NDIM]);
+    x_ps_temp.push_back(x[gi * NDIM + 1]);
+    v_ps_temp.push_back(v[gi * NDIM]);
+    v_ps_temp.push_back(v[gi * NDIM + 1]);
+    F_ps_temp.push_back(F[gi * NDIM]);
+    F_ps_temp.push_back(F[gi * NDIM + 1]);
+    psContacts_temp.push_back(gi);
+    l0_ps_temp.push_back(vertDistNoPBC(gi, gnext));
+  }
+  x_ps = x_ps_temp;
+  v_ps = v_ps_temp;
+  F_ps = F_ps_temp;
+  l0_ps = l0_ps_temp;
+  psContacts = psContacts_temp;
+}
+
+// void updatePurseStringContacts();
+void epi2D::evaluatePurseStringForces(double deltaSq, double k_wp, double B) {
+  // using psContacts and the preferred length interaction, calculate forces on purse-string virtual particles
+  // deltaSq is the breaking point for the virtual particle-wound particle interaction
+  // k_wp is the wound-purseString spring force constant
+  // B is the damping constant
+  int gi, ipi, imi;
+  double xp, yp, xw, yw;  // purse-string and wound coordinates
+  bool cutoff;            // cutoff distance
+  double dx, dy, fx, fy, l0i, l0im1;
+
+  double fli, flim1, cx, cy, xi, yi, gip1, xip1, yip1;
+  double rho0 = sqrt(a0.at(0));  // shouldn't have shape parameter for the wound. what's my alternative?
+  double lim1x, lim1y, lix, liy, lip1x, lip1y, li, lim1, dli, dlim1;
+  double rim1x, rim1y, rix, riy, rip1x, rip1y;
+
+  // zero forces here, since no other function contributes to their values each time step
+  std::fill(F_ps.begin(), F_ps.end(), 0);
+
+  // compute center of mass for wound segment interaction
+  xi = x_ps[0];
+  yi = x_ps[1];
+  cx = xi;
+  cy = yi;
+  for (int psi = 0; psi < psContacts.size() - 1; psi++) {
+    gip1 = (psi + 1 + psContacts.size()) % psContacts.size();
+    dx = x_ps[NDIM * gip1] - xi;
+    dy = x_ps[NDIM * gip1 + 1] - yi;
+    if (pbc[0])
+      dx -= L[0] * round(dx / L[0]);
+    if (pbc[1])
+      dy -= L[1] * round(dy / L[1]);
+    xip1 = xi + dx;
+    yip1 = yi + dy;
+    cx += xip1;
+    cy += yip1;
+    xi = xip1;
+    yi = yip1;
+  }
+  cx /= psContacts.size();
+  cy /= psContacts.size();
+
+  for (int psi = 0; psi < psContacts.size(); psi++) {
+    // compute forces due to the spring between wound and virtual particles
+    gi = psContacts[psi];
+    xp = x_ps[psi * NDIM];
+    yp = x_ps[psi * NDIM + 1];
+    xw = x[gi * NDIM];
+    yw = x[gi * NDIM + 1];
+    dx = xp - xw;
+    dy = yp - yw;
+    cutoff = ((dx * dx + dy * dy) < deltaSq);
+    fx = k_wp * dx * cutoff;
+    fy = k_wp * dy * cutoff;
+    F[gi * NDIM] += fx;
+    F[gi * NDIM + 1] += fy;
+    F_ps[psi * NDIM] -= fx;
+    F_ps[psi * NDIM + 1] -= fy;
+
+    // compute forces due to preferred segment lengths between virtual particles
+    // ipi, im1 are the next and previous virtual particle indices, respectively
+    ipi = (psi + 1 + psContacts.size()) % psContacts.size();
+    imi = (psi - 1 + psContacts.size()) % psContacts.size();
+    l0i = l0_ps[psi];
+    l0im1 = l0_ps[imi];
+
+    rix = x_ps[NDIM * psi] - cx;
+    riy = x_ps[NDIM * psi + 1] - cy;
+    rip1x = x_ps[NDIM * ipi] - cx;
+    rip1y = x_ps[NDIM * ipi + 1] - cy;
+    if (pbc[0])
+      rip1x -= L[0] * round(rip1x / L[0]);
+    if (pbc[1])
+      rip1y -= L[1] * round(rip1y / L[1]);
+
+    rim1x = x_ps[NDIM * imi] - cx;
+    rim1y = x_ps[NDIM * imi + 1] - cy;
+    if (pbc[0])
+      rim1x -= L[0] * round(rim1x / L[0]);
+    if (pbc[1])
+      rim1y -= L[1] * round(rim1y / L[1]);
+
+    // Perimeter force
+    lix = rip1x - rix;
+    liy = rip1y - riy;
+
+    lim1x = rix - rim1x;
+    lim1y = riy - rim1y;
+
+    // segment lengths
+    lim1 = sqrt(lim1x * lim1x + lim1y * lim1y);
+    li = sqrt(lix * lix + liy * liy);
+
+    // segment deviations (note: m is prior vertex, p is next vertex i.e. gi - 1, gi + 1 mod the right number of vertices)
+    dlim1 = (lim1 / l0im1) - 1.0;
+    dli = (li / l0i) - 1.0;
+
+    // segment forces
+    flim1 = kl * (rho0 / l0im1);
+    fli = kl * (rho0 / l0i);
+
+    // add to forces
+    fx = (fli * dli * lix / li) - (flim1 * dlim1 * lim1x / lim1);
+    fy = (fli * dli * liy / li) - (flim1 * dlim1 * lim1y / lim1);
+    F_ps[NDIM * psi] += fx;
+    F_ps[NDIM * psi + 1] += fy;
+    if (fabs(fx + fy) > 10) {
+      assert(simclock < 35.0);
+      cout << "\n\nfx, fy for F_l0 = " << fx << '\t' << fy << ", simclock = " << simclock << '\n';
+      cout << "F_ps = " << F_ps[NDIM * psi] << '\t' << F_ps[NDIM * psi + 1] << '\n';
+      cout << "fli = " << fli << ",\t dli = " << dli << ", lix = " << lix << ", li = " << li << '\n';
+      cout << "liy = " << liy << "\t, limy = " << lim1y << '\n';
+      cout << flim1 << '\t' << dlim1 << '\t' << lim1x << '\t' << lim1 << '\n';
+      cout << l0i << '\t' << l0im1 << '\n';
+      cout << "wound center = " << cx << '\t' << cy << '\t' << psContacts.size() << '\t' << xi << '\t' << yi << '\n';
+      cout << "imi, psi, ipi = " << imi << '\t' << psi << '\t' << ipi << '\n';
+      cout << "x_ps[NDIM * imi] = " << x_ps[NDIM * imi] << ", \t x_ps[NDIM * imi + 1] = " << x_ps[NDIM * imi + 1] << '\n';
+      cout << "x_ps[NDIM * psi] = " << x_ps[NDIM * psi] << ", \t x_ps[NDIM * psi + 1] = " << x_ps[NDIM * psi + 1] << '\n';
+      cout << "x_ps[NDIM * ipi] = " << x_ps[NDIM * ipi] << ", \t x_ps[NDIM * ipi + 1] = " << x_ps[NDIM * ipi + 1] << '\n';
+      cout << "dx, dy = " << dx << '\t' << dy << "\n\n";
+    }
+
+    // update potential energy
+    U += 0.5 * kl * (dli * dli);
+  }
+}
+
+void epi2D::integratePurseString(double deltaSq, double k_wp, double B) {
+  // velocity verlet force update with damping
+  // VV position update
+  int virtualDOF = psContacts.size() * NDIM;
+  for (int i = 0; i < virtualDOF; i++) {
+    // cout << "i = " << i << '\n';
+    // cout << x_ps.size() << '\t' << v_ps.size() << '\t' << F_ps.size() << '\n';
+    x_ps[i] += dt * v_ps[i] + 0.5 * dt * dt * F_ps[i];
+
+    // recenter in box
+    if (x_ps[i] > L[i % NDIM] && pbc[i % NDIM])
+      x_ps[i] -= L[i % NDIM];
+    else if (x_ps[i] < 0 && pbc[i % NDIM])
+      x_ps[i] += L[i % NDIM];
+  }
+
+  // force update
+  std::vector<double> F_ps_old = F_ps;
+  evaluatePurseStringForces(deltaSq, k_wp, B);
+
+  // VV VELOCITY UPDATE #2
+  for (int i = 0; i < virtualDOF; i++) {
+    F_ps[i] -= (B * v_ps[i] + B * F_ps_old[i] * dt / 2);
+    F_ps[i] /= (1 + B * dt / 2);
+    v_ps[i] += 0.5 * (F_ps[i] + F_ps_old[i]) * dt;
+  }
+}
+
 void epi2D::printConfiguration2D() {
   // overloaded to print out psi and other very specific quantities of interest
   // local variables
@@ -3135,6 +3306,17 @@ void epi2D::printConfiguration2D() {
   // print end frame
   posout << setw(w) << left << "ENDFR"
          << " " << endl;
+
+  cout << "in printPos, writing to purseout!\n";
+
+  if (psContacts.size() != 0) {
+    for (int j = 0; j < psContacts.size(); j++) {
+      // print position of purse-string virtual vertex and its bonded real wound vertex
+      purseout << x_ps[j * NDIM] << '\t' << x_ps[j * NDIM + 1] << '\n';
+      purseout << x[psContacts[j] * NDIM] << '\t' << x[psContacts[j] * NDIM + 1] << '\n';
+    }
+  }
+  purseout << "*EOB\n";
 
   cout << "leaving printPos\n";
 }
