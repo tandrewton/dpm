@@ -282,11 +282,11 @@ class epi2D : public dpm {
   void purseStringContraction(double trate);
   void purseStringContraction2(double trate, double deltaSq, double k_wp, double B);
   void initializePurseStringVariables();
-  // void updatePurseStringContacts();
+  void updatePurseStringContacts();
   void evaluatePurseStringForces(double deltasq, double k_wp, double B);
   void integratePurseString(double deltaSq, double k_wp, double B);
   // polymorphism: write configuration information to file
-  void printConfiguration2D();
+  void printConfiguration2D(double deltaSq = 1);
 };
 
 #endif

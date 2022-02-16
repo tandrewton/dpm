@@ -1349,6 +1349,9 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
   int NPRINTSKIP = printInterval / dt;
   int nthLargestCluster = 2;
 
+  // set purse-string spring breaking distance
+  double deltaSquared = (4 * r[0] * r[0]);
+
   initialRadius = r;
   initiall0 = l0;
   initialPreferredPerimeter = 0;
@@ -1397,7 +1400,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
         initializePurseStringVariables();
         cout << psContacts.size() << '\n';
       }
-      purseStringContraction2(0.01, 1.0, 1.0, B);
+      purseStringContraction2(0.001, deltaSquared, 10.0, B);
     }
 
     // VV VELOCITY UPDATE #2
@@ -1495,7 +1498,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
         // print to configuration only if position file is open
         if (posout.is_open()) {
           int nthLargestCluster = 2;
-          printConfiguration2D();
+          printConfiguration2D(deltaSquared);
           printBoundaries(nthLargestCluster);
           cerr << "done printing in NP0\n";
         }
@@ -3001,7 +3004,14 @@ void epi2D::initializePurseStringVariables() {
   psContacts = psContacts_temp;
 }
 
-// void updatePurseStringContacts();
+/*void epi2D::updatePurseStringContacts() {
+  // updates all purse-string relevant variables to account for deletions
+  // if distance(virtual, wound) > deltaSq, delete x_ps,v_ps,F_ps, l0_ps, psContacts
+  // will have to subtract 1 from psi > i, will have to adjust l0_ps
+  for (int i = 0; i < psContacts.size(); i++){
+  }
+}*/
+
 void epi2D::evaluatePurseStringForces(double deltaSq, double k_wp, double B) {
   // using psContacts and the preferred length interaction, calculate forces on purse-string virtual particles
   // deltaSq is the breaking point for the virtual particle-wound particle interaction
@@ -3156,7 +3166,7 @@ void epi2D::integratePurseString(double deltaSq, double k_wp, double B) {
   }
 }
 
-void epi2D::printConfiguration2D() {
+void epi2D::printConfiguration2D(double deltaSq) {
   // overloaded to print out psi and other very specific quantities of interest
   // local variables
   int ci, cj, vi, gi, ctmp, zc, zv;
@@ -3312,8 +3322,19 @@ void epi2D::printConfiguration2D() {
   if (psContacts.size() != 0) {
     for (int j = 0; j < psContacts.size(); j++) {
       // print position of purse-string virtual vertex and its bonded real wound vertex
-      purseout << x_ps[j * NDIM] << '\t' << x_ps[j * NDIM + 1] << '\n';
-      purseout << x[psContacts[j] * NDIM] << '\t' << x[psContacts[j] * NDIM + 1] << '\n';
+      double xp = x_ps[j * NDIM];
+      double yp = x_ps[j * NDIM + 1];
+      double xw = x[psContacts[j] * NDIM];
+      double yw = x[psContacts[j] * NDIM + 1];
+      double distanceSq = pow(xp - xw, 2) + pow(yp - yw, 2);
+
+      // if bond is unbroken, print a line from virtual ps vertex to wound vertex.
+      // otherwise, print virtual ps vertex twice which won't show up in the visualization
+      purseout << xp << '\t' << yp << '\n';
+      if (distanceSq < deltaSq)
+        purseout << xw << '\t' << yw << '\n';
+      else
+        purseout << xp << '\t' << yp << '\n';
     }
   }
   purseout << "*EOB\n";
