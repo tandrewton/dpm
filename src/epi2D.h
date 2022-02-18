@@ -91,15 +91,12 @@ class epi2D : public dpm {
   // simclock's last value before substrate adhesion springs update
   double previousUpdateSimclock;
 
-  bool boolStopDeleting = false;
-
-  // initial vertex radii before purseString shrinkage
+  // initial vertex info before purseString shrinkage
   std::vector<double> initialRadius;
   std::vector<double> initiall0;
   double initialPreferredPerimeter;
 
   // flag for vertex repulsion (if a cell has only 1 wound vertex, then turn off repulsion so that it gets sucked into the bulk)
-  std::vector<int> listTurnOffRepulsion;
   std::vector<int> sortedWoundIndices;
   bool woundIsClosedPolygon;
   bool regridChecker;
@@ -111,6 +108,7 @@ class epi2D : public dpm {
   std::vector<double> F_ps;
   std::vector<double> l0_ps;
   std::vector<int> psContacts;
+  std::vector<bool> isSpringBroken;
 
  public:
   // constructor and destructor
@@ -277,6 +275,7 @@ class epi2D : public dpm {
   void notchTest(int numCellsToDelete, double strain, double strainRate, double boxLengthScale, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, double printInterval, std::string loadingType);
   void orientDirector(int ci, double xLoc, double yLoc);
   void deflectOverlappingDirectors();
+  double getDistanceToVertexAtAnglePsi(int ci, double psi_ci, double cx, double cy, int& gi);
   void evaluateGhostDPForces(std::vector<int>& giList, double trate);
   double rotateAndCalculateArcLength(int ci, std::vector<int>& woundIndicesBelongingToCi);
   void purseStringContraction(double trate);
@@ -286,7 +285,7 @@ class epi2D : public dpm {
   void evaluatePurseStringForces(double deltasq, double k_wp, double B);
   void integratePurseString(double deltaSq, double k_wp, double B);
   // polymorphism: write configuration information to file
-  void printConfiguration2D(double deltaSq = 1);
+  void printConfiguration2D();
 };
 
 #endif

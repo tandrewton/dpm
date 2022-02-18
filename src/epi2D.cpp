@@ -488,14 +488,6 @@ void epi2D::epi_shapeForces2D() {
     F[NDIM * gi] += forceX;
     F[NDIM * gi + 1] += forceY;
 
-    /*// leaving some comments for tracking forces and comparing interior epi2D
-    // to the pursestring forces
-    cout << "\n\nforceX, forceY in epi2Dshapeforces = " << forceX << '\t' << forceY << ", simclock = " << simclock << '\n';
-    cout << fli << '\t' << dli << '\t' << lix << '\t' << li << '\n';
-    cout << flim1 << '\t' << dlim1 << '\t' << lim1x << '\t' << lim1 << '\n';
-    cout << l0i << '\t' << l0im1 << '\n';
-    cout << "wound center = " << cx << '\t' << cy << '\n';*/
-
     // fL, dL - Andrew 10/28/21 - total perimeter force for cts. energy while regridding
     //   (distinct from original segment force)
     forceX = fL * dL * (lix - lim1x) / L0tmp;
@@ -674,11 +666,7 @@ void epi2D::vertexAttractiveForces2D_2() {
                   cellU[ci] += 0.5 * kc * pow((1 - (rij / sij)), 2.0);
                 } else
                   ftmp = 0;
-              } /*else if (std::find(listTurnOffRepulsion.begin(), listTurnOffRepulsion.end(), gi) != listTurnOffRepulsion.end()) {
-                // if purseStringContraction determines that a vertex should not repel others intercellularly, turn it off here.
-                ftmp = 0;
-              } */
-              else if (rij > cutij) {
+              } else if (rij > cutij) {
                 // force scale
                 ftmp = kint * (xij - 1.0 - l2) / sij;
 
@@ -797,11 +785,7 @@ void epi2D::vertexAttractiveForces2D_2() {
                     cellU[ci] += 0.5 * kc * pow((1 - (rij / sij)), 2.0);
                   } else
                     ftmp = 0;
-                } /*else if (std::find(listTurnOffRepulsion.begin(), listTurnOffRepulsion.end(), gi) != listTurnOffRepulsion.end()) {
-                  // if purseStringContraction determines that a vertex should not repel others intercellularly, turn it off here.
-                  ftmp = 0;
-                } */
-                else if (rij > cutij) {
+                } else if (rij > cutij) {
                   // force scale
                   ftmp = kint * (xij - 1.0 - l2) / sij;
 
@@ -1144,12 +1128,9 @@ void epi2D::tensileLoading(double scaleFactorX, double scaleFactorY) {
 void epi2D::updateSubstrateSprings(double refreshInterval) {
   // check to see if enough time has passed for us to update springs again
   if (simclock - previousUpdateSimclock > refreshInterval) {
-    double cx, cy, gj;
-    double flagDistance = 1.5 * sqrt(a0[0] / PI);
-    // issue: if cell becomes too elongated, then flagDistance isn't large
-    // enough to anchor outside the cell idea: since updateSubstrate is only
-    // called in the force update, have the force update pass a vector of
-    // lengths instead of using flagDistance here
+    double cx, cy, gj, flagDistance;
+    flagDistance = 1.5 * sqrt(a0[0] / PI);
+
     bool cancelFlagToss;
     std::vector<std::vector<double>> center(NCELLS,
                                             std::vector<double>(2, 0.0));
@@ -1167,10 +1148,12 @@ void epi2D::updateSubstrateSprings(double refreshInterval) {
       if (!flag[ci]) {
         // probably not a good idea to vary flag distance at this stage
         // double randFlagDistance = flagDistance * (drand48() / 2 + 1);
-        double randFlagDistance = flagDistance;
         // pick a direction, throw a flag in that direction
-        flagPos[ci][0] = center[ci][0] + randFlagDistance * cos(psi[ci]);
-        flagPos[ci][1] = center[ci][1] + randFlagDistance * sin(psi[ci]);
+        int gi;  // gi currently goes unused (is recalculated elsewhere), but it's the nearest vertex to the flag
+        flagDistance = getDistanceToVertexAtAnglePsi(ci, psi[ci], center[ci][0], center[ci][1], gi);
+        flagDistance += 3 * 2 * r[gi];
+        flagPos[ci][0] = center[ci][0] + flagDistance * cos(psi[ci]);
+        flagPos[ci][1] = center[ci][1] + flagDistance * sin(psi[ci]);
         // loop over cells near enough to block flag
         for (int cj = 0; cj < NCELLS; cj++) {
           if (cancelFlagToss == true)
@@ -1179,7 +1162,7 @@ void epi2D::updateSubstrateSprings(double refreshInterval) {
             // check if centers are near enough to possibly block flag
             if (pow(center[ci][0] - center[cj][0], 2) +
                     pow(center[ci][1] - center[cj][1], 2) <
-                3 * pow(randFlagDistance, 2)) {
+                3 * pow(flagDistance, 2)) {
               // check if vertices actually block flag
               for (int vj = 0; vj < nv[cj]; vj++) {
                 gj = gindex(cj, vj);
@@ -1193,7 +1176,6 @@ void epi2D::updateSubstrateSprings(double refreshInterval) {
                   // inhibited, so director goes in opposite direction.
                   // psi[cj] += PI;
                   // psi[cj] -= 2 * PI * round(psi[cj] / (2 * PI));
-                  // maybe this should be a break instead of a continue
                   break;
                 }
               }
@@ -1350,7 +1332,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
   int nthLargestCluster = 2;
 
   // set purse-string spring breaking distance
-  double deltaSquared = (4 * r[0] * r[0]);
+  double vertDiameterSq = pow(2 * r[0], 2);
 
   initialRadius = r;
   initiall0 = l0;
@@ -1386,21 +1368,12 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
       for (int i = 0; i < nv[0]; i++) {
         initialPreferredPerimeter += l0[i];
       }
-      // purseStringContraction(0.01) is fast (~100 tau), 0.001 is slow (~1000 tau).
-      // purseStringContraction(0.01);  // must be called after forceCall, beacuse forceCall reestablishes the boundaries() properly.
-      /*if (regridChecker) {
-        // printConfiguration2D();
-        // printBoundaries();
-        regridChecker = false;
-      }*/
-      // trying out deltaSq = 1.0, k_wp = 1.0
       if (psContacts.size() == 0 && simclock - t0 < 100) {
         getWoundVertices(nthLargestCluster);
-        cout << "initializing purseString variables\n";
         initializePurseStringVariables();
-        cout << psContacts.size() << '\n';
+        cout << "initialized purseString variables!\n";
       }
-      purseStringContraction2(0.001, deltaSquared, 10.0, B);
+      purseStringContraction2(0.01, 2 * vertDiameterSq, 1.0, B);
     }
 
     // VV VELOCITY UPDATE #2
@@ -1498,7 +1471,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
         // print to configuration only if position file is open
         if (posout.is_open()) {
           int nthLargestCluster = 2;
-          printConfiguration2D(deltaSquared);
+          printConfiguration2D();
           printBoundaries(nthLargestCluster);
           cerr << "done printing in NP0\n";
         }
@@ -2212,11 +2185,8 @@ void epi2D::printBoundaries(int nthLargestCluster) {
   for (int gi = 0; gi < NVTOT; gi++) {
     // if (findRoot(gi, ptr) == mode) {
     // if (vnn_label[gi] == 0 || vnn_label[gi] == 2 || vnn_label[gi] == 1 || vnn_label[gi] == -1 || vnn_label[gi] == -2) {
-    bool isDisabled = std::find(listTurnOffRepulsion.begin(), listTurnOffRepulsion.end(), gi) !=
-                      listTurnOffRepulsion.end();
-
     if (vnn_label[gi] == 0 || vnn_label[gi] == 2 || vnn_label[gi] == 1 || vnn_label[gi] == -1 || vnn_label[gi] == -2 || vnn_label[gi] == -3) {
-      edgeout << x[gi * NDIM] << '\t' << x[gi * NDIM + 1] << '\t' << vnn_label[gi] + (findRoot(gi, ptr) == mode) * 10 + isDisabled * 100 << '\n';
+      edgeout << x[gi * NDIM] << '\t' << x[gi * NDIM + 1] << '\t' << vnn_label[gi] + (findRoot(gi, ptr) == mode) * 10 << '\n';
     }
   }
 
@@ -2629,6 +2599,20 @@ void epi2D::deflectOverlappingDirectors() {
   }
 }
 
+double epi2D::getDistanceToVertexAtAnglePsi(int ci, double psi_ci, double cx, double cy, int& gi) {
+  // given a cell ci and its director angle psi_ci, its com cx cy, return the distance to the nearest vertex at psi_ci and its index gi
+  double dx, dy;
+  std::vector<double> psi_i;
+  for (int gj = gindex(ci, 0); gj < gindex(ci, 0) + nv[ci]; gj++) {
+    dx = x[gj * NDIM] - cx;
+    dy = x[gj * NDIM + 1] - cy;
+    psi_i.push_back(atan2(dy, dx) - psi_ci);
+  }
+  int vi = std::distance(psi_i.begin(), std::min_element(psi_i.begin(), psi_i.end()));  // argmin
+  gi = vi + gindex(ci, 0);
+  return sqrt(pow(x[gi * NDIM] - cx, 2) + pow(x[gi * NDIM + 1] - cy, 2));
+}
+
 void epi2D::purseStringContraction(double trate) {
   //    in epithelia, actomyosin accumulates in cells at wound edges, forms a ring
   //    that shrinks - sewing the wound shut model by shrinking vertices and length
@@ -2721,19 +2705,6 @@ void epi2D::purseStringContraction(double trate) {
 
   // tol represents how much the vertices in the same cell are allowed to
   double tol = 0.7;
-
-  // remove (prune) any gi in sortedWoundIndices if it is the only such vertex of any given cell ci
-  /*for (int i = 0; i < sortedWoundIndices.size(); i++) {
-    cindices(ci, vi, sortedWoundIndices[i]);
-    if (woundVertexCiCounter[ci] == 1 || woundVertexCiCounter[ci] == 0) {  // 0 or 1 (cell is not/hardly on wound) = remove.  2 or larger (cell is significantly on wound) = stay. cell was kicked out of purse-string by regrid = remove
-      // 0 case arises when I reject the void segmentation and use an old wound configuration.
-      // excommunicate vertex i from the wound
-      cout << "just excommunicated ci = " << ci << ", simclock = " << simclock << " by removing gi " << sortedWoundIndices[i] << ", located at " << x[sortedWoundIndices[i] * NDIM] << '\t' << x[sortedWoundIndices[i] * NDIM + 1] << '\n';
-      sortedWoundIndices.erase(sortedWoundIndices.begin() + i);
-      woundVertexCiCounter[ci]--;
-      i--;
-    }
-  }*/
 
   if (sortedWoundIndices.size() == 0) {
     // cout << "exiting prematurely from purseString because sortedWoundIndices is empty\n";
@@ -2984,6 +2955,7 @@ void epi2D::initializePurseStringVariables() {
   std::vector<double> F_ps_temp;
   std::vector<double> l0_ps_temp;
   std::vector<int> psContacts_temp;
+  std::vector<bool> isSpringBroken_temp;
   int gi, gnext;
   for (int i = 0; i < sortedWoundIndices.size(); i++) {
     gi = sortedWoundIndices[i];
@@ -2996,12 +2968,14 @@ void epi2D::initializePurseStringVariables() {
     F_ps_temp.push_back(F[gi * NDIM + 1]);
     psContacts_temp.push_back(gi);
     l0_ps_temp.push_back(vertDistNoPBC(gi, gnext));
+    isSpringBroken_temp.push_back(false);
   }
   x_ps = x_ps_temp;
   v_ps = v_ps_temp;
   F_ps = F_ps_temp;
   l0_ps = l0_ps_temp;
   psContacts = psContacts_temp;
+  isSpringBroken = isSpringBroken_temp;
 }
 
 /*void epi2D::updatePurseStringContacts() {
@@ -3063,6 +3037,7 @@ void epi2D::evaluatePurseStringForces(double deltaSq, double k_wp, double B) {
     dx = xp - xw;
     dy = yp - yw;
     cutoff = ((dx * dx + dy * dy) < deltaSq);
+    isSpringBroken[psi] = !cutoff;  // record broken springs for printouts
     fx = k_wp * dx * cutoff;
     fy = k_wp * dy * cutoff;
     F[gi * NDIM] += fx;
@@ -3117,21 +3092,6 @@ void epi2D::evaluatePurseStringForces(double deltaSq, double k_wp, double B) {
     fy = (fli * dli * liy / li) - (flim1 * dlim1 * lim1y / lim1);
     F_ps[NDIM * psi] += fx;
     F_ps[NDIM * psi + 1] += fy;
-    if (fabs(fx + fy) > 10) {
-      assert(simclock < 35.0);
-      cout << "\n\nfx, fy for F_l0 = " << fx << '\t' << fy << ", simclock = " << simclock << '\n';
-      cout << "F_ps = " << F_ps[NDIM * psi] << '\t' << F_ps[NDIM * psi + 1] << '\n';
-      cout << "fli = " << fli << ",\t dli = " << dli << ", lix = " << lix << ", li = " << li << '\n';
-      cout << "liy = " << liy << "\t, limy = " << lim1y << '\n';
-      cout << flim1 << '\t' << dlim1 << '\t' << lim1x << '\t' << lim1 << '\n';
-      cout << l0i << '\t' << l0im1 << '\n';
-      cout << "wound center = " << cx << '\t' << cy << '\t' << psContacts.size() << '\t' << xi << '\t' << yi << '\n';
-      cout << "imi, psi, ipi = " << imi << '\t' << psi << '\t' << ipi << '\n';
-      cout << "x_ps[NDIM * imi] = " << x_ps[NDIM * imi] << ", \t x_ps[NDIM * imi + 1] = " << x_ps[NDIM * imi + 1] << '\n';
-      cout << "x_ps[NDIM * psi] = " << x_ps[NDIM * psi] << ", \t x_ps[NDIM * psi + 1] = " << x_ps[NDIM * psi + 1] << '\n';
-      cout << "x_ps[NDIM * ipi] = " << x_ps[NDIM * ipi] << ", \t x_ps[NDIM * ipi + 1] = " << x_ps[NDIM * ipi + 1] << '\n';
-      cout << "dx, dy = " << dx << '\t' << dy << "\n\n";
-    }
 
     // update potential energy
     U += 0.5 * kl * (dli * dli);
@@ -3143,8 +3103,6 @@ void epi2D::integratePurseString(double deltaSq, double k_wp, double B) {
   // VV position update
   int virtualDOF = psContacts.size() * NDIM;
   for (int i = 0; i < virtualDOF; i++) {
-    // cout << "i = " << i << '\n';
-    // cout << x_ps.size() << '\t' << v_ps.size() << '\t' << F_ps.size() << '\n';
     x_ps[i] += dt * v_ps[i] + 0.5 * dt * dt * F_ps[i];
 
     // recenter in box
@@ -3166,7 +3124,7 @@ void epi2D::integratePurseString(double deltaSq, double k_wp, double B) {
   }
 }
 
-void epi2D::printConfiguration2D(double deltaSq) {
+void epi2D::printConfiguration2D() {
   // overloaded to print out psi and other very specific quantities of interest
   // local variables
   int ci, cj, vi, gi, ctmp, zc, zv;
@@ -3326,15 +3284,12 @@ void epi2D::printConfiguration2D(double deltaSq) {
       double yp = x_ps[j * NDIM + 1];
       double xw = x[psContacts[j] * NDIM];
       double yw = x[psContacts[j] * NDIM + 1];
-      double distanceSq = pow(xp - xw, 2) + pow(yp - yw, 2);
 
       // if bond is unbroken, print a line from virtual ps vertex to wound vertex.
-      // otherwise, print virtual ps vertex twice which won't show up in the visualization
-      purseout << xp << '\t' << yp << '\n';
-      if (distanceSq < deltaSq)
-        purseout << xw << '\t' << yw << '\n';
-      else
+      if (!isSpringBroken[j]) {
         purseout << xp << '\t' << yp << '\n';
+        purseout << xw << '\t' << yw << '\n';
+      }
     }
   }
   purseout << "*EOB\n";
