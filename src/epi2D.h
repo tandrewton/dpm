@@ -95,6 +95,7 @@ class epi2D : public dpm {
   std::vector<double> initialRadius;
   std::vector<double> initiall0;
   double initialPreferredPerimeter;
+  std::vector<int> initialWoundCellIndices;
 
   // flag for vertex repulsion (if a cell has only 1 wound vertex, then turn off repulsion so that it gets sucked into the bulk)
   std::vector<int> sortedWoundIndices;
@@ -109,10 +110,17 @@ class epi2D : public dpm {
   std::vector<double> l0_ps;
   std::vector<int> psContacts;
   std::vector<bool> isSpringBroken;
+  double strainRate_ps, k_ps, k_LP, tau_LP, deltaSq, maxProtrusionLength;
+  // purse string (ps) strain rate (constant true strain rate)
+  // ps spring constant between wound vertex and ps vertex
+  // lamellipodia (lp) spring constant between protruded spring anchor (flag) and a colinear vertex
+  // lp timescale (10% chance of decaying per tau_LP)
+  // squared max distance for wound-ps vertex spring (units of vdiam)
+  // max length of lp (units of vdiam)
 
  public:
   // constructor and destructor
-  epi2D(int n, double att1, double att2, double Dr, int seed)
+  epi2D(int n, double att1, double att2, double Dr, double omega_ps, double kps, double kLP, double tauLP, double deltaSquared, double maxCrawlLength, int seed)
       : dpm(n, seed) {
     z.resize(n);
     // att = attraction;
@@ -141,6 +149,12 @@ class epi2D : public dpm {
     cout << "Initializing epi2D object, l1 = " << l1 << ", l2 = " << l2
          << ", Dr0 = " << Dr0 << '\n';
     simclock = 0.0;
+    strainRate_ps = omega_ps;
+    k_ps = kps;
+    k_LP = kLP;
+    tau_LP = tauLP;
+    deltaSq = deltaSquared;
+    maxProtrusionLength = maxCrawlLength;
   };
 
   // File openers
@@ -246,7 +260,7 @@ class epi2D : public dpm {
                                    double boxLengthScale);
   void ageCellAreas(double areaScaleFactor);
   void tensileLoading(double scaleFactorX, double scaleFactorY);
-  void updateSubstrateSprings(double refreshInterval);
+  void updateSubstrateSprings();
   void zeroMomentum();
   void scaleBoxSize(double boxLengthScale, double scaleFactorX, double scaleFactorY);
   void dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval);
@@ -276,14 +290,12 @@ class epi2D : public dpm {
   void orientDirector(int ci, double xLoc, double yLoc);
   void deflectOverlappingDirectors();
   double getDistanceToVertexAtAnglePsi(int ci, double psi_ci, double cx, double cy, int& gi);
-  void evaluateGhostDPForces(std::vector<int>& giList, double trate);
   double rotateAndCalculateArcLength(int ci, std::vector<int>& woundIndicesBelongingToCi);
-  void purseStringContraction(double trate);
-  void purseStringContraction2(double trate, double deltaSq, double k_wp, double B);
+  void purseStringContraction(double B);
   void initializePurseStringVariables();
   void updatePurseStringContacts();
-  void evaluatePurseStringForces(double deltasq, double k_wp, double B);
-  void integratePurseString(double deltaSq, double k_wp, double B);
+  void evaluatePurseStringForces(double B);
+  void integratePurseString(double B);
   // polymorphism: write configuration information to file
   void printConfiguration2D();
 };

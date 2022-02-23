@@ -10,16 +10,11 @@
 //
 // Compilation command:
 // g++ -O3 --std=c++11 -g -I src main/epi2D/laserAblation.cpp src/dpm.cpp src/epi2D.cpp -o main/epi2D/laserAblation.o
-// ./main/epi2D/laserAblation.o 48 20 10 1.08 0.2 0.85 1.0 0.3 0.5 1.0 0.5 1 1 1000 pos.test energy.test stress.test void.test
-// ./main/epi2D/laserAblation.o 24 20 5 1.08 0.2 0.85 1.0 0.1 0 1.0 0.5 1 1 1000 pos.test energy.test stress.test void.test
-// ./main/epi2D/laserAblation.o 24 20 5 1.08 0.2 0.85 1.0 0 0 1.0 0.1 0 1 100 pos.test energy.test stress.test void.test
-// ./main/epi2D/laserAblation.o 24 20 5 1.08 0.2 0.85 1.0 0.3 0 1.0 0.1 0 1 100 pos.test energy.test stress.test void.test
-
-// ./main/epi2D/laserAblation.o 24 20 4 1.08 0.9 0.905 1.0 0.3 0.5 1.0 0.5 0 1 100 pos.test energy.test stress.test void.test
-
-// ./main/epi2D/laserAblation.o 24 20 4 1.08 0.9 0.905 1.0 0.1 0.5 1.0 0.5 0 1 300 pos.test energy.test stress.test void.test
 
 // ./main/epi2D/laserAblation.o 48 20 10 1.08 0.85 0.855 1.0 0.3 0.5 1.0 0.5 0 1 100 pos.test energy.test stress.test void.test
+
+//./main/epi2D/laserAblation.o 20 20 4 1.08 0.92 0.925 1.0 0.3 0.01 2 1.0 2.0 1.0 3 1.0 0.5 0 1 300 pos.test energy.test stress.test void.test
+
 //
 // Parameter input list
 // 1. NCELLS: 			number of particles
@@ -27,20 +22,25 @@
 // particles set by 1.4:1.0 bidispersity)
 // 3. ndelete:      number of cells to delete
 // 4. calA0: 			  preferred shape parameter for all particles
-// 5. phiMin: 			p ?
+// 5. phiMin: 			p
 // 6. phiMax: 			p
 // 7. kl: 				  perimeter spring constant
 // 8. att:          attraction strength parameter
-// 9. v0:           active vertex velocity scale
-// 10. B:           (over)damping coefficient gamma
-// 11. Dr0:         rotational diffusion constant for protrusion activity
-// 12. boolCIL:     bool for whether cells conduct contact inhibition of locomotion
-// 13. seed: 			  seed for random number generator
-// 14. time:        amount of time (tau) to simulate
-// 15. positionFile: 	string of path to output file with position/configuration data
-// 16. energyFile:  string of path to output file with energy data
-// 17. stressFile:  string of path to output file with stress data
-// 18. voidFile:    string of path to output file with void location data
+// 9. omega:        true strain rate for shrinking pursestring segments
+// 10. deltaSq:     yield length squared for purse-string springs (in units of vertex diameter squared)
+// 11. k_ps:        spring constant for purse string virtual particle to wound vertex
+// 12. k_lp:        spring constant for flag to nearest vertex on wound edge for crawling
+// 13. tau_lp:      protrusion time constant (controls stochastic lifetime of a protrusion)
+// 14. d_flag:      protrusion distance from cell edge in units of vertex diameter
+// 15. B:           (over)damping coefficient gamma
+// 16. Dr0:         rotational diffusion constant for protrusion activity
+// 17. boolCIL:     bool for whether cells conduct contact inhibition of locomotion
+// 18. seed: 			  seed for random number generator
+// 19. time:        amount of time (tau) to simulate
+// 20. positionFile: 	string of path to output file with position/configuration data
+// 21. energyFile:  string of path to output file with energy data
+// 22. stressFile:  string of path to output file with stress data
+// 23. voidFile:    string of path to output file with void location data
 
 // header files
 #include <sstream>
@@ -57,7 +57,7 @@ const double dphi0 = 0.005;         // packing fraction increment
 const double ka = 1.0;              // area force spring constant (should be unit)
 const double kc = 1.0;              // interaction force spring constant (should be unit)
 const double boxLengthScale = 2.5;  // neighbor list box size in units of initial l0
-//const double phi0 = 0.5;            // initial packing fraction
+// const double phi0 = 0.5;            // initial packing fraction
 const double smallfrac = 0.5;  // fraction of small particles
 const double sizeratio = 1.4;  // size ratio between small and large particles
 const double dt0 = 0.01;       // initial magnitude of time step in units of MD time
@@ -93,6 +93,7 @@ int main(int argc, char const* argv[]) {
   string stressFile = argv[17];
   string voidFile = argv[18];
   string edgeFile = "edge.test";
+  string purseStringFile = "purseString.test";
 
   // using sstreams to get parameters
   stringstream NCELLSss(NCELLS_str);
@@ -131,30 +132,39 @@ int main(int argc, char const* argv[]) {
 
   const double phi0 = phiMin;
 
+  double strainRate_ps = 0.01, k_ps = 1.0, k_LP = 2.0, tau_LP = 1.0, deltaSq = 2.0, maxProtrusionLength = 3.0;
+  // purse string (ps) strain rate (constant true strain rate)
+  // ps spring constant between wound vertex and ps vertex
+  // lamellipodia (lp) spring constant between protruded spring anchor (flag) and a colinear vertex
+  // lp timescale (10% chance of decaying per tau_LP)
+  // squared max distance for wound-ps vertex spring (units of vdiam)
+  // max length of lp (units of vdiam)
   // instantiate object
-  epi2D epithelial(NCELLS, 0.0, 0.0, Dr0, seed);
+
+  epi2D epithelial(NCELLS, 0.0, 0.0, Dr0, strainRate_ps, k_ps, k_LP, tau_LP, deltaSq, maxProtrusionLength, seed);
 
   epithelial.openPosObject(positionFile);
   epithelial.openEnergyObject(energyFile);
   epithelial.openStressObject(stressFile);
   epithelial.openBoundaryObject(voidFile);
   epithelial.openEdgeObject(edgeFile);
+  epithelial.openPurseStringObject(purseStringFile);
 
   // set spring constants
   epithelial.setka(ka);
   epithelial.setkl(kl);
   epithelial.setkb(kb);
   epithelial.setkc(kc);
-  epithelial.setkL(double(kl/nsmall)); // calculate the energy kL such that the average force on a vertex due to kL xis equal to the average force due to kl
+  epithelial.setkL(double(kl / nsmall));  // calculate the energy kL such that the average force on a vertex due to kL xis equal to the average force due to kl
 
-  //set activity scale, and CIL option
+  // set activity scale, and CIL option
   epithelial.setv0(v0);
   epithelial.setboolCIL(boolCIL);
   epithelial.setpbc(0, false);
   epithelial.setpbc(1, false);
   epithelial.setRandPsi();
 
-  //set adhesion scale
+  // set adhesion scale
   epithelial.setl1(att);
   epithelial.setl2(att_range);
   if (att > att_range) {
@@ -166,8 +176,7 @@ int main(int argc, char const* argv[]) {
   epithelial.initializevnn();
 
   epithelial.initializePositions2D(phi0, Ftol, false);
-  //epithelial.printConfiguration2D();
-
+  // epithelial.printConfiguration2D();
 
   epithelial.initializeNeighborLinkedList2D(boxLengthScale);
 
@@ -180,17 +189,16 @@ int main(int argc, char const* argv[]) {
   dpmMemFn repulsiveForceUpdateWithCircularAperture = static_cast<void (dpm::*)()>(&epi2D::repulsiveForceWithCircularApertureWall);
 
   epithelial.vertexCompress2Target2D(repulsiveForceUpdateWithWalls, Ftol, dt0, phiMax, dphi0);
-  //epithelial.printConfiguration2D();
-  //epithelial.vertexCompress2Target2D(repulsiveForceUpdateWithCircularAperture, Ftol, dt0, phiMax, dphi0);
-  //epithelial.printConfiguration2D();
+  // epithelial.vertexCompress2Target2D(repulsiveForceUpdateWithCircularAperture, Ftol, dt0, phiMax, dphi0);
+  // epithelial.printConfiguration2D();
 
-  //after compress, turn on damped NVE
+  // after compress, turn on damped NVE
   double T = 1e-4;
   double relaxTime = 10.0;
   epithelial.drawVelocities2D(T);
   epithelial.dampedNP0(attractiveForceUpdate, B, dt0, relaxTime, 0, wallsOff);
-  //double boxSizeMultiplier = 1.2;
-  //epithelial.expandBoxAndCenterParticles(boxSizeMultiplier, boxLengthScale);
+  // double boxSizeMultiplier = 1.2;
+  // epithelial.expandBoxAndCenterParticles(boxSizeMultiplier, boxLengthScale);
 
   // LASER ABLATION SCHEME
   double xLoc = 0.0, yLoc = 0.0;
@@ -200,8 +208,9 @@ int main(int argc, char const* argv[]) {
 
   epithelial.dampedNVE2D(attractiveForceUpdate, B, dt0, relaxTime, 0);
 
-  //epithelial.dampedNP0(substrateAdhesionForceUpdate, B, dt0, time_dbl, time_dbl / 40.0, wallsOff);
-  epithelial.dampedNP0(attractiveForceUpdate, B, dt0, time_dbl, time_dbl / 20.0, wallsOff);
+  //  dampedNP0 already takes care of purse-string. might want to separate, or just change spring constant
+  epithelial.dampedNP0(substrateAdhesionForceUpdate, B, dt0, time_dbl, time_dbl / 100.0, wallsOff);
+  // epithelial.dampedNP0(attractiveForceUpdate, B, dt0, time_dbl, time_dbl / 100.0, wallsOff);
 
   cout << "\n** Finished laserAblation.cpp, ending. " << endl;
   return 0;

@@ -940,15 +940,14 @@ void epi2D::substrateadhesionAttractiveForceUpdate() {
   // compute forces for shape, attractive, and substrate adhesion contributions
   int gi = 0, argmin, flagcount = 0;
   int numVerticesAttracted = 1;
-  double k = 2;
-  double refreshInterval = 1;
+  double refreshInterval = tau_LP;
 
   // reset forces, then get shape and attractive forces.
   attractiveForceUpdate_2();
   directorDiffusion();
-  updateSubstrateSprings(refreshInterval);
+  updateSubstrateSprings();
 
-  for (int ci = 0; ci < NCELLS; ci++) {
+  for (auto ci : initialWoundCellIndices) {
     std::vector<double> distSqVertToFlag(nv[0], 0.0);
     // check for protrusions (unimpeded flag toss, and flag location inside box)
     if (flag[ci]) {
@@ -965,8 +964,8 @@ void epi2D::substrateadhesionAttractiveForceUpdate() {
 
       // evaluate force for spring-vertex interaction between nearest vertex and
       // flag position
-      F[gi * NDIM] += -k * (x[gi * NDIM] - flagPos[ci][0]);
-      F[gi * NDIM + 1] += -k * (x[gi * NDIM + 1] - flagPos[ci][1]);
+      F[gi * NDIM] += -k_LP * (x[gi * NDIM] - flagPos[ci][0]);
+      F[gi * NDIM + 1] += -k_LP * (x[gi * NDIM + 1] - flagPos[ci][1]);
       flagcount++;
     }
   }
@@ -1125,12 +1124,13 @@ void epi2D::tensileLoading(double scaleFactorX, double scaleFactorY) {
   }
 }
 
-void epi2D::updateSubstrateSprings(double refreshInterval) {
+void epi2D::updateSubstrateSprings() {
+  // refresh spring contacts based on protrusion lifetime refreshInterval=tau_LP and protrusion length maxProtrusionLength
+  // a cell will protrude as far out as maxProtrusionLength if unobstructed, otherwise it will choose a shorter length if any
   // check to see if enough time has passed for us to update springs again
-  if (simclock - previousUpdateSimclock > refreshInterval) {
-    double cx, cy, gj, flagDistance;
-    flagDistance = 1.5 * sqrt(a0[0] / PI);
-
+  if (simclock - previousUpdateSimclock > tau_LP) {
+    double cx, cy, gj, minFlagDistance, flagDistance;
+    // flagDistance = 1.5 * sqrt(a0[0] / PI);
     bool cancelFlagToss;
     std::vector<std::vector<double>> center(NCELLS,
                                             std::vector<double>(2, 0.0));
@@ -1140,51 +1140,50 @@ void epi2D::updateSubstrateSprings(double refreshInterval) {
       center[ci][0] = cx;
       center[ci][1] = cy;
     }
-
     // sweep through cells. If no flag, try to plant one. Else if flag, try to
     // dissociate.
-    for (int ci = 0; ci < NCELLS; ci++) {
+    for (auto ci : initialWoundCellIndices) {  // will probably want woundCellIndices to be time-dependent, so when wound closes or opens, I consider the correct cells
+                                               // actually, ^ I might not need to do this if I have enough cells. If they get boxed in, they'll stop crawling anyway
       cancelFlagToss = false;
       if (!flag[ci]) {
-        // probably not a good idea to vary flag distance at this stage
-        // double randFlagDistance = flagDistance * (drand48() / 2 + 1);
         // pick a direction, throw a flag in that direction
         int gi;  // gi currently goes unused (is recalculated elsewhere), but it's the nearest vertex to the flag
-        flagDistance = getDistanceToVertexAtAnglePsi(ci, psi[ci], center[ci][0], center[ci][1], gi);
-        flagDistance += 3 * 2 * r[gi];
-        flagPos[ci][0] = center[ci][0] + flagDistance * cos(psi[ci]);
-        flagPos[ci][1] = center[ci][1] + flagDistance * sin(psi[ci]);
-        // loop over cells near enough to block flag
-        for (int cj = 0; cj < NCELLS; cj++) {
-          if (cancelFlagToss == true)
-            continue;
-          if (ci != cj) {
-            // check if centers are near enough to possibly block flag
-            if (pow(center[ci][0] - center[cj][0], 2) +
-                    pow(center[ci][1] - center[cj][1], 2) <
-                3 * pow(flagDistance, 2)) {
-              // check if vertices actually block flag
-              for (int vj = 0; vj < nv[cj]; vj++) {
-                gj = gindex(cj, vj);
-                if (distanceLineAndPoint(center[ci][0], center[ci][1],
-                                         flagPos[ci][0], flagPos[ci][1],
-                                         x[gj * NDIM],
-                                         x[gj * NDIM + 1]) < 2 * r[gj]) {
-                  // yes, flag has been blocked. Move on to next cell's flag
-                  // toss attempt.
-                  cancelFlagToss = true;
-                  // inhibited, so director goes in opposite direction.
-                  // psi[cj] += PI;
-                  // psi[cj] -= 2 * PI * round(psi[cj] / (2 * PI));
-                  break;
+        minFlagDistance = getDistanceToVertexAtAnglePsi(ci, psi[ci], center[ci][0], center[ci][1], gi);
+        // flagDistance += 3 * 2 * r[gi];
+        for (int i = 0; i < floor(maxProtrusionLength) - 1 && !flag[ci]; i++) {
+          cancelFlagToss = false;
+          flagDistance = minFlagDistance + (maxProtrusionLength - i) * 2 * r[gi];
+          flagPos[ci][0] = center[ci][0] + flagDistance * cos(psi[ci]);
+          flagPos[ci][1] = center[ci][1] + flagDistance * sin(psi[ci]);
+          // loop over cells near enough to block flag
+          for (int cj = 0; cj < NCELLS; cj++) {
+            if (cancelFlagToss == true)
+              continue;
+            if (ci != cj) {
+              // check if centers are near enough to possibly block flag
+              if (pow(center[ci][0] - center[cj][0], 2) +
+                      pow(center[ci][1] - center[cj][1], 2) <
+                  3 * pow(flagDistance, 2)) {
+                // check if vertices actually block flag
+                for (int vj = 0; vj < nv[cj]; vj++) {
+                  gj = gindex(cj, vj);
+                  if (distanceLineAndPoint(center[ci][0], center[ci][1],
+                                           flagPos[ci][0], flagPos[ci][1],
+                                           x[gj * NDIM],
+                                           x[gj * NDIM + 1]) < 2 * r[gj]) {
+                    // yes, flag has been blocked at this length. Try new flag length.
+                    cancelFlagToss = true;
+                    // inhibited, so director goes in opposite direction.
+                    // psi[cj] += PI;
+                    // psi[cj] -= 2 * PI * round(psi[cj] / (2 * PI));
+                    break;
+                  }
                 }
               }
             }
           }
-        }
-        // if flag throw is successful, set flag[ci] = true and record flagPos
-        if (cancelFlagToss == false) {
-          flag[ci] = true;
+          if (cancelFlagToss == false)  // flag planted successfully, move on to next cell's flag toss attempt
+            flag[ci] = true;
         }
       } else if (flag[ci]) {
         // dissociation rate determines if existing flag is destroyed this step
@@ -1194,7 +1193,6 @@ void epi2D::updateSubstrateSprings(double refreshInterval) {
       } else
         cerr << "Error: no flag bool value found\n";
     }
-    //
     // update time tracker
     previousUpdateSimclock = simclock;
   }
@@ -1373,7 +1371,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
         initializePurseStringVariables();
         cout << "initialized purseString variables!\n";
       }
-      purseStringContraction2(0.01, 2 * vertDiameterSq, 1.0, B);
+      purseStringContraction(B);
     }
 
     // VV VELOCITY UPDATE #2
@@ -2613,152 +2611,6 @@ double epi2D::getDistanceToVertexAtAnglePsi(int ci, double psi_ci, double cx, do
   return sqrt(pow(x[gi * NDIM] - cx, 2) + pow(x[gi * NDIM + 1] - cy, 2));
 }
 
-void epi2D::purseStringContraction(double trate) {
-  //    in epithelia, actomyosin accumulates in cells at wound edges, forms a ring
-  //    that shrinks - sewing the wound shut model by shrinking vertices and length
-  //    between vertices on the wound edge, pulls cells into wound by cortical
-  //    tension
-  //     no PBC with wound healing, so PBC aren't accounted for here
-  woundIsClosedPolygon = checkWoundClosedPolygon(sortedWoundIndices);
-  int empty = -NVTOT - 1;
-  int mode, big = 0;
-  int ci, cj, vi, vj, gi;
-  std::vector<int> ptr(NVTOT, empty);
-  std::vector<int> deleteList;
-  double dij, rij;
-  order = refineBoundaries();
-  NewmanZiff(ptr, empty, mode, big);
-
-  // sort clusters, pick the 2nd largest to get the wound segment
-  std::vector<int> clusterSize;
-  std::vector<int> clusterRoot;
-  for (int gi = 0; gi < NVTOT; gi++) {
-    if (ptr[gi] < 0 && ptr[gi] != empty) {
-      clusterSize.push_back(-ptr[gi]);
-      clusterRoot.push_back(gi);
-    }
-  }
-
-  sort(clusterSize.begin(), clusterSize.end(), greater<int>());
-
-  int nthLargestCluster = 2;
-  int nthClusterSize = clusterSize[nthLargestCluster - 1];
-  for (auto i : clusterRoot) {
-    if (-ptr[i] == nthClusterSize)
-      mode = i;
-  }
-
-  // sort sortedWoundIndices
-  std::vector<int> woundVertexCiCounter(NCELLS, 0);  // counts # of occurrences of each ci in the wound
-
-  // getWoundVertices computes sortedWoundIndices, which is modified below to exclude excomm'd cells
-  getWoundVertices(nthLargestCluster);
-  for (int i = 0; i < sortedWoundIndices.size(); i++) {
-    cindices(ci, vi, sortedWoundIndices[i]);
-    if (std::find(cellsLeavingPurseString.begin(), cellsLeavingPurseString.end(), ci) != cellsLeavingPurseString.end()) {
-      sortedWoundIndices.erase(sortedWoundIndices.begin() + i);
-      i--;
-    } else {
-      woundVertexCiCounter[ci]++;
-    }
-  }
-
-  std::vector<std::vector<int>> woundVerts(NCELLS);  //, vector<int> (int (NVTOT/NCELLS), -1));
-
-  // get a list of all indices for cells with wound-facing vertices
-  std::vector<int> woundCells;
-  for (int gi = 0; gi < NVTOT; gi++) {
-    if (std::find(sortedWoundIndices.begin(), sortedWoundIndices.end(), gi) != sortedWoundIndices.end()) {
-      cindices(ci, vi, gi);
-      woundCells.push_back(ci);
-    }
-  }
-
-  std::sort(woundCells.begin(), woundCells.end());
-  auto last = std::unique(woundCells.begin(), woundCells.end());
-  woundCells.erase(last, woundCells.end());
-
-  std::vector<int> numWoundVertsCi(NCELLS, 0);
-  std::vector<double> arcLengthsCi(NCELLS, 0.0);
-  // get a list of all indices for wound-facing vertices in a given cell ci
-  for (auto ci : woundCells) {
-    for (int vi = 0; vi < nv[ci]; vi++) {
-      int gi = gindex(ci, vi);
-      if (std::find(sortedWoundIndices.begin(), sortedWoundIndices.end(), gi) != sortedWoundIndices.end()) {
-        woundVerts[ci].push_back(gi);
-      }
-    }
-  }
-
-  // tally # wound vertices and store arcLengths for each wound ci. Will be used to determine whether to regrid or not.
-  for (auto ci : woundCells) {
-    std::vector<int> woundIndicesBelongingToCi;
-    for (int j = 0; j < sortedWoundIndices.size(); j++) {
-      cindices(cj, vj, sortedWoundIndices[j]);
-      if (ci == cj) {
-        woundIndicesBelongingToCi.push_back(sortedWoundIndices[j]);
-        numWoundVertsCi[ci]++;
-      }
-    }
-    arcLengthsCi[ci] = rotateAndCalculateArcLength(ci, woundIndicesBelongingToCi);
-  }
-
-  // tol represents how much the vertices in the same cell are allowed to
-  double tol = 0.7;
-
-  if (sortedWoundIndices.size() == 0) {
-    // cout << "exiting prematurely from purseString because sortedWoundIndices is empty\n";
-    return;
-  }
-  // cout << "before evaluateGhostDPForces, sortedWoundIndices.size() = " << sortedWoundIndices.size() << '\n';
-  evaluateGhostDPForces(sortedWoundIndices, trate);
-
-  //  delete vertices if significant overlap, only if >1 vertex is wound-facing
-  for (auto ci : woundCells) {
-    int sz = woundVerts[ci].size();
-    double vdiam = 2 * r[0];  // vertex diameter
-    if (sz > 1) {
-      // set up initial perimeter to calculate how much needs to be distributed
-      double remainderPerimeter = initialPreferredPerimeter;
-
-      double arc_length = arcLengthsCi[ci] / vdiam;  // arc length in units of vdiam
-      int numVerts = numWoundVertsCi[ci];
-
-      // if numVerts == sz, should just use sz.
-      if (numVerts != sz)
-        cout << "numVerts != sz!\n\n\n\n\n very weird! pay attention to me!\n\n";
-
-      if (arc_length < numVerts) {
-        // if we have too many verts given our arclength, regrid
-        gi = woundVerts[ci][1];
-        if (simclock > 320 && simclock < 360) {
-          cout << "wound cell = " << ci << ", simclock = " << simclock << '\n';
-          cout << "arc length in vdiam units = " << arc_length << ", numVerts = " << numVerts << '\n';
-          cout << "location of gi before regridding is " << x[gi * NDIM] << '\t' << x[gi * NDIM + 1] << '\n';
-          for (auto k : sortedWoundIndices) {
-            int ck, vk, gk;
-            cindices(ck, vk, k);
-            if (ck == ci) {
-              cout << "vertex in ci = " << k << ", location = " << x[k * NDIM] << '\t' << x[k * NDIM + 1] << '\n';
-            }
-          }
-        }
-        std::vector<int> deletedVertices = regridSegment(gi, vdiam / 2.0);  // regrid a chain of line segments around vertex gi
-        if (deletedVertices.size() > 0) {
-          // need to change woundVerts (stores gis, which need to be decremented)
-          // don't need to change arcLengthsCi or numWoundVertsCi.
-          regridChecker = true;
-          for (auto i : deletedVertices)
-            for (int j = 0; j < woundVerts.size(); j++)
-              for (int k = 0; k < woundVerts[j].size(); k++)
-                if (woundVerts[j][k] > i)
-                  woundVerts[j][k]--;
-        }
-      }
-    }
-  }
-}
-
 double epi2D::rotateAndCalculateArcLength(int ci, std::vector<int>& woundIndicesBelongingToCi) {
   // compute arc length of ci's contribution to the wound, and rotate woundIndicesBelongingToCi into sequential order according to ip1 or im1
   double arc_length = 0.0;
@@ -2785,171 +2637,17 @@ double epi2D::rotateAndCalculateArcLength(int ci, std::vector<int>& woundIndices
   return arc_length;
 }
 
-void epi2D::evaluateGhostDPForces(vector<int>& giList, double trate) {
-  // create a DP with no preferred area, no repulsions, and no attraction. Its component
-  //  vertices are existing vertices within the simulation, that belong to other non-ghost DPs.
-  // The ghost DP's purpose is to apply forces (i.e. purse-string forces) between vertices of
-  //  different cells.
-  // Ghost DP has no preferred shape, no preferred area.
-  //
-  // input: vector of global indices for vertices of the ghost DP. These global indices already exist
-  //    and are pre-sorted in coordinate space such that giList[0] and giList[giList.size()-1] are neighbors
-
-  std::vector<int> ghostVList = giList;
-  int nvGhost = giList.size();
-  if (nvGhost == 0)
-    cout << "giList is empty, will mod by 0 leading to nan\n";
-  std::vector<bool> isCorner(nvGhost, false);  // vector of ghostVList indices (i.e. 0,1,2,3, etc) that are corners (interact with ghost purse-string)
-  std::vector<double> l0Ghost;
-  // establish purse-string between each consecutive pair of vertices, treating segments spanning 2 cells specially
-  double distBetweeniandj = 0;
-  // loop over vertices in ghost wound
-  // if corner, set preferred length l0Ghost[i] to be exp(-trate*dt)* current contact length
-  //  else it is normal, set preferred length exp(-trate*dt) * l0[gi]
-  // then compute shape forces
-  for (int i = 0; i < nvGhost; i++) {
-    // find cell index of vertex i and j
-    int j = (i + 1) % nvGhost;
-    int ci, vi, cj, vj;
-    int gi = ghostVList[i];
-    int gj = ghostVList[j];
-    cindices(ci, vi, gi);
-    cindices(cj, vj, gj);
-    if (ci != cj) {  // then i and j are neighbors and wound corners belonging to different cells
-      distBetweeniandj = vertDistNoPBC(gi, gj);
-      isCorner[i] = true;
-      // l0Ghost.push_back(exp(-trate * dt) * distBetweeniandj);
-      l0Ghost.push_back(exp(-trate * dt) * l0[gi]);  // this line will provide a very strong force for joining corners together, testing to see if this is an appropriate way of having a cohesive wound
-    } else {
-      // use default preferred segment length if segment is within one cell
-      l0Ghost.push_back(exp(-trate * dt) * l0[gi]);
-    }
-    if (simclock > 210 && simclock < 230) {
-      cout << "simclock = " << simclock << ", ghost vertex " << gi << ", " << gj << '\n';
-    }
-  }
-
-  double fli, flim1, cx, cy, xi, yi, gip1, xip1, yip1;
-  double rho0, l0im1, l0i;
-  double dx, dy, dli, dlim1;
-  double lim1x, lim1y, lix, liy, lip1x, lip1y, li, lim1;
-  double rim1x, rim1y, rix, riy, rip1x, rip1y;
-  double forceX, forceY;
-
-  rho0 = sqrt(a0.at(0));
-  // initialize center of mass coordinates
-  xi = x[NDIM * ghostVList[0]];
-  yi = x[NDIM * ghostVList[0] + 1];
-  cx = xi;
-  cy = yi;
-
-  // cerr << rho0 << '\t' << xi << '\n';
-
-  // loop over vertices of cell ci, get perimeter
-  for (int vi = 0; vi < nvGhost - 1; vi++) {
-    // next vertex
-    gip1 = ghostVList[(vi + 1) % nvGhost];
-
-    // get positions (check minimum images)
-    dx = x[NDIM * gip1] - xi;
-    if (pbc[0])
-      dx -= L[0] * round(dx / L[0]);
-    xip1 = xi + dx;
-
-    dy = x[NDIM * gip1 + 1] - yi;
-    if (pbc[1])
-      dy -= L[1] * round(dy / L[1]);
-    yip1 = yi + dy;
-
-    // add to center of mass
-    cx += xip1;
-    cy += yip1;
-
-    // update coordinates
-    xi = xip1;
-    yi = yip1;
-  }
-
-  // take average to get com
-  cx /= nvGhost;
-  cy /= nvGhost;
-
-  // ----
-
-  // loop over vertices, add to force
-  for (int i = 0; i < nvGhost; i++) {
-    // preferred segment length
-    int gi = ghostVList[i];
-    int ipi = ghostVList[(i + 1 + nvGhost) % nvGhost];
-    int imi = ghostVList[(i - 1 + nvGhost) % nvGhost];
-    l0i = l0Ghost[i];
-    l0im1 = l0Ghost[(i - 1 + nvGhost) % nvGhost];
-    // cout << "l0i = " << l0i << "\t, l0[gi] = " << l0[gi] << '\n';
-    if (!isCorner[i])
-      l0[gi] = l0i;  // update the l0 list if purse-string is connecting two vertices within the same cell
-    // else, do nothing. The force calculation will handle intercellular purse strings.
-
-    // get coordinates relative to center of mass
-    rix = x[NDIM * gi] - cx;
-    riy = x[NDIM * gi + 1] - cy;
-
-    // get next adjacent vertices
-    rip1x = x[NDIM * ipi] - cx;
-    rip1y = x[NDIM * ipi + 1] - cy;
-    if (pbc[0])
-      rip1x -= L[0] * round(rip1x / L[0]);
-    if (pbc[1])
-      rip1y -= L[1] * round(rip1y / L[1]);
-
-    // get next adjacent vertices
-    rim1x = x[NDIM * imi] - cx;
-    rim1y = x[NDIM * imi + 1] - cy;
-    if (pbc[0])
-      rim1x -= L[0] * round(rim1x / L[0]);
-    if (pbc[1])
-      rim1y -= L[1] * round(rim1y / L[1]);
-
-    // Perimeter force
-    lix = rip1x - rix;
-    liy = rip1y - riy;
-
-    lim1x = rix - rim1x;
-    lim1y = riy - rim1y;
-
-    // segment lengths
-    lim1 = sqrt(lim1x * lim1x + lim1y * lim1y);
-    li = sqrt(lix * lix + liy * liy);
-
-    // segment deviations (note: m is prior vertex, p is next vertex i.e. gi - 1, gi + 1 mod the right number of vertices)
-    dlim1 = (lim1 / l0im1) - 1.0;
-    dli = (li / l0i) - 1.0;
-
-    // segment forces
-    flim1 = kl * (rho0 / l0im1);
-    fli = kl * (rho0 / l0i);
-
-    // add to forces
-    forceX = (fli * dli * lix / li) - (flim1 * dlim1 * lim1x / lim1);
-    forceY = (fli * dli * liy / li) - (flim1 * dlim1 * lim1y / lim1);
-    F[NDIM * gi] += forceX;
-    F[NDIM * gi + 1] += forceY;
-
-    // update potential energy
-    U += 0.5 * kl * (dli * dli);
-    // per cell energy will no longer be proportional to total energy due to wound energy
-  }
-}
-
-void epi2D::purseStringContraction2(double trate, double deltaSq, double k_wp, double B) {
+void epi2D::purseStringContraction(double B) {
   // updatePurseStringContacts();
-  integratePurseString(deltaSq, k_wp, B);
+  integratePurseString(B);
   for (int psi = 0; psi < psContacts.size(); psi++) {
-    l0_ps[psi] *= exp(-trate * dt);
+    l0_ps[psi] *= exp(-strainRate_ps * dt);
   }
 }
 
 void epi2D::initializePurseStringVariables() {
   // using sortedWoundIndices, establish a list of virtual purse-string particles
+  int ci, vi;
   std::vector<double> x_ps_temp;
   std::vector<double> v_ps_temp;
   std::vector<double> F_ps_temp;
@@ -2969,6 +2667,11 @@ void epi2D::initializePurseStringVariables() {
     psContacts_temp.push_back(gi);
     l0_ps_temp.push_back(vertDistNoPBC(gi, gnext));
     isSpringBroken_temp.push_back(false);
+    cindices(ci, vi, gi);
+    if (std::find(initialWoundCellIndices.begin(), initialWoundCellIndices.end(), ci) == initialWoundCellIndices.end()) {
+      initialWoundCellIndices.push_back(ci);  // push back unique ci's
+      cout << "ci in initial wound indices = " << ci << '\n';
+    }
   }
   x_ps = x_ps_temp;
   v_ps = v_ps_temp;
@@ -2986,10 +2689,10 @@ void epi2D::initializePurseStringVariables() {
   }
 }*/
 
-void epi2D::evaluatePurseStringForces(double deltaSq, double k_wp, double B) {
+void epi2D::evaluatePurseStringForces(double B) {
   // using psContacts and the preferred length interaction, calculate forces on purse-string virtual particles
   // deltaSq is the breaking point for the virtual particle-wound particle interaction
-  // k_wp is the wound-purseString spring force constant
+  // k_ps is the wound-purseString spring force constant
   // B is the damping constant
   int gi, ipi, imi;
   double xp, yp, xw, yw;  // purse-string and wound coordinates
@@ -3038,8 +2741,8 @@ void epi2D::evaluatePurseStringForces(double deltaSq, double k_wp, double B) {
     dy = yp - yw;
     cutoff = ((dx * dx + dy * dy) < deltaSq);
     isSpringBroken[psi] = !cutoff;  // record broken springs for printouts
-    fx = k_wp * dx * cutoff;
-    fy = k_wp * dy * cutoff;
+    fx = k_ps * dx * cutoff;
+    fy = k_ps * dy * cutoff;
     F[gi * NDIM] += fx;
     F[gi * NDIM + 1] += fy;
     F_ps[psi * NDIM] -= fx;
@@ -3098,7 +2801,7 @@ void epi2D::evaluatePurseStringForces(double deltaSq, double k_wp, double B) {
   }
 }
 
-void epi2D::integratePurseString(double deltaSq, double k_wp, double B) {
+void epi2D::integratePurseString(double B) {
   // velocity verlet force update with damping
   // VV position update
   int virtualDOF = psContacts.size() * NDIM;
@@ -3114,7 +2817,7 @@ void epi2D::integratePurseString(double deltaSq, double k_wp, double B) {
 
   // force update
   std::vector<double> F_ps_old = F_ps;
-  evaluatePurseStringForces(deltaSq, k_wp, B);
+  evaluatePurseStringForces(B);
 
   // VV VELOCITY UPDATE #2
   for (int i = 0; i < virtualDOF; i++) {

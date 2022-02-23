@@ -31,17 +31,21 @@ etaStr = " ";
 
 startSeed = 1;
 max_seed = 1;
-makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately
+makeAMovie = 1; %if makceAMovie is 0, then plot every frame separately
+set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
+
 showverts = 1;
 showBoundaries = 0;
 showQuiver = 0;
 walls = 0;
 %disable showVoid if using printConfig on its own, outside of
 %dampedNVE/dampedNP0 routines
+showGlobalIndex = 0;
 showVoid = 0;
 showVoidBlack = 0; % print void in larger black circles to see easier
-showCornersOrEdges = 1;
+showCornersOrEdges = 0;
+showPurseString = 0;
  
 %PC directory
 pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
@@ -72,6 +76,7 @@ for seed = startSeed:max_seed
         stressstr = pc_dir+'stress.test';
         boundaryStr = pc_dir+'void.test';
         edgeStr = pc_dir+'edge.test';
+        purseStr = pc_dir+'purseString.test';
     else
         run_name =runType+"_N"+N+"_ndel"+ndelete+"_calA0"+calA+...
             "_att"+att+"_v0"+v0+"_B"+B+"_Dr0"+Dr0+"_CIL"+boolCIL+"_duration"+duration;     
@@ -164,6 +169,9 @@ for seed = startSeed:max_seed
     if showCornersOrEdges
         edgeLocations = readDataBlocks(edgeStr, 3);
     end
+    if showPurseString
+        purseLocations = readDataBlocks(purseStr, 2);
+    end
     
     for ff = FSTART:FSTEP:FEND
         %nv can change, so recompute color map each frame
@@ -184,6 +192,7 @@ for seed = startSeed:max_seed
         % get cell positions
         xpos = trajectoryData.xpos(ff,:);
         ypos = trajectoryData.ypos(ff,:);
+        gi = trajectoryData.gi(ff,:);
         l0 = trajectoryData.l0(ff,:);
         vrad = trajectoryData.vrad(ff,:);
         psi = trajectoryData.psi(ff,:);
@@ -196,6 +205,7 @@ for seed = startSeed:max_seed
         for nn = 1:NCELLS
             xtmp = xpos{nn};
             ytmp = ypos{nn};
+            gitmp = gi{nn};
             l0tmp = l0{nn};
             vradtmp = vrad{nn};
             psitmp = psi(nn);
@@ -213,6 +223,9 @@ for seed = startSeed:max_seed
                     for xx = itLow:itHigh
                         for yy = itLow:itHigh
                             rectangle('Position',[xplot+xx*Lx, yplot + yy*Ly, 2*vradtmp(vv), 2*vradtmp(vv)],'Curvature',[1 1],'EdgeColor','k','FaceColor',clr);
+                            if showGlobalIndex
+                                text(xtmp(vv), ytmp(vv), num2str(gitmp(vv)));
+                            end
                         end
                     end
                 end
@@ -304,6 +317,23 @@ for seed = startSeed:max_seed
                     num2str(edgeLocations{ff}(k,3)),...
                     'HorizontalAlignment', 'Center',...
                     'VerticalAlignment', 'Middle', 'FontSize', 8);
+            end
+        end
+        if showPurseString
+            scatter(purseLocations{ff}(1:2:end,1),...
+                purseLocations{ff}(1:2:end,2), 50, 'blue', 'o','MarkerFaceColor','blue');
+            scatter(purseLocations{ff}(2:2:end,1),...
+                purseLocations{ff}(2:2:end,2), 25, 'red', 'x');
+            purseLocs = purseLocations{ff};
+            purseLength = length(purseLocs(1:2:end,1));
+            for i=1:purseLength
+                lowOdd = 2*(i-1)+1;
+                %plot([purseLocs(lowOdd,1) purseLocs(lowOdd+1,1)]...
+                %    ,[purseLocs(lowOdd,2) purseLocs(lowOdd+1,2)], 'LineWidth', 2, 'Color' ,'black');
+                [xs,ys] = spring(purseLocs(lowOdd,1),purseLocs(lowOdd,2)...
+                    ,purseLocs(lowOdd+1,1), purseLocs(lowOdd+1,2)...
+                    ,2, 0, 0.05);
+                plot(xs,ys,'LineWidth', 2,'Color' ,'black');
             end
         end
         % if making a movie, save frame
