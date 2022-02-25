@@ -83,6 +83,7 @@ class epi2D : public dpm {
   std::ofstream bout;
   std::ofstream edgeout;
   std::ofstream purseout;
+  std::ofstream vout;
 
   // simulation time keeper (accumulates elapsed simulation time during MD
   // routines)
@@ -96,6 +97,9 @@ class epi2D : public dpm {
   std::vector<double> initiall0;
   double initialPreferredPerimeter;
   std::vector<int> initialWoundCellIndices;
+  double woundCenterX;
+  double woundCenterY;
+  double woundArea;
 
   // flag for vertex repulsion (if a cell has only 1 wound vertex, then turn off repulsion so that it gets sucked into the bulk)
   std::vector<int> sortedWoundIndices;
@@ -110,6 +114,7 @@ class epi2D : public dpm {
   std::vector<double> l0_ps;
   std::vector<int> psContacts;
   std::vector<bool> isSpringBroken;
+
   double strainRate_ps, k_ps, k_LP, tau_LP, deltaSq, maxProtrusionLength;
   // purse string (ps) strain rate (constant true strain rate)
   // ps spring constant between wound vertex and ps vertex
@@ -117,6 +122,9 @@ class epi2D : public dpm {
   // lp timescale (10% chance of decaying per tau_LP)
   // squared max distance for wound-ps vertex spring (units of vdiam)
   // max length of lp (units of vdiam)
+  std::vector<double> timeElapsedSinceFlagPlanted;
+  std::vector<double> restLengthLPx;
+  std::vector<double> restLengthLPy;
 
  public:
   // constructor and destructor
@@ -136,6 +144,9 @@ class epi2D : public dpm {
     activePropulsionFactor.resize(NCELLS);
     flag.resize(NCELLS);
     flagPos.resize(NCELLS);
+    timeElapsedSinceFlagPlanted.resize(NCELLS);
+    restLengthLPx.resize(NCELLS);
+    restLengthLPy.resize(NCELLS);
     polarizationCounter = 0;
     for (int ci = 0; ci < NCELLS; ci++) {
       psi.at(ci) =
@@ -182,6 +193,16 @@ class epi2D : public dpm {
   void openBoundaryObject(std::string& str) {
     bout.open(str.c_str());
     if (!bout.is_open()) {
+      std::cerr << "	ERROR: file could not open " << str << "..."
+                << std::endl;
+      exit(1);
+    } else
+      std::cout << "** Opening file " << str << " ..." << std::endl;
+  }
+
+  void openVoidAreaObject(std::string& str) {
+    vout.open(str.c_str());
+    if (!vout.is_open()) {
       std::cerr << "	ERROR: file could not open " << str << "..."
                 << std::endl;
       exit(1);
@@ -284,6 +305,7 @@ class epi2D : public dpm {
   void printBoundaries(int nthLargestCluster = 1);
   void getWoundVertices(int nthLargestCluster = 1);
   bool checkWoundClosedPolygon(std::vector<int>& listOfIndices);
+  double computeWoundVerticesUsingRays(double& woundCenterX, double& woundCenterY, int numRays);
   int findRoot(int i, std::vector<int>& ptr);
 
   void notchTest(int numCellsToDelete, double strain, double strainRate, double boxLengthScale, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, double printInterval, std::string loadingType);

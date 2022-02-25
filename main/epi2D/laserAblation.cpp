@@ -11,9 +11,9 @@
 // Compilation command:
 // g++ -O3 --std=c++11 -g -I src main/epi2D/laserAblation.cpp src/dpm.cpp src/epi2D.cpp -o main/epi2D/laserAblation.o
 
-// ./main/epi2D/laserAblation.o 48 20 10 1.08 0.85 0.855 1.0 0.3 0.5 1.0 0.5 0 1 100 pos.test energy.test stress.test void.test
+// ./main/epi2D/laserAblation.o 48 20 10 1.08 0.85 0.855 1.0 0.3 0.5 1.0 0.5 0 1 100 test
 
-//./main/epi2D/laserAblation.o 20 20 4 1.08 0.92 0.925 1.0 0.3 0.01 2 1.0 2.0 1.0 3 1.0 0.5 0 1 300 pos.test energy.test stress.test void.test
+//./main/epi2D/laserAblation.o 20 20 4 1.08 0.92 0.925 1.0 0.3 0.01 2 1.0 2.0 1.0 3 1.0 0.5 0 1 300 test
 
 //
 // Parameter input list
@@ -37,10 +37,7 @@
 // 17. boolCIL:     bool for whether cells conduct contact inhibition of locomotion
 // 18. seed: 			  seed for random number generator
 // 19. time:        amount of time (tau) to simulate
-// 20. positionFile: 	string of path to output file with position/configuration data
-// 21. energyFile:  string of path to output file with energy data
-// 22. stressFile:  string of path to output file with stress data
-// 23. voidFile:    string of path to output file with void location data
+// 20. outFileStem  stem of output file names, i.e. for "test", energy.test, position.test, etc.
 
 // header files
 #include <sstream>
@@ -88,12 +85,15 @@ int main(int argc, char const* argv[]) {
   string boolCIL_str = argv[12];
   string seed_str = argv[13];
   string time_str = argv[14];
-  string positionFile = argv[15];
-  string energyFile = argv[16];
-  string stressFile = argv[17];
-  string voidFile = argv[18];
-  string edgeFile = "edge.test";
-  string purseStringFile = "purseString.test";
+  string outFileStem = argv[15];
+
+  string positionFile = "pos." + outFileStem;
+  string energyFile = "energy." + outFileStem;
+  string stressFile = "stress." + outFileStem;
+  string voidFile = "void." + outFileStem;
+  string edgeFile = "edge." + outFileStem;
+  string purseStringFile = "purseString." + outFileStem;
+  string voidAreaFile = "voidArea." + outFileStem;
 
   // using sstreams to get parameters
   stringstream NCELLSss(NCELLS_str);
@@ -149,6 +149,7 @@ int main(int argc, char const* argv[]) {
   epithelial.openBoundaryObject(voidFile);
   epithelial.openEdgeObject(edgeFile);
   epithelial.openPurseStringObject(purseStringFile);
+  epithelial.openVoidAreaObject(voidAreaFile);
 
   // set spring constants
   epithelial.setka(ka);

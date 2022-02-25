@@ -964,9 +964,12 @@ void epi2D::substrateadhesionAttractiveForceUpdate() {
 
       // evaluate force for spring-vertex interaction between nearest vertex and
       // flag position
-      F[gi * NDIM] += -k_LP * (x[gi * NDIM] - flagPos[ci][0]);
-      F[gi * NDIM + 1] += -k_LP * (x[gi * NDIM + 1] - flagPos[ci][1]);
+      F[gi * NDIM] += -k_LP * (x[gi * NDIM] - flagPos[ci][0] + restLengthLPx[ci]);
+      F[gi * NDIM + 1] += -k_LP * (x[gi * NDIM + 1] - flagPos[ci][1] + restLengthLPy[ci]);
       flagcount++;
+      // restLengthLPx[ci] *= exp(-dt / tau_LP);
+      // restLengthLPy[ci] *= exp(-dt / tau_LP);
+      timeElapsedSinceFlagPlanted[ci] += dt;  // unused for now
     }
   }
   // if (boolCIL == true)
@@ -1147,7 +1150,7 @@ void epi2D::updateSubstrateSprings() {
       cancelFlagToss = false;
       if (!flag[ci]) {
         // pick a direction, throw a flag in that direction
-        int gi;  // gi currently goes unused (is recalculated elsewhere), but it's the nearest vertex to the flag
+        int gi;  // nearest vertex to the flag
         minFlagDistance = getDistanceToVertexAtAnglePsi(ci, psi[ci], center[ci][0], center[ci][1], gi);
         // flagDistance += 3 * 2 * r[gi];
         for (int i = 0; i < floor(maxProtrusionLength) - 1 && !flag[ci]; i++) {
@@ -1182,8 +1185,14 @@ void epi2D::updateSubstrateSprings() {
               }
             }
           }
-          if (cancelFlagToss == false)  // flag planted successfully, move on to next cell's flag toss attempt
+          if (cancelFlagToss == false) {  // flag planted successfully, move on to next cell's flag toss attempt
             flag[ci] = true;
+            timeElapsedSinceFlagPlanted[ci] = 0.0;
+            // restLengthLPx[ci] = fabs(x[gi * NDIM] - flagDistance);
+            // restLengthLPy[ci] = fabs(x[gi * NDIM + 1] - flagDistance);
+            restLengthLPx[ci] = 0;
+            restLengthLPy[ci] = 0;
+          }
         }
       } else if (flag[ci]) {
         // dissociation rate determines if existing flag is destroyed this step
@@ -1368,10 +1377,20 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
       }
       if (psContacts.size() == 0 && simclock - t0 < 100) {
         getWoundVertices(nthLargestCluster);
+        woundCenterX = 0;
+        woundCenterY = 0;
+        for (auto gi : sortedWoundIndices) {
+          woundCenterX += x[gi * NDIM];
+          woundCenterY += x[gi * NDIM + 1];
+        }
+        woundCenterX /= sortedWoundIndices.size();
+        woundCenterY /= sortedWoundIndices.size();
         initializePurseStringVariables();
         cout << "initialized purseString variables!\n";
       }
       purseStringContraction(B);
+      woundArea = computeWoundVerticesUsingRays(woundCenterX, woundCenterY, sortedWoundIndices.size() * 10);
+      vout << simclock << '\t' << woundArea << '\n';
     }
 
     // VV VELOCITY UPDATE #2
@@ -1786,6 +1805,9 @@ void epi2D::deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc) {
   cellU.erase(cellU.begin() + deleteIndex);
   fieldStressCells.erase(fieldStressCells.begin() + deleteIndex);
   fieldShapeStressCells.erase(fieldShapeStressCells.begin() + deleteIndex);
+  timeElapsedSinceFlagPlanted.erase(timeElapsedSinceFlagPlanted.begin() + deleteIndex);
+  restLengthLPx.erase(restLengthLPx.begin() + deleteIndex);
+  restLengthLPy.erase(restLengthLPy.begin() + deleteIndex);
 
   int deleteIndexGlobal = gindex(deleteIndex, 0);
   cout << "deleteIndexGlobal = " << deleteIndexGlobal << '\n';
@@ -2473,13 +2495,53 @@ void epi2D::getWoundVertices(int nthLargestCluster) {
   }
 }
 
-bool epi2D::checkWoundClosedPolygon(std::vector<int>& listOfIndices) {  // true if listOfIndices (wound) is a closed polygon, false if not
+bool epi2D::checkWoundClosedPolygon(std::vector<int>& listOfIndices) {
+  // true if listOfIndices (wound) is a closed polygon, false if not
   if (listOfIndices.size() == 0)
     return false;
   int firstVertex = listOfIndices[0];
   int lastVertex = listOfIndices.back();
   return (std::find(vnn[firstVertex].begin(), vnn[firstVertex].end(), lastVertex) !=
           vnn[firstVertex].end());
+}
+
+double epi2D::computeWoundVerticesUsingRays(double& woundCenterX, double& woundCenterY, int numRays) {
+  // draw rays from the wound center in order to determine the nearest vertex at each angle, which approximates the wound
+  // returns the area of the wound
+  double theta, dist;
+  std::vector<int> newWoundList;
+  for (int i = 0; i < numRays; i++) {
+    theta = i * 2 * 3.14159 / numRays;
+    for (auto gi : sortedWoundIndices) {
+      // this restriction only considers vertices in the original or current? segmentation
+      dist = distanceLineAndPoint(woundCenterX, woundCenterY, 1000 * r[0] * cos(theta), -1000 * r[0] * sin(theta), x[gi * NDIM], x[gi * NDIM + 1]);  // could try to not use sqrt in function, later
+      if (dist < r[gi]) {
+        if (newWoundList.size() == 0 || newWoundList.back() != gi)
+          newWoundList.push_back(gi);
+        break;
+      }
+    }
+  }
+  /*cout << "oldWoundList.size = " << sortedWoundIndices.size() << ", newWoundList.size = " << newWoundList.size() << '\n';*/
+  sortedWoundIndices = newWoundList;
+
+  // calculate area
+
+  double xi = x[NDIM * sortedWoundIndices[0]];
+  double yi = x[NDIM * sortedWoundIndices[0] + 1];
+  double xip1, yip1, areaVal;
+  for (int i = 1; i < sortedWoundIndices.size(); i++) {
+    double dx = x[NDIM * sortedWoundIndices[i]] - xi;
+    double dy = x[NDIM * sortedWoundIndices[i] + 1] - yi;
+    xip1 = xi + dx;
+    yip1 = yi + dy;
+    areaVal += xi * yip1 - xip1 * yi;
+    xi = xip1;
+    yi = yip1;
+  }
+  areaVal *= 0.5;
+  return abs(areaVal);
+  cout << "wound area = " << areaVal << ", simclock = " << simclock << '\n';
 }
 
 int epi2D::findRoot(int i, std::vector<int>& ptr) {
