@@ -881,61 +881,6 @@ void epi2D::attractiveForceUpdate_2() {
   vertexAttractiveForces2D_2();
 }
 
-void epi2D::activeAttractiveForceUpdate() {
-  // compute forces for shape, attractive, and active contributions
-
-  // reset forces, then get shape and attractive forces.
-  attractiveForceUpdate_2();
-
-  // compute active forces
-  int gi = 0, ci = 0, vi = 0;
-  double dpsi = 0.0, psitmp = 0.0;
-  double xi, yi, nvtmp, dx, dy, cx, cy, r1, r2, grv, v0tmp, vmin, Ds, rnorm, ux,
-      uy, rix, riy;
-
-  vmin = 1e-1 * v0;  // min velocity
-  Ds = 0.2;          // active velocity spread parameter
-
-  directorDiffusion();
-
-  for (int gi = 0; gi < NVTOT; gi++) {
-    // get coordinates relative to center of mass
-    rix = x[NDIM * gi] - cx;
-    riy = x[NDIM * gi + 1] - cy;
-    if (pbc[0] == false && round(rix / L[0]) != 0) {
-      cout << "error! rix is outside the box even though pbc are turned off!";
-    }
-    if (pbc[1] == false && round(riy / L[1]) != 0) {
-      cout << "error! riy is outside the box even though pbc are turned off!";
-    }
-    if (pbc[0])
-      rix -= L[0] * round(rix / L[0]);
-    if (pbc[1])
-      riy -= L[1] * round(riy / L[1]);
-
-    // get angular distance from psi
-    psitmp = atan2(riy, rix);
-    dpsi = psitmp - psi[ci - 1];
-    dpsi -= 2 * PI * round(dpsi / (2 * PI));
-
-    // get velocity scale
-    v0tmp = vmin + (v0 - vmin) * exp(-pow(dpsi, 2.0) / (2.0 * Ds * Ds));
-
-    v0tmp *= activePropulsionFactor[ci];
-
-    // get unit vectors
-    rnorm = sqrt(rix * rix + riy * riy);
-    ux = rix / rnorm;
-    uy = riy / rnorm;
-
-    // add to forces
-    F[NDIM * gi] += v0tmp * ux;
-    F[NDIM * gi + 1] += v0tmp * uy;
-  }
-  if (boolCIL == true)
-    deflectOverlappingDirectors();
-}
-
 void epi2D::substrateadhesionAttractiveForceUpdate() {
   // compute forces for shape, attractive, and substrate adhesion contributions
   int gi = 0, argmin, flagcount = 0;
@@ -972,14 +917,6 @@ void epi2D::substrateadhesionAttractiveForceUpdate() {
       timeElapsedSinceFlagPlanted[ci] += dt;  // unused for now
     }
   }
-  // if (boolCIL == true)
-  //   deflectOverlappingDirectors();
-  /*if (flagcount >= 1) {
-    cout << "simclock = " << simclock << '\t' << ", number of flags = " <<
-  flagcount << '\n'; for (int ci = 0; ci < NCELLS; ci++) { if (flag[ci]) cout <<
-  "cell " << ci << " has a flag!\n";
-    }
-  }*/
 }
 
 /******************************
@@ -2511,7 +2448,7 @@ double epi2D::computeWoundVerticesUsingRays(double& woundCenterX, double& woundC
   double theta, dist;
   std::vector<int> newWoundList;
   for (int i = 0; i < numRays; i++) {
-    theta = i * 2 * 3.14159 / numRays;
+    theta = i * 2 * PI / numRays;
     for (auto gi : sortedWoundIndices) {
       // this restriction only considers vertices in the original or current? segmentation
       dist = distanceLineAndPoint(woundCenterX, woundCenterY, 1000 * r[0] * cos(theta), -1000 * r[0] * sin(theta), x[gi * NDIM], x[gi * NDIM + 1]);  // could try to not use sqrt in function, later
@@ -2522,7 +2459,6 @@ double epi2D::computeWoundVerticesUsingRays(double& woundCenterX, double& woundC
       }
     }
   }
-  /*cout << "oldWoundList.size = " << sortedWoundIndices.size() << ", newWoundList.size = " << newWoundList.size() << '\n';*/
   sortedWoundIndices = newWoundList;
 
   // calculate area
@@ -2801,7 +2737,7 @@ void epi2D::evaluatePurseStringForces(double B) {
     yw = x[gi * NDIM + 1];
     dx = xp - xw;
     dy = yp - yw;
-    cutoff = ((dx * dx + dy * dy) < deltaSq);
+    cutoff = ((dx * dx + dy * dy) < deltaSq * pow(r[0] * 2, 2));
     isSpringBroken[psi] = !cutoff;  // record broken springs for printouts
     fx = k_ps * dx * cutoff;
     fy = k_ps * dy * cutoff;

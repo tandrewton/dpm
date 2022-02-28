@@ -11,9 +11,15 @@
 // Compilation command:
 // g++ -O3 --std=c++11 -g -I src main/epi2D/laserAblation.cpp src/dpm.cpp src/epi2D.cpp -o main/epi2D/laserAblation.o
 
-// ./main/epi2D/laserAblation.o 48 20 10 1.08 0.85 0.855 1.0 0.3 0.5 1.0 0.5 0 1 100 test
-
-//./main/epi2D/laserAblation.o 20 20 4 1.08 0.92 0.925 1.0 0.3 0.01 2 1.0 2.0 1.0 3 1.0 0.5 0 1 300 test
+// below: no purse-string, only crawling
+//./main/epi2D/laserAblation.o 20 20 4 1.08 0.92 0.925 1.0 0.3 0.01  0.0  1.0  2.0   1.0  3.0  1.0 0.5  0  1  200 test
+// ........................... N  NV Nd A0  pMin  pMax  kl att  om   dsq   kps klp  tau   dflag B  Dr0 CIL sd time file
+// below: purse-string, no crawling
+//./main/epi2D/laserAblation.o 20 20 4 1.08 0.92 0.925 1.0 0.3 0.01  2.0  1.0  2.0   1.0  0.0  1.0 0.5  0  1  200 test
+// ........................... N  NV Nd A0  pMin  pMax  kl att  om   dsq   kps klp  tau   dflag B  Dr0 CIL sd time file
+// below: purse-string, and crawling
+//./main/epi2D/laserAblation.o 20 20 4 1.08 0.92 0.925 1.0 0.3 0.01  2.0  1.0  2.0   1.0  3.0  1.0 0.5  0  1  200 test
+// ........................... N  NV Nd A0  pMin  pMax  kl att  om   dsq   kps klp  tau   dflag B  Dr0 CIL sd time file
 
 //
 // Parameter input list
@@ -67,8 +73,9 @@ bool wallsOff = false;
 int main(int argc, char const* argv[]) {
   // local variables to be read in
   int NCELLS, nsmall, seed, gi, ndelete;
-  double calA0, kl, kb = 0.0, phiMin, phiMax, att, v0, B, Dr0, time_dbl;
+  double calA0, kl, kb = 0.0, phiMin, phiMax, att, B, Dr0, time_dbl;
   bool boolCIL;
+  double strainRate_ps, k_ps, k_LP, tau_LP, deltaSq, maxProtrusionLength;
 
   // read in parameters from command line input
   string NCELLS_str = argv[1];
@@ -79,13 +86,18 @@ int main(int argc, char const* argv[]) {
   string phiMax_str = argv[6];
   string kl_str = argv[7];
   string att_str = argv[8];
-  string v0_str = argv[9];
-  string B_str = argv[10];
-  string Dr0_str = argv[11];
-  string boolCIL_str = argv[12];
-  string seed_str = argv[13];
-  string time_str = argv[14];
-  string outFileStem = argv[15];
+  string omega_str = argv[9];
+  string deltaSq_str = argv[10];
+  string k_ps_str = argv[11];
+  string k_lp_str = argv[12];
+  string tau_lp_str = argv[13];
+  string d_flag_str = argv[14];
+  string B_str = argv[15];
+  string Dr0_str = argv[16];
+  string boolCIL_str = argv[17];
+  string seed_str = argv[18];
+  string time_str = argv[19];
+  string outFileStem = argv[20];
 
   string positionFile = "pos." + outFileStem;
   string energyFile = "energy." + outFileStem;
@@ -104,7 +116,12 @@ int main(int argc, char const* argv[]) {
   stringstream phiMaxss(phiMax_str);
   stringstream klss(kl_str);
   stringstream attss(att_str);
-  stringstream v0ss(v0_str);
+  stringstream omegass(omega_str);
+  stringstream deltaSqss(deltaSq_str);
+  stringstream k_psss(k_ps_str);
+  stringstream k_lpss(k_lp_str);
+  stringstream tau_lpss(tau_lp_str);
+  stringstream d_flagss(d_flag_str);
   stringstream Bss(B_str);
   stringstream Dr0ss(Dr0_str);
   stringstream boolCILss(boolCIL_str);
@@ -120,7 +137,12 @@ int main(int argc, char const* argv[]) {
   phiMaxss >> phiMax;
   klss >> kl;
   attss >> att;
-  v0ss >> v0;
+  omegass >> strainRate_ps;
+  deltaSqss >> deltaSq;
+  k_psss >> k_ps;
+  k_lpss >> k_LP;
+  tau_lpss >> tau_LP;
+  d_flagss >> maxProtrusionLength;
   Bss >> B;
   Dr0ss >> Dr0;
   boolCILss >> boolCIL;
@@ -132,7 +154,7 @@ int main(int argc, char const* argv[]) {
 
   const double phi0 = phiMin;
 
-  double strainRate_ps = 0.01, k_ps = 1.0, k_LP = 2.0, tau_LP = 1.0, deltaSq = 2.0, maxProtrusionLength = 3.0;
+  // double strainRate_ps = 0.01, k_ps = 1.0, k_LP = 2.0, tau_LP = 1.0, deltaSq = 2.0, maxProtrusionLength = 3.0;
   // purse string (ps) strain rate (constant true strain rate)
   // ps spring constant between wound vertex and ps vertex
   // lamellipodia (lp) spring constant between protruded spring anchor (flag) and a colinear vertex
@@ -158,8 +180,7 @@ int main(int argc, char const* argv[]) {
   epithelial.setkc(kc);
   epithelial.setkL(double(kl / nsmall));  // calculate the energy kL such that the average force on a vertex due to kL xis equal to the average force due to kl
 
-  // set activity scale, and CIL option
-  epithelial.setv0(v0);
+  // set CIL option
   epithelial.setboolCIL(boolCIL);
   epithelial.setpbc(0, false);
   epithelial.setpbc(1, false);
@@ -185,7 +206,6 @@ int main(int argc, char const* argv[]) {
   dpmMemFn repulsiveForceUpdate = &dpm::repulsiveForceUpdate;
   dpmMemFn repulsiveForceUpdateWithWalls = static_cast<void (dpm::*)()>(&epi2D::repulsiveForceUpdateWithWalls);
   dpmMemFn attractiveForceUpdate = static_cast<void (dpm::*)()>(&epi2D::attractiveForceUpdate_2);
-  dpmMemFn activeForceUpdate = static_cast<void (dpm::*)()>(&epi2D::activeAttractiveForceUpdate);
   dpmMemFn substrateAdhesionForceUpdate = static_cast<void (dpm::*)()>(&epi2D::substrateadhesionAttractiveForceUpdate);
   dpmMemFn repulsiveForceUpdateWithCircularAperture = static_cast<void (dpm::*)()>(&epi2D::repulsiveForceWithCircularApertureWall);
 
