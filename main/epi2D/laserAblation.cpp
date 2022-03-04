@@ -1,7 +1,4 @@
 // File to compress DPM into confluent epithelial layer, then laser ablate
-// ** Features to add: purse-string contraction, substrate interaction
-//
-// Cells are bidisperse, with bending energy (broken) and vertex-vertex attraction options.
 //
 //
 // Create bidisperse DPM particles, set constants, place particle centers,
@@ -12,14 +9,14 @@
 // g++ -O3 --std=c++11 -g -I src main/epi2D/laserAblation.cpp src/dpm.cpp src/epi2D.cpp -o main/epi2D/laserAblation.o
 
 // below: no purse-string, only crawling
-//./main/epi2D/laserAblation.o 20 20 4 1.08 0.92 0.925 1.0 0.3 0.01  0.0  1.0  2.0   1.0  3.0  1.0 0.5  0  1  200 test
-// ........................... N  NV Nd A0  pMin  pMax  kl att  om   dsq   kps klp  tau   dflag B  Dr0 CIL sd time file
+//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.925 1.0 0.3 0.01  0.0  1.0  2.0 1.0  3.0  1.0 0.5  0  0.01   1  200  test
+// ........................... N  NV Nd A0  pMin  pMax  kl att  om   dsq  kps  klp tau dflag  B  Dr0 CIL prate  sd time file
 // below: purse-string, no crawling
-//./main/epi2D/laserAblation.o 20 20 4 1.08 0.92 0.925 1.0 0.3 0.01  2.0  1.0  2.0   1.0  0.0  1.0 0.5  0  1  200 test
-// ........................... N  NV Nd A0  pMin  pMax  kl att  om   dsq   kps klp  tau   dflag B  Dr0 CIL sd time file
+//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.925 1.0 0.3 0.01  2.0  1.0  2.0 1.0  0.0  1.0 0.5  0  1.0    1  200  test
+// ........................... N  NV Nd A0  pMin  pMax  kl att  om   dsq  kps  klp tau dflag  B  Dr0 CIL prate  sd time file
 // below: purse-string, and crawling
-//./main/epi2D/laserAblation.o 20 20 4 1.08 0.92 0.925 1.0 0.3 0.01  2.0  1.0  2.0   1.0  3.0  1.0 0.5  0  1  200 test
-// ........................... N  NV Nd A0  pMin  pMax  kl att  om   dsq   kps klp  tau   dflag B  Dr0 CIL sd time file
+//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.925 1.0 0.3 0.01  2.0  1.0  2.0 1.0  3.0  1.0 0.5  0  1.0    1  200  test
+// ........................... N  NV Nd A0  pMin  pMax  kl att  om   dsq  kps  klp tau dflag  B  Dr0 CIL prate  sd time file
 
 //
 // Parameter input list
@@ -41,9 +38,10 @@
 // 15. B:           (over)damping coefficient gamma
 // 16. Dr0:         rotational diffusion constant for protrusion activity
 // 17. boolCIL:     bool for whether cells conduct contact inhibition of locomotion
-// 18. seed: 			  seed for random number generator
-// 19. time:        amount of time (tau) to simulate
-// 20. outFileStem  stem of output file names, i.e. for "test", energy.test, position.test, etc.
+// 18. shapeRelaxRate rate for how quickly cells relax their perimeters
+// 19. seed: 			  seed for random number generator
+// 20. time:        amount of time (tau) to simulate
+// 21. outFileStem  stem of output file names, i.e. for "test", energy.test, position.test, etc.
 
 // header files
 #include <sstream>
@@ -75,7 +73,7 @@ int main(int argc, char const* argv[]) {
   int NCELLS, nsmall, seed, gi, ndelete;
   double calA0, kl, kb = 0.0, phiMin, phiMax, att, B, Dr0, time_dbl;
   bool boolCIL;
-  double strainRate_ps, k_ps, k_LP, tau_LP, deltaSq, maxProtrusionLength;
+  double strainRate_ps, k_ps, k_LP, tau_LP, deltaSq, maxProtrusionLength, shapeRelaxationRate;
 
   // read in parameters from command line input
   string NCELLS_str = argv[1];
@@ -95,9 +93,10 @@ int main(int argc, char const* argv[]) {
   string B_str = argv[15];
   string Dr0_str = argv[16];
   string boolCIL_str = argv[17];
-  string seed_str = argv[18];
-  string time_str = argv[19];
-  string outFileStem = argv[20];
+  string shapeRelax_str = argv[18];
+  string seed_str = argv[19];
+  string time_str = argv[20];
+  string outFileStem = argv[21];
 
   string positionFile = "pos." + outFileStem;
   string energyFile = "energy." + outFileStem;
@@ -125,6 +124,7 @@ int main(int argc, char const* argv[]) {
   stringstream Bss(B_str);
   stringstream Dr0ss(Dr0_str);
   stringstream boolCILss(boolCIL_str);
+  stringstream shapeRelaxss(shapeRelax_str);
   stringstream seedss(seed_str);
   stringstream timess(time_str);
 
@@ -146,6 +146,7 @@ int main(int argc, char const* argv[]) {
   Bss >> B;
   Dr0ss >> Dr0;
   boolCILss >> boolCIL;
+  shapeRelaxss >> shapeRelaxationRate;
   seedss >> seed;
   timess >> time_dbl;
 
@@ -179,6 +180,7 @@ int main(int argc, char const* argv[]) {
   epithelial.setkb(kb);
   epithelial.setkc(kc);
   epithelial.setkL(double(kl / nsmall));  // calculate the energy kL such that the average force on a vertex due to kL xis equal to the average force due to kl
+  epithelial.setShapeRelaxationRate(shapeRelaxationRate);
 
   // set CIL option
   epithelial.setboolCIL(boolCIL);

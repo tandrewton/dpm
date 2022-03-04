@@ -1003,6 +1003,27 @@ void epi2D::ageCellAreas(double areaScaleFactor) {
   }
 }
 
+void epi2D::ageCellPerimeters(double shapeRelaxationRate, double dt) {
+  int gi;
+  double current_perimeter, current_preferred_perimeter, new_preferred_perimeter;
+  double shapeRelaxFactor = exp(-shapeRelaxationRate * dt);
+  double scaleFactor = 1;
+  for (int ci = 0; ci < NCELLS; ci++) {
+    current_perimeter = perimeter(ci);
+    current_preferred_perimeter = 0.0;
+    for (int vi = 0; vi < nv[ci]; vi++) {
+      gi = gindex(ci, vi);
+      current_preferred_perimeter += l0[gi];
+    }
+    new_preferred_perimeter = current_perimeter * (1 - shapeRelaxFactor) + current_preferred_perimeter * shapeRelaxFactor;
+    scaleFactor = new_preferred_perimeter / current_preferred_perimeter;
+    for (int vi = 0; vi < nv[ci]; vi++) {
+      gi = gindex(ci, vi);
+      l0[gi] *= scaleFactor;
+    }
+  }
+}
+
 void epi2D::expandBoxAndCenterParticles(double boxLengthScaleFactor,
                                         double boxLengthScale) {
   if (boxLengthScaleFactor >= 1) {
@@ -1326,8 +1347,12 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
         cout << "initialized purseString variables!\n";
       }
       purseStringContraction(B);
+      // computeWoundVerticesUsingRays isn't working very well. Use mark's inPolygon suggestion from matlab
       woundArea = computeWoundVerticesUsingRays(woundCenterX, woundCenterY, sortedWoundIndices.size() * 10);
       vout << simclock << '\t' << woundArea << '\n';
+      ageCellPerimeters(shapeRelaxationRate, dt);
+      calculateWoundArea(woundCenterX, woundCenterY);
+      assert(false);
     }
 
     // VV VELOCITY UPDATE #2
@@ -2484,6 +2509,100 @@ int epi2D::findRoot(int i, std::vector<int>& ptr) {
   if (ptr[i] < 0)
     return i;
   return ptr[i] = findRoot(ptr[i], ptr);
+}
+
+double epi2D::calculateWoundArea(double woundPointX, double woundPointY) {
+  // input: a point known to be inside the wound. we will nucleate the area calculation around this point
+  // this algorithm gives the area of a wound by dividing up the simulation box into a grid
+  // each grid point is checked for being within any cell and for proximity to cell vertices
+  // if either is true, give that point a value of 1 (true)
+  // take woundPoint and calculate the largest continuous blob of 0 values in occupancyMatrix
+  // multiply by grid point area to get the total wound area.
+  std::vector<double> posX(NVTOT), posY(NVTOT);
+  for (int i = 0; i < NVTOT; i++) {
+    if (i % 2 == 0)
+      posX[i / 2] = x[NDIM * i];
+    else
+      posY[(i - 1) / 2] = x[NDIM * (i - 1) + 1];
+  }
+  // resolution is the unit box length that we'll use to map occupancyMatrix to real coordinates
+  double resolution = r[0];
+
+  double xLow = *std::min_element(posX.begin(), posX.end());
+  double xHigh = *std::max_element(posX.begin(), posX.end());
+  double yLow = *std::min_element(posY.begin(), posY.end());
+  double yHigh = *std::max_element(posY.begin(), posY.end());
+  int xResolution = (xHigh - xLow) / resolution;
+  int yResolution = (yHigh - yLow) / resolution;
+  std::vector<std::vector<bool>> occupancyMatrix(xResolution, std::vector<bool>(yResolution, 0));
+  for (int i = 0; i < xResolution; i++) {
+    for (int j = 0; j < yResolution; j++) {
+      // first pass: occupancy is 1 if inside a cell, 0 if not inside a cell
+      occupancyMatrix[i][j] = !isPointInPolygons(i * resolution, j * resolution);
+
+      // second pass: if occupancy is 0, set occupancy back to 1 if within resolution of a vertex
+      if (occupancyMatrix[i][j] == 0) {
+        for (int k = 0; k < NVTOT; k++) {
+          if (fabs(i * resolution - x[NDIM * k]) < resolution && fabs(j * resolution - x[NDIM * k + 1]) < resolution) {
+            occupancyMatrix[i][j] = 1;
+            break;
+          }
+        }
+      }
+    }
+  }
+  /*for (int i = 0; i < xResolution; i++) {
+    cout << "[ ";
+    for (int j = 0; j < yResolution; j++) {
+      cout << occupancyMatrix[i][j];
+    }
+    cout << "]" << '\n';
+  }*/
+  // now occupancy matrix is filled. find the largest cluster of open space, given a point within the wound.
+  int woundPointXIndex = woundPointX / resolution;
+  int woundPointYIndex = woundPointY / resolution;
+  std::vector<std::vector<int>> emptyGridIndices;
+  bool done = false;
+
+  // what's the right way to do this? recursive probably
+  while (!done) {
+    if (occupancyMatrix[i][j] == 0) {
+      emptyGridIndices.push_back(i * yResolution + j);
+    }
+  }
+
+  return 1.0;
+}
+
+bool epi2D::isPointInPolygons(double xloc, double yloc) {
+  // check whether (xloc, yloc) is within any dp polygonal areas
+  // pnpoly must be false every time in order for isInside to register as true.
+  int gi;
+  bool isInside = true;
+  for (int ci = 0; ci < NCELLS; ci++) {
+    std::vector<double> vertx(nv[ci]), verty(nv[ci]);
+    for (int vi = 0; vi < nv[ci]; vi++) {
+      gi = gindex(ci, vi);
+      vertx[vi] = x[NDIM * gi];
+      verty[vi] = x[NDIM * gi + 1];
+    }
+    isInside *= !pnpoly(nv[ci], vertx, verty, xloc, yloc);
+  }
+  return isInside;
+}
+
+int epi2D::pnpoly(int nvert, std::vector<double> vertx, std::vector<double> verty, double testx, double testy) {
+  // nvert = number of vertices in polygon of interest, vert = vertex position arrays, test is the test point.
+  /*
+  I run a semi-infinite ray horizontally (increasing x, fixed y) out from the test point, and count how many edges it crosses. At each crossing, the ray switches between inside and outside. This is called the Jordan curve theorem.
+  */
+  int i, j, c = 0;
+  for (i = 0, j = nvert - 1; i < nvert; j = i++) {
+    if (((verty[i] > testy) != (verty[j] > testy)) &&
+        (testx < (vertx[j] - vertx[i]) * (testy - verty[i]) / (verty[j] - verty[i]) + vertx[i]))
+      c = !c;
+  }
+  return c;
 }
 
 void epi2D::notchTest(int numCellsToDelete, double strain, double strainRate, double boxLengthScale, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, double printInterval, std::string loadingType) {

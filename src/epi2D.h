@@ -123,6 +123,8 @@ class epi2D : public dpm {
   std::vector<double> restLengthLPx;
   std::vector<double> restLengthLPy;
 
+  double shapeRelaxationRate;
+
  public:
   // constructor and destructor
   epi2D(int n, double att1, double att2, double Dr, double omega_ps, double kps, double kLP, double tauLP, double deltaSquared, double maxCrawlLength, int seed)
@@ -232,6 +234,7 @@ class epi2D : public dpm {
   // setters
   void setkbi(double val) { fill(kbi.begin(), kbi.end(), val); };
   void setkL(double val) { kL = val; }
+  void setShapeRelaxationRate(double val) { shapeRelaxationRate = val; }
   void setRandPsi() {
     for (int ci = 0; ci < NCELLS; ci++)
       psi[ci] = (2.0 * drand48() - 1.0) * PI;
@@ -276,6 +279,7 @@ class epi2D : public dpm {
   void expandBoxAndCenterParticles(double boxLengthScaleFactor,
                                    double boxLengthScale);
   void ageCellAreas(double areaScaleFactor);
+  void ageCellPerimeters(double shapeRelaxationRate, double dt);
   void tensileLoading(double scaleFactorX, double scaleFactorY);
   void updateSubstrateSprings();
   void zeroMomentum();
@@ -303,6 +307,9 @@ class epi2D : public dpm {
   bool checkWoundClosedPolygon(std::vector<int>& listOfIndices);
   double computeWoundVerticesUsingRays(double& woundCenterX, double& woundCenterY, int numRays);
   int findRoot(int i, std::vector<int>& ptr);
+  double calculateWoundArea(double woundPointX, double woundPointY);
+  bool isPointInPolygons(double xloc, double yloc);
+  int pnpoly(int nvert, std::vector<double> vertx, std::vector<double> verty, double testx, double testy);
 
   void notchTest(int numCellsToDelete, double strain, double strainRate, double boxLengthScale, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, double printInterval, std::string loadingType);
   void orientDirector(int ci, double xLoc, double yLoc);

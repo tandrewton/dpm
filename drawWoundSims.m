@@ -37,6 +37,7 @@ showPeriodicImages = 0;
 
 showverts = 1;
 showBoundaries = 0;
+showArea = 1;
 showQuiver = 0;
 walls = 0;
 %disable showVoid if using printConfig on its own, outside of
@@ -45,7 +46,7 @@ showGlobalIndex = 0;
 showVoid = 0;
 showVoidBlack = 0; % print void in larger black circles to see easier
 showCornersOrEdges = 0;
-showPurseString = 0;
+showPurseString = 1;
  
 %PC directory
 pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
@@ -77,6 +78,7 @@ for seed = startSeed:max_seed
         boundaryStr = pc_dir+'void.test';
         edgeStr = pc_dir+'edge.test';
         purseStr = pc_dir+'purseString.test';
+        voidAreaStr = pc_dir+'voidArea.test';
     else
         run_name =runType+"_N"+N+"_ndel"+ndelete+"_calA0"+calA+...
             "_att"+att+"_v0"+v0+"_B"+B+"_Dr0"+Dr0+"_CIL"+boolCIL+"_duration"+duration;     
@@ -91,7 +93,6 @@ for seed = startSeed:max_seed
         boundaryStr = pipeline_dir+fileheader+ ".void";
     end
     
-
     figure(13);
     stress = load(stressstr);
     plot(stress(:,1), stress(:,3), 'r-', 'linewidth',2, 'DisplayName',...
@@ -109,6 +110,16 @@ for seed = startSeed:max_seed
      %annotation('textbox',[.2 .5 .5 .3],'String', txt, 'Edgecolor','none')
      saveas(gcf, output_dir + 'Stress'+startSeed+'_'+max_seed, 'epsc')
     end
+
+    if showArea
+        figure(12)
+        voidArea = load(voidAreaStr);
+        plot(voidArea(:,1), voidArea(:,2), 'linewidth', 4)
+        ylim([0 voidArea(1,2)])
+        xlabel('$t/\tau$','Interpreter','latex','fontsize', 24);
+        ylabel('Area','Interpreter','latex','fontsize', 24);
+    end
+
 
     % read in position data
     [trajectoryData, cell_count] = readDPMClassPosOutput(nvestr);
@@ -172,7 +183,11 @@ for seed = startSeed:max_seed
     if showPurseString
         purseLocations = readDataBlocks(purseStr, 2);
     end
+
+    %figure(20)
+    %shapes = trajectoryData.area.^2/trajectoryData.perimeter/(4*pi);
     
+
     for ff = FSTART:FSTEP:FEND
         %nv can change, so recompute color map each frame
         [nvUQ, ~, IC] = unique(nonzeros(nv(ff,:).*(flag(ff,:)+1)));
@@ -182,6 +197,10 @@ for seed = startSeed:max_seed
         cellCLR = jet(NUQ);
         NCELLS = cell_count(ff);
         
+        area = trajectoryData.area(ff,:);
+        perimeter = trajectoryData.perimeter(ff,:);
+        shape = 1/(4*pi)*perimeter.^2./area;
+
         if ~makeAMovie
             fnum = fnum+1;
         end
@@ -196,6 +215,7 @@ for seed = startSeed:max_seed
         l0 = trajectoryData.l0(ff,:);
         vrad = trajectoryData.vrad(ff,:);
         psi = trajectoryData.psi(ff,:);
+        
 
         %if L is not constant, use the next 3 lines
         L = trajectoryData.L(ff,:);
@@ -332,10 +352,21 @@ for seed = startSeed:max_seed
                 %    ,[purseLocs(lowOdd,2) purseLocs(lowOdd+1,2)], 'LineWidth', 2, 'Color' ,'black');
                 [xs,ys] = spring(purseLocs(lowOdd,1),purseLocs(lowOdd,2)...
                     ,purseLocs(lowOdd+1,1), purseLocs(lowOdd+1,2)...
-                    ,2, 0, 0.05);
+                    ,2, 0, 0.1);
                 plot(xs,ys,'LineWidth', 2,'Color' ,'black');
             end
         end
+
+        histEdges = 1.0:0.04:3.0;
+        histAx = axes('Position', [.7 .7   .25 .25]);
+        box on
+        histogram(histAx, shape, histEdges);
+        xlabel('$\mathcal{A}$','Interpreter','LaTeX','Fontsize',16)
+        ylabel('$\mathcal{A}$','Interpreter','LaTeX','Fontsize',16)
+        ylim([0 10])
+        xticks([1.0:0.4:3.0])
+        annotation('textbox',[.75 .8 .1 .1], 'edgecolor', 'none', 'string', "mean="+num2str(mean(shape)))
+        annotation('textbox',[.75 .77 .1 .1], 'edgecolor', 'none', 'string', "std="+num2str(std(shape)))
         % if making a movie, save frame
         if makeAMovie == 1
             currframe = getframe(gcf);
