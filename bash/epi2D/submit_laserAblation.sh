@@ -1,7 +1,8 @@
 #!/bin/bash
 # directories with code
 
-#example call: bash bash/epi2D/submit_laserAblation.sh 24 24 5 1.08 0.7 0.9 1.0 0.5 0.4 0.5 0.0 1 1000 pi_ohern,day,scavenge 0-12:00:00 1 1
+#example call: bash bash/epi2D/submit_laserAblation.sh 20 20 4 1.10 0.92 0.925 1.0 0.3 0.01 0.0 1.0 2.0 1.0 3.0 1.0 0.5 0 0.00 200 pi_ohern,day,scavenge 0-12:00:00 1 1
+
 cellsdir=~/dpm
 srcdir=$cellsdir/src
 maindir=$cellsdir/main/epi2D
@@ -132,7 +133,7 @@ for seed in `seq $startSeed $numSeedsPerRun $endSeed`; do
         outFileStem=$simdatadir/$filestr
 
         # append to runString
-        runString="$runString ; ./$binf $NCELLS $NV $ndelete $calA0 $phiMin $phiMax $kl $att $strainRate_ps $deltaSq $k_ps $k_lp $tau_lp $d_flag $B $Dr0 $boolCIL $prate $seed $time $outFileStem"
+        runString="$runString ; ./$binf $NCELLS $NV $ndelete $calA0 $phiMin $phiMax $kl $att $strainRate_ps $deltaSq $k_ps $k_lp $tau_lp $d_flag $B $Dr0 $boolCIL $prate $seed $duration $outFileStem"
     done
 
     # finish off run string
