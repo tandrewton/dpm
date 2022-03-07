@@ -52,8 +52,9 @@ let numSeeds=$numSeedsPerRun*$numRuns
 let endSeed=$startSeed+$numSeeds-1
 
 # name strings
-basestr=ablate_calA0"$calA0"_strainRate_ps"$strainRate_ps"_deltaSq"$deltaSq"_k_ps"$k_ps"_k_lp"$k_lp"_tau_lp"$tau_lp"_d_flag"$d_flag"
-runstr="$basestr"_startseed"$startSeed"_endseed"$endSeed"
+#3/7/22 1:17 pm: - just added $prate to basestr, after my runs are complete make sure to git push and pull
+basestr=ablate_calA0"$calA0"_strainRate_ps"$strainRate_ps"_deltaSq"$deltaSq"_k_ps"$k_ps"_k_lp"$k_lp"_tau_lp"$tau_lp"_d_flag"$d_flag"_prate"$prate"
+runstr="$basestr"_NCELLS"$NCELLS$"_Duration"$duration$"_startseed"$startSeed"_endseed"$endSeed"
 
 # make directory specific for this simulation
 simdatadir=$simtypedir/$basestr
