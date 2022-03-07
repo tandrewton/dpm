@@ -9,7 +9,7 @@
 // g++ -O3 --std=c++11 -g -I src main/epi2D/laserAblation.cpp src/dpm.cpp src/epi2D.cpp -o main/epi2D/laserAblation.o
 
 // below: no purse-string, only crawling
-//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.925 1.0 0.3 0.01  0.0  1.0  2.0 1.0  3.0  1.0 0.5  0  0.01   1  200  test
+//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.925 1.0 0.3 0.01  0.0  1.0  2.0 1.0  3.0  1.0 0.5  0  0.00   1  200  test
 // ........................... N  NV Nd A0  pMin  pMax  kl att  om   dsq  kps  klp tau dflag  B  Dr0 CIL prate  sd time file
 // below: purse-string, no crawling
 //./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.925 1.0 0.3 0.01  2.0  1.0  2.0 1.0  0.0  1.0 0.5  0  1.0    1  200  test

@@ -95,20 +95,22 @@ while ~feof(fid)
         %l0(nf,nn)       = sqrt(4.0*pi*calA0(nf,nn)*a0(nf,nn))/nv(nf,nn);
         
         % get vertex positions
-        vPosTmp = textscan(fid,'VINFO %*f %*f %f %f %f %f %f',NVTMP); 
+        vPosTmp = textscan(fid,'VINFO %*f %*f %f %f %f %f %f %f',NVTMP); 
         % note : %*f means ignore that entry.
         fline = fgetl(fid);     % goes to next line in file
 
         % parse data      
         xposTmp = vPosTmp{1};
         yposTmp = vPosTmp{2};
-        vradTmp = vPosTmp{3};
-        l0radTmp = vPosTmp{4};
-        %also 5 which are going to be ignored by me for now.
+        giTmp = vPosTmp{3};
+        vradTmp = vPosTmp{4};
+        l0radTmp = vPosTmp{5};
+        %also 6,7 which are going to be ignored by me for now.
         
         % save in cell
         xpos{nf,nn} = xposTmp;
         ypos{nf,nn} = yposTmp;
+        gi{nf,nn} = giTmp;
         vrad{nf,nn} = vradTmp;
         l0rad{nf,nn} = l0radTmp;
     end
@@ -175,6 +177,7 @@ if (nf < NFRAMES)
     vrad(nf:end,:) = [];
     xpos(nf:end,:) = [];
     ypos(nf:end,:) = [];
+    gi(nf:end,:) = [];
     l0(nf:end,:)   = [];
     nv(nf:end,:) = [];
     zc(nf:end,:) = [];
@@ -209,6 +212,7 @@ cellTrajectoryData.phi0         = phi0;
 cellTrajectoryData.vrad         = vrad;
 cellTrajectoryData.xpos         = xpos;
 cellTrajectoryData.ypos         = ypos;
+cellTrajectoryData.gi           = gi;
 cellTrajectoryData.nv           = nv;
 cellTrajectoryData.zc           = zc;
 cellTrajectoryData.zv           = zv;

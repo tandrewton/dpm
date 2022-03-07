@@ -30,46 +30,62 @@ phiMin=$5
 phiMax=$6
 kl=$7
 att=$8
-v0=$9
-B="${10}"
-Dr0="${11}"
-boolCIL="${12}"
-duration="${13}"
-partition="${14}"
-time="${15}"
-numRuns="${16}"
-startSeed="${17}"
+strainRate_ps=$9
+deltaSq="${10}"
+k_ps="${11}"
+k_lp="${12}"
+tau_lp="${13}"
+d_flag="${14}"
+B="${15}"
+Dr0="${16}"
+boolCIL="${17}"
+prate="${18}"
+duration="${19}"
+partition="${20}"
+time="${21}"
+numRuns="${22}"
+startSeed="${23}"
 
 numSeedsPerRun=1
 let numSeeds=$numSeedsPerRun*$numRuns
 let endSeed=$startSeed+$numSeeds-1
 
 # name strings
-basestr=ablate_N"$NCELLS"_ndel"$ndelete"_calA0"$calA0"_att"$att"_v0"$v0"_B"$B"_Dr0"$Dr0"_CIL"$boolCIL"_duration"$duration"
+basestr=ablate_N_calA0"$calA0"_strainRate_ps"$strainRate_ps"_deltaSq"$deltaSq"_k_ps"$k_ps"_k_lp"$k_lp"_tau_lp"$tau_lp"_d_flag"$d_flag"
 runstr="$basestr"_startseed"$startSeed"_endseed"$endSeed"
 
 # make directory specific for this simulation
 simdatadir=$simtypedir/$basestr
 mkdir -p $simdatadir
 
-# compile into binary using packing.h
+# write input parameters to a configuration file for organization
+configFile = $simdatadir/config.txt
+
+# compile into binary
 binf=bin/"$runstr".o
 mainf=$maindir/laserAblation.cpp
 
-echo Running laserAblation simulations with parameters:
-echo NCELLS = "$NCELLS"
-echo NV = "$NV"
-echo ndelete = "$ndelete"
-echo calA0 = "$calA0"
-echo phiMin = "$phiMin"
-echo phiMax = "$phiMax"
-echo kl = "$kl"
-echo att = "$att"
-echo v0 = "$v0"
-echo B = "$B"
-echo Dr0 = "$Dr0"
-echo boolCIL = "$boolCIl"
-echo NT = "$NT"
+echo Running laserAblation simulations with parameters: > configFile
+echo NCELLS = "$NCELLS" >> configFile
+echo NV = "$NV" >> configFile
+echo ndelete = "$ndelete" >> configFile
+echo calA0 = "$calA0" >> configFile
+echo phiMin = "$phiMin" >> configFile
+echo phiMax = "$phiMax" >> configFile
+echo kl = "$kl" >> configFile
+echo att = "$att" >> configFile
+echo strainRate_ps = "$strainRate_ps" >> configFile
+echo deltaSq = $deltaSq >> configFile
+echo k_ps = $k_ps >> configFile
+echo k_lp = $k_lp >> configFile
+echo tau_lp = $tau_lp >> configFile
+echo d_flag = $d_flag >> configFile
+echo B = "$B" >> configFile
+echo prate = "$prate" >> configFile
+echo Dr0 = "$Dr0" >> configFile
+echo boolCIL = "$boolCIl" >> configFile
+echo NT = "$NT" >> configFile
+echo numFrames = "$numFrames" >> configFile
 
 
 # run compiler
@@ -113,12 +129,10 @@ for seed in `seq $startSeed $numSeedsPerRun $endSeed`; do
         filestr="$basestr"_seed"$seed"
 
         # create output files
-        posf=$simdatadir/$filestr.pos
-        energyf=$simdatadir/$filestr.energy
-        stressf=$simdatadir/$filestr.stress
+        outFileStem=$simdatadir/$filestr
 
         # append to runString
-        runString="$runString ; ./$binf $NCELLS $NV $ndelete $calA0 $phiMin $phiMax $kl $att $v0 $B $Dr0 $boolCIL $runseed $duration $posf $energyf $stressf"
+        runString="$runString ; ./$binf $NCELLS $NV $ndelete $calA0 $phiMin $phiMax $kl $att $strainRate_ps $deltaSq $k_ps $k_lp $tau_lp $d_flag $B $Dr0 $boolCIL $prate $seed $time $outFileStem"
     done
 
     # finish off run string
@@ -165,7 +179,6 @@ cat $slurmf
 echo -- running on slurm in partition $partition
 sbatch -t $time $slurmf
 
-
 # ====================
 #       INPUTS
 # ====================
@@ -178,11 +191,16 @@ sbatch -t $time $slurmf
 # 6. kl
 # 7. kb
 # 8. att
-# 9. active velocity scale
-# 10. rotational diffusion constant
-# 10. whether cells have CIL or not
-# 10. number of timesteps
-# 11. partition
-# 12. time
-# 13. number of runs (number of array entries, i.e. arraynum)
-# 14. start seed (end seed determined by number of runs)
+# 9. segment shrinking rate for pursestring
+# 10. max yield length for purse string springs
+# 11. spring constant purse string virtual particle to wound vertex
+# 12. spring constant for flag to nearest vertex on wound edge for crawling
+# 13. protrusion time constant (controls stochastic lifetime of a protrusion)
+# 14. protrusion distance from cell edge
+# 16. rotational diffusion constant for cell's protrusion director
+# 17. whether cells have CIL or not
+# 18. number of timesteps
+# 19. partition
+# 20. time
+# 21. number of runs (number of array entries, i.e. arraynum)
+# 22. start seed (end seed determined by number of runs)

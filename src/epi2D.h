@@ -301,13 +301,13 @@ class epi2D : public dpm {
   void initializevnn();
   void boundaries();
   std::vector<int> refineBoundaries();
-  void NewmanZiff(std::vector<int>& ptr, int empty, int& mode, int& big);
+  void NewmanZiff(std::vector<int>& ptr, int empty, int& mode, int& big, std::vector<int>& order);
   void printBoundaries(int nthLargestCluster = 1);
   void getWoundVertices(int nthLargestCluster = 1);
   bool checkWoundClosedPolygon(std::vector<int>& listOfIndices);
   double computeWoundVerticesUsingRays(double& woundCenterX, double& woundCenterY, int numRays);
   int findRoot(int i, std::vector<int>& ptr);
-  double calculateWoundArea(double woundPointX, double woundPointY);
+  double calculateWoundArea(double& woundPointX, double& woundPointY);
   bool isPointInPolygons(double xloc, double yloc);
   int pnpoly(int nvert, std::vector<double> vertx, std::vector<double> verty, double testx, double testy);
 

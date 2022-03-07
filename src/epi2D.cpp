@@ -1348,11 +1348,14 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
       }
       purseStringContraction(B);
       // computeWoundVerticesUsingRays isn't working very well. Use mark's inPolygon suggestion from matlab
-      woundArea = computeWoundVerticesUsingRays(woundCenterX, woundCenterY, sortedWoundIndices.size() * 10);
-      vout << simclock << '\t' << woundArea << '\n';
+      // woundArea = computeWoundVerticesUsingRays(woundCenterX, woundCenterY, sortedWoundIndices.size() * 10);
+      // vout << simclock << '\t' << woundArea << '\n';
       ageCellPerimeters(shapeRelaxationRate, dt);
-      calculateWoundArea(woundCenterX, woundCenterY);
-      assert(false);
+      if (int(simclock / dt) % 100 == 0) {
+        // might need to reupdate woundCenter every now and then. external function? or just a test to make sure no vertices are nearby?
+        woundArea = calculateWoundArea(woundCenterX, woundCenterY);
+        vout << simclock << '\t' << woundArea << '\n';
+      }
     }
 
     // VV VELOCITY UPDATE #2
@@ -2077,7 +2080,7 @@ std::vector<int> epi2D::refineBoundaries() {
   return voidFacingVertexIndices;
 }
 
-void epi2D::NewmanZiff(std::vector<int>& ptr, int empty, int& mode, int& big) {
+void epi2D::NewmanZiff(std::vector<int>& ptr, int empty, int& mode, int& big, std::vector<int>& order) {
   // union/find algorithm that seeks contiguous clusters of points.
   //  the root (ptr) of each node is the first vertex in its cluster, and the
   //  root of that node is the negative size of the cluster
@@ -2133,7 +2136,7 @@ void epi2D::printBoundaries(int nthLargestCluster) {
   int big = 0;
   bool choseCorner;
   // fill ptr with a clustered network of nodes
-  NewmanZiff(ptr, empty, mode, big);
+  NewmanZiff(ptr, empty, mode, big, order);
 
   cout << "mode = " << mode << '\n';
   cout << "with size = " << big << '\n';
@@ -2326,7 +2329,7 @@ void epi2D::getWoundVertices(int nthLargestCluster) {
   std::vector<int> ptr(NVTOT, empty);
   int big = 0;
   // fill ptr with a clustered network of nodes
-  NewmanZiff(ptr, empty, mode, big);
+  NewmanZiff(ptr, empty, mode, big, order);
 
   if (nthLargestCluster > 1) {
     std::vector<int> clusterSize;
@@ -2511,13 +2514,16 @@ int epi2D::findRoot(int i, std::vector<int>& ptr) {
   return ptr[i] = findRoot(ptr[i], ptr);
 }
 
-double epi2D::calculateWoundArea(double woundPointX, double woundPointY) {
+double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
   // input: a point known to be inside the wound. we will nucleate the area calculation around this point
   // this algorithm gives the area of a wound by dividing up the simulation box into a grid
   // each grid point is checked for being within any cell and for proximity to cell vertices
   // if either is true, give that point a value of 1 (true)
   // take woundPoint and calculate the largest continuous blob of 0 values in occupancyMatrix
   // multiply by grid point area to get the total wound area.
+
+  // note: running this every timestep is pretty costly. why? it's a pretty large matrix, I guess.
+  // running it every 100 or 1000 timesteps should be fine.
   std::vector<double> posX(NVTOT), posY(NVTOT);
   for (int i = 0; i < NVTOT; i++) {
     if (i % 2 == 0)
@@ -2561,17 +2567,64 @@ double epi2D::calculateWoundArea(double woundPointX, double woundPointY) {
   // now occupancy matrix is filled. find the largest cluster of open space, given a point within the wound.
   int woundPointXIndex = woundPointX / resolution;
   int woundPointYIndex = woundPointY / resolution;
-  std::vector<std::vector<int>> emptyGridIndices;
+  std::vector<int> emptyGridIndices;
   bool done = false;
 
-  // what's the right way to do this? recursive probably
-  while (!done) {
-    if (occupancyMatrix[i][j] == 0) {
-      emptyGridIndices.push_back(i * yResolution + j);
+  // algorithm: connected component labeling
+  int current_label = 1;
+  std::vector<std::vector<int>> labels(xResolution, std::vector<int>(yResolution, 0));
+
+  // choose initial pixel
+  int i = woundPointXIndex, j = woundPointYIndex, nni, nnj;
+  // if pixel has value 0 and is unlabeled, give it current label and add it to queue.
+  if (occupancyMatrix[i][j] == 0 && labels[i][j] == 0) {
+    emptyGridIndices.push_back(i * yResolution + j);
+    labels[i][j] = current_label;
+
+    // pop out an element from queue, look at its neighbors. If neighbor has pixel value 0 and is unlabeled, give it current label and add to queue. repeat until no more elements are in the queue.
+    while (emptyGridIndices.size() > 0) {
+      int current_element = emptyGridIndices.back();
+      emptyGridIndices.pop_back();
+      i = floor(current_element / yResolution);
+      j = current_element % yResolution;
+      std::vector<int> nnx = {i, i, i - 1, i + 1};
+      std::vector<int> nny = {j - 1, j + 1, j, j};
+      // why am i losing every other pixel? debug time.
+      // check popped element's 4 neighbors.
+      for (int k = 0; k < 4; k++) {
+        nni = nnx[k];
+        nnj = nny[k];
+        if (occupancyMatrix[nni][nnj] == 0 && labels[nni][nnj] == 0) {
+          emptyGridIndices.push_back(nni * yResolution + nnj);
+          labels[nni][nnj] = current_label;
+        }
+      }
     }
   }
+  /*for (int i = 0; i < xResolution; i++) {
+    cout << "[ ";
+    for (int j = 0; j < yResolution; j++) {
+      cout << labels[i][j];
+    }
+    cout << "]" << '\n';
+  }*/
 
-  return 1.0;
+  double sum = 0.0;
+  woundCenterX = 0.0;
+  woundCenterY = 0.0;
+  for (int i = 0; i < labels.size(); i++) {
+    for (int j = 0; j < labels[i].size(); j++) {
+      sum += labels[i][j];
+      woundCenterX += i * labels[i][j];
+      woundCenterY += j * labels[i][j];
+    }
+  }
+  woundCenterX = woundCenterX * resolution / sum;
+  woundCenterY = woundCenterY * resolution / sum;
+  // cout << "woundCenter = " << woundCenterX << '\t' << woundCenterY << '\n';
+  //   area should be the number of boxes times the box area
+  //   alternatively, I could get the exact area by locating vertices on the edge of my newly segmented void area, but that's more computational work
+  return sum * pow(resolution, 2);
 }
 
 bool epi2D::isPointInPolygons(double xloc, double yloc) {
