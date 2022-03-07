@@ -98,13 +98,13 @@ int main(int argc, char const* argv[]) {
   string time_str = argv[20];
   string outFileStem = argv[21];
 
-  string positionFile = "pos." + outFileStem;
-  string energyFile = "energy." + outFileStem;
-  string stressFile = "stress." + outFileStem;
-  string voidFile = "void." + outFileStem;
-  string edgeFile = "edge." + outFileStem;
-  string purseStringFile = "purseString." + outFileStem;
-  string voidAreaFile = "voidArea." + outFileStem;
+  string positionFile = outFileStem + ".pos";
+  string energyFile = outFileStem + ".energy";
+  string stressFile = outFileStem + ".stress";
+  string voidFile = outFileStem + ".void";
+  string edgeFile = outFileStem + ".edge";
+  string purseStringFile = outFileStem + ".purseString";
+  string voidAreaFile = outFileStem + ".voidArea";
 
   // using sstreams to get parameters
   stringstream NCELLSss(NCELLS_str);
