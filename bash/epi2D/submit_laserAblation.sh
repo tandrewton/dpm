@@ -127,7 +127,7 @@ for seed in `seq $startSeed $numSeedsPerRun $endSeed`; do
         let runseed=$seed+ss
 
         # get file str
-        filestr="$basestr"_seed"$seed"
+        filestr="$runstr"_seed"$seed"
 
         # create output files
         outFileStem=$simdatadir/$filestr
