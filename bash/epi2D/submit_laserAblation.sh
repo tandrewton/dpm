@@ -2,7 +2,7 @@
 # directories with code
 
 #example call: bash bash/epi2D/submit_laserAblation.sh 20 20 4 1.10 0.92 0.925 1.0 0.3 0.01 0.0 1.0 2.0 1.0 3.0 1.0 0.5 0 0.00 200 pi_ohern,day,scavenge 0-12:00:00 1 1
-
+#weird bug with configFile
 cellsdir=~/dpm
 srcdir=$cellsdir/src
 maindir=$cellsdir/main/epi2D
@@ -52,7 +52,7 @@ let numSeeds=$numSeedsPerRun*$numRuns
 let endSeed=$startSeed+$numSeeds-1
 
 # name strings
-basestr=ablate_N_calA0"$calA0"_strainRate_ps"$strainRate_ps"_deltaSq"$deltaSq"_k_ps"$k_ps"_k_lp"$k_lp"_tau_lp"$tau_lp"_d_flag"$d_flag"
+basestr=ablate_calA0"$calA0"_strainRate_ps"$strainRate_ps"_deltaSq"$deltaSq"_k_ps"$k_ps"_k_lp"$k_lp"_tau_lp"$tau_lp"_d_flag"$d_flag"
 runstr="$basestr"_startseed"$startSeed"_endseed"$endSeed"
 
 # make directory specific for this simulation
@@ -60,33 +60,32 @@ simdatadir=$simtypedir/$basestr
 mkdir -p $simdatadir
 
 # write input parameters to a configuration file for organization
-configFile = $simdatadir/config.txt
+configFile=$simdatadir/config.txt
 
 # compile into binary
 binf=bin/"$runstr".o
 mainf=$maindir/laserAblation.cpp
 
 echo Running laserAblation simulations with parameters: > configFile
-echo NCELLS = "$NCELLS" >> configFile
-echo NV = "$NV" >> configFile
-echo ndelete = "$ndelete" >> configFile
-echo calA0 = "$calA0" >> configFile
-echo phiMin = "$phiMin" >> configFile
-echo phiMax = "$phiMax" >> configFile
-echo kl = "$kl" >> configFile
-echo att = "$att" >> configFile
-echo strainRate_ps = "$strainRate_ps" >> configFile
-echo deltaSq = $deltaSq >> configFile
-echo k_ps = $k_ps >> configFile
-echo k_lp = $k_lp >> configFile
-echo tau_lp = $tau_lp >> configFile
-echo d_flag = $d_flag >> configFile
-echo B = "$B" >> configFile
-echo prate = "$prate" >> configFile
-echo Dr0 = "$Dr0" >> configFile
-echo boolCIL = "$boolCIl" >> configFile
-echo NT = "$NT" >> configFile
-echo numFrames = "$numFrames" >> configFile
+echo NCELLS = "$NCELLS" >> $configFile
+echo NV = "$NV" >> $configFile
+echo ndelete = "$ndelete" >> $configFile
+echo calA0 = "$calA0" >> $configFile
+echo phiMin = "$phiMin" >> $configFile
+echo phiMax = "$phiMax" >> $configFile
+echo kl = "$kl" >> $configFile
+echo att = "$att" >> $configFile
+echo strainRate_ps = "$strainRate_ps" >> $configFile
+echo deltaSq = $deltaSq >> $configFile
+echo k_ps = $k_ps >> $configFile
+echo k_lp = $k_lp >> $configFile
+echo tau_lp = $tau_lp >> $configFile
+echo d_flag = $d_flag >> $configFile
+echo B = "$B" >> $configFile
+echo prate = "$prate" >> $configFile
+echo Dr0 = "$Dr0" >> $configFile
+echo boolCIL = "$boolCIL" >> $configFile
+echo duration = "$duration" >> $configFile
 
 
 # run compiler
