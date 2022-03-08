@@ -1351,7 +1351,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
       // woundArea = computeWoundVerticesUsingRays(woundCenterX, woundCenterY, sortedWoundIndices.size() * 10);
       // vout << simclock << '\t' << woundArea << '\n';
       ageCellPerimeters(shapeRelaxationRate, dt);
-      if (int(simclock / dt) % 100 == 0) {
+      if (int(simclock / dt) % 500 == 0) {
         // might need to reupdate woundCenter every now and then. external function? or just a test to make sure no vertices are nearby?
         woundArea = calculateWoundArea(woundCenterX, woundCenterY);
         vout << simclock << '\t' << woundArea << '\n';
@@ -2532,12 +2532,17 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
       posY[(i - 1) / 2] = x[NDIM * (i - 1) + 1];
   }
   // resolution is the unit box length that we'll use to map occupancyMatrix to real coordinates
-  double resolution = r[0];
+  double resolution = r[0] / 2.0;
 
   double xLow = *std::min_element(posX.begin(), posX.end());
   double xHigh = *std::max_element(posX.begin(), posX.end());
   double yLow = *std::min_element(posY.begin(), posY.end());
   double yHigh = *std::max_element(posY.begin(), posY.end());
+  if (fabs(woundPointX) > xHigh) {
+    cout << "woundPoint does not lie within the bounds of the simulation box, probably failed to find the center of a wound\n returning 0 area, skipping.\n";
+    return NAN;
+  }
+
   int xResolution = (xHigh - xLow) / resolution;
   int yResolution = (yHigh - yLow) / resolution;
   std::vector<std::vector<bool>> occupancyMatrix(xResolution, std::vector<bool>(yResolution, 0));
@@ -2594,6 +2599,10 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
       for (int k = 0; k < 4; k++) {
         nni = nnx[k];
         nnj = nny[k];
+        if (nni < 0 || nni >= occupancyMatrix.size())
+          break;
+        if (nnj < 0 || nnj >= occupancyMatrix[nni].size())
+          break;
         if (occupancyMatrix[nni][nnj] == 0 && labels[nni][nnj] == 0) {
           emptyGridIndices.push_back(nni * yResolution + nnj);
           labels[nni][nnj] = current_label;
@@ -2618,6 +2627,10 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
       woundCenterX += i * labels[i][j];
       woundCenterY += j * labels[i][j];
     }
+  }
+  if (fabs(sum) < 1e-5) {
+    // if we can't find a wound, don't just divide by 0.
+    return 0.0;
   }
   woundCenterX = woundCenterX * resolution / sum;
   woundCenterY = woundCenterY * resolution / sum;
