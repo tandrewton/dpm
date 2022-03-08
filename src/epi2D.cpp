@@ -2600,9 +2600,9 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
         nni = nnx[k];
         nnj = nny[k];
         if (nni < 0 || nni >= occupancyMatrix.size())
-          break;
+          continue;
         if (nnj < 0 || nnj >= occupancyMatrix[nni].size())
-          break;
+          continue;
         if (occupancyMatrix[nni][nnj] == 0 && labels[nni][nnj] == 0) {
           emptyGridIndices.push_back(nni * yResolution + nnj);
           labels[nni][nnj] = current_label;
