@@ -2540,7 +2540,7 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
   double yHigh = *std::max_element(posY.begin(), posY.end());
   if (fabs(woundPointX) > xHigh) {
     cout << "woundPoint does not lie within the bounds of the simulation box, probably failed to find the center of a wound\n returning 0 area, skipping.\n";
-    return NAN;
+    return 0.0;
   }
 
   int xResolution = (xHigh - xLow) / resolution;
