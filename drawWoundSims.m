@@ -12,23 +12,24 @@ addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
 %CHANGE THESE PARAMETERS                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   NEEDED
 
 runType = "ablate";
-N="48";
+N="40";
 ndelete="10";
-calA="1.08";
-att="0.3";
-v0="0.5";
+calA0="1.10";
+strainRate_ps="0.01";
+deltaSq = "0.0";
+k_ps = "1.0"; %purse-string spring constant
+k_lp = "2.0"; %lamellipodia spring constant
+tau_lp = "1.0"; %lamellipodia lifetime
+d_flag = "3.0"; %lamellipodia max length
+prate = "0.00"; %perimeter relaxation rate
+att="0.1";
 B="1.0";
 Dr0="0.5";
 boolCIL="0";
-duration="5000";
+Duration="400";
 FSKIP = 1;
-eta = str2num(v0)^2 / str2num(Dr0) / str2num(att) / 2;
-eta = num2str(eta);
-%etaStr = "$$\eta = $$" + eta;
-%if (isTestData)
-etaStr = " ";
-%end
 
+etaStr = " ";
 startSeed = 1;
 max_seed = 1;
 makeAMovie = 1; %if makceAMovie is 0, then plot every frame separately
@@ -47,6 +48,7 @@ showVoid = 0;
 showVoidBlack = 0; % print void in larger black circles to see easier
 showCornersOrEdges = 0;
 showPurseString = 1;
+showShapeHistogram = 0;
  
 %PC directory
 pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
@@ -72,25 +74,30 @@ for seed = startSeed:max_seed
         mkdir(pipeline_dir)
         mkdir(output_dir)
         fileheader=run_name + "_seed" + seed;
-        nvestr = pc_dir+'pos.test';
-        energystr = pc_dir+'energy.test';
-        stressstr = pc_dir+'stress.test';
-        boundaryStr = pc_dir+'void.test';
-        edgeStr = pc_dir+'edge.test';
-        purseStr = pc_dir+'purseString.test';
-        voidAreaStr = pc_dir+'voidArea.test';
+        nvestr = pc_dir+'test.pos';
+        energystr = pc_dir+'test.energy';
+        stressstr = pc_dir+'test.stress';
+        boundaryStr = pc_dir+'test.void';
+        edgeStr = pc_dir+'test.edge';
+        purseStr = pc_dir+'test.purseString';
+        voidAreaStr = pc_dir+'test.voidArea';
     else
-        run_name =runType+"_N"+N+"_ndel"+ndelete+"_calA0"+calA+...
-            "_att"+att+"_v0"+v0+"_B"+B+"_Dr0"+Dr0+"_CIL"+boolCIL+"_duration"+duration;     
+        run_name =runType+"_calA0"+calA0+"_strainRate_ps"+strainRate_ps+ ...
+            "_deltaSq"+deltaSq+"_k_ps"+k_ps+"_k_lp"+k_lp+...
+            "_tau_lp"+tau_lp+"_d_flag"+d_flag+"_prate"+prate;
         pipeline_dir =  subdir_pipeline + run_name + "/";
         output_dir = subdir_output + run_name + "/";
         mkdir(pipeline_dir)
         mkdir(output_dir)
-        fileheader=run_name + "_seed" + seed;
+        fileheader=run_name +"_NCELLS"+N+"_Duration"+Duration+"_att"+att+"_startseed"+ ...
+            startSeed+"_endseed"+max_seed+"_seed"+seed;
         nvestr = pipeline_dir+fileheader+'.pos';
         energystr = pipeline_dir+fileheader+'.energy';
         stressstr = pipeline_dir+fileheader+'.stress';
         boundaryStr = pipeline_dir+fileheader+ ".void";
+        edgeStr = pipeline_dir+fileheader+ '.edge';
+        purseStr = pipeline_dir+fileheader+ '.purseString';
+        voidAreaStr = pipeline_dir+fileheader+ '.voidArea';
     end
     
     figure(13);
@@ -115,11 +122,14 @@ for seed = startSeed:max_seed
         figure(12)
         voidArea = load(voidAreaStr);
         plot(voidArea(:,1), voidArea(:,2), 'linewidth', 4)
-        ylim([0 voidArea(1,2)])
+        %ylim([0 voidArea(1,2)])
         xlabel('$t/\tau$','Interpreter','latex','fontsize', 24);
         ylabel('Area','Interpreter','latex','fontsize', 24);
     end
-
+    if seed == max_seed 
+     %annotation('textbox',[.2 .5 .5 .3],'String', txt, 'Edgecolor','none')
+     saveas(gcf, output_dir + 'VoidArea'+startSeed+'_'+max_seed, 'epsc')
+    end
 
     % read in position data
     [trajectoryData, cell_count] = readDPMClassPosOutput(nvestr);
@@ -276,7 +286,7 @@ for seed = startSeed:max_seed
             end
         end
 
-        plot(flagX(ff,:)./flag(ff,:), flagY(ff,:)./flag(ff,:), 'ro', 'linewidth', 5);
+        plot(flagX(ff,:)./flag(ff,:), flagY(ff,:)./flag(ff,:), 'ro', 'linewidth', 2);
         ann = annotation('textbox', [.42 .05 .6 .05],'interpreter', 'latex',...
             'String', etaStr, 'Edgecolor','none');
         ann.FontSize = 30;
@@ -306,9 +316,9 @@ for seed = startSeed:max_seed
             plot([viewLxLow viewLx viewLx viewLxLow viewLxLow], [viewLyLow viewLyLow viewLy viewLy viewLyLow], 'k-', 'linewidth', 1.5);
         end
         
-        annotationStr = "$$t/\tau$$ = "+time(ff);
-        annotation('textbox',[0.48, 0.5, 0, 0],...
-            'interpreter', 'latex', 'String', annotationStr, 'Edgecolor','none', 'FitBoxToText','on');
+        %annotationStr = "$$t/\tau$$ = "+time(ff);
+        %annotation('textbox',[0.48, 0.5, 0, 0],...
+        %    'interpreter', 'latex', 'String', annotationStr, 'Edgecolor','none', 'FitBoxToText','on');
         if showVoid
             if showVoidBlack 
                 scatter(voidLocations{ff}(:,1), voidLocations{ff}(:,2),...
@@ -357,16 +367,18 @@ for seed = startSeed:max_seed
             end
         end
 
-        histEdges = 1.0:0.04:3.0;
-        histAx = axes('Position', [.7 .7   .25 .25]);
-        box on
-        histogram(histAx, shape, histEdges);
-        xlabel('$\mathcal{A}$','Interpreter','LaTeX','Fontsize',16)
-        ylabel('$\mathcal{A}$','Interpreter','LaTeX','Fontsize',16)
-        ylim([0 10])
-        xticks([1.0:0.4:3.0])
-        annotation('textbox',[.75 .8 .1 .1], 'edgecolor', 'none', 'string', "mean="+num2str(mean(shape)))
-        annotation('textbox',[.75 .77 .1 .1], 'edgecolor', 'none', 'string', "std="+num2str(std(shape)))
+        if (showShapeHistogram)
+            histEdges = 1.0:0.04:3.0;
+            histAx = axes('Position', [.7 .7   .25 .25]);
+            box on
+            histogram(histAx, shape, histEdges);
+            xlabel('$\mathcal{A}$','Interpreter','LaTeX','Fontsize',16)
+            ylabel('$\mathcal{A}$','Interpreter','LaTeX','Fontsize',16)
+            ylim([0 10])
+            xticks([1.0:0.4:3.0])
+            annotation('textbox',[.75 .8 .1 .1], 'edgecolor', 'none', 'string', "mean="+num2str(mean(shape)))
+            annotation('textbox',[.75 .77 .1 .1], 'edgecolor', 'none', 'string', "std="+num2str(std(shape)))
+        end
         % if making a movie, save frame
         if makeAMovie == 1
             currframe = getframe(gcf);

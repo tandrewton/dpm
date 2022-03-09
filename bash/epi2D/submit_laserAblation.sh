@@ -1,7 +1,7 @@
 #!/bin/bash
 # directories with code
 
-#example call: bash bash/epi2D/submit_laserAblation.sh 20 20 4 1.10 0.92 0.925 1.0 0.3 0.01 0.0 1.0 2.0 1.0 3.0 1.0 0.5 0 0.00 200 pi_ohern,day,scavenge 0-12:00:00 1 1
+#example call: bash bash/epi2D/submit_laserAblation.sh 20 20 4 1.10 0.92 0.925 1.0 0.1 0.01 0.0 1.0 2.0 1.0 3.0 1.0 0.5 0 0.00 200 pi_ohern,day,scavenge 0-12:00:00 1 1
 #weird bug with configFile
 cellsdir=~/dpm
 srcdir=$cellsdir/src
@@ -54,7 +54,7 @@ let endSeed=$startSeed+$numSeeds-1
 # name strings
 #3/7/22 1:17 pm: - just added $prate to basestr, after my runs are complete make sure to git push and pull
 basestr=ablate_calA0"$calA0"_strainRate_ps"$strainRate_ps"_deltaSq"$deltaSq"_k_ps"$k_ps"_k_lp"$k_lp"_tau_lp"$tau_lp"_d_flag"$d_flag"_prate"$prate"
-runstr="$basestr"_NCELLS"$NCELLS"_Duration"$duration"_startseed"$startSeed"_endseed"$endSeed"
+runstr="$basestr"_NCELLS"$NCELLS"_Duration"$duration"_att"$att"_startseed"$startSeed"_endseed"$endSeed"
 
 # make directory specific for this simulation
 simdatadir=$simtypedir/$basestr
