@@ -195,6 +195,10 @@ int main(int argc, char const* argv[]) {
     cout << "attraction stronger than attraction range; discontinuous adhesive potential; error, exiting!\n";
     return 1;
   }
+  if (fabs(att - att_range) < 1e-5) {
+    cout << "or, adhesion lengthscales are the same, so we will divide by zero; error' exiting!\n";
+    return 1;
+  }
 
   epithelial.monodisperse2D(calA0, nsmall);
   epithelial.initializevnn();

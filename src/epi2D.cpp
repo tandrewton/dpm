@@ -597,6 +597,7 @@ void epi2D::vertexAttractiveForces2D_2() {
 
   // attraction shell parameters
   double shellij, cutij, xij, kint = (kc * l1) / (l2 - l1);
+  // cout << "kc / kint = " << kc / kint << '\t' << kc << '\t' << kint << '\n';
 
   // sort particles
   sortNeighborLinkedList2D();
@@ -2545,6 +2546,10 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
 
   int xResolution = (xHigh - xLow) / resolution;
   int yResolution = (yHigh - yLow) / resolution;
+  if (simclock > 480) {
+    cout << "xResolution, yResolution = " << xResolution << '\t' << yResolution << '\n';
+    cout << "xHigh, xLow, yHigh, yLow = " << xHigh << '\t' << xLow << '\t' << yHigh << '\t' << yLow << '\n';
+  }
   std::vector<std::vector<bool>> occupancyMatrix(xResolution, std::vector<bool>(yResolution, 0));
   for (int i = 0; i < xResolution; i++) {
     for (int j = 0; j < yResolution; j++) {
