@@ -2516,6 +2516,7 @@ int epi2D::findRoot(int i, std::vector<int>& ptr) {
 }
 
 double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
+  return 0.0;
   // input: a point known to be inside the wound. we will nucleate the area calculation around this point
   // this algorithm gives the area of a wound by dividing up the simulation box into a grid
   // each grid point is checked for being within any cell and for proximity to cell vertices
