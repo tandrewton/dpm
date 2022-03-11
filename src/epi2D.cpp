@@ -1347,13 +1347,27 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
         initializePurseStringVariables();
         cout << "initialized purseString variables!\n";
       }
-      purseStringContraction(B);
-      // computeWoundVerticesUsingRays isn't working very well. Use mark's inPolygon suggestion from matlab
-      // woundArea = computeWoundVerticesUsingRays(woundCenterX, woundCenterY, sortedWoundIndices.size() * 10);
+
+      // get max and min of x coords of purse-string; if max-min is near zero, then purse-string should be dissolved
+      double max_ps = x_ps[0], min_ps = x_ps[0];
+      for (int psi = 0; psi < x_ps.size() / 2; psi += 2) {
+        if (x_ps[psi] < min_ps)
+          min_ps = x_ps[psi];
+        if (x_ps[psi] > max_ps)
+          max_ps = x_ps[psi];
+      }
+
+      if (max_ps - min_ps > 2 * r[0]) {  // terminate pursestring if it can't shrink anymore
+        purseStringContraction(B);
+      } /*else {
+        // cout << "purse-string is too small, disassemble it\n";
+        k_ps = 0.0;
+        deltaSq = 0.0;
+      }*/
+
       // vout << simclock << '\t' << woundArea << '\n';
       ageCellPerimeters(shapeRelaxationRate, dt);
       if (int(simclock / dt) % 500 == 0) {
-        // might need to reupdate woundCenter every now and then. external function? or just a test to make sure no vertices are nearby?
         woundArea = calculateWoundArea(woundCenterX, woundCenterY);
         vout << simclock << '\t' << woundArea << '\n';
       }
@@ -2066,11 +2080,6 @@ std::vector<int> epi2D::refineBoundaries() {
       }
     }
   }
-  if (simclock > 292.911 && simclock < 292.912) {
-    cout << "vnn_label.size() = " << vnn_label.size() << '\n';
-    cout << "voidFacingVertexIndices.size() = " << voidFacingVertexIndices.size() << '\n';
-    cout << "NVTOT = " << NVTOT << '\n';
-  }
   // Done with refinements. Store void adjacent vertices and corner vertices.
   for (int gi = 0; gi < NVTOT; gi++) {
     // get an occupation order for void-facing indices. 0 is edge, 2 is corner
@@ -2516,17 +2525,16 @@ int epi2D::findRoot(int i, std::vector<int>& ptr) {
 }
 
 double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
-  return 0.0;
-  // input: a point known to be inside the wound. we will nucleate the area calculation around this point
+  // input: a point previously inside the wound.
+  //  we will nucleate the area calculation around this point
   // this algorithm gives the area of a wound by dividing up the simulation box into a grid
-  // each grid point is checked for being within any cell and for proximity to cell vertices
-  // if either is true, give that point a value of 1 (true)
-  // take woundPoint and calculate the largest continuous blob of 0 values in occupancyMatrix
-  // multiply by grid point area to get the total wound area.
+  //  each grid point is checked for being within any cell and for proximity to cell vertices
+  //  if either is true, give that point a value of 1 (true)
+  // then take woundPoint and calculate the largest continuous blob of 0 values in occupancyMatrix.
+  //  multiply by grid point area to get the total wound area.
 
-  // note: running this every timestep is pretty costly. why? it's a pretty large matrix, I guess.
-  // running it every 100 or 1000 timesteps should be fine.
-  std::vector<double> posX(NVTOT), posY(NVTOT);
+  // note: running this every 100 or 1000 timesteps should be fine.
+  std::vector<double> posX(NVTOT / 2), posY(NVTOT / 2);
   for (int i = 0; i < NVTOT; i++) {
     if (i % 2 == 0)
       posX[i / 2] = x[NDIM * i];
@@ -2547,20 +2555,16 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
 
   int xResolution = (xHigh - xLow) / resolution;
   int yResolution = (yHigh - yLow) / resolution;
-  if (simclock > 480) {
-    cout << "xResolution, yResolution = " << xResolution << '\t' << yResolution << '\n';
-    cout << "xHigh, xLow, yHigh, yLow = " << xHigh << '\t' << xLow << '\t' << yHigh << '\t' << yLow << '\n';
-  }
   std::vector<std::vector<bool>> occupancyMatrix(xResolution, std::vector<bool>(yResolution, 0));
   for (int i = 0; i < xResolution; i++) {
     for (int j = 0; j < yResolution; j++) {
       // first pass: occupancy is 1 if inside a cell, 0 if not inside a cell
       occupancyMatrix[i][j] = !isPointInPolygons(i * resolution, j * resolution);
 
-      // second pass: if occupancy is 0, set occupancy back to 1 if within resolution of a vertex
+      // second pass: if occupancy is 0, set occupancy back to 1 if within vrad (previously resolution) of a vertex
       if (occupancyMatrix[i][j] == 0) {
         for (int k = 0; k < NVTOT; k++) {
-          if (fabs(i * resolution - x[NDIM * k]) < resolution && fabs(j * resolution - x[NDIM * k + 1]) < resolution) {
+          if (fabs(i * resolution - x[NDIM * k]) < r[0] && fabs(j * resolution - x[NDIM * k + 1]) < r[0]) {
             occupancyMatrix[i][j] = 1;
             break;
           }
@@ -2568,16 +2572,45 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
       }
     }
   }
-  /*for (int i = 0; i < xResolution; i++) {
-    cout << "[ ";
-    for (int j = 0; j < yResolution; j++) {
-      cout << occupancyMatrix[i][j];
+  /*if (simclock > 100)
+    for (int i = 0; i < xResolution; i++) {
+      cout << "[ ";
+      for (int j = 0; j < yResolution; j++) {
+        cout << occupancyMatrix[i][j];
+      }
+      cout << "]" << '\n';
     }
-    cout << "]" << '\n';
-  }*/
+  */
+
   // now occupancy matrix is filled. find the largest cluster of open space, given a point within the wound.
   int woundPointXIndex = woundPointX / resolution;
   int woundPointYIndex = woundPointY / resolution;
+
+  // check if the given point is not within the wound
+  if (occupancyMatrix[woundPointXIndex][woundPointYIndex] == 1) {
+    // given point is not in the wound, so we need to look for a nearby point that's hopefully in the wound (searching diagonally for now)
+    int searchRange = 3, offset = 0;
+    int newXIndex = woundPointXIndex, newYIndex = woundPointYIndex;
+    while (occupancyMatrix[newXIndex][newYIndex] == 1 && offset <= searchRange) {
+      offset++;
+      if (occupancyMatrix[woundPointXIndex + offset][woundPointYIndex + offset] == 0) {
+        newXIndex = woundPointXIndex + offset;
+        newYIndex = woundPointYIndex + offset;
+      }
+      if (occupancyMatrix[woundPointXIndex - offset][woundPointYIndex - offset] == 0) {
+        newXIndex = woundPointXIndex - offset;
+        newYIndex = woundPointYIndex - offset;
+      }
+    }
+    if (offset > searchRange) {
+      cout << "failed to find a nearby point identifiable as a wound, returning 0.0 for area\n";
+      return 0.0;
+    }
+    // set wound point to the newly identified point
+    woundPointX = woundPointXIndex * resolution;
+    woundPointY = woundPointYIndex * resolution;
+  }
+
   std::vector<int> emptyGridIndices;
   bool done = false;
 
@@ -2600,8 +2633,6 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
       j = current_element % yResolution;
       std::vector<int> nnx = {i, i, i - 1, i + 1};
       std::vector<int> nny = {j - 1, j + 1, j, j};
-      // why am i losing every other pixel? debug time.
-      // check popped element's 4 neighbors.
       for (int k = 0; k < 4; k++) {
         nni = nnx[k];
         nnj = nny[k];
@@ -2616,31 +2647,27 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
       }
     }
   }
-  /*for (int i = 0; i < xResolution; i++) {
-    cout << "[ ";
-    for (int j = 0; j < yResolution; j++) {
-      cout << labels[i][j];
+
+  /*if (simclock > 100)
+    for (int i = 0; i < xResolution; i++) {
+      cout << "[ ";
+      for (int j = 0; j < yResolution; j++) {
+        if (i == woundPointXIndex && j == woundPointYIndex)
+          cout << "x" << '\n';
+        else
+          cout << labels[i][j];
+      }
+      cout << "]" << '\n';
     }
-    cout << "]" << '\n';
-  }*/
+  */
 
   double sum = 0.0;
-  woundCenterX = 0.0;
-  woundCenterY = 0.0;
   for (int i = 0; i < labels.size(); i++) {
     for (int j = 0; j < labels[i].size(); j++) {
       sum += labels[i][j];
-      woundCenterX += i * labels[i][j];
-      woundCenterY += j * labels[i][j];
     }
   }
-  if (fabs(sum) < 1e-5) {
-    // if we can't find a wound, don't just divide by 0.
-    return 0.0;
-  }
-  woundCenterX = woundCenterX * resolution / sum;
-  woundCenterY = woundCenterY * resolution / sum;
-  // cout << "woundCenter = " << woundCenterX << '\t' << woundCenterY << '\n';
+
   //   area should be the number of boxes times the box area
   //   alternatively, I could get the exact area by locating vertices on the edge of my newly segmented void area, but that's more computational work
   return sum * pow(resolution, 2);
@@ -2675,6 +2702,59 @@ int epi2D::pnpoly(int nvert, std::vector<double> vertx, std::vector<double> vert
       c = !c;
   }
   return c;
+}
+
+double epi2D::calculateArea(std::vector<double>& vertx, std::vector<double>& verty) {
+  // calculate area of a list of points given by (vertx,verty)
+  double xi = vertx[0], yi = verty[0];
+  double dx, dy, xip1, yip1, areaVal;
+  for (int i = 0; i < vertx.size(); i++) {  // doesn't account for periodic boundaries yet
+    dx = vertx[(i + 1) % vertx.size()] - xi;
+    if (pbc[0])
+      dx -= L[0] * round(dx / L[0]);
+    xip1 = xi + dx;
+
+    dy = verty[(i + 1) % verty.size()] - yi;
+    if (pbc[1])
+      dy -= L[1] * round(dy / L[1]);
+    yip1 = yi + dy;
+
+    // increment area
+    areaVal += xi * yip1 - xip1 * yi;
+
+    // set next coordinates
+    xi = xip1;
+    yi = yip1;
+  }
+  areaVal *= 0.5;
+  return abs(areaVal);
+}
+
+double epi2D::calculateAreaFlattened(std::vector<double>& vertPosFlattened) {
+  // calculate area of a list of points given by (vert[i],vert[i+1])
+  double xi = vertPosFlattened[0], yi = vertPosFlattened[1];
+  double dx, dy, xip1, yip1, areaVal;
+  int numberOfVerts = vertPosFlattened.size() / 2;
+  for (int i = 0; i < numberOfVerts; i++) {  // doesn't account for periodic boundaries yet
+    dx = vertPosFlattened[NDIM * ((i + 1) % numberOfVerts)] - xi;
+    if (pbc[0])
+      dx -= L[0] * round(dx / L[0]);
+    xip1 = xi + dx;
+
+    dy = vertPosFlattened[NDIM * ((i + 1) % numberOfVerts) + 1] - yi;
+    if (pbc[1])
+      dy -= L[1] * round(dy / L[1]);
+    yip1 = yi + dy;
+
+    // increment area
+    areaVal += xi * yip1 - xip1 * yi;
+
+    // set next coordinates
+    xi = xip1;
+    yi = yip1;
+  }
+  areaVal *= 0.5;
+  return abs(areaVal);
 }
 
 void epi2D::notchTest(int numCellsToDelete, double strain, double strainRate, double boxLengthScale, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, double printInterval, std::string loadingType) {
@@ -2828,7 +2908,7 @@ double epi2D::rotateAndCalculateArcLength(int ci, std::vector<int>& woundIndices
 
 void epi2D::purseStringContraction(double B) {
   // updatePurseStringContacts();
-  integratePurseString(B);
+  integratePurseString(B);  // evaluate forces on and due to purse-string, and integrate its position
   for (int psi = 0; psi < psContacts.size(); psi++) {
     l0_ps[psi] *= exp(-strainRate_ps * dt);
   }
@@ -3177,8 +3257,8 @@ void epi2D::printConfiguration2D() {
       double xw = x[psContacts[j] * NDIM];
       double yw = x[psContacts[j] * NDIM + 1];
 
-      // if bond is unbroken, print a line from virtual ps vertex to wound vertex.
-      if (!isSpringBroken[j]) {
+      // if bond is unbroken and ps is still active, print a line from virtual ps vertex to wound vertex.
+      if (!isSpringBroken[j] && deltaSq + k_ps > 1e-10) {
         purseout << xp << '\t' << yp << '\n';
         purseout << xw << '\t' << yw << '\n';
       }

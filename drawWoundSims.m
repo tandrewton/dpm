@@ -3,8 +3,8 @@
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
 
-% function drawWoundSims(N, NV, ndelete, calA, kl, att, v0, B,...
-%     Dr0,duration, boolCIL, showPeriodicImages, showverts, isTestData)
+%function drawWoundSims(N, strainRate_ps, deltaSq, d_flag, att)
+
 isTestData = true;
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
@@ -12,21 +12,21 @@ addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
 %CHANGE THESE PARAMETERS                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   NEEDED
 
 runType = "ablate";
-N="40";
+%N="40";
 ndelete="10";
 calA0="1.10";
-strainRate_ps="0.01";
-deltaSq = "0.0";
+%strainRate_ps="0.01";
+%deltaSq = "2.0";
 k_ps = "1.0"; %purse-string spring constant
 k_lp = "2.0"; %lamellipodia spring constant
 tau_lp = "1.0"; %lamellipodia lifetime
-d_flag = "3.0"; %lamellipodia max length
+%d_flag = "0.0"; %lamellipodia max length
 prate = "0.00"; %perimeter relaxation rate
-att="0.1";
+%att="0.2";
 B="1.0";
 Dr0="0.5";
 boolCIL="0";
-Duration="400";
+Duration="800";
 FSKIP = 1;
 
 etaStr = " ";
@@ -36,7 +36,7 @@ makeAMovie = 1; %if makceAMovie is 0, then plot every frame separately
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
 
-showverts = 1;
+showverts = 0;
 showBoundaries = 0;
 showArea = 1;
 showQuiver = 0;
@@ -48,7 +48,7 @@ showVoid = 0;
 showVoidBlack = 0; % print void in larger black circles to see easier
 showCornersOrEdges = 0;
 showPurseString = 1;
-showShapeHistogram = 0;
+showShapeHistogram = 1;
  
 %PC directory
 pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
