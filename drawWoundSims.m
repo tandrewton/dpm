@@ -3,9 +3,9 @@
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
 
-%function drawWoundSims(N, strainRate_ps, deltaSq, d_flag, att)
+function drawWoundSims(N, strainRate_ps, deltaSq, d_flag, att)
 
-isTestData = true;
+isTestData = false;
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
 
@@ -115,7 +115,8 @@ for seed = startSeed:max_seed
     ax.FontSize = 24;
     if seed == max_seed 
      %annotation('textbox',[.2 .5 .5 .3],'String', txt, 'Edgecolor','none')
-     saveas(gcf, output_dir + 'Stress'+startSeed+'_'+max_seed, 'epsc')
+     saveas(gcf, output_dir + 'Stress'+runType+fileheader+'_'+max_seed+ ...
+         '.eps', 'epsc')
     end
 
     if showArea
@@ -128,7 +129,7 @@ for seed = startSeed:max_seed
     end
     if seed == max_seed 
      %annotation('textbox',[.2 .5 .5 .3],'String', txt, 'Edgecolor','none')
-     saveas(gcf, output_dir + 'VoidArea'+startSeed+'_'+max_seed, 'epsc')
+     saveas(gcf, output_dir + 'VoidArea'+runType+fileheader+'_'+max_seed+'.eps', 'epsc')
     end
 
     % read in position data
@@ -398,7 +399,7 @@ for seed = startSeed:max_seed
         plot(time, gradient(voidArea(:))./gradient(time(:)), 'DisplayName', 'dA/dt','linewidth', 3);
         xlabel('$\tau$','Interpreter','latex');
         ylabel('A, dA/dt');
-        saveas(gcf, output_dir + 'Area'+startSeed+'_'+max_seed, 'epsc')
+        saveas(gcf, output_dir + 'Area'+runType+fileheader+'_'+max_seed+'.eps', 'epsc')
         legend
     end
 end

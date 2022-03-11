@@ -2589,7 +2589,7 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
   // check if the given point is not within the wound
   if (occupancyMatrix[woundPointXIndex][woundPointYIndex] == 1) {
     // given point is not in the wound, so we need to look for a nearby point that's hopefully in the wound (searching diagonally for now)
-    int searchRange = 3, offset = 0;
+    int searchRange = 5, offset = 0;
     int newXIndex = woundPointXIndex, newYIndex = woundPointYIndex;
     while (occupancyMatrix[newXIndex][newYIndex] == 1 && offset <= searchRange) {
       offset++;
@@ -2599,6 +2599,14 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
       }
       if (occupancyMatrix[woundPointXIndex - offset][woundPointYIndex - offset] == 0) {
         newXIndex = woundPointXIndex - offset;
+        newYIndex = woundPointYIndex - offset;
+      }
+      if (occupancyMatrix[woundPointXIndex - offset][woundPointYIndex + offset] == 0) {
+        newXIndex = woundPointXIndex - offset;
+        newYIndex = woundPointYIndex + offset;
+      }
+      if (occupancyMatrix[woundPointXIndex + offset][woundPointYIndex - offset] == 0) {
+        newXIndex = woundPointXIndex + offset;
         newYIndex = woundPointYIndex - offset;
       }
     }
