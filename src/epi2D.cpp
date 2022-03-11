@@ -2615,8 +2615,10 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
       return 0.0;
     }
     // set wound point to the newly identified point
-    woundPointX = woundPointXIndex * resolution;
-    woundPointY = woundPointYIndex * resolution;
+    woundPointX = newXIndex * resolution;
+    woundPointY = newYIndex * resolution;
+    woundPointXIndex = woundPointX / resolution;
+    woundPointYIndex = woundPointY / resolution;
   }
 
   std::vector<int> emptyGridIndices;
