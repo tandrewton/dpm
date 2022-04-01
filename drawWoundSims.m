@@ -3,9 +3,9 @@
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
 
-function drawWoundSims(N, strainRate_ps, deltaSq, d_flag, att)
+%function drawWoundSims(N, strainRate_ps, deltaSq, d_flag, att)
 
-isTestData = false;
+isTestData = true;
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
 
@@ -48,7 +48,7 @@ showVoid = 0;
 showVoidBlack = 0; % print void in larger black circles to see easier
 showCornersOrEdges = 0;
 showPurseString = 1;
-showShapeHistogram = 1;
+showShapeHistogram = 0;
  
 %PC directory
 pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
@@ -116,6 +116,29 @@ for seed = startSeed:max_seed
     if seed == max_seed 
      %annotation('textbox',[.2 .5 .5 .3],'String', txt, 'Edgecolor','none')
      saveas(gcf, output_dir + 'Stress'+runType+fileheader+'_'+max_seed+ ...
+         '.eps', 'epsc')
+    end
+
+    figure(11); clf; hold on 
+    energy = load(energystr);
+    U = energy(:,3);
+    K = energy(:,4);
+    U_ps = energy(:,5);
+    U_crawling = energy(:,6);
+    plot(energy(:,1), K, 'r-', 'linewidth',2, 'DisplayName',...
+        '$K$');
+    plot(stress(:,1), U_ps, 'b-', 'linewidth',2, 'DisplayName',...
+        '$U_{ps}$');
+    plot(stress(:,1), U_crawling,'k-','linewidth',2, 'DisplayName',...
+        '$U_{crawling}$');
+    xlabel('$\tau$','Interpreter','latex');
+    ylabel('Energy','Interpreter','latex');
+    legend('Location', 'southeast', 'Interpreter', 'latex');
+    ax = gca;
+    ax.FontSize = 24;
+    if seed == max_seed 
+     %annotation('textbox',[.2 .5 .5 .3],'String', txt, 'Edgecolor','none')
+     saveas(gcf, output_dir + 'Energy'+runType+fileheader+'_'+max_seed+ ...
          '.eps', 'epsc')
     end
 
@@ -374,7 +397,7 @@ for seed = startSeed:max_seed
             box on
             histogram(histAx, shape, histEdges);
             xlabel('$\mathcal{A}$','Interpreter','LaTeX','Fontsize',16)
-            ylabel('$\mathcal{A}$','Interpreter','LaTeX','Fontsize',16)
+            ylabel('P($\mathcal{A}$)','Interpreter','LaTeX','Fontsize',16)
             ylim([0 10])
             xticks([1.0:0.4:3.0])
             annotation('textbox',[.75 .8 .1 .1], 'edgecolor', 'none', 'string', "mean="+num2str(mean(shape)))

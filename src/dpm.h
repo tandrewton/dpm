@@ -3,16 +3,16 @@
 
 /*
 
-	HEADER FILE FOR DPM CLASS
+        HEADER FILE FOR DPM CLASS
 
-		-- Stores vertex information for NCELLS with n_\mu vertices each
-		-- Stores shape parameters + spring constants
-		-- Integrates equations of motion (NVE/NVT)
-		-- Finds specified configurations (jammed, fixed p, fixed shear strain, etc)
-		-- Compute mechanical information (Hessian, elastic moduli, etc)
-		-- Prints data to files
+                -- Stores vertex information for NCELLS with n_\mu vertices each
+                -- Stores shape parameters + spring constants
+                -- Integrates equations of motion (NVE/NVT)
+                -- Finds specified configurations (jammed, fixed p, fixed shear strain, etc)
+                -- Compute mechanical information (Hessian, elastic moduli, etc)
+                -- Prints data to files
 
-	Jack Treado, 04/10/21
+        Jack Treado, 04/10/21
 
 */
 
@@ -207,8 +207,10 @@ class dpm {
   void gaussian2D(double dispersion, double calA0, int n1);
   void sinusoidalPreferredAngle(double thA, double thK);
   void initializeVertexShapeParameters(double calA0, int nref);
+  void initializeVertexShapeParameters(std::vector<double> calA0, int nref);
   void initializeVertexIndexing2D();
   void initializePositions2D(double phi0, double Ftol, bool isFixedBoundary = false);
+  void initializeAllPositions(std::string vertexPositionFile, int nref);
   void initializeNeighborLinkedList2D(double boxLengthScale);
 
   // editing & updating

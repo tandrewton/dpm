@@ -322,6 +322,11 @@ std::vector<int> epi2D::regridSegment(int wVertIndex, double vrad) {
   return deleteList;
 }
 
+void epi2D::resetActiveEnergy() {
+  U_ps = 0.0;
+  U_crawling = 0.0;
+}
+
 void epi2D::repulsiveForceUpdateWithWalls() {
   double a, b, c, d;
   resetForcesAndEnergy();
@@ -479,7 +484,7 @@ void epi2D::epi_shapeForces2D() {
     flim1 = kl * (rho0 / l0im1);
     fli = kl * (rho0 / l0i);
 
-    // perimeter force
+    // perimeter force - 4/1/22 I'm not regridding, so I've set kL to 0. Might remove this function entirely.
     fL = kL * (rho0 / L0tmp);
 
     // add to forces
@@ -887,9 +892,11 @@ void epi2D::substrateadhesionAttractiveForceUpdate() {
   int gi = 0, argmin, flagcount = 0;
   int numVerticesAttracted = 1;
   double refreshInterval = tau_LP;
+  double dx, dy;
 
   // reset forces, then get shape and attractive forces.
   attractiveForceUpdate_2();
+  resetActiveEnergy();
   directorDiffusion();
   updateSubstrateSprings();
 
@@ -909,13 +916,18 @@ void epi2D::substrateadhesionAttractiveForceUpdate() {
       gi = gindex(ci, argmin);
 
       // evaluate force for spring-vertex interaction between nearest vertex and
-      // flag position
-      F[gi * NDIM] += -k_LP * (x[gi * NDIM] - flagPos[ci][0] + restLengthLPx[ci]);
-      F[gi * NDIM + 1] += -k_LP * (x[gi * NDIM + 1] - flagPos[ci][1] + restLengthLPy[ci]);
+      // flag position, i.e. force due to crawling
+      dx = x[gi * NDIM] - flagPos[ci][0] + restLengthLPx[ci];
+      dy = x[gi * NDIM + 1] - flagPos[ci][1] + restLengthLPy[ci];
+      F[gi * NDIM] += -k_LP * dx;
+      F[gi * NDIM + 1] += -k_LP * dy;
       flagcount++;
       // restLengthLPx[ci] *= exp(-dt / tau_LP);
       // restLengthLPy[ci] *= exp(-dt / tau_LP);
       timeElapsedSinceFlagPlanted[ci] += dt;  // unused for now
+      // update energy due to crawling
+      U += 0.5 * k_LP * (dx * dx + dy * dy);
+      U_crawling += 0.5 * k_LP * (dx * dx + dy * dy);
     }
   }
 }
@@ -1242,6 +1254,8 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duratio
           enout << setw(wnum) << left << L[0] / initialLx - 1;
           enout << setw(wnum) << setprecision(12) << U;
           enout << setw(wnum) << setprecision(12) << K;
+          enout << setw(wnum) << setprecision(12) << U_ps;
+          enout << setw(wnum) << setprecision(12) << U_crawling;
           enout << endl;
         }
 
@@ -1350,6 +1364,8 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
 
       // get max and min of x coords of purse-string; if max-min is near zero, then purse-string should be dissolved
       double max_ps = x_ps[0], min_ps = x_ps[0];
+      double min_allowed_ps_length = 2 * r[0];
+      // double min_allowed_ps_length = 0.0;
       for (int psi = 0; psi < x_ps.size() / 2; psi += 2) {
         if (x_ps[psi] < min_ps)
           min_ps = x_ps[psi];
@@ -1357,13 +1373,15 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
           max_ps = x_ps[psi];
       }
 
-      if (max_ps - min_ps > 2 * r[0]) {  // terminate pursestring if it can't shrink anymore
+      if (max_ps - min_ps > min_allowed_ps_length) {
         purseStringContraction(B);
-      } /*else {
+      } else {  // purse-string can't shrink anymore
         // cout << "purse-string is too small, disassemble it\n";
-        k_ps = 0.0;
-        deltaSq = 0.0;
-      }*/
+        // k_ps = 0.0;
+        // deltaSq = 0.0;
+        strainRate_ps = 0.0;
+        purseStringContraction(B);
+      }
 
       // vout << simclock << '\t' << woundArea << '\n';
       ageCellPerimeters(shapeRelaxationRate, dt);
@@ -1443,6 +1461,8 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
           enout << setw(wnum) << left << L[0] / initialLx - 1;
           enout << setw(wnum) << setprecision(12) << U;
           enout << setw(wnum) << setprecision(12) << K;
+          enout << setw(wnum) << setprecision(12) << U_ps;
+          enout << setw(wnum) << setprecision(12) << U_crawling;
           enout << endl;
         }
 
@@ -3027,6 +3047,10 @@ void epi2D::evaluatePurseStringForces(double B) {
     F_ps[psi * NDIM] -= fx;
     F_ps[psi * NDIM + 1] -= fy;
 
+    // update energy from purse-string
+    U += 0.5 * fx * dx + 0.5 * fy * dy;
+    U_ps += 0.5 * fx * dx + 0.5 * fy * dy;
+
     // compute forces due to preferred segment lengths between virtual particles
     // ipi, im1 are the next and previous virtual particle indices, respectively
     ipi = (psi + 1 + psContacts.size()) % psContacts.size();
@@ -3075,8 +3099,8 @@ void epi2D::evaluatePurseStringForces(double B) {
     F_ps[NDIM * psi] += fx;
     F_ps[NDIM * psi + 1] += fy;
 
-    // update potential energy
-    U += 0.5 * kl * (dli * dli);
+    // choosing not to update potential energy of the purse-string itself
+    // U += 0.5 * kl * (dli * dli);
   }
 }
 

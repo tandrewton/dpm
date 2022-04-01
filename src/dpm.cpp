@@ -1,8 +1,8 @@
 /*
 
-	BASIC FUNCTION DEFINITIONS for DPM class
+        BASIC FUNCTION DEFINITIONS for DPM class
 
-	Jack Treado, 04/10/21
+        Jack Treado, 04/10/21
 
 */
 
@@ -15,9 +15,9 @@ using namespace std;
 
 /******************************
 
-	C O N S T R U C T O R S  & 
+        C O N S T R U C T O R S  &
 
-		D E S T R U C T O R
+                D E S T R U C T O R
 
 *******************************/
 
@@ -107,9 +107,9 @@ dpm::~dpm() {
 
 /******************************
 
-	C E L L   S H A P E
+        C E L L   S H A P E
 
-	G E T T E R S
+        G E T T E R S
 
 *******************************/
 
@@ -334,9 +334,9 @@ int dpm::ccContacts() {
 
 /******************************
 
-	I N I T I A L -
+        I N I T I A L -
 
-			I Z A T I O N
+                        I Z A T I O N
 
 *******************************/
 
@@ -408,7 +408,7 @@ void dpm::initializeVertexIndexing2D() {
   F.resize(vertDOF);
 }
 
-// initialize vertex shape parameters based on nv
+// initialize vertex shape parameters based on nv (nref is the reference nv, smallest nv among the polydispersity)
 void dpm::initializeVertexShapeParameters(double calA0, int nref) {
   // local variables
   int gi, ci, vi, nvtmp;
@@ -455,6 +455,52 @@ void dpm::initializeVertexShapeParameters(double calA0, int nref) {
   }
 }
 
+// initialize vertex shape parameters based on nv (nref is the reference nv, smallest nv among the polydispersity)
+void dpm::initializeVertexShapeParameters(std::vector<double> calA0, int nref) {
+  // local variables
+  int gi, ci, vi, nvtmp;
+  double rtmp, calA0tmp, calAntmp;
+
+  // check that vertDOF has been assigned
+  if (NVTOT <= 0) {
+    cerr << "	** ERROR: in initializeVertexShapeParameters, NVTOT not assigned. Ending here." << endl;
+    exit(1);
+  }
+  if (vertDOF <= 0) {
+    cerr << "	** ERROR: in initializeVertexShapeParameters, vertDOF not assigned. Ending here." << endl;
+    exit(1);
+  } else if (nv.size() == 0) {
+    cerr << "	** ERROR: in initializeVertexShapeParameters, nv vector not assigned. Ending here." << endl;
+    exit(1);
+  }
+
+  // resize shape paramters
+  l0.resize(NVTOT);
+  t0.resize(NVTOT);
+  r.resize(NVTOT);
+
+  // loop over cells, determine shape parameters
+  for (ci = 0; ci < NCELLS; ci++) {
+    // number of vertices on cell ci
+    nvtmp = nv.at(ci);
+
+    // a0 based on nv
+    rtmp = (double)nvtmp / nref;
+    a0.at(ci) = rtmp * rtmp;
+
+    // shape parameter
+    calAntmp = nvtmp * tan(PI / nvtmp) / PI;
+    calA0tmp = calA0[ci] * calAntmp;
+
+    // l0 and vertex radii
+    gi = szList.at(ci);
+    for (vi = 0; vi < nv.at(ci); vi++) {
+      l0.at(gi + vi) = 2.0 * sqrt(PI * calA0tmp * a0.at(ci)) / nvtmp;
+      t0.at(gi + vi) = 0.0;
+      r.at(gi + vi) = 0.5 * l0.at(gi + vi);
+    }
+  }
+}
 
 // initialize monodisperse cell system, single calA0
 void dpm::monodisperse2D(double calA0, int n) {
@@ -485,7 +531,6 @@ void dpm::monodisperse2D(double calA0, int n) {
   // initialize vertex indexing
   initializeVertexIndexing2D();
 }
-
 
 // initialize bidisperse cell system, single calA0
 void dpm::bidisperse2D(double calA0, int nsmall, double smallfrac, double sizefrac) {
@@ -857,6 +902,88 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary) 
   }
 }
 
+// initialize vertices according to an input configuration file, and initialize/set relevant lists and degrees of freedom variables. let the smallest cell have nref vertices, the rest will have more vertices scaling with the perimeter
+void dpm::initializeAllPositions(std::string vertexPositionFile, int nref) {
+  // for every block in vertexPositionFile, place vertices according to a particle.
+  // vertexPositionFile should have NCELLS blocks separated by headers
+  // each block should have a header
+  //      'nan nan'
+  //      'N(particle label) NV(number of vertices, raw)'
+  //
+  // every successive line should have x and y positions for vertices belonging to the cell
+  // every line (x, y) corresponds to a vertex position, spaced 1-pixel away from the previous line
+  // start by calculating the perimeter, area, shape of the block
+
+  double posx, posy;
+  double pixelsPerParticle;
+  int N = -1, numVertsCounter = 0, lineCounter = 0;
+  std::vector<double> vertexPositions;
+  std::vector<int> numVerts(NCELLS);
+  std::vector<double> shapes;
+
+  // read in file
+  ifstream positionFile(vertexPositionFile);
+  while (positionFile >> posx >> posy) {
+    if (isnan(posx)) {  // found a header, so read in the next line and calculate how many vertices we want
+      N++;
+      positionFile >> posx >> posy;  // particle label and pixels in perimeter
+      if (N == 0) {
+        pixelsPerParticle = posy / double(nref);  // since N = 0 corresponds to the smallest perimeter, set this as baseline
+      }
+      if (N > 0) {  // need to store vertexPositions and other cell related quantities, since we are moving to a new cell
+        numVerts.push_back(numVertsCounter);
+      }
+      // reset counters
+      numVertsCounter = 0;
+      lineCounter = 0;
+      continue;
+    }
+    if (lineCounter == round(pixelsPerParticle)) {  // we have read in the coordinates of the vertex we want to initialize
+      vertexPositions.push_back(posx);
+      vertexPositions.push_back(posy);
+      numVertsCounter++;
+    }
+    lineCounter++;
+  }
+  double perimeter = 0;
+  double area = 0;
+
+  for (int i = 0; i < N; i++) {
+    // calculate perimeter
+    // calculate area
+    // shapes.push_back(perimeter^2/4pi*area);
+  }
+
+  // might need to set box length at some point here
+
+  // set NVTOT, vertDOF, nv, szList, vertex lists
+  // NCELLS = N;
+  // NVTOT = accumulate(numVerts);
+  // vertDOF = NVTOT * NDIM;
+  // nv.resize(NCELLS);
+  // szList.resize(NCELLS);
+  // nv.at(0) = nref?;
+  // for (ci = 1; ci < NCELLS; ci++){
+  //  nv.at(ci) = nref;
+  //  szList.at(ci) = szList.at(ci-1) + nv.at(ci-1);
+  // }
+  //
+
+  initializeVertexShapeParameters(shapes, nref);  // overloaded this function, need to check later if it compiles
+
+  initializeVertexIndexing2D();
+
+  int gi;
+  // initialize vertex positions
+  for (int ci = 0; ci < NCELLS; ci++) {
+    for (int vi = 0; vi < nv.at(ci); vi++) {
+      gi = gindex(ci, vi);
+      x.at(gi * NDIM) = vertexPositions[gi * NDIM];  // not sure about this, double check RHS
+      x.at(gi * NDIM + 1) = vertexPositions[gi * NDIM + 1];
+    }
+  }
+}
+
 // initialize neighbor linked list
 void dpm::initializeNeighborLinkedList2D(double boxLengthScale) {
   // local variables
@@ -935,9 +1062,9 @@ void dpm::initializeNeighborLinkedList2D(double boxLengthScale) {
 
 /******************************
 
-	E D I T I N G   &
+        E D I T I N G   &
 
-			U P D A T I N G
+                        U P D A T I N G
 
 *******************************/
 
@@ -1126,9 +1253,9 @@ void dpm::drawVelocities2D(double T) {
 
 /******************************
 
-	D P M  F O R C E 
+        D P M  F O R C E
 
-			U P D A T E S
+                        U P D A T E S
 
 *******************************/
 
@@ -1236,7 +1363,7 @@ void dpm::shapeForces2D() {
         ci++;
       }
     }
-    //unwrapped vertex coordinate
+    // unwrapped vertex coordinate
     unwrappedX = cx + rix;
     unwrappedY = cy + riy;
 
@@ -1679,8 +1806,8 @@ void dpm::vertexAttractiveForces2D() {
               fieldStress[gi][1] += dy * fy;
               fieldStress[gi][2] += 0.5 * (dx * fy + dy * fx);
 
-              //cindices(cj, vj, gj);
-              // add to contacts
+              // cindices(cj, vj, gj);
+              //  add to contacts
               if (ci > cj)
                 cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2]++;
               else if (ci < cj)
@@ -1825,9 +1952,9 @@ void dpm::attractiveForceUpdate() {
 
 /******************************
 
-	D P M  
+        D P M
 
-		I N T E G R A T O R S
+                I N T E G R A T O R S
 
 *******************************/
 
@@ -2133,9 +2260,9 @@ void dpm::vertexNVE2D(ofstream& enout, dpmMemFn forceCall, double T, double dt0,
 
 /******************************
 
-	D P M  
+        D P M
 
-		P R O T O C O L S
+                P R O T O C O L S
 
 *******************************/
 
@@ -2181,7 +2308,7 @@ void dpm::vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, d
     cout << "	** P 			= " << P << endl;
     cout << "	** Sxy 			= " << Sxy << endl;
     cout << "	** U 			= " << U << endl;
-    //printConfiguration2D();
+    // printConfiguration2D();
     cout << endl
          << endl;
 
@@ -2195,7 +2322,7 @@ void dpm::vertexJamming2D(dpmMemFn forceCall, double Ftol, double Ptol, double d
   int k = 0, nr;
   bool jammed = 0, overcompressed = 0, undercompressed = 0;
   double pcheck, phi0, rH, r0, rL, rho0, scaleFactor = 1.0;
-  //double pcheck, phi0, rH, r0, rL, rho0, scaleFactor;
+  // double pcheck, phi0, rH, r0, rL, rho0, scaleFactor;
 
   // initialize binary root search parameters
   r0 = sqrt(a0.at(0));
@@ -2395,9 +2522,9 @@ void dpm::vertexJamming2D(dpmMemFn forceCall, double Ftol, double Ptol, double d
 
 /******************************
 
-	D P M  
+        D P M
 
-		H E S S I A N
+                H E S S I A N
 
 *******************************/
 
@@ -2812,9 +2939,9 @@ void dpm::dpmRepulsiveHarmonicSprings2D(Eigen::MatrixXd& Hvv, Eigen::MatrixXd& S
 
 /******************************
 
-	P R I N T   T O
+        P R I N T   T O
 
-	C O N S O L E  &  F I L E
+        C O N S O L E  &  F I L E
 
 *******************************/
 

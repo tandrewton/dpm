@@ -179,7 +179,8 @@ int main(int argc, char const* argv[]) {
   epithelial.setkl(kl);
   epithelial.setkb(kb);
   epithelial.setkc(kc);
-  epithelial.setkL(double(kl / nsmall));  // calculate the energy kL such that the average force on a vertex due to kL xis equal to the average force due to kl
+  // epithelial.setkL(double(kl / nsmall));  // calculate the energy kL such that the average force on a vertex due to kL xis equal to the average force due to kl
+  epithelial.setkL(0);
   epithelial.setShapeRelaxationRate(shapeRelaxationRate);
 
   // set CIL option

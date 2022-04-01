@@ -124,6 +124,8 @@ class epi2D : public dpm {
   std::vector<double> restLengthLPy;
 
   double shapeRelaxationRate;
+  double U_crawling;
+  double U_ps;
 
  public:
   // constructor and destructor
@@ -264,6 +266,7 @@ class epi2D : public dpm {
   double distanceLineAndPoint(double x1, double y1, double x2, double y2, double x0, double y0);
   void directorDiffusion();
   std::vector<int> regridSegment(int ci, double vrad);
+  void resetActiveEnergy();
 
   // epi cell interactions
   void repulsiveForceUpdateWithWalls();
