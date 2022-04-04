@@ -924,7 +924,7 @@ void dpm::initializeAllPositions(std::string vertexPositionFile, int nref) {
   // read in file
   ifstream positionFile(vertexPositionFile);
   while (positionFile >> posx >> posy) {
-    if (isnan(posx)) {  // found a header, so read in the next line and calculate how many vertices we want
+    if (std::isnan(posx)) {  // found a header, so read in the next line and calculate how many vertices we want
       N++;
       positionFile >> posx >> posy;  // particle label and pixels in perimeter
       if (N == 0) {
