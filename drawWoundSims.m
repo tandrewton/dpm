@@ -3,9 +3,10 @@
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
 
-%function drawWoundSims(N, strainRate_ps, deltaSq, d_flag, att)
+function drawWoundSims(N, strainRate_ps, deltaSq, d_flag, att) %uncomment if using function call to pipeline data
+isTestData = false; %uncomment if using function call to pipeline data
 
-isTestData = true;
+%isTestData = true; %uncomment if using test data
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
 
@@ -137,7 +138,6 @@ for seed = startSeed:max_seed
     ax = gca;
     ax.FontSize = 24;
     if seed == max_seed 
-     %annotation('textbox',[.2 .5 .5 .3],'String', txt, 'Edgecolor','none')
      saveas(gcf, output_dir + 'Energy'+runType+fileheader+'_'+max_seed+ ...
          '.eps', 'epsc')
     end
@@ -151,7 +151,6 @@ for seed = startSeed:max_seed
         ylabel('Area','Interpreter','latex','fontsize', 24);
     end
     if seed == max_seed 
-     %annotation('textbox',[.2 .5 .5 .3],'String', txt, 'Edgecolor','none')
      saveas(gcf, output_dir + 'VoidArea'+runType+fileheader+'_'+max_seed+'.eps', 'epsc')
     end
 
@@ -218,9 +217,13 @@ for seed = startSeed:max_seed
         purseLocations = readDataBlocks(purseStr, 2);
     end
 
-    %figure(20)
-    %shapes = trajectoryData.area.^2/trajectoryData.perimeter/(4*pi);
+    zc = trajectoryData.zc; % # cell contacts
+    zv = trajectoryData.zv; % # vertex contacts
+    figure(2)
+    plot(time-time(1), mean(zc,2), 'r', 'linewidth', 24)
     
+    figure(3)
+    plot(time-time(1), mean(zv,2), 'r', 'linewidth', 24)
 
     for ff = FSTART:FSTEP:FEND
         %nv can change, so recompute color map each frame

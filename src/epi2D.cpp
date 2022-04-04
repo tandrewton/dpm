@@ -1882,7 +1882,7 @@ void epi2D::deleteVertex(std::vector<int>& deleteList) {
     cout << " element of deleteList = " << i << " with vnn_label "
          << vnn_label[i] << '\n';
 
-  // need to delete an index from anything that depends on NVTOT, nv, szList?
+  // need to delete an index from anything that depends on NVTOT, nv, szList
   // deleteList holds gi of indices to delete
   int vim1, vip1, ci, vi;
   for (auto i : deleteList) {
