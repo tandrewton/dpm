@@ -29,9 +29,6 @@ class epi2D : public dpm {
   // NOTE: will need to add different Hessian computation
   std::vector<double> kbi;
 
-  // perimeter energy
-  double kL;
-
   // vertex-vertex contact network
   std::vector<bool> gij;
 
@@ -120,8 +117,9 @@ class epi2D : public dpm {
   // squared max distance for wound-ps vertex spring (units of vdiam)
   // max length of lp (units of vdiam)
   std::vector<double> timeElapsedSinceFlagPlanted;
-  std::vector<double> restLengthLPx;
+  std::vector<double> restLengthLPx;  // rest length is x_vertex - x_flag, can be negative
   std::vector<double> restLengthLPy;
+  std::vector<int> giConnectedToFlag;  // will have to modify this when regridding, haven't done that yet.
 
   double shapeRelaxationRate;
   double U_crawling;
@@ -235,7 +233,6 @@ class epi2D : public dpm {
 
   // setters
   void setkbi(double val) { fill(kbi.begin(), kbi.end(), val); };
-  void setkL(double val) { kL = val; }
   void setShapeRelaxationRate(double val) { shapeRelaxationRate = val; }
   void setRandPsi() {
     for (int ci = 0; ci < NCELLS; ci++)

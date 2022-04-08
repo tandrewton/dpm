@@ -153,6 +153,7 @@ void epi2D::directorDiffusion() {
 }
 
 std::vector<int> epi2D::regridSegment(int wVertIndex, double vrad) {
+  // need to subtract indices from giConnectedToFlag if using this function in the future
   // return value is the indices of the deleted vertices for proper gi counting later
   /*if (vnn_label[wVertIndex] != 0) {
     if (simclock > 320 && simclock < 360) {
@@ -348,12 +349,13 @@ void epi2D::epi_shapeForces2D() {
   //   as opposed to a segment length force
   // local variables
   int ci, gi, vi, nvtmp;
-  double fa, fL, fli, flim1, fb, cx, cy, xi, yi;
+  double fa, fli, flim1, fb, cx, cy, xi, yi;
   double rho0, l0im1, l0i, L0tmp, Ltmp, a0tmp, atmp;
   double dx, dy, da, dL, dli, dlim1, dtim1, dti, dtip1;
   double lim2x, lim2y, lim1x, lim1y, lix, liy, lip1x, lip1y, li, lim1;
   double rim2x, rim2y, rim1x, rim1y, rix, riy, rip1x, rip1y, rip2x, rip2y;
   double nim1x, nim1y, nix, niy, sinim1, sini, sinip1, cosim1, cosi, cosip1;
+  double fx_p, fx_m, fy_p, fy_m, prefactor_1, prefactor_2;
   double ddtim1, ddti;
   double forceX, forceY;
   double unwrappedX, unwrappedY;
@@ -464,9 +466,10 @@ void epi2D::epi_shapeForces2D() {
     F[NDIM * gi] += forceX;
     F[NDIM * gi + 1] += forceY;
 
-    fieldShapeStress[gi][0] += unwrappedX * forceX;
-    fieldShapeStress[gi][1] += unwrappedY * forceY;
-    fieldShapeStress[gi][2] += unwrappedX * forceY;
+    // adding to stress for now. Before recording, multiply by -1 and prefactors
+    fieldShapeStress[gi][0] += rix * forceX;
+    fieldShapeStress[gi][1] += riy * forceY;
+    fieldShapeStress[gi][2] += 0.5 * (rix * forceY + riy * forceX);
 
     // -- Perimeter force
     lix = rip1x - rix;
@@ -484,26 +487,29 @@ void epi2D::epi_shapeForces2D() {
     flim1 = kl * (rho0 / l0im1);
     fli = kl * (rho0 / l0i);
 
-    // perimeter force - 4/1/22 I'm not regridding, so I've set kL to 0. Might remove this function entirely.
-    fL = kL * (rho0 / L0tmp);
-
     // add to forces
-    forceX = (fli * dli * lix / li) - (flim1 * dlim1 * lim1x / lim1);
-    forceY = (fli * dli * liy / li) - (flim1 * dlim1 * lim1y / lim1);
+    prefactor_1 = fli * dli / li;
+    prefactor_2 = flim1 * dlim1 / lim1;
+    fx_p = prefactor_1 * lix;
+    fx_m = prefactor_2 * lim1x;
+    fy_p = prefactor_1 * liy;
+    fy_m = prefactor_2 * lim1y;
+
+    forceX = fx_p - fx_m;
+    forceY = fy_p - fy_m;
     F[NDIM * gi] += forceX;
     F[NDIM * gi + 1] += forceY;
 
-    // fL, dL - Andrew 10/28/21 - total perimeter force for cts. energy while regridding
-    //   (distinct from original segment force)
-    forceX = fL * dL * (lix - lim1x) / L0tmp;
-    forceY = fL * dL * (liy - lim1y) / L0tmp;
-    F[NDIM * gi] += forceX;
-    F[NDIM * gi + 1] += forceY;
+    // note - Andrew here, have not yet checked for symmetry in new stress tensor
+    // -lix and +lim1x because we want the distance from particle i to geometric center of interaction
+    // in this case, that separation is rix - rip1x = -lix/2 for p segment spring, and rix-rim1x=lim1x/2 for m segment spring
+    fieldShapeStress[gi][0] += -fx_p * lix / 2 + fx_m * lim1x / 2;
+    fieldShapeStress[gi][1] += -fy_p * liy / 2 + fy_m * lim1y / 2;
+    fieldShapeStress[gi][2] += 0.5 * ((-fy_p * lix / 2 + fy_m * lim1x / 2) + (-fx_p * liy / 2 + fx_m * lim1y / 2));
 
-    // note - Andrew here, confirmed that the shape stress matrix is diagonal as written
-    fieldShapeStress[gi][0] += unwrappedX * forceX;
-    fieldShapeStress[gi][1] += unwrappedY * forceY;
-    fieldShapeStress[gi][2] += unwrappedX * forceY;
+    /*cout << "areaXX,YY = " << rix * forceX << '\t' << riy * forceY << '\n';
+    cout << "segmentXX,YY = " << -fx_p * lix / 2 + fx_m * lim1x / 2
+         << '\t' << -fy_p * liy / 2 + fy_m * lim1y / 2 << '\n';*/
 
     // update potential energy
     U += 0.5 * kl * (dli * dli);
@@ -511,7 +517,7 @@ void epi2D::epi_shapeForces2D() {
 
     // -- Bending force
     if (kb > 0) {
-      // get ip2 for third angle
+      // get ip2 for third anglef
       rip2x = x[NDIM * ip1[ip1[gi]]] - cx;
       rip2y = x[NDIM * ip1[ip1[gi]] + 1] - cy;
       if (pbc[0])
@@ -702,13 +708,20 @@ void epi2D::vertexAttractiveForces2D_2() {
               F[NDIM * gj + 1] += fy;
 
               // add to virial stress
-              stress[0] += dx * fx;
-              stress[1] += dy * fy;
-              stress[2] += 0.5 * (dx * fy + dy * fx);
+              // note: 4/7/22 I'm using -dx/2 instead of dx and same for dy for stress calculation, since
+              //  I want to calculate force times separation from geometric center of interaction
+              stress[0] += -dx * fx;
+              stress[1] += -dy * fy;
+              stress[2] += -0.5 * (dx * fy + dy * fx);
 
-              fieldStress[gi][0] += dx * fx;
-              fieldStress[gi][1] += dy * fy;
-              fieldStress[gi][2] += 0.5 * (dx * fy + dy * fx);
+              fieldStress[gi][0] += -dx / 2 * fx;
+              fieldStress[gi][1] += -dy / 2 * fy;
+              fieldStress[gi][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
+
+              // stress on gj should be the same as on gi, since it's the opposite separation and also opposite force
+              fieldStress[gj][0] += -dx / 2 * fx;
+              fieldStress[gj][1] += -dy / 2 * fy;
+              fieldStress[gj][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
 
               // add to contacts
               for (int i = 0; i < vnn[gi].size(); i++) {
@@ -821,13 +834,18 @@ void epi2D::vertexAttractiveForces2D_2() {
                 F[NDIM * gj + 1] += fy;
 
                 // add to virial stress
-                stress[0] += dx * fx;
-                stress[1] += dy * fy;
-                stress[2] += 0.5 * (dx * fy + dy * fx);
+                stress[0] += -dx * fx;
+                stress[1] += -dy * fy;
+                stress[2] += -0.5 * (dx * fy + dy * fx);
 
-                fieldStress[gi][0] += dx * fx;
-                fieldStress[gi][1] += dy * fy;
-                fieldStress[gi][2] += 0.5 * (dx * fy + dy * fx);
+                fieldStress[gi][0] += -dx / 2 * fx;
+                fieldStress[gi][1] += -dy / 2 * fy;
+                fieldStress[gi][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
+
+                // stress on gj should be the same as on gi, since it's the opposite separation and also opposite force
+                fieldStress[gj][0] += -dx / 2 * fx;
+                fieldStress[gj][1] += -dy / 2 * fy;
+                fieldStress[gj][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
 
                 if (ci != cj) {
                   for (int i = 0; i < vnn[gi].size(); i++) {
@@ -891,8 +909,8 @@ void epi2D::substrateadhesionAttractiveForceUpdate() {
   // compute forces for shape, attractive, and substrate adhesion contributions
   int gi = 0, argmin, flagcount = 0;
   int numVerticesAttracted = 1;
-  double refreshInterval = tau_LP;
   double dx, dy;
+  double fx, fy;
 
   // reset forces, then get shape and attractive forces.
   attractiveForceUpdate_2();
@@ -905,7 +923,7 @@ void epi2D::substrateadhesionAttractiveForceUpdate() {
     // check for protrusions (unimpeded flag toss, and flag location inside box)
     if (flag[ci]) {
       // find nearest vertices
-      for (int vi = 0; vi < nv[ci]; vi++) {
+      /*for (int vi = 0; vi < nv[ci]; vi++) {
         gi = gindex(ci, vi);
         distSqVertToFlag[vi] = pow(x[gi * NDIM] - flagPos[ci][0], 2) +
                                pow(x[gi * NDIM + 1] - flagPos[ci][1], 2);
@@ -913,17 +931,25 @@ void epi2D::substrateadhesionAttractiveForceUpdate() {
       argmin = std::distance(
           distSqVertToFlag.begin(),
           std::min_element(distSqVertToFlag.begin(), distSqVertToFlag.end()));
-      gi = gindex(ci, argmin);
+      gi = gindex(ci, argmin);*/
+      gi = giConnectedToFlag[ci];
 
       // evaluate force for spring-vertex interaction between nearest vertex and
       // flag position, i.e. force due to crawling
-      dx = x[gi * NDIM] - flagPos[ci][0] + restLengthLPx[ci];
-      dy = x[gi * NDIM + 1] - flagPos[ci][1] + restLengthLPy[ci];
-      F[gi * NDIM] += -k_LP * dx;
-      F[gi * NDIM + 1] += -k_LP * dy;
+      dx = x[gi * NDIM] - flagPos[ci][0] - restLengthLPx[ci];
+      dy = x[gi * NDIM + 1] - flagPos[ci][1] - restLengthLPy[ci];
+      fx = -k_LP * dx;
+      fy = -k_LP * dy;
+      F[gi * NDIM] += fx;
+      F[gi * NDIM + 1] += fy;
+
+      fieldStress[gi][0] += (x[gi * NDIM] - flagPos[ci][0]) / 2 * fx;
+      fieldStress[gi][1] += (x[gi * NDIM + 1] - flagPos[ci][1]) / 2 * fy;
+      fieldStress[gi][2] += 0.5 * ((x[gi * NDIM] - flagPos[ci][0]) / 2 * fy + (x[gi * NDIM + 1] - flagPos[ci][1]) / 2 * fx);
+
       flagcount++;
-      // restLengthLPx[ci] *= exp(-dt / tau_LP);
-      // restLengthLPy[ci] *= exp(-dt / tau_LP);
+      restLengthLPx[ci] *= exp(-dt / tau_LP);
+      restLengthLPy[ci] *= exp(-dt / tau_LP);
       timeElapsedSinceFlagPlanted[ci] += dt;  // unused for now
       // update energy due to crawling
       U += 0.5 * k_LP * (dx * dx + dy * dy);
@@ -1099,11 +1125,15 @@ void epi2D::tensileLoading(double scaleFactorX, double scaleFactorY) {
 }
 
 void epi2D::updateSubstrateSprings() {
-  // refresh spring contacts based on protrusion lifetime refreshInterval=tau_LP and protrusion length maxProtrusionLength
-  // a cell will protrude as far out as maxProtrusionLength if unobstructed, otherwise it will choose a shorter length if any
+  // refresh spring contacts based on protrusion lifetime tau_LP and protrusion length maxProtrusionLength
+  // a cell will protrude as far out as maxProtrusionLength if unobstructed, otherwise it will choose a shorter length
   // check to see if enough time has passed for us to update springs again
   if (simclock - previousUpdateSimclock > tau_LP) {
     double cx, cy, gj, minFlagDistance, flagDistance;
+
+    if (giConnectedToFlag.size() != NCELLS)
+      giConnectedToFlag.resize(NCELLS);
+
     // flagDistance = 1.5 * sqrt(a0[0] / PI);
     bool cancelFlagToss;
     std::vector<std::vector<double>> center(NCELLS,
@@ -1116,8 +1146,7 @@ void epi2D::updateSubstrateSprings() {
     }
     // sweep through cells. If no flag, try to plant one. Else if flag, try to
     // dissociate.
-    for (auto ci : initialWoundCellIndices) {  // will probably want woundCellIndices to be time-dependent, so when wound closes or opens, I consider the correct cells
-                                               // actually, ^ I might not need to do this if I have enough cells. If they get boxed in, they'll stop crawling anyway
+    for (auto ci : initialWoundCellIndices) {
       cancelFlagToss = false;
       if (!flag[ci]) {
         // pick a direction, throw a flag in that direction
@@ -1127,6 +1156,7 @@ void epi2D::updateSubstrateSprings() {
         for (int i = 0; i < floor(maxProtrusionLength) - 1 && !flag[ci]; i++) {
           cancelFlagToss = false;
           flagDistance = minFlagDistance + (maxProtrusionLength - i) * 2 * r[gi];
+          // start with larger flag distances. if those are blocked, then loop tries smaller values
           flagPos[ci][0] = center[ci][0] + flagDistance * cos(psi[ci]);
           flagPos[ci][1] = center[ci][1] + flagDistance * sin(psi[ci]);
           // loop over cells near enough to block flag
@@ -1159,15 +1189,18 @@ void epi2D::updateSubstrateSprings() {
           if (cancelFlagToss == false) {  // flag planted successfully, move on to next cell's flag toss attempt
             flag[ci] = true;
             timeElapsedSinceFlagPlanted[ci] = 0.0;
-            // restLengthLPx[ci] = fabs(x[gi * NDIM] - flagDistance);
-            // restLengthLPy[ci] = fabs(x[gi * NDIM + 1] - flagDistance);
-            restLengthLPx[ci] = 0;
-            restLengthLPy[ci] = 0;
+            // restLength can be negative, indicating relative direction to x-x_flag
+            restLengthLPx[ci] = x[gi * NDIM] - flagPos[ci][0];
+            restLengthLPy[ci] = x[gi * NDIM + 1] - flagPos[ci][1];
+            giConnectedToFlag[ci] = gi;
+            // restLengthLPx[ci] = 0;
+            // restLengthLPy[ci] = 0;
           }
         }
       } else if (flag[ci]) {
         // dissociation rate determines if existing flag is destroyed this step
-        if (drand48() < 0.1) {
+        // 10% chance of dissociating per tau_LP, but also automatically dissociate if spring has shrunk to vdiam
+        if (drand48() < 0.0 || fabs(restLengthLPx[ci]) + fabs(restLengthLPx[ci]) < r[0] / 10.0) {
           flag[ci] = false;
         }
       } else
@@ -1272,9 +1305,12 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duratio
                << -shapeStressYY << '\t' << -shapeStressXY << '\n';
           stressout << setw(wnum) << left << simclock;
           stressout << setw(wnum) << left << L[0] / initialLx - 1;
-          stressout << setw(wnum) << -(stress[0] + shapeStressXX);
-          stressout << setw(wnum) << -(stress[1] + shapeStressYY);
-          stressout << setw(wnum) << -(stress[2] + shapeStressXY);
+          stressout << setw(wnum) << -stress[0];
+          stressout << setw(wnum) << -stress[1];
+          stressout << setw(wnum) << -stress[2];
+          stressout << setw(wnum) << -shapeStressXX;
+          stressout << setw(wnum) << -shapeStressYY;
+          stressout << setw(wnum) << -shapeStressXY;
           stressout << endl;
         }
 
@@ -1479,9 +1515,12 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
                << -shapeStressYY << '\t' << -shapeStressXY << '\n';
           stressout << setw(wnum) << left << simclock;
           stressout << setw(wnum) << left << L[0] / initialLx - 1;
-          stressout << setw(wnum) << -(stress[0] + shapeStressXX);
-          stressout << setw(wnum) << -(stress[1] + shapeStressYY);
-          stressout << setw(wnum) << -(stress[2] + shapeStressXY);
+          stressout << setw(wnum) << -stress[0];
+          stressout << setw(wnum) << -stress[1];
+          stressout << setw(wnum) << -stress[2];
+          stressout << setw(wnum) << -shapeStressXX;
+          stressout << setw(wnum) << -shapeStressYY;
+          stressout << setw(wnum) << -shapeStressXY;
           stressout << endl;
         }
 
@@ -2185,6 +2224,11 @@ void epi2D::printBoundaries(int nthLargestCluster) {
       }
     }
     sort(clusterSize.begin(), clusterSize.end(), greater<int>());
+    while (nthLargestCluster - 1 >= clusterSize.size()) {
+      // requested out of range access, decrement the index until in range
+      // has the effect of not giving the nth largest cluster, but rather the largest cluster
+      nthLargestCluster--;
+    }
     int nthClusterSize = clusterSize[nthLargestCluster - 1];
     for (auto i : clusterRoot) {
       if (-ptr[i] == nthClusterSize)
@@ -2195,11 +2239,8 @@ void epi2D::printBoundaries(int nthLargestCluster) {
     cout << "new size (big) = " << big << '\n';
   }
 
-  // in no particular order, print out the wrapped locations of all main
-  //  cluster vertices
+  // in no particular order, print out wrapped locations of all main cluster vertices
   for (int gi = 0; gi < NVTOT; gi++) {
-    // if (findRoot(gi, ptr) == mode) {
-    // if (vnn_label[gi] == 0 || vnn_label[gi] == 2 || vnn_label[gi] == 1 || vnn_label[gi] == -1 || vnn_label[gi] == -2) {
     if (vnn_label[gi] == 0 || vnn_label[gi] == 2 || vnn_label[gi] == 1 || vnn_label[gi] == -1 || vnn_label[gi] == -2 || vnn_label[gi] == -3) {
       edgeout << x[gi * NDIM] << '\t' << x[gi * NDIM + 1] << '\t' << vnn_label[gi] + (findRoot(gi, ptr) == mode) * 10 << '\n';
     }
@@ -2900,10 +2941,13 @@ double epi2D::getDistanceToVertexAtAnglePsi(int ci, double psi_ci, double cx, do
   // given a cell ci and its director angle psi_ci, its com cx cy, return the distance to the nearest vertex at psi_ci and its index gi
   double dx, dy;
   std::vector<double> psi_i;
+  double angular_displacement;
   for (int gj = gindex(ci, 0); gj < gindex(ci, 0) + nv[ci]; gj++) {
     dx = x[gj * NDIM] - cx;
     dy = x[gj * NDIM + 1] - cy;
-    psi_i.push_back(atan2(dy, dx) - psi_ci);
+    angular_displacement = atan2(dy, dx) - psi_ci;
+    angular_displacement -= 2 * PI * round(angular_displacement / (2 * PI));
+    psi_i.push_back(fabs(angular_displacement));
   }
   int vi = std::distance(psi_i.begin(), std::min_element(psi_i.begin(), psi_i.end()));  // argmin
   gi = vi + gindex(ci, 0);
@@ -3046,6 +3090,11 @@ void epi2D::evaluatePurseStringForces(double B) {
     F[gi * NDIM + 1] += fy;
     F_ps[psi * NDIM] -= fx;
     F_ps[psi * NDIM + 1] -= fy;
+
+    // stress on gj should be the same as on gi, since it's the opposite separation and also opposite force
+    fieldStress[gi][0] += -dx / 2 * fx;
+    fieldStress[gi][1] += -dy / 2 * fy;
+    fieldStress[gi][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
 
     // update energy from purse-string
     U += 0.5 * fx * dx + 0.5 * fy * dy;
@@ -3273,6 +3322,12 @@ void epi2D::printConfiguration2D() {
       posout << setw(wnum) << setprecision(pnum) << right << r[gi];
       posout << setw(wnum) << setprecision(pnum) << right << l0[gi];
       posout << setw(wnum) << setprecision(pnum) << right << t0[gi];
+      posout << setw(wnum) << setprecision(pnum) << right << fieldStress[gi][0];
+      posout << setw(wnum) << setprecision(pnum) << right << fieldStress[gi][1];
+      posout << setw(wnum) << setprecision(pnum) << right << fieldStress[gi][2];
+      posout << setw(wnum) << setprecision(pnum) << right << fieldShapeStress[gi][0];
+      posout << setw(wnum) << setprecision(pnum) << right << fieldShapeStress[gi][1];
+      posout << setw(wnum) << setprecision(pnum) << right << fieldShapeStress[gi][2];
       posout << endl;
     }
   }
