@@ -902,7 +902,81 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary) 
   }
 }
 
-// initialize vertices according to an input configuration file, and initialize/set relevant lists and degrees of freedom variables. let the smallest cell have nref vertices, the rest will have more vertices scaling with the perimeter
+void dpm::initializeFromConfigurationFile(std::string vertexPositionFile) {
+  // in case of variable calA0, nv, and positions, this function subsumes monodisperse2D
+
+  std::ifstream positionFile(vertexPositionFile);
+  int cellNum, vertNum, a, b;
+  double vertLocX, vertLocY;
+  std::vector<int> numVertsPerDPM;
+  std::vector<double> vertexPositions;
+  while (positionFile >> cellNum >> vertNum) {  // header line is cell ID and total # vertices
+    cout << cellNum << '\t' << vertNum << '\n';
+    numVertsPerDPM.push_back(vertNum);
+    for (int i = 0; i < vertNum; i++) {
+      positionFile >> a >> b >> vertLocX >> vertLocY;
+      vertexPositions.push_back(vertLocX);
+      vertexPositions.push_back(vertLocY);
+    }
+  }
+
+  // total number of vertices
+  NCELLS = cellNum;
+  NVTOT = 0.0;
+  for (auto i : numVertsPerDPM) {
+    NVTOT += i;
+  }
+  vertDOF = NDIM * NVTOT;
+
+  // szList and nv keep track of global vertex indices
+  nv.resize(NCELLS);
+  szList.resize(NCELLS);
+
+  nv.at(0) = numVertsPerDPM[0];
+  for (int ci = 1; ci < NCELLS; ci++) {
+    nv.at(ci) = numVertsPerDPM[ci];
+    szList.at(ci) = szList.at(ci - 1) + nv.at(ci - 1);
+  }
+
+  // initialize connectivity between vertices in DPs
+  initializeVertexIndexing2D();
+
+  int gi;
+  // initialize vertex positions
+  for (int ci = 0; ci < NCELLS; ci++) {
+    for (int vi = 0; vi < nv.at(ci); vi++) {
+      gi = gindex(ci, vi);
+      x.at(gi * NDIM) = vertexPositions[gi * NDIM];
+      x.at(gi * NDIM + 1) = vertexPositions[gi * NDIM + 1];
+    }
+  }
+
+  // once i've assigned cell IDs and vertex coordinates, use dpm functions to set the preferred lengths, radii
+
+  // resize shape paramters
+  l0.resize(NVTOT);
+  t0.resize(NVTOT);
+  r.resize(NVTOT);
+
+  // loop over cells, determine shape parameters
+  for (int ci = 0; ci < NCELLS; ci++) {
+    for (int vi = 0; vi < nv.at(ci); vi++) {
+      gi = gindex(ci, vi);
+      l0.at(gi) = sqrt(pow(x.at(NDIM * ip1[gi]) - x.at(NDIM * gi), 2) + pow(x.at(NDIM * ip1[gi] + 1) - x.at(NDIM * gi + 1), 2));
+      t0.at(gi) = 0.0;
+      r.at(gi) = 0.5 * l0.at(gi);
+    }
+  }
+
+  double areaSum = 0.0;
+  // todo: calculate area of all DP cells, then use input phi to give myself a square box. then run testInterpolatedConfiguration.m to see the initial configuration and judge its quality
+
+  // set box size
+  for (int d = 0; d < NDIM; d++)
+    L.at(d) = pow(areaSum / phi0, 1.0 / NDIM);
+}
+
+// initialize vertices according to an input configuration file, and initialize/set relevant lists and degrees of freedom variables.
 void dpm::initializeAllPositions(std::string vertexPositionFile, int nref) {
   // for every block in vertexPositionFile, place vertices according to a particle.
   // vertexPositionFile should have NCELLS blocks separated by headers

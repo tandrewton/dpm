@@ -211,6 +211,7 @@ class dpm {
   void initializeVertexIndexing2D();
   void initializePositions2D(double phi0, double Ftol, bool isFixedBoundary = false);
   void initializeAllPositions(std::string vertexPositionFile, int nref);
+  void initializeFromConfigurationFile(std::string vertexPositionFile);
   void initializeNeighborLinkedList2D(double boxLengthScale);
 
   // editing & updating
