@@ -267,8 +267,9 @@ double dpm::vertexPackingFraction2D() {
   double val, boxV, areaSum = 0.0;
 
   // numerator
-  for (ci = 0; ci < NCELLS; ci++)
+  for (ci = 0; ci < NCELLS; ci++) {
     areaSum += area(ci) + 0.25 * PI * pow(2.0 * r.at(szList[ci]), 2.0) * (0.5 * nv.at(ci) - 1);
+  }
 
   // denominator
   boxV = L[0] * L[1];
@@ -902,7 +903,7 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary) 
   }
 }
 
-void dpm::initializeFromConfigurationFile(std::string vertexPositionFile) {
+void dpm::initializeFromConfigurationFile(std::string vertexPositionFile, double phi0) {
   // in case of variable calA0, nv, and positions, this function subsumes monodisperse2D
 
   std::ifstream positionFile(vertexPositionFile);
@@ -910,8 +911,8 @@ void dpm::initializeFromConfigurationFile(std::string vertexPositionFile) {
   double vertLocX, vertLocY;
   std::vector<int> numVertsPerDPM;
   std::vector<double> vertexPositions;
+
   while (positionFile >> cellNum >> vertNum) {  // header line is cell ID and total # vertices
-    cout << cellNum << '\t' << vertNum << '\n';
     numVertsPerDPM.push_back(vertNum);
     for (int i = 0; i < vertNum; i++) {
       positionFile >> a >> b >> vertLocX >> vertLocY;
@@ -922,6 +923,8 @@ void dpm::initializeFromConfigurationFile(std::string vertexPositionFile) {
 
   // total number of vertices
   NCELLS = cellNum;
+  cout << "NCELLS = " << cellNum << '\n';
+
   NVTOT = 0.0;
   for (auto i : numVertsPerDPM) {
     NVTOT += i;
@@ -941,13 +944,22 @@ void dpm::initializeFromConfigurationFile(std::string vertexPositionFile) {
   // initialize connectivity between vertices in DPs
   initializeVertexIndexing2D();
 
+  // minimum coordinates to subtract so particles start near origin
+  double min_x = 1e10, min_y = 1e10;
+  for (int i = 0; i < vertexPositions.size(); i += 2) {
+    if (vertexPositions[NDIM * i] < min_x)
+      min_x = vertexPositions[NDIM * i];
+    if (vertexPositions[NDIM * i + 1] < min_y)
+      min_y = vertexPositions[NDIM * i + 1];
+  }
+
   int gi;
   // initialize vertex positions
   for (int ci = 0; ci < NCELLS; ci++) {
     for (int vi = 0; vi < nv.at(ci); vi++) {
       gi = gindex(ci, vi);
-      x.at(gi * NDIM) = vertexPositions[gi * NDIM];
-      x.at(gi * NDIM + 1) = vertexPositions[gi * NDIM + 1];
+      x.at(gi * NDIM) = vertexPositions[gi * NDIM] - min_x;
+      x.at(gi * NDIM + 1) = vertexPositions[gi * NDIM + 1] - min_y;
     }
   }
 
@@ -958,22 +970,51 @@ void dpm::initializeFromConfigurationFile(std::string vertexPositionFile) {
   t0.resize(NVTOT);
   r.resize(NVTOT);
 
+  double l0_all, r_all, d_all;  // variables for rescaling lengths
   // loop over cells, determine shape parameters
   for (int ci = 0; ci < NCELLS; ci++) {
+    double l0_ci, r_ci;
     for (int vi = 0; vi < nv.at(ci); vi++) {
       gi = gindex(ci, vi);
-      l0.at(gi) = sqrt(pow(x.at(NDIM * ip1[gi]) - x.at(NDIM * gi), 2) + pow(x.at(NDIM * ip1[gi] + 1) - x.at(NDIM * gi + 1), 2));
+      // l0.at(gi) = sqrt(pow(x.at(NDIM * ip1[gi]) - x.at(NDIM * gi), 2) + pow(x.at(NDIM * ip1[gi] + 1) - x.at(NDIM * gi + 1), 2));
+      // save parameters from the first vertex of each cell to set l0, r
+      if (vi == 0) {
+        l0_ci = sqrt(pow(x.at(NDIM * ip1[gi]) - x.at(NDIM * gi), 2) + pow(x.at(NDIM * ip1[gi] + 1) - x.at(NDIM * gi + 1), 2));
+        r_ci = 0.5 * l0_ci;
+        if (ci == 0) {
+          // save parameters from the first vertex of the first cell to set length renormalization scale
+          l0_all = l0_ci;
+          r_all = l0_ci / 2.0;
+          d_all = l0_ci;
+        }
+      }
+      l0.at(gi) = l0_ci / d_all;
       t0.at(gi) = 0.0;
-      r.at(gi) = 0.5 * l0.at(gi);
+      r.at(gi) = r_ci / d_all;
+      cout << "r[gi] at time of setting = " << r[gi] << '\n';
+      x[NDIM * gi] /= d_all;
+      x[NDIM * gi + 1] /= d_all;
     }
   }
 
+  for (int d = 0; d < NDIM; d++) {
+    L.at(d) = 1e10;  // set L to be large to not interfere with initial shape calculations, reset L later
+  }
+
   double areaSum = 0.0;
+  for (int ci = 0; ci < NCELLS; ci++) {
+    areaSum += area(ci);
+    a0.at(ci) = area(ci);
+    cout << "new shape subject to length rescaling is = " << pow(perimeter(ci), 2) / (4 * 3.1415 * area(ci)) << '\n';
+  }
   // todo: calculate area of all DP cells, then use input phi to give myself a square box. then run testInterpolatedConfiguration.m to see the initial configuration and judge its quality
 
   // set box size
-  for (int d = 0; d < NDIM; d++)
-    L.at(d) = pow(areaSum / phi0, 1.0 / NDIM);
+  for (int d = 0; d < NDIM; d++) {
+    // L.at(d) = pow(areaSum / phi0, 1.0 / NDIM);
+    double max = *max_element(x.begin(), x.end());
+    L.at(d) = 1.1 * max;
+  }
 }
 
 // initialize vertices according to an input configuration file, and initialize/set relevant lists and degrees of freedom variables.
@@ -1455,6 +1496,8 @@ void dpm::shapeForces2D() {
     // -- Area force (comes from a cross product)
     forceX = 0.5 * fa * (rim1y - rip1y);
     forceY = 0.5 * fa * (rip1x - rim1x);
+    int cellIndex, vertexIndex;
+    cindices(cellIndex, vertexIndex, gi);
     F[NDIM * gi] += forceX;
     F[NDIM * gi + 1] += forceY;
 

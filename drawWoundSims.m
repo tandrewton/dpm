@@ -3,10 +3,10 @@
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
 
-function drawWoundSims(N, strainRate_ps, deltaSq, d_flag, att) %uncomment if using function call to pipeline data
-isTestData = false; %uncomment if using function call to pipeline data
+%function drawWoundSims(N, strainRate_ps, tau_lp, deltaSq, d_flag, att) %uncomment if using function call to pipeline data
+%isTestData = false; %uncomment if using function call to pipeline data
 
-%isTestData = true; %uncomment if using test data
+isTestData = true; %uncomment if using test data
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
 
@@ -20,7 +20,7 @@ calA0="1.10";
 %deltaSq = "2.0";
 k_ps = "1.0"; %purse-string spring constant
 k_lp = "2.0"; %lamellipodia spring constant
-tau_lp = "1.0"; %lamellipodia lifetime
+%tau_lp = "1.0"; %lamellipodia lifetime
 %d_flag = "0.0"; %lamellipodia max length
 prate = "0.00"; %perimeter relaxation rate
 %att="0.2";
@@ -33,7 +33,7 @@ FSKIP = 1;
 etaStr = " ";
 startSeed = 1;
 max_seed = 1;
-makeAMovie = 1; %if makceAMovie is 0, then plot every frame separately
+makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
 
@@ -101,7 +101,7 @@ for seed = startSeed:max_seed
         voidAreaStr = pipeline_dir+fileheader+ '.voidArea';
     end
     
-    figure(13);
+    figure(13); clf; hold on;
     stress = load(stressstr);
     plot(stress(:,1), stress(:,3), 'r-', 'linewidth',2, 'DisplayName',...
         '$S_{xx}$');
@@ -120,6 +120,24 @@ for seed = startSeed:max_seed
          '.eps', 'epsc')
     end
 
+    figure(14); clf;hold on;
+    plot(stress(:,1), stress(:,6), 'r--', 'linewidth',2, 'DisplayName',...
+        '$Sh_{xx}$');
+    plot(stress(:,1), stress(:,7), 'b--', 'linewidth',2, 'DisplayName',...
+        '$Sh_{yy}$');
+    plot(stress(:,1), stress(:,8),'k--','linewidth',2, 'DisplayName',...
+        '$Sh_{xy}$');
+    xlabel('$\tau$','Interpreter','latex');
+    ylabel('Stress','Interpreter','latex');
+    legend('Location', 'southeast', 'Interpreter', 'latex');
+    ax = gca;
+    ax.FontSize = 24;
+    if seed == max_seed 
+     %annotation('textbox',[.2 .5 .5 .3],'String', txt, 'Edgecolor','none')
+     saveas(gcf, output_dir + 'ShapeStress'+runType+fileheader+'_'+max_seed+ ...
+         '.eps', 'epsc')
+    end
+
     figure(11); clf; hold on 
     energy = load(energystr);
     U = energy(:,3);
@@ -128,10 +146,12 @@ for seed = startSeed:max_seed
     U_crawling = energy(:,6);
     plot(energy(:,1), K, 'r-', 'linewidth',2, 'DisplayName',...
         '$K$');
-    plot(stress(:,1), U_ps, 'b-', 'linewidth',2, 'DisplayName',...
+    plot(energy(:,1), U_ps, 'b-', 'linewidth',2, 'DisplayName',...
         '$U_{ps}$');
-    plot(stress(:,1), U_crawling,'k-','linewidth',2, 'DisplayName',...
+    plot(energy(:,1), U_crawling,'k-','linewidth',2, 'DisplayName',...
         '$U_{crawling}$');
+     plot(energy(:,1), U,'--','linewidth',2, 'DisplayName',...
+        '$U$');
     xlabel('$\tau$','Interpreter','latex');
     ylabel('Energy','Interpreter','latex');
     legend('Location', 'southeast', 'Interpreter', 'latex');
@@ -220,10 +240,31 @@ for seed = startSeed:max_seed
     zc = trajectoryData.zc; % # cell contacts
     zv = trajectoryData.zv; % # vertex contacts
     figure(2)
-    plot(time-time(1), mean(zc,2), 'r', 'linewidth', 24)
-    
+    yyaxis left
+    plot(time-time(1), mean(zc,2), 'r', 'linewidth', 4,'DisplayName', 'zc')
+    xlabel('$t/\tau$','Interpreter','latex','fontsize', 36);
+    ylabel('$\langle zc \rangle$','Interpreter','LaTeX','Fontsize',36)
+
+
+    yyaxis right
+    plot(time-time(1), mean(zv,2), 'b', 'linewidth', 4,'DisplayName', 'zv')
+    %xlabel('$t/\tau$','Interpreter','latex','fontsize', 36);
+    ylabel('$\langle zv \rangle$','Interpreter','LaTeX','Fontsize',36)
+    legend('location','Southeast')
+
+    saveas(gcf, output_dir + 'contacts'+runType+fileheader+'_'+max_seed+ ...
+         '.eps', 'epsc')
+
     figure(3)
-    plot(time-time(1), mean(zv,2), 'r', 'linewidth', 24)
+    area = mean(trajectoryData.area,2);
+    perimeter = mean(trajectoryData.perimeter,2);
+    shape = 1/(4*pi)*perimeter.^2./area;
+    size(shape)
+    plot(time-time(1), shape, 'k', 'linewidth', 4)
+    xlabel('$t/\tau$','Interpreter','latex','fontsize', 36);
+    ylabel('$\mathcal{A}$','Interpreter','LaTeX','Fontsize',36)
+    saveas(gcf, output_dir + 'shapes'+runType+fileheader+'_'+max_seed+...
+        '.eps','epsc')
 
     for ff = FSTART:FSTEP:FEND
         %nv can change, so recompute color map each frame
@@ -387,10 +428,11 @@ for seed = startSeed:max_seed
                 lowOdd = 2*(i-1)+1;
                 %plot([purseLocs(lowOdd,1) purseLocs(lowOdd+1,1)]...
                 %    ,[purseLocs(lowOdd,2) purseLocs(lowOdd+1,2)], 'LineWidth', 2, 'Color' ,'black');
-                [xs,ys] = spring(purseLocs(lowOdd,1),purseLocs(lowOdd,2)...
-                    ,purseLocs(lowOdd+1,1), purseLocs(lowOdd+1,2)...
-                    ,2, 0, 0.1);
-                plot(xs,ys,'LineWidth', 2,'Color' ,'black');
+                
+                %[xs,ys] = spring(purseLocs(lowOdd,1),purseLocs(lowOdd,2)...
+                %    ,purseLocs(lowOdd+1,1), purseLocs(lowOdd+1,2)...
+                %    ,2, 0, 0.1);
+                %plot(xs,ys,'LineWidth', 1,'Color' ,'black');
             end
         end
 

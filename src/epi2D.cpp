@@ -344,261 +344,6 @@ void epi2D::repulsiveForceWithCircularApertureWall() {
   circularApertureForces(radius);
 }
 
-void epi2D::epi_shapeForces2D() {
-  // difference from dpm::shapeForces2D is that this has an actual perimeter (L) force
-  //   as opposed to a segment length force
-  // local variables
-  int ci, gi, vi, nvtmp;
-  double fa, fli, flim1, fb, cx, cy, xi, yi;
-  double rho0, l0im1, l0i, L0tmp, Ltmp, a0tmp, atmp;
-  double dx, dy, da, dL, dli, dlim1, dtim1, dti, dtip1;
-  double lim2x, lim2y, lim1x, lim1y, lix, liy, lip1x, lip1y, li, lim1;
-  double rim2x, rim2y, rim1x, rim1y, rix, riy, rip1x, rip1y, rip2x, rip2y;
-  double nim1x, nim1y, nix, niy, sinim1, sini, sinip1, cosim1, cosi, cosip1;
-  double fx_p, fx_m, fy_p, fy_m, prefactor_1, prefactor_2;
-  double ddtim1, ddti;
-  double forceX, forceY;
-  double unwrappedX, unwrappedY;
-
-  // loop over vertices, add to force
-  rho0 = sqrt(a0.at(0));
-  ci = 0;
-  for (gi = 0; gi < NVTOT; gi++) {
-    // -- Area force (and get cell index ci)
-    if (ci < NCELLS) {
-      if (gi == szList[ci]) {
-        // shape information
-        nvtmp = nv[ci];
-        a0tmp = a0[ci];
-        L0tmp = getPreferredPerimeter(ci);
-
-        // preferred segment length of last segment
-        l0im1 = l0[im1[gi]];
-
-        // compute area deviation
-        atmp = area(ci);
-        da = (atmp / a0tmp) - 1.0;
-
-        // compute perimeter deviation
-        Ltmp = perimeter(ci);
-        dL = (Ltmp / L0tmp) - 1.0;
-
-        // update potential energy
-        U += 0.5 * ka * (da * da);
-        cellU[ci] += 0.5 * ka * (da * da);
-
-        // shape force parameters
-        fa = ka * da * (rho0 / a0tmp);
-        fb = kb * rho0;
-
-        // compute cell center of mass
-        xi = x[NDIM * gi];
-        yi = x[NDIM * gi + 1];
-        cx = xi;
-        cy = yi;
-        for (vi = 1; vi < nvtmp; vi++) {
-          // get distances between vim1 and vi
-          dx = x[NDIM * (gi + vi)] - xi;
-          dy = x[NDIM * (gi + vi) + 1] - yi;
-          if (pbc[0])
-            dx -= L[0] * round(dx / L[0]);
-          if (pbc[1])
-            dy -= L[1] * round(dy / L[1]);
-
-          // add to centers
-          xi += dx;
-          yi += dy;
-
-          cx += xi;
-          cy += yi;
-        }
-        cx /= nvtmp;
-        cy /= nvtmp;
-
-        // get coordinates relative to center of mass
-        rix = x[NDIM * gi] - cx;
-        riy = x[NDIM * gi + 1] - cy;
-
-        // get prior adjacent vertices
-        rim2x = x[NDIM * im1[im1[gi]]] - cx;
-        rim2y = x[NDIM * im1[im1[gi]] + 1] - cy;
-        if (pbc[0])
-          rim2x -= L[0] * round(rim2x / L[0]);
-        if (pbc[1])
-          rim2y -= L[1] * round(rim2y / L[1]);
-
-        rim1x = x[NDIM * im1[gi]] - cx;
-        rim1y = x[NDIM * im1[gi] + 1] - cy;
-        if (pbc[0])
-          rim1x -= L[0] * round(rim1x / L[0]);
-        if (pbc[1])
-          rim1y -= L[1] * round(rim1y / L[1]);
-
-        // get prior segment vectors
-        lim2x = rim1x - rim2x;
-        lim2y = rim1y - rim2y;
-
-        lim1x = rix - rim1x;
-        lim1y = riy - rim1y;
-
-        // increment cell index
-        ci++;
-      }
-    }
-    // unwrapped vertex coordinate
-    unwrappedX = cx + rix;
-    unwrappedY = cy + riy;
-
-    // preferred segment length
-    l0i = l0[gi];
-
-    // get next adjacent vertices
-    rip1x = x[NDIM * ip1[gi]] - cx;
-    rip1y = x[NDIM * ip1[gi] + 1] - cy;
-    if (pbc[0])
-      rip1x -= L[0] * round(rip1x / L[0]);
-    if (pbc[1])
-      rip1y -= L[1] * round(rip1y / L[1]);
-
-    // -- Area force (comes from a cross product)
-    forceX = 0.5 * fa * (rim1y - rip1y);
-    forceY = 0.5 * fa * (rip1x - rim1x);
-    F[NDIM * gi] += forceX;
-    F[NDIM * gi + 1] += forceY;
-
-    // adding to stress for now. Before recording, multiply by -1 and prefactors
-    fieldShapeStress[gi][0] += rix * forceX;
-    fieldShapeStress[gi][1] += riy * forceY;
-    fieldShapeStress[gi][2] += 0.5 * (rix * forceY + riy * forceX);
-
-    // -- Perimeter force
-    lix = rip1x - rix;
-    liy = rip1y - riy;
-
-    // segment lengths
-    lim1 = sqrt(lim1x * lim1x + lim1y * lim1y);
-    li = sqrt(lix * lix + liy * liy);
-
-    // segment deviations (note: m is prior vertex, p is next vertex i.e. gi - 1, gi + 1 mod the right number of vertices)
-    dlim1 = (lim1 / l0im1) - 1.0;
-    dli = (li / l0i) - 1.0;
-
-    // segment forces
-    flim1 = kl * (rho0 / l0im1);
-    fli = kl * (rho0 / l0i);
-
-    // add to forces
-    prefactor_1 = fli * dli / li;
-    prefactor_2 = flim1 * dlim1 / lim1;
-    fx_p = prefactor_1 * lix;
-    fx_m = prefactor_2 * lim1x;
-    fy_p = prefactor_1 * liy;
-    fy_m = prefactor_2 * lim1y;
-
-    forceX = fx_p - fx_m;
-    forceY = fy_p - fy_m;
-    F[NDIM * gi] += forceX;
-    F[NDIM * gi + 1] += forceY;
-
-    // note - Andrew here, have not yet checked for symmetry in new stress tensor
-    // -lix and +lim1x because we want the distance from particle i to geometric center of interaction
-    // in this case, that separation is rix - rip1x = -lix/2 for p segment spring, and rix-rim1x=lim1x/2 for m segment spring
-    fieldShapeStress[gi][0] += -fx_p * lix / 2 + fx_m * lim1x / 2;
-    fieldShapeStress[gi][1] += -fy_p * liy / 2 + fy_m * lim1y / 2;
-    fieldShapeStress[gi][2] += 0.5 * ((-fy_p * lix / 2 + fy_m * lim1x / 2) + (-fx_p * liy / 2 + fx_m * lim1y / 2));
-
-    /*cout << "areaXX,YY = " << rix * forceX << '\t' << riy * forceY << '\n';
-    cout << "segmentXX,YY = " << -fx_p * lix / 2 + fx_m * lim1x / 2
-         << '\t' << -fy_p * liy / 2 + fy_m * lim1y / 2 << '\n';*/
-
-    // update potential energy
-    U += 0.5 * kl * (dli * dli);
-    cellU[ci] += 0.5 * kl * (dli * dli);
-
-    // -- Bending force
-    if (kb > 0) {
-      // get ip2 for third anglef
-      rip2x = x[NDIM * ip1[ip1[gi]]] - cx;
-      rip2y = x[NDIM * ip1[ip1[gi]] + 1] - cy;
-      if (pbc[0])
-        rip2x -= L[0] * round(rip2x / L[0]);
-      if (pbc[1])
-        rip2y -= L[1] * round(rip2y / L[1]);
-
-      // get last segment length
-      lip1x = rip2x - rip1x;
-      lip1y = rip2y - rip1y;
-
-      // get angles
-      sinim1 = lim1x * lim2y - lim1y * lim2x;
-      cosim1 = lim1x * lim2x + lim1y * lim2y;
-
-      sini = lix * lim1y - liy * lim1x;
-      cosi = lix * lim1x + liy * lim1y;
-
-      sinip1 = lip1x * liy - lip1y * lix;
-      cosip1 = lip1x * lix + lip1y * liy;
-
-      // get normal vectors
-      nim1x = lim1y;
-      nim1y = -lim1x;
-
-      nix = liy;
-      niy = -lix;
-
-      // get change in angles
-      dtim1 = atan2(sinim1, cosim1) - t0[im1[gi]];
-      dti = atan2(sini, cosi) - t0[gi];
-      dtip1 = atan2(sinip1, cosip1) - t0[ip1[gi]];
-
-      // get delta delta theta's
-      ddtim1 = (dti - dtim1) / (lim1 * lim1);
-      ddti = (dti - dtip1) / (li * li);
-
-      // add to force
-      F[NDIM * gi] += fb * (ddtim1 * nim1x + ddti * nix);
-      F[NDIM * gi + 1] += fb * (ddtim1 * nim1y + ddti * niy);
-
-      // update potential energy
-      U += 0.5 * kb * (dti * dti);
-      cellU[ci] += 0.5 * kb * (dti * dti);
-    }
-
-    // update old coordinates
-    rim2x = rim1x;
-    rim1x = rix;
-    rix = rip1x;
-
-    rim2y = rim1y;
-    rim1y = riy;
-    riy = rip1y;
-
-    // update old segment vectors
-    lim2x = lim1x;
-    lim2y = lim1y;
-
-    lim1x = lix;
-    lim1y = liy;
-
-    // update old preferred segment length
-    l0im1 = l0i;
-  }
-
-  // normalize per-cell stress by preferred cell area
-  for (int ci = 0; ci < NCELLS; ci++) {
-    for (int vi = 0; vi < nv[ci]; vi++) {
-      int gi = gindex(ci, vi);
-      fieldShapeStressCells[ci][0] += fieldShapeStress[gi][0];
-      fieldShapeStressCells[ci][1] += fieldShapeStress[gi][1];
-      fieldShapeStressCells[ci][2] += fieldShapeStress[gi][2];
-    }
-    // nondimensionalize the stress
-    fieldShapeStressCells[ci][0] *= rho0 / a0[ci];
-    fieldShapeStressCells[ci][1] *= rho0 / a0[ci];
-    fieldShapeStressCells[ci][2] *= rho0 / a0[ci];
-  }
-}
-
 void epi2D::vertexAttractiveForces2D_2() {
   // altered from dpm attractive force code, because it works with larger l2
   // values. (warning: probably won't work with bending.) local variables
@@ -901,7 +646,7 @@ void epi2D::vertexAttractiveForces2D_2() {
 
 void epi2D::attractiveForceUpdate_2() {
   resetForcesAndEnergy();
-  epi_shapeForces2D();
+  shapeForces2D();
   vertexAttractiveForces2D_2();
 }
 
@@ -1128,7 +873,9 @@ void epi2D::updateSubstrateSprings() {
   // refresh spring contacts based on protrusion lifetime tau_LP and protrusion length maxProtrusionLength
   // a cell will protrude as far out as maxProtrusionLength if unobstructed, otherwise it will choose a shorter length
   // check to see if enough time has passed for us to update springs again
-  if (simclock - previousUpdateSimclock > tau_LP) {
+  double refreshInterval = 1.0;
+  // refreshInterval = tau_LP;
+  if (simclock - previousUpdateSimclock > refreshInterval) {
     double cx, cy, gj, minFlagDistance, flagDistance;
 
     if (giConnectedToFlag.size() != NCELLS)
@@ -1245,6 +992,7 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duratio
       F[i] -= (B * v[i] + B * F_old[i] * dt / 2);
       F[i] /= (1 + B * dt / 2);
       v[i] += 0.5 * (F[i] + F_old[i]) * dt;
+      // cout << "force at simclock = " << simclock << " = ," << F[i] << '\n';
     }
 
     // update sim clock
@@ -1328,6 +1076,7 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duratio
   }
 }
 
+// currently, dampedNP0 is my way of coding a simulation without boundaries, i.e. 0 pressure simulation
 void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, bool wallsOn) {
   // make sure velocities exist or are already initialized before calling this
   // assuming zero temperature - ignore thermostat (not implemented)
@@ -1400,7 +1149,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
 
       // get max and min of x coords of purse-string; if max-min is near zero, then purse-string should be dissolved
       double max_ps = x_ps[0], min_ps = x_ps[0];
-      double min_allowed_ps_length = 2 * r[0];
+      double min_allowed_ps_length = r[0];
       // double min_allowed_ps_length = 0.0;
       for (int psi = 0; psi < x_ps.size() / 2; psi += 2) {
         if (x_ps[psi] < min_ps)
@@ -1415,6 +1164,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
         // cout << "purse-string is too small, disassemble it\n";
         // k_ps = 0.0;
         // deltaSq = 0.0;
+        cout << "disassembling purse-string, lengths are too short to shrink further \n";
         strainRate_ps = 0.0;
         purseStringContraction(B);
       }
@@ -1422,6 +1172,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
       // vout << simclock << '\t' << woundArea << '\n';
       ageCellPerimeters(shapeRelaxationRate, dt);
       if (int(simclock / dt) % 500 == 0) {
+        cout << "woundCenterX, Y before calculating = " << woundCenterX << '\t' << woundCenterY << '\n';
         woundArea = calculateWoundArea(woundCenterX, woundCenterY);
         vout << simclock << '\t' << woundArea << '\n';
       }
@@ -2604,6 +2355,8 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
   }
   // resolution is the unit box length that we'll use to map occupancyMatrix to real coordinates
   double resolution = r[0] / 2.0;
+  if (resolution <= 1e-10)
+    cerr << "bug: resolution in calculateWoundArea is zero\n";
 
   double xLow = *std::min_element(posX.begin(), posX.end());
   double xHigh = *std::max_element(posX.begin(), posX.end());
@@ -3022,6 +2775,8 @@ void epi2D::initializePurseStringVariables() {
   l0_ps = l0_ps_temp;
   psContacts = psContacts_temp;
   isSpringBroken = isSpringBroken_temp;
+  if (x_ps.size() <= 1)
+    cout << "WARNING: purse-string vector has size 1 or smaller, in initializePurseStringVariables.\n";
 }
 
 /*void epi2D::updatePurseStringContacts() {

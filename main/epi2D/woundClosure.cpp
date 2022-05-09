@@ -4,14 +4,17 @@
 // g++ -O3 --std=c++11 -g -I src main/epi2D/woundClosure.cpp src/dpm.cpp src/epi2D.cpp -o main/epi2D/woundClosure.o
 
 // below: no purse-string, only crawling
-//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.925 1.0 0.2 0.01  0.0  1.0  2.0 1.0  3.0  1.0 0.5  0  0.00   1  200  test
-// ........................... N  NV Nd A0  pMin  pMax  kl att  om   dsq  kps  klp tau dflag  B  Dr0 CIL prate  sd time file
+//./main/epi2D/woundClosure.o 100 20 4 1.10 0.01 0.925 1.0 0.2 0.01  0.0  1.0  2.0 1.0  3.0  1.0 0.5  0  0.00   1  200  test
+// ........................... N  NV Nd A0  pMin pMax kl att  om   dsq  kps  klp tau dflag  B  Dr0 CIL prate  sd time file
 // below: purse-string, no crawling
-//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.925 1.0 0.2 0.01  2.0  1.0  2.0 1.0  0.0  1.0 0.5  0  0.00   1  200  test
-// ........................... N  NV Nd A0  pMin  pMax  kl att  om   dsq  kps  klp tau dflag  B  Dr0 CIL prate  sd time file
+//./main/epi2D/woundClosure.o 100 20 4 1.10 0.01 0.925 1.0 0.2 0.01  2.0  1.0  2.0 1.0  0.0  1.0 0.5  0  0.00   1  200  test
+// ........................... N  NV Nd A0  pMin pMax kl att  om   dsq  kps  klp tau dflag  B  Dr0 CIL prate  sd time file
 // below: purse-string, and crawling
-//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.925 1.0 0.2 0.01  2.0  1.0  2.0 1.0  3.0  1.0 0.5  0  0.00   1  200  test
-// ........................... N  NV Nd A0  pMin  pMax  kl att  om   dsq  kps  klp tau dflag  B  Dr0 CIL prate  sd time file
+// ./main/epi2D/woundClosure.o 100 20 4 1.10 0.01 0.925 1.0 0.2 0.01  2.0  1.0  2.0 1.0  3.0  1.0 0.5  0  0.00   1  400  test
+// ........................... N  NV Nd A0  pMin pMax  kl att  om   dsq  kps  klp tau dflag  B  Dr0 CIL prate  sd time file
+// below: no purse-string, and no crawling
+//./main/epi2D/woundClosure.o 100 20 4 1.10 0.01 0.925 1.0 0.2 0.01  0.0  1.0  2.0 1.0  0.0  1.0 0.5  0  0.00   1  200  test
+// ........................... N  NV Nd A0  pMin pMax  kl att  om   dsq  kps  klp tau dflag  B  Dr0 CIL prate  sd time file
 
 // make sure the corresponding bash file writes to a different output and pipeline folder, instead of ablate it'll be
 //  woundClosure or something
@@ -22,8 +25,7 @@
 // 2. nv: 			number of vertices on particles
 // 3. ndelete:      number of cells to delete
 // 4. calA0: 			  preferred shape parameter for all particles
-// 5. phiMin: 			p
-// 6. phiMax: 			p
+// 5. phiMin: 			phi (total particle area/box area)
 // 7. kl: 				  perimeter spring constant
 // 8. att:          attraction strength parameter
 // 9. omega:        true strain rate for shrinking pursestring segments
@@ -165,10 +167,20 @@ int main(int argc, char const* argv[]) {
   // cin int double double
   // reset NCELLS
 
+  std::string inputConfigFile = "testDPMConfigurationFile_Verboon_wounded.txt";
+
+  // need to read in file and then construct epi2D object so I have initialized areas, or just use more cells so that I have enough memory allocated, and hopefully all the resizing operations appropriately manage that (is area resized?)
+
   epi2D epithelial(NCELLS, 0.0, 0.0, Dr0, strainRate_ps, k_ps, k_LP, tau_LP, deltaSq, maxProtrusionLength, seed);
 
-  // currently trying to get this to read in a file and figure out how to change variables
-  epithelial.initializeFromConfigurationFile("testDPMConfigurationFile.txt");
+  // read in configuration file (cells, vertices, and coordinates), establish shape parameters
+  epithelial.initializeFromConfigurationFile(inputConfigFile, phi0);
+
+  cout << "before initializevnn\n";
+  epithelial.initializevnn();
+  cout << "after initializevnn\n";
+  // epithelial.initializePositions2D(phi0, Ftol, false);
+  epithelial.initializeFieldStress();
 
   epithelial.openPosObject(positionFile);
   epithelial.openEnergyObject(energyFile);
@@ -203,13 +215,6 @@ int main(int argc, char const* argv[]) {
     return 1;
   }
 
-  // epithelial.monodisperse2D(calA0, nv);
-  // epithelial.initializevnn();
-
-  // epithelial.initializePositions2D(phi0, Ftol, false);
-
-  // epithelial.initializeAllPositions();  // set NVTOT, vertDOF, nv, szList,
-  epithelial.initializeFieldStress();
   epithelial.printConfiguration2D();
 
   epithelial.initializeNeighborLinkedList2D(boxLengthScale);
@@ -221,23 +226,24 @@ int main(int argc, char const* argv[]) {
   dpmMemFn substrateAdhesionForceUpdate = static_cast<void (dpm::*)()>(&epi2D::substrateadhesionAttractiveForceUpdate);
   dpmMemFn repulsiveForceUpdateWithCircularAperture = static_cast<void (dpm::*)()>(&epi2D::repulsiveForceWithCircularApertureWall);
 
-  /*
   // after initialization, turn on damped NVE
   double T = 1e-4;
   double relaxTime = 10.0;
   epithelial.drawVelocities2D(T);
-  epithelial.dampedNP0(attractiveForceUpdate, B, dt0, relaxTime, 0, wallsOff);
+  // epithelial.dampedNP0(attractiveForceUpdate, B, dt0, relaxTime, 0, wallsOff);
 
+  cout << "after damped NP0\n";
   epithelial.zeroMomentum();
 
   epithelial.dampedNVE2D(attractiveForceUpdate, B, dt0, relaxTime, 0);
+
+  epithelial.dampedNVE2D(attractiveForceUpdate, B, dt0, time_dbl, 0);
+  cout << "after dampedNVE2D\n";
 
   //  dampedNP0 already takes care of purse-string. might want to separate, or just change spring constant
   epithelial.dampedNP0(substrateAdhesionForceUpdate, B, dt0, time_dbl, time_dbl / 100.0, wallsOff);
   // epithelial.dampedNP0(attractiveForceUpdate, B, dt0, time_dbl, time_dbl / 100.0, wallsOff);
 
   cout << "\n** Finished woundClosure.cpp, ending. " << endl;
-
-  */
   return 0;
 }
