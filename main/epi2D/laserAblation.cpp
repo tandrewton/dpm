@@ -18,7 +18,7 @@
 //./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.925 1.0 0.2 0.01  2.0  1.0  4.0 1.0  0.0  1.0 0.5  0  0.00   1  200  test
 // ........................... N  NV Nd A0  pMin  pMax  kl att  om   dsq  kps  klp tau dflag  B  Dr0 CIL prate  sd time file
 // below: purse-string, and crawling
-//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.925 1.0 0.2 0.01  2.0  1.0  4.0 1.0  3.0  1.0 0.5  0  0.00   1  200  test
+//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.925 1.0 0.2 0.01  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0.00   1  200  test
 // ........................... N  NV Nd A0  pMin  pMax  kl att  om   dsq  kps  klp tau dflag  B  Dr0 CIL prate  sd time file
 
 //

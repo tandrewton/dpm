@@ -108,6 +108,7 @@ class epi2D : public dpm {
   std::vector<double> l0_ps;
   std::vector<int> psContacts;
   std::vector<bool> isSpringBroken;
+  bool isPurseStringDoneShrinking;
 
   double strainRate_ps, k_ps, k_LP, tau_LP, deltaSq, maxProtrusionLength;
   // purse string (ps) strain rate (constant true strain rate)
@@ -165,6 +166,7 @@ class epi2D : public dpm {
     tau_LP = tauLP;
     deltaSq = deltaSquared;
     maxProtrusionLength = maxCrawlLength;
+    isPurseStringDoneShrinking = false;
   };
 
   // File openers
@@ -252,9 +254,6 @@ class epi2D : public dpm {
   double getPsi(int ci) { return psi.at(ci); };
   double vertDistNoPBC(int gi, int gj);
 
-  // initialization
-  void monodisperse2D(double calA0, int n);
-
   // editors & updates
   double meanl0();
   double meancalA0();
@@ -269,7 +268,6 @@ class epi2D : public dpm {
   void repulsiveForceUpdateWithWalls();
   void vertexAttractiveForces2D_2();
   void attractiveForceUpdate_2();
-  void epi_shapeForces2D();
   void activeAttractiveForceUpdate();
   void substrateadhesionAttractiveForceUpdate();
   void repulsiveForceWithCircularApertureWall();

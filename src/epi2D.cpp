@@ -25,34 +25,6 @@ using namespace std;
 
 *******************************/
 
-// initialize monodisperse cell system, single calA0
-void epi2D::monodisperse2D(double calA0, int n) {
-  // local variables
-  double calA0tmp, calAntmp, rtmp, areaSum;
-  int vim1, vip1, gi, ci, vi, nlarge, smallN, largeN, NVSMALL;
-
-  // print to console
-  cout << "** initializing monodisperse DPM particles in 2D ..." << endl;
-
-  // total number of vertices
-  NVTOT = n * NCELLS;
-  vertDOF = NDIM * NVTOT;
-
-  // szList and nv (keep track of global vertex indices)
-  nv.resize(NCELLS);
-  szList.resize(NCELLS);
-
-  nv.at(0) = n;
-  for (ci = 1; ci < NCELLS; ci++) {
-    nv.at(ci) = n;
-    szList.at(ci) = szList.at(ci - 1) + nv.at(ci - 1);
-  }
-
-  initializeVertexShapeParameters(calA0, n);
-
-  initializeVertexIndexing2D();
-}
-
 /******************************
 
         E P I 2 D
@@ -693,6 +665,7 @@ void epi2D::substrateadhesionAttractiveForceUpdate() {
       fieldStress[gi][2] += 0.5 * ((x[gi * NDIM] - flagPos[ci][0]) / 2 * fy + (x[gi * NDIM + 1] - flagPos[ci][1]) / 2 * fx);
 
       flagcount++;
+      // strain the rest lengths towards zero by exp(-t/tau_LP)
       restLengthLPx[ci] *= exp(-dt / tau_LP);
       restLengthLPy[ci] *= exp(-dt / tau_LP);
       timeElapsedSinceFlagPlanted[ci] += dt;  // unused for now
@@ -946,7 +919,7 @@ void epi2D::updateSubstrateSprings() {
         }
       } else if (flag[ci]) {
         // dissociation rate determines if existing flag is destroyed this step
-        // 10% chance of dissociating per tau_LP, but also automatically dissociate if spring has shrunk to vdiam
+        // 10% chance of dissociating per tau_LP, but also automatically dissociate if spring has shrunk below some threshhold ~ vdiam/10
         if (drand48() < 0.0 || fabs(restLengthLPx[ci]) + fabs(restLengthLPx[ci]) < r[0] / 10.0) {
           flag[ci] = false;
         }
@@ -970,6 +943,7 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duratio
 
   // loop over time, print energy
   while (simclock - t0 < duration) {
+    cout << simclock << '\n';
     // VV POSITION UPDATE
     for (i = 0; i < vertDOF; i++) {
       // update position
@@ -1164,15 +1138,18 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
         // cout << "purse-string is too small, disassemble it\n";
         // k_ps = 0.0;
         // deltaSq = 0.0;
-        cout << "disassembling purse-string, lengths are too short to shrink further \n";
-        strainRate_ps = 0.0;
+        if (isPurseStringDoneShrinking == false) {  // if purse-string can't shrink anymore, set this flag to true and stop straining the pursestring
+          cout << "disassembling purse-string, lengths are too short to shrink further \n";
+          isPurseStringDoneShrinking = true;
+          strainRate_ps = 0.0;
+        }
         purseStringContraction(B);
       }
 
       // vout << simclock << '\t' << woundArea << '\n';
       ageCellPerimeters(shapeRelaxationRate, dt);
       if (int(simclock / dt) % 500 == 0) {
-        cout << "woundCenterX, Y before calculating = " << woundCenterX << '\t' << woundCenterY << '\n';
+        cout << "woundCenterX, Y before calculating area = " << woundCenterX << '\t' << woundCenterY << '\n';
         woundArea = calculateWoundArea(woundCenterX, woundCenterY);
         vout << simclock << '\t' << woundArea << '\n';
       }
