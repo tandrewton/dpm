@@ -9,19 +9,19 @@
 // g++ -O3 --std=c++11 -g -I src main/epi2D/laserAblation.cpp src/dpm.cpp src/epi2D.cpp -o main/epi2D/laserAblation.o
 
 // below: no purse-string, no crawling (inactive simulation)
-//./main/epi2D/laserAblation.o 20 20 0 1.10 0.92 0.925 1.0 0.0 0.01  0.0  1.0  4.0 1.0  0.0  1.0 0.5  0  0.00   1  100  test
-// ........................... N  NV Nd A0  pMin  pMax  kl att  om   dsq  kps  klp tau dflag  B  Dr0 CIL prate  sd time file
+//./main/epi2D/laserAblation.o 20 20 0 1.10 0.92 0.925 1.0 0.5 0.0 0.01  0.0  1.0  4.0 1.0  0.0  1.0 0.5  0  0.00   1  100  test
+// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  B  Dr0 CIL prate  sd time file
 // below: no purse-string, only crawling
-//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.925 1.0 0.2 0.01  0.0  1.0  4.0 1.0  3.0  1.0 0.5  0  0.00   1  200  test
-// ........................... N  NV Nd A0  pMin  pMax  kl att  om   dsq  kps  klp tau dflag  B  Dr0 CIL prate  sd time file
+//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.925 1.0 0.5 0.2 0.01  0.0  1.0  4.0 1.0  3.0  1.0 0.5  0  0.00   1  200  test
+// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  B  Dr0 CIL prate  sd time file
 // below: purse-string, no crawling
-//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.925 1.0 0.2 0.01  2.0  1.0  4.0 1.0  0.0  1.0 0.5  0  0.00   1  200  test
-// ........................... N  NV Nd A0  pMin  pMax  kl att  om   dsq  kps  klp tau dflag  B  Dr0 CIL prate  sd time file
+//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.925 1.0 0.5 0.2 0.01  2.0  1.0  4.0 1.0  0.0  1.0 0.5  0  0.00   1  200  test
+// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  B  Dr0 CIL prate  sd time file
 // below: purse-string, and crawling
-//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.925 1.0 0.2 0.01  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0.00   1  200  test
-// ........................... N  NV Nd A0  pMin  pMax  kl att  om   dsq  kps  klp tau dflag  B  Dr0 CIL prate  sd time file
+//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.925 1.0 0.5 0.2 0.01  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0.00   1  200  test
+// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  B  Dr0 CIL prate  sd time file
 
-// ./main/epi2D/laserAblation.o 40 20 4 1.0 0.92 0.925 1.0 0.2 0.013  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0.00   1  200  test
+// ./main/epi2D/laserAblation.o 40 20 4 1.0 0.92 0.925 1.0 0.5 0.2 0.013  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0.00   1  200  test
 
 //
 // Parameter input list
@@ -57,9 +57,9 @@
 // namspace
 using namespace std;
 
-const bool plotCompression = 0;     // whether or not to plot configuration during compression protocol
-const double dphi0 = 0.005;         // packing fraction increment
-const double ka = 1.0;              // area force spring constant (should be unit)
+const bool plotCompression = 0;  // whether or not to plot configuration during compression protocol
+const double dphi0 = 0.005;      // packing fraction increment
+// const double ka = 1.0;              // area force spring constant (should be unit)
 const double kc = 1.0;              // interaction force spring constant (should be unit)
 const double boxLengthScale = 2.5;  // neighbor list box size in units of initial l0
 // const double phi0 = 0.5;            // initial packing fraction
@@ -75,7 +75,7 @@ bool wallsOff = false;
 int main(int argc, char const* argv[]) {
   // local variables to be read in
   int NCELLS, nsmall, seed, gi, ndelete;
-  double calA0, kl, kb = 0.0, phiMin, phiMax, att, B, Dr0, time_dbl;
+  double calA0, kl, ka = 1.0, kb = 0.0, phiMin, phiMax, att, B, Dr0, time_dbl;
   bool boolCIL;
   double strainRate_ps, k_ps, k_LP, tau_LP, deltaSq, maxProtrusionLength, shapeRelaxationRate;
 
@@ -87,20 +87,21 @@ int main(int argc, char const* argv[]) {
   string phiMin_str = argv[5];
   string phiMax_str = argv[6];
   string kl_str = argv[7];
-  string att_str = argv[8];
-  string omega_str = argv[9];
-  string deltaSq_str = argv[10];
-  string k_ps_str = argv[11];
-  string k_lp_str = argv[12];
-  string tau_lp_str = argv[13];
-  string d_flag_str = argv[14];
-  string B_str = argv[15];
-  string Dr0_str = argv[16];
-  string boolCIL_str = argv[17];
-  string shapeRelax_str = argv[18];
-  string seed_str = argv[19];
-  string time_str = argv[20];
-  string outFileStem = argv[21];
+  string ka_str = argv[8];
+  string att_str = argv[9];
+  string omega_str = argv[10];
+  string deltaSq_str = argv[11];
+  string k_ps_str = argv[12];
+  string k_lp_str = argv[13];
+  string tau_lp_str = argv[14];
+  string d_flag_str = argv[15];
+  string B_str = argv[16];
+  string Dr0_str = argv[17];
+  string boolCIL_str = argv[18];
+  string shapeRelax_str = argv[19];
+  string seed_str = argv[20];
+  string time_str = argv[21];
+  string outFileStem = argv[22];
 
   string positionFile = outFileStem + ".pos";
   string energyFile = outFileStem + ".energy";
@@ -118,6 +119,7 @@ int main(int argc, char const* argv[]) {
   stringstream phiMinss(phiMin_str);
   stringstream phiMaxss(phiMax_str);
   stringstream klss(kl_str);
+  stringstream kass(ka_str);
   stringstream attss(att_str);
   stringstream omegass(omega_str);
   stringstream deltaSqss(deltaSq_str);
@@ -140,6 +142,7 @@ int main(int argc, char const* argv[]) {
   phiMinss >> phiMin;
   phiMaxss >> phiMax;
   klss >> kl;
+  kass >> ka;
   attss >> att;
   omegass >> strainRate_ps;
   deltaSqss >> deltaSq;

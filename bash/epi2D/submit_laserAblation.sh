@@ -1,7 +1,7 @@
 #!/bin/bash
 # directories with code
 
-#example call: bash bash/epi2D/submit_laserAblation.sh 20 20 4 1.10 0.92 0.925 1.0 0.1 0.01 0.0 1.0 2.0 1.0 3.0 1.0 0.5 0 0.00 200 pi_ohern,day,scavenge 0-12:00:00 1 1
+#example call: bash bash/epi2D/submit_laserAblation.sh 20 20 4 1.10 0.92 0.925 1.0 1.0 0.1 0.01 0.0 1.0 2.0 1.0 3.0 1.0 0.5 0 0.00 200 pi_ohern,day,scavenge 0-12:00:00 1 1
 #weird bug with configFile
 cellsdir=~/dpm
 srcdir=$cellsdir/src
@@ -30,22 +30,23 @@ calA0=$4
 phiMin=$5
 phiMax=$6
 kl=$7
-att=$8
-strainRate_ps=$9
-deltaSq="${10}"
-k_ps="${11}"
-k_lp="${12}"
-tau_lp="${13}"
-d_flag="${14}"
-B="${15}"
-Dr0="${16}"
-boolCIL="${17}"
-prate="${18}"
-duration="${19}"
-partition="${20}"
-time="${21}"
-numRuns="${22}"
-startSeed="${23}"
+ka=$8
+att=$9
+strainRate_ps="${10}"
+deltaSq="${11}"
+k_ps="${12}"
+k_lp="${13}"
+tau_lp="${14}"
+d_flag="${15}"
+B="${16}"
+Dr0="${17}"
+boolCIL="${18}"
+prate="${19}"
+duration="${20}"
+partition="${21}"
+time="${22}"
+numRuns="${23}"
+startSeed="${24}"
 
 numSeedsPerRun=1
 let numSeeds=$numSeedsPerRun*$numRuns
@@ -53,7 +54,7 @@ let endSeed=$startSeed+$numSeeds-1
 
 # name strings
 #3/7/22 1:17 pm: - just added $prate to basestr, after my runs are complete make sure to git push and pull
-basestr=ablate_calA0"$calA0"_strainRate_ps"$strainRate_ps"_deltaSq"$deltaSq"_k_ps"$k_ps"_k_lp"$k_lp"_tau_lp"$tau_lp"_d_flag"$d_flag"_prate"$prate"
+basestr=ablate_calA0"$calA0"_k_a"$ka"_strainRate_ps"$strainRate_ps"_deltaSq"$deltaSq"_k_ps"$k_ps"_k_lp"$k_lp"_tau_lp"$tau_lp"_d_flag"$d_flag"_prate"$prate"
 runstr="$basestr"_NCELLS"$NCELLS"_Duration"$duration"_att"$att"_startseed"$startSeed"_endseed"$endSeed"
 
 # make directory specific for this simulation
@@ -75,6 +76,7 @@ echo calA0 = "$calA0" >> $configFile
 echo phiMin = "$phiMin" >> $configFile
 echo phiMax = "$phiMax" >> $configFile
 echo kl = "$kl" >> $configFile
+echo ka = "$ka" >> $configFile
 echo att = "$att" >> $configFile
 echo strainRate_ps = "$strainRate_ps" >> $configFile
 echo deltaSq = $deltaSq >> $configFile
@@ -133,7 +135,7 @@ for seed in `seq $startSeed $numSeedsPerRun $endSeed`; do
         outFileStem=$simdatadir/$filestr
 
         # append to runString
-        runString="$runString ; ./$binf $NCELLS $NV $ndelete $calA0 $phiMin $phiMax $kl $att $strainRate_ps $deltaSq $k_ps $k_lp $tau_lp $d_flag $B $Dr0 $boolCIL $prate $seed $duration $outFileStem"
+        runString="$runString ; ./$binf $NCELLS $NV $ndelete $calA0 $phiMin $phiMax $kl $ka $att $strainRate_ps $deltaSq $k_ps $k_lp $tau_lp $d_flag $B $Dr0 $boolCIL $prate $seed $duration $outFileStem"
     done
 
     # finish off run string
@@ -188,9 +190,9 @@ sbatch -t $time $slurmf
 # 3. number of cells to delete
 # 3. calA0
 # 4. phiMin
-# 5. Ptol
+# 5. phiMax
 # 6. kl
-# 7. kb
+# 7. ka
 # 8. att
 # 9. segment shrinking rate for pursestring
 # 10. max yield length for purse string springs
