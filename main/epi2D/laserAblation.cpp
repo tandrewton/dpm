@@ -21,6 +21,8 @@
 //./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.925 1.0 0.2 0.01  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0.00   1  200  test
 // ........................... N  NV Nd A0  pMin  pMax  kl att  om   dsq  kps  klp tau dflag  B  Dr0 CIL prate  sd time file
 
+// ./main/epi2D/laserAblation.o 40 20 4 1.0 0.92 0.925 1.0 0.2 0.013  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0.00   1  200  test
+
 //
 // Parameter input list
 // 1. NCELLS: 			number of particles
@@ -32,7 +34,7 @@
 // 7. kl: 				  perimeter spring constant
 // 8. att:          attraction strength parameter
 // 9. omega:        true strain rate for shrinking pursestring segments
-// 10. deltaSq:     yield length squared for purse-string springs (in units of vertex diameter squared)
+// 10. deltaSq:     yield length squared for purse-string springs (in units of vertex diameter squared). auto set to 0 if omega is also 0
 // 11. k_ps:        spring constant for purse string virtual particle to wound vertex
 // 12. k_lp:        spring constant for flag to nearest vertex on wound edge for crawling
 // 13. tau_lp:      protrusion time constant (controls stochastic lifetime of a protrusion)
@@ -166,6 +168,10 @@ int main(int argc, char const* argv[]) {
   // max length of lp (units of vdiam)
   // instantiate object
 
+  if (strainRate_ps < 1e-20) {  // auto set deltasq to 0 if pursestring is disabled, so that all ps springs break off
+    cout << "strain rate for pursestring is zero, setting deltaSq yield length to also be zero\n";
+    deltaSq = 0.0;
+  }
   epi2D epithelial(NCELLS, 0.0, 0.0, Dr0, strainRate_ps, k_ps, k_LP, tau_LP, deltaSq, maxProtrusionLength, seed);
 
   epithelial.openPosObject(positionFile);
