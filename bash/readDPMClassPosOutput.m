@@ -95,7 +95,7 @@ while ~feof(fid)
         %l0(nf,nn)       = sqrt(4.0*pi*calA0(nf,nn)*a0(nf,nn))/nv(nf,nn);
         
         % get vertex positions
-        vPosTmp = textscan(fid,'VINFO %*f %*f %f %f %f %f %f %f',NVTMP); 
+        vPosTmp = textscan(fid,'VINFO %*f %*f %f %f %f %f %f %f %f %f %f %f %f %f',NVTMP); 
         % note : %*f means ignore that entry.
         fline = fgetl(fid);     % goes to next line in file
 
@@ -105,7 +105,13 @@ while ~feof(fid)
         giTmp = vPosTmp{3};
         vradTmp = vPosTmp{4};
         l0radTmp = vPosTmp{5};
-        %also 6,7 which are going to be ignored by me for now.
+        %also 6 which is going to be ignored by me for now.
+        vStressXXTmp = vPosTmp{7};
+        vStressYYTmp = vPosTmp{8};
+        vStressXYTmp = vPosTmp{9};
+        vShapeStressXXTmp = vPosTmp{10};
+        vShapeStressYYTmp = vPosTmp{11};
+        vShapeStressXYTmp = vPosTmp{12};
         
         % save in cell
         xpos{nf,nn} = xposTmp;
@@ -113,6 +119,12 @@ while ~feof(fid)
         gi{nf,nn} = giTmp;
         vrad{nf,nn} = vradTmp;
         l0rad{nf,nn} = l0radTmp;
+        vStressXX{nf,nn} = vStressXXTmp;
+        vStressYY{nf,nn} = vStressYYTmp;
+        vStressXY{nf,nn} = vStressXYTmp;
+        vShapeStressXX{nf,nn} = vShapeStressXXTmp;
+        vShapeStressYY{nf,nn} = vShapeStressYYTmp;
+        vShapeStressXY{nf,nn} = vShapeStressXYTmp;
     end
     % increment frame count
     nf = nf + 1;
@@ -178,7 +190,13 @@ if (nf < NFRAMES)
     xpos(nf:end,:) = [];
     ypos(nf:end,:) = [];
     gi(nf:end,:) = [];
-    l0(nf:end,:)   = [];
+    l0(nf:end,:) = [];
+    vStressXX(nf:end,:) = [];
+    vStressYY(nf:end,:) = [];
+    vStressXY(nf:end,:) = [];
+    vShapeStressXX(nf:end,:) = [];
+    vShapeStressYY(nf:end,:) = [];
+    vShapeStressXY(nf:end,:) = [];
     nv(nf:end,:) = [];
     zc(nf:end,:) = [];
     zv(nf:end,:) = [];
@@ -188,6 +206,8 @@ if (nf < NFRAMES)
     psi(nf:end,:) = [];
     time(nf:end,:)   = [];
     %phi(nf:end) = [];
+    area(nf:end,:) = [];
+    perimeter(nf:end,:) = [];
     stress(nf:end,:) = [];
     strain(nf:end,:) = [];
     cellStressXX(nf:end,:)    = [];
@@ -212,6 +232,12 @@ cellTrajectoryData.phi0         = phi0;
 cellTrajectoryData.vrad         = vrad;
 cellTrajectoryData.xpos         = xpos;
 cellTrajectoryData.ypos         = ypos;
+cellTrajectoryData.vStressXX    = vStressXX;
+cellTrajectoryData.vStressYY    = vStressYY;
+cellTrajectoryData.vStressXY    = vStressXY;
+cellTrajectoryData.vShapeStressXX    = vShapeStressXX;
+cellTrajectoryData.vShapeStressYY    = vShapeStressYY;
+cellTrajectoryData.vShapeStressXY    = vShapeStressXY;
 cellTrajectoryData.gi           = gi;
 cellTrajectoryData.nv           = nv;
 cellTrajectoryData.zc           = zc;
