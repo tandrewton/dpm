@@ -167,7 +167,7 @@ int main(int argc, char const* argv[]) {
   // cin int double double
   // reset NCELLS
 
-  std::string inputConfigFile = "testDPMConfigurationFile_Verboon_wounded.txt";
+  std::string inputConfigFile = "testDPMConfigurationFile_Fernandez_Gonzalez_duringWounding.txt";
 
   // need to read in file and then construct epi2D object so I have initialized areas, or just use more cells so that I have enough memory allocated, and hopefully all the resizing operations appropriately manage that (is area resized?)
 
@@ -232,12 +232,12 @@ int main(int argc, char const* argv[]) {
   epithelial.drawVelocities2D(T);
   // epithelial.dampedNP0(attractiveForceUpdate, B, dt0, relaxTime, 0, wallsOff);
 
-  cout << "after damped NP0\n";
+  // cout << "after damped NP0\n";
   epithelial.zeroMomentum();
 
   epithelial.dampedNVE2D(attractiveForceUpdate, B, dt0, relaxTime, 0);
 
-  epithelial.dampedNVE2D(attractiveForceUpdate, B, dt0, time_dbl, 0);
+  // epithelial.dampedNVE2D(attractiveForceUpdate, B, dt0, time_dbl, 0);
   cout << "after dampedNVE2D\n";
 
   //  dampedNP0 already takes care of purse-string. might want to separate, or just change spring constant
