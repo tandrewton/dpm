@@ -7,8 +7,8 @@
 
 isTestData = true; %uncomment if using test data
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
+addpath('C:\Users\atata\projects\dpm\bash')
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
-
 %CHANGE THESE PARAMETERS                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   NEEDED
 
 runType = "neuralTube";
@@ -31,7 +31,8 @@ showverts = 0;
 walls = 0;
  
 %PC directory
-pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
+%pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
+pc_dir="C:\Users\atata\projects\dpm\";
 %pipeline is the location of data generated during simulations
 subdir_pipeline = pc_dir + "pipeline/cells/"+runType+"/";
 
