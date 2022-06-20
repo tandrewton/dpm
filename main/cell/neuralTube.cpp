@@ -13,7 +13,7 @@
 // Compilation command:
 // g++ -O3 --std=c++11 -g -I src main/cell/neuralTube.cpp src/dpm.cpp src/cell.cpp -o main/cell/NT.o
 // run command:
-// ./main/cell/NT.o    32   20 0.99 0.01  1    test
+// ./main/cell/NT.o    20   20 0.99 0.01  1    test
 //                  NCELLS NV  A0  att seed outFileStem
 
 #include <sstream>
@@ -31,7 +31,7 @@ const double kb = 0.0;              // bending energy spring constant (should be
 const double kl = 2.0;              // segment length interaction force (should be unit)
 const double boxLengthScale = 2.5;  // neighbor list box size in units of initial l0
 const double phi0 = 0.81;           // initial packing fraction
-const double phiMax = 0.82;
+const double phiMax = 0.815;
 const double smallfrac = 1.0;  // fraction of small particles
 const double sizeratio = 1.0;  // size ratio between small and large particles
 const double dt0 = 1e-2;       // initial magnitude of time step in units of MD time
@@ -128,10 +128,17 @@ int main(int argc, char const* argv[]) {
   // equilibrate under 3 fixed walls and 1 dynamic wall
   cell2D.simulateDampedWithWalls(customForceUpdate, B, dt0, relaxTime, 0.0, wallsBool, true, false, false, false);
 
+
   // begin lateral-medial compression
   // might want to save the initial box length
   // slow is 0.0001
-  cell2D.simulateDampedWithWalls(customForceUpdate, B, dt0, runTime, runTime / 40.0, wallsBool, true, false, false, false, 0.001, 0.0);
+  // cell2D.simulateDampedWithWalls(customForceUpdate, B, dt0, runTime, runTime / 40.0, wallsBool, true, false, false, false, 0.001, 0.0);
+
+  // begin uniaxial pressure simulation (P can be positive or negative)
+  // top is fixed wall, sides are dynamic with applied pressure, bottom is dynamic with no pressure
+  double appliedUniaxialPressure = 1.0;
+  
+  cell2D.simulateDampedWithWalls(customForceUpdate, B, dt0, relaxTime, 0.0, wallsBool, true, true, true, false);
 
   cout
       << "\n** Finished neuralTube.cpp, ending. " << endl;

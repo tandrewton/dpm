@@ -314,7 +314,7 @@ void cell::attractiveForceUpdate() {
   vertexAttractiveForces2D_2();
 }
 
-void cell::wallForces(bool top, bool bottom, bool left, bool right, double& forceTop, double& forceBottom, double& forceLeft, double& forceRight) {
+void cell::wallForces(bool top, bool bottom, bool left, bool right, double& forceTop, double& forceBottom, double& forceLeft, double& forceRight, double appliedUniaxialPressure) {
   // compute particle-wall forces and wall-particle forces. Only the latter
   // exists, unless bool is
   //  set to true, in which case the wall can be pushed on. bool set to true =
@@ -410,6 +410,8 @@ void cell::wallForces(bool top, bool bottom, bool left, bool right, double& forc
         forceTop -= f;
     }
   }
+  forceLeft = appliedUniaxialPressure * L[0];
+  forceRight = -appliedUniaxialPressure * L[0];
 }
 
 void cell::cellPolarityForces(int ci, double k_polarity, std::string direction) {
@@ -508,7 +510,7 @@ void cell::vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, 
   }
 }
 
-void cell::simulateDampedWithWalls(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, bool wallsOn, bool topOpen, bool bottomOpen, bool leftOpen, bool rightOpen, double trueStrainRateX, double trueStrainRateY) {
+void cell::simulateDampedWithWalls(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, bool wallsOn, bool topOpen, bool bottomOpen, bool leftOpen, bool rightOpen, double trueStrainRateX, double trueStrainRateY, double appliedUniaxialPressure) {
   // make sure velocities exist or are already initialized before calling this
   // assuming zero temperature - ignore thermostat (not implemented)
   // allow box lengths to move as a dynamical variable - rudimentary barostat,
@@ -569,7 +571,7 @@ void cell::simulateDampedWithWalls(dpmMemFn forceCall, double B, double dt0, dou
       oldFL = FL;
       oldFR = FR;
       // true false false false means 3 walls and an open top
-      wallForces(topOpen, bottomOpen, leftOpen, rightOpen, FT, FB, FL, FR);
+      wallForces(topOpen, bottomOpen, leftOpen, rightOpen, FT, FB, FL, FR, appliedUniaxialPressure);
       // if bool is false in wallForces, then corresponding force is zero
 
       FT -= (B * VL[1] + B * oldFT * dt / 2);

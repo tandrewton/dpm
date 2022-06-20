@@ -55,7 +55,7 @@ class cell : public dpm {
   void repulsiveWithPolarityForceUpdate();
   void attractiveWithPolarityForceUpdate();
 
-  void wallForces(bool top, bool bottom, bool left, bool right, double& forceTop, double& forceBottom, double& forceLeft, double& forceRight);
+  void wallForces(bool top, bool bottom, bool left, bool right, double& forceTop, double& forceBottom, double& forceLeft, double& forceRight, double appliedUniaxialPressure = 0.0);
   void cellPolarityForces(int ci, double k_polarity, std::string direction = "y");
 
   // File openers
@@ -81,7 +81,7 @@ class cell : public dpm {
 
   // routines
   void vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0);
-  void simulateDampedWithWalls(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, bool wallsOn, bool topOn, bool bottomOn, bool leftOn, bool rightOn, double trueStrainRateX = 0.0, double trueStrainRateY = 0.0);
+  void simulateDampedWithWalls(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, bool wallsOn, bool topOn, bool bottomOn, bool leftOn, bool rightOn, double trueStrainRateX = 0.0, double trueStrainRateY = 0.0, double appliedUniaxialPressure = 0.0);
 
   // printouts
   void printConfiguration2D();
