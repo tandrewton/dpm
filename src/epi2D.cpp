@@ -1303,7 +1303,7 @@ void epi2D::circularApertureForces(double radius) {
   }
 }
 
-void epi2D::wallForces(bool top, bool bottom, bool left, bool right, double& forceTop, double& forceBottom, double& forceLeft, double& forceRight) {
+void epi2D::wallForces(bool left, bool bottom, bool right, bool top, double& forceLeft, double& forceBottom, double& forceRight, double& forceTop) {
   // compute particle-wall forces and wall-particle forces. Only the latter
   // exists, unless bool is
   //  set to true, in which case the wall can be pushed on. bool set to true =

@@ -314,7 +314,7 @@ void cell::attractiveForceUpdate() {
   vertexAttractiveForces2D_2();
 }
 
-void cell::wallForces(bool top, bool bottom, bool left, bool right, double& forceTop, double& forceBottom, double& forceLeft, double& forceRight, double appliedUniaxialPressure) {
+void cell::wallForces(bool left, bool bottom, bool right, bool top, double& forceLeft, double& forceBottom, double& forceRight, double& forceTop, double appliedUniaxialPressure) {
   // compute particle-wall forces and wall-particle forces. Only the latter
   // exists, unless bool is
   //  set to true, in which case the wall can be pushed on. bool set to true =
@@ -414,8 +414,9 @@ void cell::wallForces(bool top, bool bottom, bool left, bool right, double& forc
 
   if (L[0] < r[0]){
     cout << "forceLeft = " << forceLeft << ", added force = " << appliedUniaxialPressure * L[1] << '\n';
-    cout << "L[0] = " << L[0] << " < r[0] = " << r[0] << ", there is no room left to compress\n";
-    assert(false);
+    cout << "L[0] = " << L[0] << " < r[0] = " << r[0] << ", there is no room left to compress or simclock < 410\n";
+    cout << "XL[0] = " << XL[0] << '\n';
+    //assert(false);
   }
     
   forceLeft += appliedUniaxialPressure * L[1];
@@ -518,7 +519,7 @@ void cell::vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, 
   }
 }
 
-void cell::simulateDampedWithWalls(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, bool wallsOn, bool topOpen, bool bottomOpen, bool leftOpen, bool rightOpen, double trueStrainRateX, double trueStrainRateY, double appliedUniaxialPressure) {
+void cell::simulateDampedWithWalls(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, bool wallsOn, bool leftOpen, bool bottomOpen, bool rightOpen, bool topOpen, double trueStrainRateX, double trueStrainRateY, double appliedUniaxialPressure) {
   // make sure velocities exist or are already initialized before calling this
   // assuming zero temperature - ignore thermostat (not implemented)
   // allow box lengths to move as a dynamical variable - rudimentary barostat,
@@ -686,7 +687,7 @@ void cell::printConfiguration2D() {
   // overloaded to print out specific quantities of interest
   // local variables
   int ci, cj, vi, gi, ctmp, zc, zv;
-  double xi, yi, dx, dy, Lx, Ly;
+  double xi, yi, dx, dy;
 
   // check if pos object is open
   if (!posout.is_open()) {
@@ -699,10 +700,12 @@ void cell::printConfiguration2D() {
          << endl;
 
   // save box sizes
+
   double L_left = XL[0];
   double L_right = L[0];
   double L_bottom = XL[1];
   double L_top = L[1];
+  //cout << L_left << '\t' << L_right << '\t' << L_bottom << '\t' << L_top << '\n';
 
   // print information starting information
   posout << setw(w) << left << "NEWFR"
@@ -779,9 +782,9 @@ void cell::printConfiguration2D() {
 
     // place back in box center
     if (pbc[0])
-      xi = fmod(xi, Lx);
+      xi = fmod(xi, L_right);
     if (pbc[1])
-      yi = fmod(yi, Ly);
+      yi = fmod(yi, L_top);
 
     posout << setw(w) << left << "VINFO";
     posout << setw(w) << left << ci;
@@ -804,12 +807,12 @@ void cell::printConfiguration2D() {
       // get next vertex positions
       dx = x[NDIM * gi] - xi;
       if (pbc[0])
-        dx -= Lx * round(dx / Lx);
+        dx -= L_right * round(dx / L_right);
       xi += dx;
 
       dy = x[NDIM * gi + 1] - yi;
       if (pbc[1])
-        dy -= Ly * round(dy / Ly);
+        dy -= L_top * round(dy / L_top);
       yi += dy;
 
       // Print indexing information

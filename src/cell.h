@@ -41,11 +41,12 @@ class cell : public dpm {
   cell(int n, double att1, double att2, int seed)
       : dpm(n, seed) {
     // set values here
-    vector<double> zerosNCELLS(NCELLS, 0);
+    vector<double> zerosNCELLS(NCELLS, 0.0);
+    vector<double> temp3(NDIM*2, 0.0);
     l1 = att1;
     l2 = att2;
     simclock = 0.0;
-    VL = zerosNCELLS;
+    VL = temp3;
     XL = VL;
     cout << "Initializing epi2D object, l1 = " << l1 << ", l2 = " << l2 << '\n';
   }
@@ -85,7 +86,7 @@ class cell : public dpm {
 
   // routines
   void vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0);
-  void simulateDampedWithWalls(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, bool wallsOn, bool topOn, bool bottomOn, bool leftOn, bool rightOn, double trueStrainRateX = 0.0, double trueStrainRateY = 0.0, double appliedUniaxialPressure = 0.0);
+  void simulateDampedWithWalls(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, bool wallsOn, bool leftOpen, bool bottomOpen, bool rightOpen, bool topOpen, double trueStrainRateX = 0.0, double trueStrainRateY = 0.0, double appliedUniaxialPressure = 0.0);
 
   // printouts
   void printConfiguration2D();

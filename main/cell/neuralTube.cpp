@@ -114,7 +114,7 @@ int main(int argc, char const* argv[]) {
 
   bool wallsBool = true;
   double relaxTime = 200.0;
-  double runTime = 200.0;
+  double runTime = 100.0;
   double B = 1.0;
 
   // dpmMemFn customForceUpdate = repulsivePolarityForceUpdate;
@@ -128,7 +128,7 @@ int main(int argc, char const* argv[]) {
   cout << "done equilibrating under 4 dynamic walls\n";
 
   // equilibrate under 3 fixed walls and 1 dynamic wall
-  cell2D.simulateDampedWithWalls(customForceUpdate, B, dt0, relaxTime, 0.0, wallsBool, true, false, false, false);
+  cell2D.simulateDampedWithWalls(customForceUpdate, B, dt0, relaxTime, 0.0, wallsBool, false, false, true, false);
   cout << "done equilibrating under 1 dynamic wall\n";
 
   // begin lateral-medial compression
@@ -139,7 +139,7 @@ int main(int argc, char const* argv[]) {
   // begin uniaxial pressure simulation (P can be positive or negative, applied force to boundary is P * L)
   // top is fixed wall, sides are dynamic with applied pressure, bottom is dynamic with no pressure
   // appliedUniaxialPressure = 1 is too large, 1e-3 is appropriate with timescale < 1000 roughly
-  double appliedUniaxialPressure = -1e-3; 
+  double appliedUniaxialPressure = 0.0; 
 
   cell2D.simulateDampedWithWalls(customForceUpdate, B, dt0, runTime, runTime / 40.0, wallsBool, true, true, true, false, 0.0, 0.0, appliedUniaxialPressure);
 
