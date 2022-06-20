@@ -14,7 +14,7 @@ fid = fopen(fstr);
 NCELLS      = textscan(fid,'NUMCL %f',1,'HeaderLines',1);   NCELLS = NCELLS{1};
 phi0        = textscan(fid,'PACKF %f',1);                   phi0 = phi0{1};
 fline       = fgetl(fid);
-Ltmp        = textscan(fid,'BOXSZ %f %f',1);
+Ltmp        = textscan(fid,'BOXSZ %f %f %f %f',1);
 fline       = fgetl(fid);
 stresstmp   = textscan(fid,'STRSS %f %f %f %f',1);
 fline       = fgetl(fid);
@@ -49,7 +49,7 @@ cellShapeStressXX = zeros(NFRAMES, 1);
 cellShapeStressYY = zeros(NFRAMES, 1);
 cellShapeStressXY = zeros(NFRAMES, 1);
 cellU = zeros(NFRAMES, 1);
-L       = zeros(NFRAMES,2);
+L       = zeros(NFRAMES,4);
 stress  = zeros(NFRAMES, 3);
 
 % number of frames found
@@ -60,6 +60,8 @@ while ~feof(fid)
     % get box length
     L(nf,1) = Ltmp{1};
     L(nf,2) = Ltmp{2};
+    L(nf,3) = Ltmp{3};
+    L(nf,4) = Ltmp{4};
     NCELLS = cell_count(nf);
     % get info about deformable particle
     for nn = 1:NCELLS
@@ -154,10 +156,12 @@ while ~feof(fid)
         phi0            = phi0{1};
         fline = fgetl(fid);
         
-        % update box size
-        Ltmp            = textscan(fid,'BOXSZ %f %f',1);
+        % update box size - note for cellClass, there are now 4 outputs
+        Ltmp            = textscan(fid,'BOXSZ %f %f %f %f',1);
         L(nf,1)         = Ltmp{1};
         L(nf,2)         = Ltmp{2};
+        L(nf,3)         = Ltmp{3};
+        L(nf,4)         = Ltmp{4};
         fline = fgetl(fid);
         
         % update stress

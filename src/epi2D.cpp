@@ -1172,7 +1172,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
       oldFB = FB;
       oldFL = FL;
       oldFR = FR;
-      wallForces(true, false, false, true, FT, FB, FL, FR);
+      wallForces(false, false, true, true, FL, FB, FR, FT);
       FT -= (B * VL[1] + B * oldFT * dt / 2);
       FT /= (1 + B * dt / 2);
       FB -= (B * VL[1] + B * oldFB * dt / 2);

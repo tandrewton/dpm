@@ -28,7 +28,7 @@ set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
 
 showverts = 0;
-walls = 0;
+walls = 1;
  
 %PC directory
 %pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
@@ -207,8 +207,10 @@ for seed = startSeed:max_seed
 
         %if L is not constant, use the next 3 lines
         L = trajectoryData.L(ff,:);
-        Lx = L(1);
-        Ly = L(2);
+        L_left = L(1);
+        L_bottom = L(2);
+        Lx = L(3);
+        Ly = L(4);
 
         for nn = 1:NCELLS
             xtmp = xpos{nn};
@@ -262,10 +264,10 @@ for seed = startSeed:max_seed
             % plot box
             plot([0 Lx Lx 0 0], [0 0 Ly Ly 0], 'k-', 'linewidth', 1.5);
         elseif walls == 1
-            ax.XLim = [0 1]*Lx;
-            ax.YLim = [0 1]*Ly;
+            ax.XLim = [L_left Lx];
+            ax.YLim = [L_bottom Ly];
             % plot box
-            plot([0 Lx Lx 0 0], [0 0 Ly Ly 0], 'k-', 'linewidth', 1.5);
+            plot([L_left Lx Lx L_left L_left], [L_bottom L_bottom Ly Ly L_bottom], 'k-', 'linewidth', 1.5);
         else
             viewScale = 1.2;
             viewLx = viewScale*Lx;

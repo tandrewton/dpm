@@ -63,7 +63,7 @@ class epi2D : public dpm {
   // otherwise.
   double initialLx;
 
-  std::vector<double> VL;
+  std::vector<double> VL; // velocity of box lengths L (there are 4 box lengths)
 
   // stores nearest neighbors indices of each vertex according to adjacency
   // (intracell) and adhesion (intercell)
@@ -284,7 +284,7 @@ class epi2D : public dpm {
   void scaleBoxSize(double boxLengthScale, double scaleFactorX, double scaleFactorY);
   void dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval);
   void dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, bool wallsOn);
-  void wallForces(bool top, bool bottom, bool left, bool right, double& forceTop, double& forceBottom, double& forceLeft, double& forceRight);
+  void wallForces(bool left, bool bottom, bool right, bool top, double& forceLeft, double& forceBottom, double& forceRight, double& forceTop,);
   void circularApertureForces(double radius);
 
   int getIndexOfCellLocatedHere(double xLoc, double yLoc);

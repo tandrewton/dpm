@@ -339,13 +339,13 @@ void cell::wallForces(bool top, bool bottom, bool left, bool right, double& forc
   // center
   for (int ci = 0; ci < NCELLS; ci++) {
     com2D(ci, cx, cy);
-    if (cx < 0 || cx > L[0]) {
+    if (cx < 0 + XL[0]|| cx > L[0]) { // 0 + XL[0] is the left boundary, L[0] = L[0] + XL[3] is the right boundary. XL lets the boundaries be movable
       for (int vi = 0; vi < nv[ci]; vi++) {
         gi = gindex(ci, vi);
         F[gi * NDIM] += -0.5 * (x[gi * NDIM] - L[0] / 2);
       }
     }
-    if (cy < 0 || cy > L[1]) {
+    if (cy < 0 + XL[1]|| cy > L[1]) {
       for (int vi = 0; vi < nv[ci]; vi++) {
         gi = gindex(ci, vi);
         F[gi * NDIM + 1] += -0.5 * (x[gi * NDIM + 1] - L[1] / 2);
@@ -354,14 +354,15 @@ void cell::wallForces(bool top, bool bottom, bool left, bool right, double& forc
   }
 
   for (int i = 0; i < vertDOF; i++) {
+    // XL is positive if original left/bottom boundaries have moved right/up, negative if they've moved left/down, respectively
     vi = i / 2;
-    boxL = L[i % NDIM];
+    boxL = L[i % NDIM]; 
 
     s = 2 * r[vi];
     cut = (1.0 + l1) * s;
     shell = (1.0 + l2) * s;
-    distLower = fabs(x[i]);
-    distUpper = fabs(boxL - x[i]);
+    distLower = fabs(x[i] - XL[i % NDIM]);  // XL[0] is new position of left x boundary, XL[1] is new position of bottom y boundary
+    distUpper = fabs(boxL - x[i]);          // boxL is new position of right x or top y boundaries
 
     // check if vertex is within attracting distance
     if (distLower < shell) {
@@ -410,8 +411,15 @@ void cell::wallForces(bool top, bool bottom, bool left, bool right, double& forc
         forceTop -= f;
     }
   }
-  forceLeft = appliedUniaxialPressure * L[0];
-  forceRight = -appliedUniaxialPressure * L[0];
+
+  if (L[0] < r[0]){
+    cout << "forceLeft = " << forceLeft << ", added force = " << appliedUniaxialPressure * L[1] << '\n';
+    cout << "L[0] = " << L[0] << " < r[0] = " << r[0] << ", there is no room left to compress\n";
+    assert(false);
+  }
+    
+  forceLeft += appliedUniaxialPressure * L[1];
+  forceRight += -appliedUniaxialPressure * L[1];
 }
 
 void cell::cellPolarityForces(int ci, double k_polarity, std::string direction) {
@@ -514,7 +522,8 @@ void cell::simulateDampedWithWalls(dpmMemFn forceCall, double B, double dt0, dou
   // make sure velocities exist or are already initialized before calling this
   // assuming zero temperature - ignore thermostat (not implemented)
   // allow box lengths to move as a dynamical variable - rudimentary barostat,
-  // doesn't matter for non-equilibrium anyway
+  // doesn't matter for non-equilibrium anyway. 
+  // NOTE: this part of the code begins to modify all 4 boundary lengths of the simulation through the variables XL. boundaries will no longer be based on the old convention bottom left = (0,0)
 
   // open bools indicate whether a wall is static (closed) or dynamic (open)
   // trueStrainRate (not engineering strain) multiplies corresponding box dimension by some value
@@ -524,6 +533,8 @@ void cell::simulateDampedWithWalls(dpmMemFn forceCall, double B, double dt0, dou
   double temp_simclock = simclock;
   double FT, FB, FL, FR;
   double oldFT, oldFB, oldFL, oldFR;
+  std::vector<double> boundaryDisplacement(NDIM, 0.0);
+
 
   // set time step magnitude
   setdt(dt0);
@@ -531,6 +542,8 @@ void cell::simulateDampedWithWalls(dpmMemFn forceCall, double B, double dt0, dou
 
   // loop over time, print energy
   while (simclock - t0 < duration) {
+    XL[2] = L[0]; // set the dynamic boundary lengths to be equal to the current static boundary lengths. Both will be dynamic from here on out.
+    XL[3] = L[1];
     // VV POSITION UPDATE
 
     for (i = 0; i < vertDOF; i++) {
@@ -558,12 +571,21 @@ void cell::simulateDampedWithWalls(dpmMemFn forceCall, double B, double dt0, dou
 
     if (wallsOn == true) {
       // apply strain to walls
-      L[0] *= exp(-trueStrainRateX * dt);
-      L[1] *= exp(-trueStrainRateY * dt);
+      boundaryDisplacement[0] = XL[2] * (1 - exp(-trueStrainRateX * dt));
+      boundaryDisplacement[1] = XL[3] * (1 - exp(-trueStrainRateY * dt));
 
-      // VV position update (walls)
-      L[0] += dt * VL[0] + 0.5 * dt * dt * FT;
-      L[1] += dt * VL[1] + 0.5 * dt * dt * FR;
+      // VV position update (4 walls)
+      XL[0] += dt * VL[0] + 0.5 * dt * dt * FL - boundaryDisplacement[0]/2;
+      XL[1] += dt * VL[1] + 0.5 * dt * dt * FB - boundaryDisplacement[1]/2;
+      XL[2] += dt * VL[2] + 0.5 * dt * dt * FR + boundaryDisplacement[0]/2;
+      XL[3] += dt * VL[3] + 0.5 * dt * dt * FT + boundaryDisplacement[1]/2;
+
+      L[0] = XL[2]; 
+      L[1] = XL[3];
+
+      /*cout << "(velocity\tforce): left vs right\n";
+      cout << VL[0] << '\t' << FL << '\n';
+      cout << VL[2] << '\t' << FR << '\n';*/
 
       // VV force update (walls)
       oldFT = FT;
@@ -571,19 +593,22 @@ void cell::simulateDampedWithWalls(dpmMemFn forceCall, double B, double dt0, dou
       oldFL = FL;
       oldFR = FR;
       // true false false false means 3 walls and an open top
-      wallForces(topOpen, bottomOpen, leftOpen, rightOpen, FT, FB, FL, FR, appliedUniaxialPressure);
+      wallForces(leftOpen, bottomOpen, rightOpen, topOpen, FL, FB, FR, FT, appliedUniaxialPressure);
       // if bool is false in wallForces, then corresponding force is zero
 
-      FT -= (B * VL[1] + B * oldFT * dt / 2);
-      FT /= (1 + B * dt / 2);
-      FB -= (B * VL[1] + B * oldFB * dt / 2);
-      FB /= (1 + B * dt / 2);
       FL -= (B * VL[0] + B * oldFL * dt / 2);
       FL /= (1 + B * dt / 2);
-      FR -= (B * VL[0] + B * oldFR * dt / 2);
+      FB -= (B * VL[1] + B * oldFB * dt / 2);
+      FB /= (1 + B * dt / 2);
+      FR -= (B * VL[2] + B * oldFR * dt / 2);
       FR /= (1 + B * dt / 2);
-      VL[0] += 0.5 * (FR + oldFR) * dt;
-      VL[1] += 0.5 * (FT + oldFT) * dt;
+      FT -= (B * VL[3] + B * oldFT * dt / 2);
+      FT /= (1 + B * dt / 2);
+
+      VL[0] += 0.5 * (FL + oldFL) * dt;
+      VL[1] += 0.5 * (FB + oldFB) * dt;
+      VL[2] += 0.5 * (FR + oldFR) * dt;
+      VL[3] += 0.5 * (FT + oldFT) * dt;
     }
 
     // update sim clock
@@ -674,8 +699,10 @@ void cell::printConfiguration2D() {
          << endl;
 
   // save box sizes
-  Lx = L[0];
-  Ly = L[1];
+  double L_left = XL[0];
+  double L_right = L[0];
+  double L_bottom = XL[1];
+  double L_top = L[1];
 
   // print information starting information
   posout << setw(w) << left << "NEWFR"
@@ -686,8 +713,10 @@ void cell::printConfiguration2D() {
 
   // print box sizes
   posout << setw(w) << left << "BOXSZ";
-  posout << setw(wnum) << setprecision(pnum) << left << Lx;
-  posout << setw(wnum) << setprecision(pnum) << left << Ly;
+  posout << setw(wnum) << setprecision(pnum) << left << L_left;
+  posout << setw(wnum) << setprecision(pnum) << left << L_bottom;
+  posout << setw(wnum) << setprecision(pnum) << left << L_right;
+  posout << setw(wnum) << setprecision(pnum) << left << L_top;
   posout << endl;
 
   // print stress info

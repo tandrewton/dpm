@@ -13,7 +13,7 @@
 // Compilation command:
 // g++ -O3 --std=c++11 -g -I src main/cell/neuralTube.cpp src/dpm.cpp src/cell.cpp -o main/cell/NT.o
 // run command:
-// ./main/cell/NT.o    20   20 0.99 0.01  1    test
+// ./main/cell/NT.o    10   20 1.0 0.01  1    test
 //                  NCELLS NV  A0  att seed outFileStem
 
 #include <sstream>
@@ -110,10 +110,11 @@ int main(int argc, char const* argv[]) {
 
   // compress to target packing fraction
   cell2D.vertexCompress2Target2D(repulsiveForceUpdateWithWalls, Ftol, dt0, phiMax, dphi0);
+  cout << "done compressing to target packing fraction\n";
 
   bool wallsBool = true;
-  double relaxTime = 250.0;
-  double runTime = 1000.0;
+  double relaxTime = 200.0;
+  double runTime = 200.0;
   double B = 1.0;
 
   // dpmMemFn customForceUpdate = repulsivePolarityForceUpdate;
@@ -124,21 +125,23 @@ int main(int argc, char const* argv[]) {
   // note: repulsiveForceUpdateWithWalls is not used here because we want to control which walls are on,
   //       as well as compute forces on the walls in case we want to integrate wall dynamics too
   cell2D.simulateDampedWithWalls(customForceUpdate, B, dt0, relaxTime, 0.0, wallsBool, true, true, true, true);
+  cout << "done equilibrating under 4 dynamic walls\n";
 
   // equilibrate under 3 fixed walls and 1 dynamic wall
   cell2D.simulateDampedWithWalls(customForceUpdate, B, dt0, relaxTime, 0.0, wallsBool, true, false, false, false);
-
+  cout << "done equilibrating under 1 dynamic wall\n";
 
   // begin lateral-medial compression
   // might want to save the initial box length
-  // slow is 0.0001
-  // cell2D.simulateDampedWithWalls(customForceUpdate, B, dt0, runTime, runTime / 40.0, wallsBool, true, false, false, false, 0.001, 0.0);
+  // slow is 0.0001, runTime = 1000
+  // cell2D.simulateDampedWithWalls(customForceUpdate, B, dt0, runTime, runTime / 40.0, wallsBool, true, false, false, false, 0.001, 0.0, 0.0);
 
-  // begin uniaxial pressure simulation (P can be positive or negative)
+  // begin uniaxial pressure simulation (P can be positive or negative, applied force to boundary is P * L)
   // top is fixed wall, sides are dynamic with applied pressure, bottom is dynamic with no pressure
-  double appliedUniaxialPressure = 1.0;
-  
-  cell2D.simulateDampedWithWalls(customForceUpdate, B, dt0, relaxTime, 0.0, wallsBool, true, true, true, false);
+  // appliedUniaxialPressure = 1 is too large, 1e-3 is appropriate with timescale < 1000 roughly
+  double appliedUniaxialPressure = -1e-3; 
+
+  cell2D.simulateDampedWithWalls(customForceUpdate, B, dt0, runTime, runTime / 40.0, wallsBool, true, true, true, false, 0.0, 0.0, appliedUniaxialPressure);
 
   cout
       << "\n** Finished neuralTube.cpp, ending. " << endl;

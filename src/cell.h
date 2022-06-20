@@ -29,6 +29,8 @@ class cell : public dpm {
   // simulation-scale stored quantities
   double simclock;         // accumulator for simulation time
   std::vector<double> VL;  // wall velocity if simulating with wall forces
+  std::vector<double> XL; // position of box boundaries (there are 4 box boundaries) : xrange (XL[0] XL[2]), yrange (XL[1], XL[3])
+  // XL modifies the box size by mapping 0 -> 0 + XL[0], L[0] -> L[0] + XL[2], 0 -> 0 + XL[1], L[1] -> L[1] + XL[3]
 
   // energy/force modifiers
   std::vector<double> cellID;  // 0 = tissue, 1 = cell (can set other numbers for other identities,
@@ -44,6 +46,7 @@ class cell : public dpm {
     l2 = att2;
     simclock = 0.0;
     VL = zerosNCELLS;
+    XL = VL;
     cout << "Initializing epi2D object, l1 = " << l1 << ", l2 = " << l2 << '\n';
   }
 
@@ -55,7 +58,8 @@ class cell : public dpm {
   void repulsiveWithPolarityForceUpdate();
   void attractiveWithPolarityForceUpdate();
 
-  void wallForces(bool top, bool bottom, bool left, bool right, double& forceTop, double& forceBottom, double& forceLeft, double& forceRight, double appliedUniaxialPressure = 0.0);
+  //void wallForces(bool top, bool bottom, bool left, bool right, double& forceTop, double& forceBottom, double& forceLeft, double& forceRight, double appliedUniaxialPressure = 0.0);
+  void wallForces(bool left, bool bottom, bool right, bool top, double& forceLeft, double& forceBottom, double& forceRight, double& forceTop, double appliedUniaxialPressure = 0.0);
   void cellPolarityForces(int ci, double k_polarity, std::string direction = "y");
 
   // File openers
