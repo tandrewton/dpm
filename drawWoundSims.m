@@ -3,11 +3,12 @@
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
 
-function drawWoundSims(N, strainRate_ps, calA0, tau_lp, deltaSq, d_flag, att, k_a) %uncomment if using function call to pipeline data
-isTestData = false; %uncomment if using function call to pipeline data
+%function drawWoundSims(N, strainRate_ps, calA0, tau_lp, deltaSq, d_flag, att, k_a) %uncomment if using function call to pipeline data
+%isTestData = false; %uncomment if using function call to pipeline data
 
-%isTestData = true; %uncomment if using test data
+isTestData = true; %uncomment if using test data
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
+addpath('C:\Users\atata\projects\dpm\bash')
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
 
 %CHANGE THESE PARAMETERS                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   NEEDED
@@ -55,7 +56,8 @@ showProtrusion = 0;
 showShapeHistogram = 0;
  
 %PC directory
-pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
+%pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
+pc_dir="C:\Users\atata\projects\dpm\";
 %pipeline is the location of data generated during simulations
 subdir_pipeline = pc_dir + "pipeline/cells/"+runType+"/";
 

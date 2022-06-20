@@ -873,9 +873,10 @@ void epi2D::updateSubstrateSprings() {
         int gi;  // nearest vertex to the flag
         minFlagDistance = getDistanceToVertexAtAnglePsi(ci, psi[ci], center[ci][0], center[ci][1], gi);
         // flagDistance += 3 * 2 * r[gi];
-        for (int i = 0; i < floor(maxProtrusionLength) - 1 && !flag[ci]; i++) {
+        int fractionOfDiameter = 4; // try protruding in increments of diameter / fractionOfDiameter
+        for (int i = 0; i < fractionOfDiameter*floor(maxProtrusionLength) - 1 && !flag[ci]; i++) {
           cancelFlagToss = false;
-          flagDistance = minFlagDistance + (maxProtrusionLength - i) * 2 * r[gi];
+          flagDistance = minFlagDistance + (maxProtrusionLength - i / fractionOfDiameter) * 2.0 * r[gi];
           // start with larger flag distances. if those are blocked, then loop tries smaller values
           flagPos[ci][0] = center[ci][0] + flagDistance * cos(psi[ci]);
           flagPos[ci][1] = center[ci][1] + flagDistance * sin(psi[ci]);
@@ -888,13 +889,13 @@ void epi2D::updateSubstrateSprings() {
               if (pow(center[ci][0] - center[cj][0], 2) +
                       pow(center[ci][1] - center[cj][1], 2) <
                   3 * pow(flagDistance, 2)) {
-                // check if vertices actually block flag
+                // check if vertices actually block flag (flag is allowed to penetrate the vertex but not pass it, because basal protrusions have more freedom than 3D membranes)
                 for (int vj = 0; vj < nv[cj]; vj++) {
                   gj = gindex(cj, vj);
                   if (distanceLineAndPoint(center[ci][0], center[ci][1],
                                            flagPos[ci][0], flagPos[ci][1],
                                            x[gj * NDIM],
-                                           x[gj * NDIM + 1]) < 2 * r[gj]) {
+                                           x[gj * NDIM + 1]) < r[gj]) {
                     // yes, flag has been blocked at this length. Try new flag length.
                     cancelFlagToss = true;
                     // inhibited, so director goes in opposite direction.
@@ -943,7 +944,6 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duratio
 
   // loop over time, print energy
   while (simclock - t0 < duration) {
-    cout << simclock << '\n';
     // VV POSITION UPDATE
     for (i = 0; i < vertDOF; i++) {
       // update position
