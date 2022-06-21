@@ -13,8 +13,8 @@
 // Compilation command:
 // g++ -O3 --std=c++11 -g -I src main/cell/neuralTube.cpp src/dpm.cpp src/cell.cpp -o main/cell/NT.o
 // run command:
-// ./main/cell/NT.o    10   20 1.0 0.01    0.002         0.002        1    3000     test
-//                  NCELLS NV  A0  att pressure_rate adhesion_rate  seed runtime outFileStem
+// ./main/cell/NT.o    10   20 1.0 0.01      -0.01          0.002         0.002        1    3000     test
+//                  NCELLS NV  A0  att initial_pressure pressure_rate adhesion_rate  seed runtime outFileStem
 
 #include <sstream>
 #include "cell.h"
@@ -43,14 +43,19 @@ int main(int argc, char const* argv[]) {
   // local variables to be read in
   int NCELLS, nv, seed;
   double calA0, att;
+  double pressureRate, adhesionRate, appliedUniaxialPressure, runTime;
 
   // read in parameters from command line input
   string NCELLS_str = argv[1];
   string nv_str = argv[2];
   string calA0_str = argv[3];
   string att_str = argv[4];
-  string seed_str = argv[5];
-  string outFileStem = argv[6];
+  string init_pressure_str = argv[5];
+  string pressure_rate_str = argv[6];
+  string adhesion_rate_str = argv[7];
+  string seed_str = argv[8];
+  string runtime_str = argv[9];
+  string outFileStem = argv[10];
 
   string positionFile = outFileStem + ".pos";
 
@@ -59,14 +64,22 @@ int main(int argc, char const* argv[]) {
   stringstream nvss(nv_str);
   stringstream calA0ss(calA0_str);
   stringstream attss(att_str);
+  stringstream init_pressuress(init_pressure_str);
+  stringstream pressure_ratess(pressure_rate_str);
+  stringstream adh_ratess(adhesion_rate_str);
   stringstream seedss(seed_str);
+  stringstream runtimess(runtime_str);
 
   // read into data
   NCELLSss >> NCELLS;
   nvss >> nv;
   calA0ss >> calA0;
   attss >> att;
+  init_pressuress >> appliedUniaxialPressure;
+  pressure_ratess >> pressureRate;
+  adh_ratess >> adhesionRate;
   seedss >> seed;
+  runtimess >> runTime;
 
   cell cell2D(NCELLS, 0.0, 0.0, seed);
   cell2D.openPosObject(positionFile);
@@ -114,7 +127,7 @@ int main(int argc, char const* argv[]) {
 
   bool wallsBool = true;
   double relaxTime = 200.0;
-  double runTime = 100.0;
+  // double runTime = 100.0;
   double B = 1.0;
 
   // dpmMemFn customForceUpdate = repulsivePolarityForceUpdate;
@@ -142,9 +155,9 @@ int main(int argc, char const* argv[]) {
   // begin uniaxial pressure simulation (P can be positive or negative, applied force to boundary is P * L)
   // top is fixed wall, sides are dynamic with applied pressure, bottom is dynamic with no pressure
   // appliedUniaxialPressure = 1 is too large, +/- 1e-2 is appropriate with timescale 200
-  double appliedUniaxialPressure = -1e-2; // note that the particle-wall interactions might overpower the pressure
-  double pressureRate = 2e-3; // exponential growth rates of pressure and adhesion
-  double adhesionRate = 2e-3;
+  //double appliedUniaxialPressure = -1e-2; // note that the particle-wall interactions might overpower the pressure
+  //double pressureRate = 2e-3; // exponential growth rates of pressure and adhesion
+  //double adhesionRate = 2e-3;
 
   cell2D.simulateDampedWithWalls(customForceUpdate, B, dt0, runTime, runTime / 40.0, pressureRate, adhesionRate, wallsBool, true, true, true, false, 0.0, 0.0, appliedUniaxialPressure);
 

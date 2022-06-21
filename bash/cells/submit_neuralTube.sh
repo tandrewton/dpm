@@ -1,7 +1,7 @@
 #!/bin/bash
 # directories with code
 
-#example call: bash bash/cells/submit_neuralTube.sh 10 20 1.0 0.01 0.002 0.002 3000 pi_ohern,day,scavenge 0-12:00:00 1 1
+#example call: bash bash/cells/submit_neuralTube.sh 10 20 1.0 0.01 -0.01 0.002 0.002 3000 pi_ohern,day,scavenge 0-12:00:00 1 1
 dpmdir=~/dpm
 srcdir=$dpmdir/src
 maindir=$dpmdir/main/cell
@@ -26,20 +26,21 @@ NCELLS=$1
 NV=$2
 calA0=$3
 att=$4
-prate=$5
-adhrate=$6
-duration=$7
-partition=$8
-time=$9
-numRuns="${10}"
-startSeed="${11}"
+initialPressure=$5
+prate=$6
+adhrate=$7
+duration=$8
+partition=$9
+time="${10}"
+numRuns="${11}"
+startSeed="${12}"
 
 numSeedsPerRun=1
 let numSeeds=$numSeedsPerRun*$numRuns
 let endSeed=$startSeed+$numSeeds-1
 
 # name strings
-basestr=NT_calA0"$calA0"_prate"$prate"_adhrate"$adhrate"
+basestr=NT_calA0"$calA0"_initPressure"$initialPressure"_prate"$prate"_adhrate"$adhrate"
 runstr="$basestr"_NCELLS"$NCELLS"_Duration"$duration"_att"$att"_startseed"$startSeed"_endseed"$endSeed"
 
 # make directory specific for this simulation
@@ -107,7 +108,7 @@ for seed in `seq $startSeed $numSeedsPerRun $endSeed`; do
         outFileStem=$simdatadir/$filestr
 
         # append to runString
-        runString="$runString ; ./$binf $NCELLS $NV $calA0 $att $prate $adhrate $seed $duration $outFileStem"
+        runString="$runString ; ./$binf $NCELLS $NV $calA0 $att $initialPressure $prate $adhrate $seed $duration $outFileStem"
     done
 
     # finish off run string
