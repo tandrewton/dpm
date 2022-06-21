@@ -1,7 +1,7 @@
 #!/bin/bash
 # directories with code
 
-#example call: bash bash/epi2D/submit_neuralTube.sh 10 20 1.0 0.01 0.002 0.002 1 3000 pi_ohern,day,scavenge 0-12:00:00 1 1
+#example call: bash bash/cells/submit_neuralTube.sh 10 20 1.0 0.01 0.002 0.002 3000 pi_ohern,day,scavenge 0-12:00:00 1 1
 dpmdir=~/dpm
 srcdir=$dpmdir/src
 maindir=$dpmdir/main/cell
