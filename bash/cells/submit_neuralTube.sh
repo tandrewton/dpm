@@ -51,7 +51,7 @@ configFile=$simdatadir/config.txt
 
 # compile into binary
 binf=bin/"$runstr".o
-mainf=$maindir/laserAblation.cpp
+mainf=$maindir/neuralTube.cpp
 
 echo Running neuralTube simulations with parameters: > configFile
 echo NCELLS = "$NCELLS" >> $configFile
