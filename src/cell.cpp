@@ -327,9 +327,12 @@ void cell::wallForces(bool left, bool bottom, bool right, bool top, double& forc
   bool collideTopOrRight, collideBottomOrLeft;
   int vi = 0, gi = 0;
   double cx = 0, cy = 0;
-  double boxL, K = 1, fmag = 0;
+  double boxL, force_multiplier = 10, fmag = 0;
+  if (fabs(appliedUniaxialPressure) < 1e-10)
+    force_multiplier = 1; // if no applied pressure, then don't modify wall forces
+  double kc_temp = kc * force_multiplier;
   double shell, cut, s, distLower, distUpper, scaledDist, ftmp, f;
-  double kint = (kc * l1) / (l2 - l1);
+  double kint = (kc_temp * l1) / (l2 - l1);
   forceTop = 0;
   forceBottom = 0;
   forceLeft = 0;
@@ -373,12 +376,12 @@ void cell::wallForces(bool left, bool bottom, bool right, bool top, double& forc
         // force scale
         ftmp = kint * (scaledDist - 1.0 - l2) / s;
 
-        U += -0.5 * 1 * pow(1.0 + l2 - scaledDist, 2.0);
+        U += -0.5 * kint * pow(1.0 + l2 - scaledDist, 2.0);
       } else {
         // force scale
-        ftmp = kc * (1 - scaledDist) / s;
+        ftmp = kc_temp * (1 - scaledDist) / s;
 
-        U += 0.5 * kc * (pow(1.0 - scaledDist, 2.0) - l1 * l2);
+        U += 0.5 * kc_temp * (pow(1.0 - scaledDist, 2.0) - l1 * l2);
       }
       f = ftmp * s;
       F[i] += f;
@@ -399,9 +402,9 @@ void cell::wallForces(bool left, bool bottom, bool right, bool top, double& forc
         U += -0.5 * 1 * pow(1.0 + l2 - scaledDist, 2.0);
       } else {
         // force scale
-        ftmp = kc * (1 - scaledDist) / s;
+        ftmp = kc_temp * (1 - scaledDist) / s;
 
-        U += 0.5 * kc * (pow(1.0 - scaledDist, 2.0) - l1 * l2);
+        U += 0.5 * kc_temp * (pow(1.0 - scaledDist, 2.0) - l1 * l2);
       }
       f = -ftmp * s;
       F[i] += f;
@@ -472,6 +475,12 @@ void cell::cellPolarityForces(int ci, double k_polarity, std::string direction) 
   }
 }
 
+//routines
+
+void cell::initializeTransverseTissue(double cx, double cy, int id1, int id2, int numCellsInside) {
+  // initialize the starting position and all related data for a large deformable particle and numCellsInside smaller deformable particles
+}
+
 void cell::vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0) {
   // same as for dpm, but with less printing at the end
   // local variables
@@ -528,7 +537,7 @@ void cell::vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, 
   }
 }
 
-void cell::simulateDampedWithWalls(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, bool wallsOn, bool leftOpen, bool bottomOpen, bool rightOpen, bool topOpen, double trueStrainRateX, double trueStrainRateY, double appliedUniaxialPressure) {
+void cell::simulateDampedWithWalls(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, double pressureRate, double adhesionRate, bool wallsOn, bool leftOpen, bool bottomOpen, bool rightOpen, bool topOpen, double trueStrainRateX, double trueStrainRateY, double appliedUniaxialPressure) {
   // make sure velocities exist or are already initialized before calling this
   // assuming zero temperature - ignore thermostat (not implemented)
   // allow box lengths to move as a dynamical variable - rudimentary barostat,
@@ -551,8 +560,13 @@ void cell::simulateDampedWithWalls(dpmMemFn forceCall, double B, double dt0, dou
 
   // loop over time, print energy
   while (simclock - t0 < duration) {
-    XL[2] = L[0]; // set the dynamic boundary lengths to be equal to the current static boundary lengths. Both will be dynamic from here on out.
+    // set the dynamic boundary lengths to be equal to the current static boundary lengths. Both will be dynamic from here on out.
+    XL[2] = L[0];
     XL[3] = L[1];
+
+    appliedUniaxialPressure *= exp(pressureRate * dt);
+    l1 *= exp(adhesionRate * dt);
+
     // VV POSITION UPDATE
 
     for (i = 0; i < vertDOF; i++) {

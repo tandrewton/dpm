@@ -33,23 +33,29 @@ class cell : public dpm {
   // XL modifies the box size by mapping 0 -> 0 + XL[0], L[0] -> L[0] + XL[2], 0 -> 0 + XL[1], L[1] -> L[1] + XL[3]
 
   // energy/force modifiers
-  std::vector<double> cellID;  // 0 = tissue, 1 = cell (can set other numbers for other identities,
-                               // which can be used to control the interaction types)
-                               //
+  std::vector<int> cellID; // 0/1/2/... = NT/PSM1/NC/PSM2/cell0/cell1/cell2/cell3
+  std::vector<std::vector<double>> cellCellInteractionModifier; // size(cellID) x size(cellID) matrix where (i,j)th entry is the force modifier for interactions between cell types i and j
+
 
  public:
   cell(int n, double att1, double att2, int seed)
       : dpm(n, seed) {
     // set values here
     vector<double> zerosNCELLS(NCELLS, 0.0);
+    vector<int> zerosNCELLS_int(NCELLS, 0);
     vector<double> temp3(NDIM*2, 0.0);
     l1 = att1;
     l2 = att2;
     simclock = 0.0;
     VL = temp3;
     XL = VL;
+    cellID = zerosNCELLS_int; // all cells start with ID 0
+    vector<vector<double>> onesCellIDxCellID(cellID.size(), vector<double>(vector<double>(cellID.size(), 1.0)));
+    cellCellInteractionModifier = onesCellIDxCellID;  // all interactions start with multiplicative modifier 1.0
     cout << "Initializing epi2D object, l1 = " << l1 << ", l2 = " << l2 << '\n';
   }
+
+  void setCellCellAttractionModifiers(int i, int j, double val) {cellCellInteractionModifier[i][j] = val;}
 
   // epi cell interactions
   void repulsiveForceUpdateWithWalls();
@@ -85,8 +91,9 @@ class cell : public dpm {
   }
 
   // routines
+  void initializeTransverseTissue(double cx, double cy, int id1, int id2, int numCellsInside);
   void vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0);
-  void simulateDampedWithWalls(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, bool wallsOn, bool leftOpen, bool bottomOpen, bool rightOpen, bool topOpen, double trueStrainRateX = 0.0, double trueStrainRateY = 0.0, double appliedUniaxialPressure = 0.0);
+  void simulateDampedWithWalls(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, double pressureRate, double adhesionRate, bool wallsOn, bool leftOpen, bool bottomOpen, bool rightOpen, bool topOpen, double trueStrainRateX = 0.0, double trueStrainRateY = 0.0, double appliedUniaxialPressure = 0.0);
 
   // printouts
   void printConfiguration2D();

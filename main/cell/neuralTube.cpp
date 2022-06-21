@@ -13,8 +13,8 @@
 // Compilation command:
 // g++ -O3 --std=c++11 -g -I src main/cell/neuralTube.cpp src/dpm.cpp src/cell.cpp -o main/cell/NT.o
 // run command:
-// ./main/cell/NT.o    10   20 1.0 0.01  1    test
-//                  NCELLS NV  A0  att seed outFileStem
+// ./main/cell/NT.o    10   20 1.0 0.01    0.002         0.002        1    3000     test
+//                  NCELLS NV  A0  att pressure_rate adhesion_rate  seed runtime outFileStem
 
 #include <sstream>
 #include "cell.h"
@@ -25,10 +25,10 @@ using namespace std;
 // global constants
 const bool plotCompression = 0;     // whether or not to plot configuration during compression protocol (0 saves memory)
 const double dphi0 = 0.005;         // packing fraction increment
-const double ka = 2.0;              // area force spring constant (should be unit)
+const double ka = 1.0;              // area force spring constant (should be unit)
 const double kc = 1.0;              // interaction force spring constant (should be unit)
 const double kb = 0.0;              // bending energy spring constant (should be zero)
-const double kl = 2.0;              // segment length interaction force (should be unit)
+const double kl = 1.0;              // segment length interaction force (should be unit)
 const double boxLengthScale = 2.5;  // neighbor list box size in units of initial l0
 const double phi0 = 0.81;           // initial packing fraction
 const double phiMax = 0.815;
@@ -113,8 +113,8 @@ int main(int argc, char const* argv[]) {
   cout << "done compressing to target packing fraction\n";
 
   bool wallsBool = true;
-  double relaxTime = 50.0;
-  double runTime = 200.0;
+  double relaxTime = 200.0;
+  double runTime = 100.0;
   double B = 1.0;
 
   // dpmMemFn customForceUpdate = repulsivePolarityForceUpdate;
@@ -124,11 +124,14 @@ int main(int argc, char const* argv[]) {
   // release top wall and let system equilibrate
   // note: repulsiveForceUpdateWithWalls is not used here because we want to control which walls are on,
   //       as well as compute forces on the walls in case we want to integrate wall dynamics too
-  cell2D.simulateDampedWithWalls(customForceUpdate, B, dt0, relaxTime, 0.0, wallsBool, true, true, true, true);
+  double printIntervalNone = 0.0;
+  double adhesionRateNone = 0.0;
+  double pressureRateNone = 0.0;
+  cell2D.simulateDampedWithWalls(customForceUpdate, B, dt0, relaxTime, printIntervalNone, pressureRateNone, adhesionRateNone, wallsBool, true, true, true, true);
   cout << "done equilibrating under 4 dynamic walls\n";
 
   // equilibrate under 3 fixed walls and 1 dynamic wall
-  cell2D.simulateDampedWithWalls(customForceUpdate, B, dt0, relaxTime, 0.0, wallsBool, false, false, true, false);
+  cell2D.simulateDampedWithWalls(customForceUpdate, B, dt0, relaxTime, printIntervalNone, pressureRateNone, adhesionRateNone, wallsBool, false, false, true, false);
   cout << "done equilibrating under 1 dynamic wall\n";
 
   // begin lateral-medial compression
@@ -139,9 +142,11 @@ int main(int argc, char const* argv[]) {
   // begin uniaxial pressure simulation (P can be positive or negative, applied force to boundary is P * L)
   // top is fixed wall, sides are dynamic with applied pressure, bottom is dynamic with no pressure
   // appliedUniaxialPressure = 1 is too large, +/- 1e-2 is appropriate with timescale 200
-  double appliedUniaxialPressure = -1e-2; 
+  double appliedUniaxialPressure = -1e-2; // note that the particle-wall interactions might overpower the pressure
+  double pressureRate = 2e-3; // exponential growth rates of pressure and adhesion
+  double adhesionRate = 2e-3;
 
-  cell2D.simulateDampedWithWalls(customForceUpdate, B, dt0, runTime, runTime / 20.0, wallsBool, true, true, true, false, 0.0, 0.0, appliedUniaxialPressure);
+  cell2D.simulateDampedWithWalls(customForceUpdate, B, dt0, runTime, runTime / 40.0, pressureRate, adhesionRate, wallsBool, true, true, true, false, 0.0, 0.0, appliedUniaxialPressure);
 
   cout
       << "\n** Finished neuralTube.cpp, ending. " << endl;
