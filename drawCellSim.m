@@ -27,7 +27,7 @@ makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
 
-showverts = 0;
+showverts = 1;
 walls = 1;
  
 %PC directory

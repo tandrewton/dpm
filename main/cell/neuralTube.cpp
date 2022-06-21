@@ -113,8 +113,8 @@ int main(int argc, char const* argv[]) {
   cout << "done compressing to target packing fraction\n";
 
   bool wallsBool = true;
-  double relaxTime = 200.0;
-  double runTime = 100.0;
+  double relaxTime = 50.0;
+  double runTime = 200.0;
   double B = 1.0;
 
   // dpmMemFn customForceUpdate = repulsivePolarityForceUpdate;
@@ -138,10 +138,10 @@ int main(int argc, char const* argv[]) {
 
   // begin uniaxial pressure simulation (P can be positive or negative, applied force to boundary is P * L)
   // top is fixed wall, sides are dynamic with applied pressure, bottom is dynamic with no pressure
-  // appliedUniaxialPressure = 1 is too large, 1e-3 is appropriate with timescale < 1000 roughly
-  double appliedUniaxialPressure = 0.0; 
+  // appliedUniaxialPressure = 1 is too large, +/- 1e-2 is appropriate with timescale 200
+  double appliedUniaxialPressure = -1e-2; 
 
-  cell2D.simulateDampedWithWalls(customForceUpdate, B, dt0, runTime, runTime / 40.0, wallsBool, true, true, true, false, 0.0, 0.0, appliedUniaxialPressure);
+  cell2D.simulateDampedWithWalls(customForceUpdate, B, dt0, runTime, runTime / 20.0, wallsBool, true, true, true, false, 0.0, 0.0, appliedUniaxialPressure);
 
   cout
       << "\n** Finished neuralTube.cpp, ending. " << endl;

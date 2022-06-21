@@ -411,6 +411,17 @@ void cell::wallForces(bool left, bool bottom, bool right, bool top, double& forc
         forceTop -= f;
     }
   }
+  
+  /*if (simclock < 500 && simclock > 400){
+    cout << "simclock = " << simclock << '\n';
+    cout << "wall forces = " << forceLeft << '\t' << forceRight << '\n';
+    cout << "applied pressure = " << appliedUniaxialPressure*L[1] << '\n';
+    cout << "left = " << left << '\t' << "right = " << right << '\n';
+  }*/
+
+  forceLeft += appliedUniaxialPressure * L[1];
+  forceRight += -appliedUniaxialPressure * L[1];
+
 
   if (L[0] < r[0]){
     cout << "forceLeft = " << forceLeft << ", added force = " << appliedUniaxialPressure * L[1] << '\n';
@@ -419,8 +430,6 @@ void cell::wallForces(bool left, bool bottom, bool right, bool top, double& forc
     //assert(false);
   }
     
-  forceLeft += appliedUniaxialPressure * L[1];
-  forceRight += -appliedUniaxialPressure * L[1];
 }
 
 void cell::cellPolarityForces(int ci, double k_polarity, std::string direction) {
@@ -532,10 +541,9 @@ void cell::simulateDampedWithWalls(dpmMemFn forceCall, double B, double dt0, dou
   int i;
   double K, t0 = simclock;
   double temp_simclock = simclock;
-  double FT, FB, FL, FR;
-  double oldFT, oldFB, oldFL, oldFR;
+  double FT = 0, FB = 0, FL = 0, FR = 0;
+  double oldFT = FT, oldFB = FB, oldFL = FL, oldFR = FR;
   std::vector<double> boundaryDisplacement(NDIM, 0.0);
-
 
   // set time step magnitude
   setdt(dt0);
