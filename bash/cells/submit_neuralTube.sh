@@ -4,13 +4,13 @@
 #example call: bash bash/epi2D/submit_neuralTube.sh 10 20 1.0 0.01 0.002 0.002 1 3000 pi_ohern,day,scavenge 0-12:00:00 1 1
 dpmdir=~/dpm
 srcdir=$dpmdir/src
-maindir=$dpmdir/main/cells
+maindir=$dpmdir/main/cell
 
 # directory for all output for cell simulations
 outputdir=/gpfs/loomis/project/fas/ohern/at965/dpm
 
 # directory for simulations specific to laserAblation
-simtypedir=$outputdir/cells
+simtypedir=$outputdir/cell
 
 # make directories, unless they already exist
 mkdir -p $outputdir
