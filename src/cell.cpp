@@ -40,6 +40,24 @@ void cell::attractiveWithPolarityForceUpdate() {
   vertexAttractiveForces2D_2();
 }
 
+void cell::attractiveWithPolarityForceAndWallCrawlingUpdate() {
+  resetForcesAndEnergy();
+  shapeForces2D();
+  // give each cell a y-penalized polarity
+  for (int ci = 0; ci < NCELLS; ci++) {
+    cellPolarityForces(ci, 0.1, "y");
+  }
+  vertexAttractiveForces2D_2();
+  wallCrawlingForces();
+}
+
+void cell::attractiveWallCrawlingForceUpdate() {
+  resetForcesAndEnergy();
+  shapeForces2D();
+  vertexAttractiveForces2D_2();
+  wallCrawlingForces();
+}
+
 void cell::vertexAttractiveForces2D_2() {
   // altered from dpm attractive force code, because it works with larger l2
   // values. (warning: probably won't work with bending.) local variables
@@ -321,11 +339,12 @@ void cell::wallForces(bool left, bool bottom, bool right, bool top, double& forc
   //  barostat e.g. for 3 fixed walls and 1 moving wall, set true false false
   //  false forceTop, etc., are forces on the walls due to newton's 3rd law +
   //  collisions.
+  // also fills cellTouchesWallsLeft and Right, which tells whether a cell is touching either wall
 
   // TODO: compute wall-cell attraction energy per cell (pain to go from vi to
   // ci, so not doing this)
   bool collideTopOrRight, collideBottomOrLeft;
-  int vi = 0, gi = 0;
+  int vi = 0, gi = 0, ci_temp, vi_temp;
   double cx = 0, cy = 0;
   double boxL, force_multiplier = 10, fmag = 0;
   if (fabs(appliedUniaxialPressure) < 1e-10)
@@ -337,6 +356,9 @@ void cell::wallForces(bool left, bool bottom, bool right, bool top, double& forc
   forceBottom = 0;
   forceLeft = 0;
   forceRight = 0;
+
+  std::fill(cellTouchesWallsLeft.begin(), cellTouchesWallsLeft.end(), false); // reset cellTouchesWallsLeft and Right
+  cellTouchesWallsRight = cellTouchesWallsLeft;
 
   // if any cells have their centers outside of the box, force them towards the
   // center
@@ -369,6 +391,10 @@ void cell::wallForces(bool left, bool bottom, bool right, bool top, double& forc
 
     // check if vertex is within attracting distance
     if (distLower < shell) {
+      if (i % 2 == 0) { // only care about touching left or right walls at this stage
+        cindices(ci_temp, vi_temp, vi);
+        cellTouchesWallsLeft[ci_temp] = true;
+      }
       // scaled distance
       scaledDist = distLower / s;
       // check within attraction ring
@@ -392,6 +418,10 @@ void cell::wallForces(bool left, bool bottom, bool right, bool top, double& forc
     }
     // check if vertex is within attracting distance
     if (distUpper < shell) {
+      if (i % 2 == 0) {
+        cindices(ci_temp, vi_temp, vi);
+        cellTouchesWallsRight[ci_temp] = true;
+      }
       // scaled distance
       scaledDist = distUpper / s;
       // check within attraction ring
@@ -414,13 +444,6 @@ void cell::wallForces(bool left, bool bottom, bool right, bool top, double& forc
         forceTop -= f;
     }
   }
-  
-  /*if (simclock < 500 && simclock > 400){
-    cout << "simclock = " << simclock << '\n';
-    cout << "wall forces = " << forceLeft << '\t' << forceRight << '\n';
-    cout << "applied pressure = " << appliedUniaxialPressure*L[1] << '\n';
-    cout << "left = " << left << '\t' << "right = " << right << '\n';
-  }*/
 
   forceLeft += appliedUniaxialPressure * L[1];
   forceRight += -appliedUniaxialPressure * L[1];
@@ -431,8 +454,43 @@ void cell::wallForces(bool left, bool bottom, bool right, bool top, double& forc
     cout << "L[0] = " << L[0] << " < r[0] = " << r[0] << ", there is no room left to compress or simclock < 410\n";
     cout << "XL[0] = " << XL[0] << '\n';
     //assert(false);
+  } 
+}
+
+void cell::wallCrawlingForces(){
+  // compute crawling forces for cells that are touching either the left or right walls, on their polarized end away from the wall.
+  double kint = 10*(kc * l1) / (l2 - l1);
+  for (int ci = 0; ci < NCELLS; ci++){
+    double nearestXValueToCenter = 0.0;
+    int nearestGiToCenter = -1;
+    if (cellTouchesWallsLeft[ci]){
+      nearestXValueToCenter = XL[0];
+      for (int vi = 0; vi < nv[ci]; vi++){
+        int gi = gindex(ci, vi);
+        if (x[gi*NDIM] > nearestXValueToCenter){
+          nearestXValueToCenter = x[gi*NDIM];
+          nearestGiToCenter = gi;
+        }
+      }
+    }
+    else if (cellTouchesWallsRight[ci]){
+      nearestXValueToCenter = L[0];
+      for (int vi = 0; vi < nv[ci]; vi++){
+        int gi = gindex(ci, vi);
+        if (x[gi*NDIM] < nearestXValueToCenter){
+          nearestXValueToCenter = x[gi*NDIM];
+          nearestGiToCenter = gi;
+        }
+      }
+    }
+    bool nearestVertexToCenterFound = (nearestGiToCenter != -1);
+    if (nearestVertexToCenterFound) {
+      //cout << "adding force to vertex gi = " << nearestGiToCenter << ", at XValue " << nearestXValueToCenter << ", simclock = " << simclock << '\n';
+      //cout << "force is equal to " << kint * ((XL[0] + L[0])/2.0 - nearestXValueToCenter) << '\n'; 
+      F[nearestGiToCenter*NDIM] += kint * ((XL[0] + L[0])/2.0 - nearestXValueToCenter); 
+      //cout << "total force is equal to " << F[nearestGiToCenter*NDIM] << '\n';
+    }
   }
-    
 }
 
 void cell::cellPolarityForces(int ci, double k_polarity, std::string direction) {

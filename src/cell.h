@@ -36,6 +36,9 @@ class cell : public dpm {
   std::vector<int> cellID; // 0/1/2/... = NT/PSM1/NC/PSM2/cell0/cell1/cell2/cell3
   std::vector<std::vector<double>> cellCellInteractionModifier; // size(cellID) x size(cellID) matrix where (i,j)th entry is the force modifier for interactions between cell types i and j
 
+  // activity data
+  std::vector<bool> cellTouchesWallsLeft;
+  std::vector<bool> cellTouchesWallsRight;
 
  public:
   cell(int n, double att1, double att2, int seed)
@@ -43,6 +46,7 @@ class cell : public dpm {
     // set values here
     vector<double> zerosNCELLS(NCELLS, 0.0);
     vector<int> zerosNCELLS_int(NCELLS, 0);
+    vector<bool> falseNCELLS(NCELLS, false);
     vector<double> temp3(NDIM*2, 0.0);
     l1 = att1;
     l2 = att2;
@@ -52,6 +56,8 @@ class cell : public dpm {
     cellID = zerosNCELLS_int; // all cells start with ID 0
     vector<vector<double>> onesCellIDxCellID(cellID.size(), vector<double>(vector<double>(cellID.size(), 1.0)));
     cellCellInteractionModifier = onesCellIDxCellID;  // all interactions start with multiplicative modifier 1.0
+    cellTouchesWallsLeft = falseNCELLS;
+    cellTouchesWallsRight = falseNCELLS;
     cout << "Initializing epi2D object, l1 = " << l1 << ", l2 = " << l2 << '\n';
   }
 
@@ -64,9 +70,11 @@ class cell : public dpm {
   void attractiveForceUpdate();
   void repulsiveWithPolarityForceUpdate();
   void attractiveWithPolarityForceUpdate();
+  void attractiveWithPolarityForceAndWallCrawlingUpdate();
+  void attractiveWallCrawlingForceUpdate();
 
-  //void wallForces(bool top, bool bottom, bool left, bool right, double& forceTop, double& forceBottom, double& forceLeft, double& forceRight, double appliedUniaxialPressure = 0.0);
   void wallForces(bool left, bool bottom, bool right, bool top, double& forceLeft, double& forceBottom, double& forceRight, double& forceTop, double appliedUniaxialPressure = 0.0);
+  void wallCrawlingForces();
   void cellPolarityForces(int ci, double k_polarity, std::string direction = "y");
 
   // File openers

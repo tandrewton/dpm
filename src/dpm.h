@@ -190,6 +190,7 @@ class dpm {
   void setkc(double val) { kc = val; };
   void setl1(double val) { l1 = val; };
   void setl2(double val) { l2 = val; };
+  void scaleL(int d, double val) {L.at(d) *= val;};
 
   // File openers
   void openPosObject(std::string& str) {
@@ -209,7 +210,7 @@ class dpm {
   void initializeVertexShapeParameters(double calA0, int nref);
   void initializeVertexShapeParameters(std::vector<double> calA0, int nref);
   void initializeVertexIndexing2D();
-  void initializePositions2D(double phi0, double Ftol, bool isFixedBoundary = false);
+  void initializePositions2D(double phi0, double Ftol, bool isFixedBoundary = false, double aspectRatio = 1.0);
   void initializeAllPositions(std::string vertexPositionFile, int nref);
   void initializeFromConfigurationFile(std::string vertexPositionFile, double phi0);
   void initializeNeighborLinkedList2D(double boxLengthScale);

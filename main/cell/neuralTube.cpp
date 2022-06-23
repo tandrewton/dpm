@@ -13,7 +13,7 @@
 // Compilation command:
 // g++ -O3 --std=c++11 -g -I src main/cell/neuralTube.cpp src/dpm.cpp src/cell.cpp -o main/cell/NT.o
 // run command:
-// ./main/cell/NT.o    10   20 1.0 0.01      -0.01          0.002         0.002        1    3000     test
+// ./main/cell/NT.o    10   20 1.0 0.01      -0.01          0.002         0.002        1    30     test
 //                  NCELLS NV  A0  att initial_pressure pressure_rate adhesion_rate  seed runtime outFileStem
 
 #include <sstream>
@@ -110,7 +110,9 @@ int main(int argc, char const* argv[]) {
   cell2D.monodisperse2D(calA0, nv);
 
   // initialize particle positions
-  cell2D.initializePositions2D(phi0, Ftol, false);
+  double aspectRatioBox = 2.0;
+  cell2D.initializePositions2D(phi0, Ftol, false, aspectRatioBox);
+
 
   // initialize neighbor linked list
   cell2D.initializeNeighborLinkedList2D(boxLengthScale);
@@ -120,6 +122,8 @@ int main(int argc, char const* argv[]) {
   dpmMemFn attractiveForceUpdate = static_cast<void (dpm::*)()>(&cell::attractiveForceUpdate);
   dpmMemFn repulsivePolarityForceUpdate = static_cast<void (dpm::*)()>(&cell::repulsiveWithPolarityForceUpdate);
   dpmMemFn attractivePolarityForceUpdate = static_cast<void (dpm::*)()>(&cell::attractiveWithPolarityForceUpdate);
+  dpmMemFn attractiveWallCrawlingPolarityForceUpdate = static_cast<void (dpm::*)()>(&cell::attractiveWithPolarityForceAndWallCrawlingUpdate);
+  dpmMemFn attractiveWallCrawlingForceUpdate = static_cast<void (dpm::*)()>(&cell::attractiveWallCrawlingForceUpdate);
 
   // compress to target packing fraction
   cell2D.vertexCompress2Target2D(repulsiveForceUpdateWithWalls, Ftol, dt0, phiMax, dphi0);
@@ -131,8 +135,10 @@ int main(int argc, char const* argv[]) {
   double B = 1.0;
 
   // dpmMemFn customForceUpdate = repulsivePolarityForceUpdate;
-  // dpmMemFn customForceUpdate = attractivePolarityForceUpdate;
-  dpmMemFn customForceUpdate = attractiveForceUpdate;
+  dpmMemFn customForceUpdate = attractivePolarityForceUpdate;
+  dpmMemFn customActiveForceUpdate = attractiveWallCrawlingPolarityForceUpdate;
+  dpmMemFn customActiveForceUpdateWithoutPolarity = attractiveWallCrawlingForceUpdate;
+  // dpmMemFn customForceUpdate = attractiveForceUpdate;
 
   // release top wall and let system equilibrate
   // note: repulsiveForceUpdateWithWalls is not used here because we want to control which walls are on,
@@ -159,7 +165,8 @@ int main(int argc, char const* argv[]) {
   //double pressureRate = 2e-3; // exponential growth rates of pressure and adhesion
   //double adhesionRate = 2e-3;
 
-  cell2D.simulateDampedWithWalls(customForceUpdate, B, dt0, runTime, runTime / 40.0, pressureRate, adhesionRate, wallsBool, true, true, true, false, 0.0, 0.0, appliedUniaxialPressure);
+  // note: this is the active part of the simulation, where the activeForceUpdate has crawling, and there could be a command-line pressure and adhesion rate.
+  cell2D.simulateDampedWithWalls(customActiveForceUpdateWithoutPolarity, B, dt0, runTime, runTime / 40.0, pressureRate, adhesionRate, wallsBool, true, true, true, false, 0.0, 0.0, appliedUniaxialPressure);
 
   cout
       << "\n** Finished neuralTube.cpp, ending. " << endl;

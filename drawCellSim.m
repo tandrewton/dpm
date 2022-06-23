@@ -3,6 +3,7 @@
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
 
+%function drawCellSim(N, att, initialPressure, prate, adhrate, Duration)
 %isTestData = false; %uncomment if using function call to pipeline data
 
 isTestData = true; %uncomment if using test data
@@ -11,13 +12,12 @@ addpath('C:\Users\atata\projects\dpm\bash')
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
 %CHANGE THESE PARAMETERS                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   NEEDED
 
-runType = "neuralTube";
+%NT_calA01.0_initPressure-0.01_prate0.002_adhrate0.0
+% _NCELLS10_Duration100_att0.01_startseed1_endseed1_seed1
+runType = "NT";
 %N="40";
-%calA0="1.01";
-%strainRate_ps="0.01";
-%deltaSq = "2.0";
+calA0="1.0";
 %att="0.2";
-%B="1.0";
 %Duration="800";
 FSKIP = 1;
 
@@ -59,9 +59,10 @@ for seed = startSeed:max_seed
         energystr = pc_dir+'test.energy';
         stressstr = pc_dir+'test.stress';
     else
-        run_name =runType+"_calA0"+calA0+"_strainRate_ps"+strainRate_ps+ ...
-            "_deltaSq"+deltaSq+"_k_ps"+k_ps+"_k_lp"+k_lp+...
-            "_tau_lp"+tau_lp+"_d_flag"+d_flag+"_prate"+prate;
+        %NT_calA01.0_initPressure-0.01_prate0.002_adhrate0.0
+        % _NCELLS10_Duration100_att0.01_startseed1_endseed1_seed1
+        run_name =runType+"_calA0"+calA0+'_initPressure'+initialPressure...
+            +'_prate'+prate+'_adhrate'+adhrate;
         pipeline_dir =  subdir_pipeline + run_name + "/";
         output_dir = subdir_output + run_name + "/";
         mkdir(pipeline_dir)
@@ -129,6 +130,7 @@ for seed = startSeed:max_seed
 %     end
 
     % read in position data
+    nvestr
     [trajectoryData, cell_count] = readCellClassPosOutput(nvestr);
 
     % get number of frames

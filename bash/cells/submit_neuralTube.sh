@@ -9,8 +9,8 @@ maindir=$dpmdir/main/cell
 # directory for all output for cell simulations
 outputdir=/gpfs/loomis/project/fas/ohern/at965/dpm
 
-# directory for simulations specific to laserAblation
-simtypedir=$outputdir/cell
+# directory for simulations specific to neuralTube
+simtypedir=$outputdir/NT
 
 # make directories, unless they already exist
 mkdir -p $outputdir
