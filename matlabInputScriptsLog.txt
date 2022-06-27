@@ -1,0 +1,102 @@
+drawWoundSims(N, strainRate_ps, calA0, tau_lp, deltaSq, d_flag, att,  ka)
+
+drawWoundSims("40", "0.0", "1.0", "1.0", "10.0", "3.0", "0.2", "1.0")
+drawWoundSims("40", "0.013", "1.0","1.0", "10.0", "3.0", "0.2", "1.0")
+drawWoundSims("40", "0.026", "1.0","1.0", "10.0", "3.0","0.2", "1.0")
+drawWoundSims("40", "0.053", "1.0","1.0", "10.0", "3.0","0.2", "1.0")
+drawWoundSims("40", "0.106", "1.0","1.0", "10.0", "3.0","0.2", "1.0")
+drawWoundSims("40", "0.0", "1.05", "1.0", "10.0", "3.0","0.2", "1.0")
+drawWoundSims("40", "0.013", "1.05","1.0", "10.0", "3.0","0.2", "1.0")
+drawWoundSims("40", "0.026", "1.05","1.0", "10.0", "3.0","0.2", "1.0")
+drawWoundSims("40", "0.053", "1.05","1.0", "10.0", "3.0","0.2", "1.0")
+drawWoundSims("40", "0.106", "1.05","1.0", "10.0", "3.0","0.2", "1.0")
+drawWoundSims("40", "0.0", "1.10", "1.0", "10.0", "3.0","0.2", "1.0")
+drawWoundSims("40", "0.013", "1.10","1.0", "10.0", "3.0","0.2", "1.0")
+drawWoundSims("40", "0.026", "1.10","1.0", "10.0", "3.0","0.2", "1.0")
+drawWoundSims("40", "0.053", "1.10","1.0", "10.0", "3.0","0.2", "1.0")
+drawWoundSims("40", "0.106", "1.10","1.0", "10.0", "3.0","0.2", "1.0")
+drawWoundSims("40", "0.0", "1.15", "1.0", "10.0", "3.0","0.2", "1.0")
+drawWoundSims("40", "0.013", "1.15","1.0", "10.0", "3.0","0.2", "1.0")
+drawWoundSims("40", "0.026", "1.15","1.0", "10.0", "3.0","0.2", "1.0")
+drawWoundSims("40", "0.053", "1.15","1.0", "10.0", "3.0","0.2", "1.0")
+drawWoundSims("40", "0.106", "1.15","1.0", "10.0", "3.0","0.2", "1.0")
+
+drawWoundSims("40", "0.013", "1.0","1.0", "10.0", "3.0","0.2", "0.5")
+drawWoundSims("40", "0.013", "1.0","1.0", "10.0", "3.0","0.2", "1.0")
+drawWoundSims("40", "0.013", "1.0","1.0", "10.0", "3.0","0.2", "1.5")
+drawWoundSims("40", "0.013", "1.0","1.0", "10.0", "3.0","0.2", "2.0")
+drawWoundSims("40", "0.013", "1.05","1.0", "10.0", "3.0","0.2", "0.5")
+drawWoundSims("40", "0.013", "1.05","1.0", "10.0", "3.0","0.2", "1.0")
+drawWoundSims("40", "0.013", "1.05","1.0", "10.0", "3.0","0.2", "1.5")
+drawWoundSims("40", "0.013", "1.05","1.0", "10.0", "3.0","0.2", "2.0")
+drawWoundSims("40", "0.013", "1.10","1.0", "10.0", "3.0","0.2", "0.5")
+drawWoundSims("40", "0.013", "1.10","1.0", "10.0", "3.0","0.2", "1.0")
+drawWoundSims("40", "0.013", "1.10","1.0", "10.0", "3.0","0.2", "1.5")
+drawWoundSims("40", "0.013", "1.10","1.0", "10.0", "3.0","0.2", "2.0")
+drawWoundSims("40", "0.013", "1.15","1.0", "10.0", "3.0","0.2", "0.5")
+drawWoundSims("40", "0.013", "1.15","1.0", "10.0", "3.0","0.2", "1.0")
+drawWoundSims("40", "0.013", "1.15","1.0", "10.0", "3.0","0.2", "1.5")
+drawWoundSims("40", "0.013", "1.15","1.0", "10.0", "3.0","0.2", "2.0")
+
+drawWoundSims("40", "0.0", "1.10","1.0", "10.0", "3.0","0.2", "0.1")
+drawWoundSims("40", "0.0", "1.10","1.0", "10.0", "3.0","0.2", "0.4")
+drawWoundSims("40", "0.0", "1.10","1.0", "10.0", "3.0","0.2", "1.6")
+drawWoundSims("40", "0.0", "1.10","1.0", "10.0", "3.0","0.2", "6.4")
+drawWoundSims("40", "0.0", "1.10","1.0", "10.0", "3.0","0.2", "26.6")
+drawWoundSims("40", "0.013", "1.10","1.0", "10.0", "3.0","0.2", "0.1")
+drawWoundSims("40", "0.013", "1.10","1.0", "10.0", "3.0","0.2", "0.4")
+drawWoundSims("40", "0.013", "1.10","1.0", "10.0", "3.0","0.2", "1.6")
+drawWoundSims("40", "0.013", "1.10","1.0", "10.0", "3.0","0.2", "6.4")
+drawWoundSims("40", "0.013", "1.10","1.0", "10.0", "3.0","0.2", "26.6")
+drawWoundSims("40", "0.026", "1.10","1.0", "10.0", "3.0","0.2", "0.1")
+drawWoundSims("40", "0.026", "1.10","1.0", "10.0", "3.0","0.2", "0.4")
+drawWoundSims("40", "0.026", "1.10","1.0", "10.0", "3.0","0.2", "1.6")
+drawWoundSims("40", "0.026", "1.10","1.0", "10.0", "3.0","0.2", "6.4")
+drawWoundSims("40", "0.026", "1.10","1.0", "10.0", "3.0","0.2", "26.6")
+drawWoundSims("40", "0.052", "1.10","1.0", "10.0", "3.0","0.2", "0.1")
+drawWoundSims("40", "0.052", "1.10","1.0", "10.0", "3.0","0.2", "0.4")
+drawWoundSims("40", "0.052", "1.10","1.0", "10.0", "3.0","0.2", "1.6")
+drawWoundSims("40", "0.052", "1.10","1.0", "10.0", "3.0","0.2", "6.4")
+drawWoundSims("40", "0.052", "1.10","1.0", "10.0", "3.0","0.2", "26.6")
+
+
+SMB://storage.yale.edu/home/Holley_Lab-615002-FASMCB
+
+cd /Users/AndrewTon/Documents/YalePhD/projects/imageProcessing/Zebrafish/testTIFF/
+jupyter notebook
+
+cd /Users/AndrewTon/Documents/YalePhD/projects/vertex/AAVM/studentCopy/kp0_shape3.2/images/
+mogrify -format jpg *.ps
+ffmpeg -f image2 -i 'wound_healing_%*.jpg' test.mp4
+
+cd /Users/AndrewTon/Documents/YalePhD/projects/vertex/AAVM/studentCopy/kp0_shape4.0/images/
+mogrify -format jpg *.ps
+ffmpeg -f image2 -i 'wound_healing_%*.jpg' test.mp4
+
+cd /Users/AndrewTon/Documents/YalePhD/projects/vertex/AAVM/studentCopy/kp0_shape4.6/images/
+mogrify -format jpg *.ps
+ffmpeg -f image2 -i 'wound_healing_%*.jpg' test.mp4
+
+cd /Users/AndrewTon/Documents/YalePhD/projects/vertex/AAVM/studentCopy/kp4_shape3.2/images/
+mogrify -format jpg *.ps
+ffmpeg -f image2 -i 'wound_healing_%*.jpg' test.mp4
+
+cd /Users/AndrewTon/Documents/YalePhD/projects/vertex/AAVM/studentCopy/kp4_shape4.0/images/
+mogrify -format jpg *.ps
+ffmpeg -f image2 -i 'wound_healing_%*.jpg' test.mp4
+
+cd /Users/AndrewTon/Documents/YalePhD/projects/vertex/AAVM/studentCopy/kp4_shape4.6/images/
+mogrify -format jpg *.ps
+ffmpeg -f image2 -i 'wound_healing_%*.jpg' test.mp4
+
+cd /Users/AndrewTon/Documents/YalePhD/projects/vertex/AAVM/studentCopy/kp16_shape3.2/images/
+mogrify -format jpg *.ps
+ffmpeg -f image2 -i 'wound_healing_%*.jpg' test.mp4
+
+cd /Users/AndrewTon/Documents/YalePhD/projects/vertex/AAVM/studentCopy/kp16_shape4.0/images/
+mogrify -format jpg *.ps
+ffmpeg -f image2 -i 'wound_healing_%*.jpg' test.mp4
+
+cd /Users/AndrewTon/Documents/YalePhD/projects/vertex/AAVM/studentCopy/kp16_shape4.6/images/
+mogrify -format jpg *.ps
+ffmpeg -f image2 -i 'wound_healing_%*.jpg' test.mp4
