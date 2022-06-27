@@ -3,10 +3,10 @@
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
 
-%function drawWoundSims(N, strainRate_ps, calA0, tau_lp, deltaSq, d_flag, att, k_a) %uncomment if using function call to pipeline data
-%isTestData = false; %uncomment if using function call to pipeline data
+function drawWoundSims(N, strainRate_ps, calA0, tau_lp, deltaSq, d_flag, att, k_a) %uncomment if using function call to pipeline data
+isTestData = false; %uncomment if using function call to pipeline data
 
-isTestData = true; %uncomment if using test data
+%isTestData = true; %uncomment if using test data
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('C:\Users\atata\projects\dpm\bash')
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
@@ -106,6 +106,8 @@ for seed = startSeed:max_seed
         voidAreaStr = pipeline_dir+fileheader+ '.voidArea';
     end
     
+    cd(output_dir)
+    
     figure(13); clf; hold on;
     stress = load(stressstr);
     plot(stress(:,1), stress(:,3), 'r-', 'linewidth',2, 'DisplayName',...
@@ -121,7 +123,7 @@ for seed = startSeed:max_seed
     ax.FontSize = 24;
     if seed == max_seed 
      %annotation('textbox',[.2 .5 .5 .3],'String', txt, 'Edgecolor','none')
-     saveas(gcf, output_dir + 'Stress'+runType+fileheader+'_'+max_seed+ ...
+     saveas(gcf, 'Stress'+runType+fileheader+'_'+max_seed+ ...
          '.eps', 'epsc')
     end
 
@@ -139,7 +141,7 @@ for seed = startSeed:max_seed
     ax.FontSize = 24;
     if seed == max_seed 
      %annotation('textbox',[.2 .5 .5 .3],'String', txt, 'Edgecolor','none')
-     saveas(gcf, output_dir + 'ShapeStress'+runType+fileheader+'_'+max_seed+ ...
+     saveas(gcf, 'ShapeStress'+runType+fileheader+'_'+max_seed+ ...
          '.eps', 'epsc')
     end
 
@@ -163,7 +165,7 @@ for seed = startSeed:max_seed
     ax = gca;
     ax.FontSize = 24;
     if seed == max_seed 
-     saveas(gcf, output_dir + 'Energy'+runType+fileheader+'_'+max_seed+ ...
+     saveas(gcf, 'Energy'+runType+fileheader+'_'+max_seed+ ...
          '.eps', 'epsc')
     end
 
@@ -176,7 +178,7 @@ for seed = startSeed:max_seed
         ylabel('Area','Interpreter','latex','fontsize', 24);
     end
     if seed == max_seed 
-     saveas(gcf, output_dir + 'VoidArea'+runType+fileheader+'_'+max_seed+'.eps', 'epsc')
+     saveas(gcf, 'VoidArea'+runType+fileheader+'_'+max_seed+'.eps', 'epsc')
     end
 
     % read in position data
@@ -208,7 +210,7 @@ for seed = startSeed:max_seed
     FEND = NFRAMES;
 
     if makeAMovie == 1
-        moviestr = output_dir + runType+fileheader+'seed_'+seed+'.mp4';
+        moviestr = runType+fileheader+'.mp4';
         vobj = VideoWriter(moviestr, 'MPEG-4');
         vobj.Quality = 100;
             
@@ -257,7 +259,7 @@ for seed = startSeed:max_seed
     ylabel('$\langle zv \rangle$','Interpreter','LaTeX','Fontsize',36)
     legend('location','Southeast')
 
-    saveas(gcf, output_dir + 'contacts'+runType+fileheader+'_'+max_seed+ ...
+    saveas(gcf, 'contacts'+runType+fileheader+'_'+max_seed+ ...
          '.eps', 'epsc')
 
     figure(3)
@@ -268,7 +270,7 @@ for seed = startSeed:max_seed
     plot(time-time(1), shape, 'k', 'linewidth', 4)
     xlabel('$t/\tau$','Interpreter','latex','fontsize', 36);
     ylabel('$\mathcal{A}$','Interpreter','LaTeX','Fontsize',36)
-    saveas(gcf, output_dir + 'shapes'+runType+fileheader+'_'+max_seed+...
+    saveas(gcf, 'shapes'+runType+fileheader+'_'+max_seed+...
         '.eps','epsc')
     if (plotCells == 1)
         for ff = FSTART:FSTEP:FEND
@@ -466,6 +468,7 @@ for seed = startSeed:max_seed
     % close video object
     if makeAMovie == 1
         close(vobj);
+        cd ../../../../
     end
     if showVoid
         figure(14); clf, hold on, box on
@@ -474,7 +477,7 @@ for seed = startSeed:max_seed
         plot(time, gradient(voidArea(:))./gradient(time(:)), 'DisplayName', 'dA/dt','linewidth', 3);
         xlabel('$\tau$','Interpreter','latex');
         ylabel('A, dA/dt');
-        saveas(gcf, output_dir + 'Area'+runType+fileheader+'_'+max_seed+'.eps', 'epsc')
+        saveas(gcf, 'Area'+runType+fileheader+'_'+max_seed+'.eps', 'epsc')
         legend
     end
 end
