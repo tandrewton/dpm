@@ -40,7 +40,7 @@ plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
 
-showverts = 0;
+showverts = 1;
 showBoundaries = 0;
 showArea = 1;
 showQuiver = 0;
@@ -52,7 +52,7 @@ showVoid = 0;
 showVoidBlack = 0; % print void in larger black circles to see easier
 showCornersOrEdges = 0;
 showPurseString = 0;
-showProtrusion = 0;
+showProtrusion = 1;
 showShapeHistogram = 0;
  
 %PC directory

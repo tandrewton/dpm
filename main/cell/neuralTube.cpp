@@ -15,6 +15,7 @@
 // run command:
 // ./main/cell/NT.o    10   20 1.0 0.01      -0.01          0.002         0.002        1    30     test
 //                  NCELLS NV  A0  att initial_pressure pressure_rate adhesion_rate  seed runtime outFileStem
+// ran 40 seconds on WSL (bash on windows)
 
 #include <sstream>
 #include "cell.h"

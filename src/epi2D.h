@@ -315,6 +315,7 @@ class epi2D : public dpm {
   void orientDirector(int ci, double xLoc, double yLoc);
   void deflectOverlappingDirectors();
   double getDistanceToVertexAtAnglePsi(int ci, double psi_ci, double cx, double cy, int& gi);
+  double getDistanceToRandomUnadheredVertex(int ci, double cx, double cy, int&gi);
   double rotateAndCalculateArcLength(int ci, std::vector<int>& woundIndicesBelongingToCi);
   void purseStringContraction(double B);
   void initializePurseStringVariables();

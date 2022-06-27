@@ -632,7 +632,7 @@ void epi2D::substrateadhesionAttractiveForceUpdate() {
   // reset forces, then get shape and attractive forces.
   attractiveForceUpdate_2();
   resetActiveEnergy();
-  directorDiffusion();
+  //directorDiffusion();
   updateSubstrateSprings();
 
   for (auto ci : initialWoundCellIndices) {
@@ -871,9 +871,15 @@ void epi2D::updateSubstrateSprings() {
       if (!flag[ci]) {
         // pick a direction, throw a flag in that direction
         int gi;  // nearest vertex to the flag
-        minFlagDistance = getDistanceToVertexAtAnglePsi(ci, psi[ci], center[ci][0], center[ci][1], gi);
+        // minFlagDistance = getDistanceToVertexAtAnglePsi(ci, psi[ci], center[ci][0], center[ci][1], gi);
+
+        // randomly chooses an unadhered vertex, updates psi[ci] using that vertex, and gives the distance to that vertex.
+        minFlagDistance = getDistanceToRandomUnadheredVertex(ci, center[ci][0], center[ci][1], gi);
+        
+        if (minFlagDistance < 0) // failed to find a valid vertex to throw a flag from
+          continue;
         // flagDistance += 3 * 2 * r[gi];
-        int fractionOfDiameter = 4; // try protruding in increments of diameter / fractionOfDiameter
+        double fractionOfDiameter = 4.0; // try protruding in increments of diameter / fractionOfDiameter
         for (int i = 0; i < fractionOfDiameter*floor(maxProtrusionLength) - 1 && !flag[ci]; i++) {
           cancelFlagToss = false;
           flagDistance = minFlagDistance + (maxProtrusionLength - i / fractionOfDiameter) * 2.0 * r[gi];
@@ -898,9 +904,6 @@ void epi2D::updateSubstrateSprings() {
                                            x[gj * NDIM + 1]) < r[gj]) {
                     // yes, flag has been blocked at this length. Try new flag length.
                     cancelFlagToss = true;
-                    // inhibited, so director goes in opposite direction.
-                    // psi[cj] += PI;
-                    // psi[cj] -= 2 * PI * round(psi[cj] / (2 * PI));
                     break;
                   }
                 }
@@ -916,6 +919,8 @@ void epi2D::updateSubstrateSprings() {
             giConnectedToFlag[ci] = gi;
             // restLengthLPx[ci] = 0;
             // restLengthLPy[ci] = 0;
+            //cout << "flagDistance = " << flagDistance << "\t, 2*r[gi] = " << 2*r[gi] << '\n';
+            //cout << "i = " << i << "\t, minFlagDistance = " << minFlagDistance << "\t, psi[ci] = " << psi[ci] << '\n';
           }
         }
       } else if (flag[ci]) {
@@ -2684,6 +2689,31 @@ double epi2D::getDistanceToVertexAtAnglePsi(int ci, double psi_ci, double cx, do
   return sqrt(pow(x[gi * NDIM] - cx, 2) + pow(x[gi * NDIM + 1] - cy, 2));
 }
 
+double epi2D::getDistanceToRandomUnadheredVertex(int ci, double cx, double cy, int& gi){
+  // given cell index ci, and center cx cy, modify gi and psi[ci], and return the distance to a random unadhered vertex
+  // unadhered is determined by vnn, which is modified by the attractive force routine
+  int gj;
+  double dx, dy;
+  std::vector<int> listOfVoidVertices;
+  for (int vi = 0; vi < nv[ci]; vi++){
+    gj = vi + gindex(ci, 0);
+    if (vnn[gj][2] < 0) {
+      // if vnn[gj][2] is negative, then vnn has no external neighbors, so it is a void-adjacent vertex
+      listOfVoidVertices.push_back(gj);
+    }
+  }
+  // select a vertex from this vector randomly
+  if (listOfVoidVertices.size() > 0){
+    gi = listOfVoidVertices[rand() % listOfVoidVertices.size()];
+    dx = x[gi * NDIM] - cx;
+    dy = x[gi * NDIM + 1] - cy;
+    psi[ci] = atan2(dy, dx);
+    return sqrt(pow(dx, 2) + pow(dy, 2));
+  }
+  else 
+    return -1; 
+}
+
 double epi2D::rotateAndCalculateArcLength(int ci, std::vector<int>& woundIndicesBelongingToCi) {
   // compute arc length of ci's contribution to the wound, and rotate woundIndicesBelongingToCi into sequential order according to ip1 or im1
   double arc_length = 0.0;
@@ -2755,14 +2785,6 @@ void epi2D::initializePurseStringVariables() {
   if (x_ps.size() <= 1)
     cout << "WARNING: purse-string vector has size 1 or smaller, in initializePurseStringVariables.\n";
 }
-
-/*void epi2D::updatePurseStringContacts() {
-  // updates all purse-string relevant variables to account for deletions
-  // if distance(virtual, wound) > deltaSq, delete x_ps,v_ps,F_ps, l0_ps, psContacts
-  // will have to subtract 1 from psi > i, will have to adjust l0_ps
-  for (int i = 0; i < psContacts.size(); i++){
-  }
-}*/
 
 void epi2D::evaluatePurseStringForces(double B) {
   // using psContacts and the preferred length interaction, calculate forces on purse-string virtual particles
