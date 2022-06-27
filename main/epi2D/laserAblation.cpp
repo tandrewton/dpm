@@ -69,8 +69,7 @@ const double dt0 = 0.01;       // initial magnitude of time step in units of MD 
 const double Ptol = 1e-8;
 const double Ftol = 1e-12;
 const double att_range = 0.3;
-bool wallsOn = true;
-bool wallsOff = false;
+int wallsOn = 1, wallsOff = 0, fixedWalls = 2;
 
 int main(int argc, char const* argv[]) {
   // local variables to be read in
@@ -246,6 +245,7 @@ int main(int argc, char const* argv[]) {
   epithelial.dampedNVE2D(attractiveForceUpdate, B, dt0, relaxTime, 0);
 
   //  dampedNP0 already takes care of purse-string. might want to separate, or just change spring constant
+  // wallsOff, wallsOn, fixedWalls
   epithelial.dampedNP0(substrateAdhesionForceUpdate, B, dt0, time_dbl, time_dbl / 40.0, wallsOff);
   // epithelial.dampedNP0(attractiveForceUpdate, B, dt0, time_dbl, time_dbl / 100.0, wallsOff);
 

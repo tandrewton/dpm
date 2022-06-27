@@ -847,6 +847,8 @@ void epi2D::updateSubstrateSprings() {
   // a cell will protrude as far out as maxProtrusionLength if unobstructed, otherwise it will choose a shorter length
   // check to see if enough time has passed for us to update springs again
   double refreshInterval = 1.0;
+  double woundAreaCutOff = 30 * PI * r[0] * r[0]; // 30 particle areas is roughly the size of a wound where each vertex is fully adhered
+
   // refreshInterval = tau_LP;
   if (simclock - previousUpdateSimclock > refreshInterval) {
     double cx, cy, gj, minFlagDistance, flagDistance;
@@ -876,8 +878,11 @@ void epi2D::updateSubstrateSprings() {
         // randomly chooses an unadhered vertex, updates psi[ci] using that vertex, and gives the distance to that vertex.
         minFlagDistance = getDistanceToRandomUnadheredVertex(ci, center[ci][0], center[ci][1], gi);
         
-        if (minFlagDistance < 0) // failed to find a valid vertex to throw a flag from
+        if (minFlagDistance < 0 && woundArea > woundAreaCutOff) // failed to find a valid vertex to throw a flag from
           continue;
+        else if (minFlagDistance < 0 && woundArea <= woundAreaCutOff) // wound is small, let every cell crawl towards its last known polarity to close the wound
+          minFlagDistance = getDistanceToVertexAtAnglePsi(ci, psi[ci], center[ci][0], center[ci][1], gi);
+        
         // flagDistance += 3 * 2 * r[gi];
         double fractionOfDiameter = 4.0; // try protruding in increments of diameter / fractionOfDiameter
         for (int i = 0; i < fractionOfDiameter*floor(maxProtrusionLength) - 1 && !flag[ci]; i++) {
@@ -1056,7 +1061,7 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duratio
 }
 
 // currently, dampedNP0 is my way of coding a simulation without boundaries, i.e. 0 pressure simulation
-void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, bool wallsOn) {
+void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, int wallsOn) {
   // make sure velocities exist or are already initialized before calling this
   // assuming zero temperature - ignore thermostat (not implemented)
   // allow box lengths to move as a dynamical variable - rudimentary barostat,
@@ -1167,7 +1172,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
       v[i] += 0.5 * (F[i] + F_old[i]) * dt;
     }
 
-    if (wallsOn == true) {
+    if (wallsOn > 0) {
       // VV position update (walls)
       L[0] += dt * VL[0] + 0.5 * dt * dt * FT;
       L[1] += dt * VL[1] + 0.5 * dt * dt * FR;
@@ -1177,7 +1182,10 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
       oldFB = FB;
       oldFL = FL;
       oldFR = FR;
-      wallForces(false, false, true, true, FL, FB, FR, FT);
+      if (wallsOn == 1)
+        wallForces(false, false, true, true, FL, FB, FR, FT);
+      if (wallsOn == 2)
+        wallForces(false, false, false, false, FL, FB, FR, FT, wallsOn);  // all walls fixed, and force_multiplier option makes them super sticky
       FT -= (B * VL[1] + B * oldFT * dt / 2);
       FT /= (1 + B * dt / 2);
       FB -= (B * VL[1] + B * oldFB * dt / 2);
@@ -1308,7 +1316,7 @@ void epi2D::circularApertureForces(double radius) {
   }
 }
 
-void epi2D::wallForces(bool left, bool bottom, bool right, bool top, double& forceLeft, double& forceBottom, double& forceRight, double& forceTop) {
+void epi2D::wallForces(bool left, bool bottom, bool right, bool top, double& forceLeft, double& forceBottom, double& forceRight, double& forceTop, int forceOption) {
   // compute particle-wall forces and wall-particle forces. Only the latter
   // exists, unless bool is
   //  set to true, in which case the wall can be pushed on. bool set to true =
@@ -1322,8 +1330,12 @@ void epi2D::wallForces(bool left, bool bottom, bool right, bool top, double& for
   int vi = 0, gi = 0;
   double cx = 0, cy = 0;
   double boxL, K = 1, fmag = 0;
+  double force_multiplier = 1;
+  if (forceOption == 2)
+    force_multiplier = 10.0;
+  double kc_temp = kc * force_multiplier;
   double shell, cut, s, distLower, distUpper, scaledDist, ftmp, f;
-  double kint = (kc * l1) / (l2 - l1);
+  double kint = (kc_temp * l1) / (l2 - l1);
   forceTop = 0;
   forceBottom = 0;
   forceLeft = 0;
@@ -1369,9 +1381,9 @@ void epi2D::wallForces(bool left, bool bottom, bool right, bool top, double& for
         U += -0.5 * 1 * pow(1.0 + l2 - scaledDist, 2.0);
       } else {
         // force scale
-        ftmp = kc * (1 - scaledDist) / s;
+        ftmp = kc_temp * (1 - scaledDist) / s;
 
-        U += 0.5 * kc * (pow(1.0 - scaledDist, 2.0) - l1 * l2);
+        U += 0.5 * kc_temp * (pow(1.0 - scaledDist, 2.0) - l1 * l2);
       }
       f = ftmp * s;
       F[i] += f;
@@ -1392,9 +1404,9 @@ void epi2D::wallForces(bool left, bool bottom, bool right, bool top, double& for
         U += -0.5 * 1 * pow(1.0 + l2 - scaledDist, 2.0);
       } else {
         // force scale
-        ftmp = kc * (1 - scaledDist) / s;
+        ftmp = kc_temp * (1 - scaledDist) / s;
 
-        U += 0.5 * kc * (pow(1.0 - scaledDist, 2.0) - l1 * l2);
+        U += 0.5 * kc_temp * (pow(1.0 - scaledDist, 2.0) - l1 * l2);
       }
       f = -ftmp * s;
       F[i] += f;
@@ -2354,7 +2366,7 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
   std::vector<std::vector<bool>> occupancyMatrix(xResolution, std::vector<bool>(yResolution, 0));
   for (int i = 0; i < xResolution; i++) {
     for (int j = 0; j < yResolution; j++) {
-      // first pass: occupancy is 1 if inside a cell, 0 if not inside a cell
+      // first pass: occupancy is 1 if inside a cell, 0 if not inside a cell (pnpoly point inclusion in polygon test algorithm)
       occupancyMatrix[i][j] = !isPointInPolygons(i * resolution, j * resolution);
 
       // second pass: if occupancy is 0, set occupancy back to 1 if within vrad (previously resolution) of a vertex

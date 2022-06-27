@@ -40,11 +40,11 @@ plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
 
-showverts = 1;
+showverts = 0;
 showBoundaries = 0;
 showArea = 1;
 showQuiver = 0;
-walls = 0;
+walls = 1;
 %disable showVoid if using printConfig on its own, outside of
 %dampedNVE/dampedNP0 routines
 showGlobalIndex = 0;
