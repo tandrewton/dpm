@@ -3,7 +3,7 @@
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
 
-function drawWoundSims(N, strainRate_ps, calA0, tau_lp, deltaSq, d_flag, att, k_a) %uncomment if using function call to pipeline data
+function drawWoundSims(N, strainRate_ps, calA0, tau_lp, deltaSq, d_flag, att, k_ps) %uncomment if using function call to pipeline data
 isTestData = false; %uncomment if using function call to pipeline data
 
 %isTestData = true; %uncomment if using test data
@@ -19,8 +19,8 @@ ndelete="10";
 %calA0="1.10";
 %strainRate_ps="0.01";
 %deltaSq = "2.0";
-%k_a = "1.0"
-k_ps = "4.0"; %purse-string spring constant
+k_a = "0.5";
+%k_ps = "4.0"; %purse-string spring constant
 k_lp = "4.0"; %lamellipodia spring constant
 %tau_lp = "1.0"; %lamellipodia lifetime
 %d_flag = "0.0"; %lamellipodia max length
@@ -29,7 +29,7 @@ prate = "0.00"; %perimeter relaxation rate
 B="1.0";
 Dr0="0.5";
 boolCIL="0";
-Duration="400";
+Duration="300";
 FSKIP = 1;
 
 etaStr = " ";
@@ -44,7 +44,7 @@ showverts = 0;
 showBoundaries = 0;
 showArea = 1;
 showQuiver = 0;
-walls = 1;
+walls = 0;
 %disable showVoid if using printConfig on its own, outside of
 %dampedNVE/dampedNP0 routines
 showGlobalIndex = 0;
@@ -56,8 +56,8 @@ showProtrusion = 1;
 showShapeHistogram = 0;
  
 %PC directory
-%pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
-pc_dir="C:\Users\atata\projects\dpm\";
+pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
+%pc_dir="C:\Users\atata\projects\dpm\";
 %pipeline is the location of data generated during simulations
 subdir_pipeline = pc_dir + "pipeline/cells/"+runType+"/";
 
@@ -97,6 +97,7 @@ for seed = startSeed:max_seed
         mkdir(output_dir)
         fileheader=run_name +"_NCELLS"+N+"_Duration"+Duration+"_att"+att+"_startseed"+ ...
             startSeed+"_endseed"+max_seed+"_seed"+seed;
+        fileheader_short = "_NCELLS"+N+"_Duration"+Duration+"_att"+att+"_seed"+seed;
         nvestr = pipeline_dir+fileheader+'.pos';
         energystr = pipeline_dir+fileheader+'.energy';
         stressstr = pipeline_dir+fileheader+'.stress';
@@ -123,7 +124,7 @@ for seed = startSeed:max_seed
     ax.FontSize = 24;
     if seed == max_seed 
      %annotation('textbox',[.2 .5 .5 .3],'String', txt, 'Edgecolor','none')
-     saveas(gcf, 'Stress'+runType+fileheader+'_'+max_seed+ ...
+     saveas(gcf, 'Stress'+runType+fileheader_short+'_'+max_seed+ ...
          '.eps', 'epsc')
     end
 
@@ -141,7 +142,7 @@ for seed = startSeed:max_seed
     ax.FontSize = 24;
     if seed == max_seed 
      %annotation('textbox',[.2 .5 .5 .3],'String', txt, 'Edgecolor','none')
-     saveas(gcf, 'ShapeStress'+runType+fileheader+'_'+max_seed+ ...
+     saveas(gcf, 'ShapeStress'+runType+fileheader_short+'_'+max_seed+ ...
          '.eps', 'epsc')
     end
 
@@ -165,7 +166,7 @@ for seed = startSeed:max_seed
     ax = gca;
     ax.FontSize = 24;
     if seed == max_seed 
-     saveas(gcf, 'Energy'+runType+fileheader+'_'+max_seed+ ...
+     saveas(gcf, 'Energy'+runType+fileheader_short+'_'+max_seed+ ...
          '.eps', 'epsc')
     end
 
@@ -178,7 +179,7 @@ for seed = startSeed:max_seed
         ylabel('Area','Interpreter','latex','fontsize', 24);
     end
     if seed == max_seed 
-     saveas(gcf, 'VoidArea'+runType+fileheader+'_'+max_seed+'.eps', 'epsc')
+     saveas(gcf, 'VoidArea'+runType+fileheader_short+'_'+max_seed+'.eps', 'epsc')
     end
 
     % read in position data
@@ -210,7 +211,7 @@ for seed = startSeed:max_seed
     FEND = NFRAMES;
 
     if makeAMovie == 1
-        moviestr = runType+fileheader+'.mp4';
+        moviestr = runType+fileheader_short+'.mp4';
         vobj = VideoWriter(moviestr, 'MPEG-4');
         vobj.Quality = 100;
             
@@ -259,7 +260,7 @@ for seed = startSeed:max_seed
     ylabel('$\langle zv \rangle$','Interpreter','LaTeX','Fontsize',36)
     legend('location','Southeast')
 
-    saveas(gcf, 'contacts'+runType+fileheader+'_'+max_seed+ ...
+    saveas(gcf, 'contacts'+runType+fileheader_short+'_'+max_seed+ ...
          '.eps', 'epsc')
 
     figure(3)
@@ -270,7 +271,7 @@ for seed = startSeed:max_seed
     plot(time-time(1), shape, 'k', 'linewidth', 4)
     xlabel('$t/\tau$','Interpreter','latex','fontsize', 36);
     ylabel('$\mathcal{A}$','Interpreter','LaTeX','Fontsize',36)
-    saveas(gcf, 'shapes'+runType+fileheader+'_'+max_seed+...
+    saveas(gcf, 'shapes'+runType+fileheader_short+'_'+max_seed+...
         '.eps','epsc')
     if (plotCells == 1)
         for ff = FSTART:FSTEP:FEND
@@ -477,7 +478,7 @@ for seed = startSeed:max_seed
         plot(time, gradient(voidArea(:))./gradient(time(:)), 'DisplayName', 'dA/dt','linewidth', 3);
         xlabel('$\tau$','Interpreter','latex');
         ylabel('A, dA/dt');
-        saveas(gcf, 'Area'+runType+fileheader+'_'+max_seed+'.eps', 'epsc')
+        saveas(gcf, 'Area'+runType+fileheader_short+'_'+max_seed+'.eps', 'epsc')
         legend
     end
 end
