@@ -633,14 +633,14 @@ void dpm::sinusoidalPreferredAngle(double thA, double thK) {
   }
 }
 
-// initialize CoM positions of cells using SP FIRE
+// initialize CoM positions of cells (i.e. use soft disks) using SP FIRE
 void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, double aspectRatio) {
   // isFixedBoundary is an optional bool argument that tells cells to stay away from the boundary during initialization
   // aspectRatio is the ratio L[0] / L[1]
   // local variables
   int i, d, ci, cj, vi, vj, gi, cellDOF = NDIM * NCELLS;
   double areaSum, xtra = 1.1;
-  std::vector<double> aspects = {1.0*aspectRatio, 1.0/aspectRatio};
+  std::vector<double> aspects = {1.0 * aspectRatio, 1.0 / aspectRatio};
 
   // local disk vectors
   vector<double> drad(NCELLS, 0.0);

@@ -35,7 +35,7 @@ FSKIP = 1;
 etaStr = " ";
 startSeed = 1;
 max_seed = 1;
-makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
+makeAMovie = 0; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
 plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
@@ -177,6 +177,7 @@ for seed = startSeed:max_seed
         %ylim([0 voidArea(1,2)])
         xlabel('$t/\tau$','Interpreter','latex','fontsize', 24);
         ylabel('Area','Interpreter','latex','fontsize', 24);
+        set(gca,'Yscale','log')
     end
     if seed == max_seed 
      saveas(gcf, 'VoidArea'+runType+fileheader_short+'_'+max_seed+'.eps', 'epsc')

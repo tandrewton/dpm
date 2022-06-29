@@ -244,10 +244,10 @@ bash bash/epi2D/submit_laserAblation.sh 60 20 6 1.10 0.92 0.925 1.0 0.5 0.2 0.01
 bash bash/epi2D/submit_laserAblation.sh 100 20 6 1.10 0.92 0.925 1.0 0.5 0.2 0.01 10.0 4.0 4.0 1.0 3.0 1.0 0.5 0 0.00 300 pi_ohern,day,scavenge 0-24:00:00 1 1
 bash bash/epi2D/submit_laserAblation.sh 180 20 6 1.10 0.92 0.925 1.0 0.5 0.2 0.01 10.0 4.0 4.0 1.0 3.0 1.0 0.5 0 0.00 300 pi_ohern,day,scavenge 0-24:00:00 1 1
 
-bash bash/epi2D/submit_laserAblation.sh 40 20 6 1.10 0.92 0.925 1.0 0.5 0.2 0.01 0.0 4.0 4.0 1.0 0.0 1.0 0.5 0 0.00 300 pi_ohern,day,scavenge 0-24:00:00 1 1
-bash bash/epi2D/submit_laserAblation.sh 60 20 6 1.10 0.92 0.925 1.0 0.5 0.2 0.01 0.0 4.0 4.0 1.0 0.0 1.0 0.5 0 0.00 300 pi_ohern,day,scavenge 0-24:00:00 1 1
-bash bash/epi2D/submit_laserAblation.sh 100 20 6 1.10 0.92 0.925 1.0 0.5 0.2 0.01 0.0 4.0 4.0 1.0 0.0 1.0 0.5 0 0.00 300 pi_ohern,day,scavenge 0-24:00:00 1 1
-bash bash/epi2D/submit_laserAblation.sh 180 20 6 1.10 0.92 0.925 1.0 0.5 0.2 0.01 0.0 4.0 4.0 1.0 0.0 1.0 0.5 0 0.00 300 pi_ohern,day,scavenge 0-24:00:00 1 1
+bash bash/epi2D/submit_laserAblation.sh 40 20 6 1.10 0.92 0.925 1.0 0.5 0.2 0.01 10.0 4.0 4.0 1.0 0.0 1.0 0.5 0 0.00 300 pi_ohern,day,scavenge 0-24:00:00 1 1
+bash bash/epi2D/submit_laserAblation.sh 60 20 6 1.10 0.92 0.925 1.0 0.5 0.2 0.01 10.0 4.0 4.0 1.0 0.0 1.0 0.5 0 0.00 300 pi_ohern,day,scavenge 0-24:00:00 1 1
+bash bash/epi2D/submit_laserAblation.sh 100 20 6 1.10 0.92 0.925 1.0 0.5 0.2 0.01 10.0 4.0 4.0 1.0 0.0 1.0 0.5 0 0.00 300 pi_ohern,day,scavenge 0-24:00:00 1 1
+bash bash/epi2D/submit_laserAblation.sh 180 20 6 1.10 0.92 0.925 1.0 0.5 0.2 0.01 10.0 4.0 4.0 1.0 0.0 1.0 0.5 0 0.00 300 pi_ohern,day,scavenge 0-24:00:00 1 1
 
 
 # phenotype A - embryo (P, varying P assembly rate)

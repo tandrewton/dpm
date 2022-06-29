@@ -632,7 +632,7 @@ void epi2D::substrateadhesionAttractiveForceUpdate() {
   // reset forces, then get shape and attractive forces.
   attractiveForceUpdate_2();
   resetActiveEnergy();
-  //directorDiffusion();
+  // directorDiffusion();
   updateSubstrateSprings();
 
   for (auto ci : initialWoundCellIndices) {
@@ -847,7 +847,7 @@ void epi2D::updateSubstrateSprings() {
   // a cell will protrude as far out as maxProtrusionLength if unobstructed, otherwise it will choose a shorter length
   // check to see if enough time has passed for us to update springs again
   double refreshInterval = 1.0;
-  double woundAreaCutOff = 30 * PI * r[0] * r[0]; // 30 particle areas is roughly the size of a wound where each vertex is fully adhered
+  double woundAreaCutOff = 30 * PI * r[0] * r[0];  // 30 particle areas is roughly the size of a wound where each vertex is fully adhered
 
   // refreshInterval = tau_LP;
   if (simclock - previousUpdateSimclock > refreshInterval) {
@@ -877,15 +877,15 @@ void epi2D::updateSubstrateSprings() {
 
         // randomly chooses an unadhered vertex, updates psi[ci] using that vertex, and gives the distance to that vertex.
         minFlagDistance = getDistanceToRandomUnadheredVertex(ci, center[ci][0], center[ci][1], gi);
-        
-        if (minFlagDistance < 0 && woundArea > woundAreaCutOff) // failed to find a valid vertex to throw a flag from
+
+        if (minFlagDistance < 0 && woundArea > woundAreaCutOff)  // failed to find a valid vertex to throw a flag from
           continue;
-        else if (minFlagDistance < 0 && woundArea <= woundAreaCutOff) // wound is small, let every cell crawl towards its last known polarity to close the wound
+        else if (minFlagDistance < 0 && woundArea <= woundAreaCutOff)  // wound is small, let every cell crawl towards its last known polarity to close the wound
           minFlagDistance = getDistanceToVertexAtAnglePsi(ci, psi[ci], center[ci][0], center[ci][1], gi);
-        
+
         // flagDistance += 3 * 2 * r[gi];
-        double fractionOfDiameter = 4.0; // try protruding in increments of diameter / fractionOfDiameter
-        for (int i = 0; i < fractionOfDiameter*floor(maxProtrusionLength) - 1 && !flag[ci]; i++) {
+        double fractionOfDiameter = 4.0;  // try protruding in increments of diameter / fractionOfDiameter
+        for (int i = 0; i < fractionOfDiameter * floor(maxProtrusionLength) - 1 && !flag[ci]; i++) {
           cancelFlagToss = false;
           flagDistance = minFlagDistance + (maxProtrusionLength - i / fractionOfDiameter) * 2.0 * r[gi];
           // start with larger flag distances. if those are blocked, then loop tries smaller values
@@ -924,8 +924,8 @@ void epi2D::updateSubstrateSprings() {
             giConnectedToFlag[ci] = gi;
             // restLengthLPx[ci] = 0;
             // restLengthLPy[ci] = 0;
-            //cout << "flagDistance = " << flagDistance << "\t, 2*r[gi] = " << 2*r[gi] << '\n';
-            //cout << "i = " << i << "\t, minFlagDistance = " << minFlagDistance << "\t, psi[ci] = " << psi[ci] << '\n';
+            // cout << "flagDistance = " << flagDistance << "\t, 2*r[gi] = " << 2*r[gi] << '\n';
+            // cout << "i = " << i << "\t, minFlagDistance = " << minFlagDistance << "\t, psi[ci] = " << psi[ci] << '\n';
           }
         }
       } else if (flag[ci]) {
@@ -2348,7 +2348,7 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
       posY[(i - 1) / 2] = x[NDIM * (i - 1) + 1];
   }
   // resolution is the unit box length that we'll use to map occupancyMatrix to real coordinates
-  double resolution = r[0] / 2.0;
+  double resolution = r[0] / 2.0 / 2.0;
   if (resolution <= 1e-10)
     cerr << "bug: resolution in calculateWoundArea is zero\n";
 
@@ -2701,13 +2701,13 @@ double epi2D::getDistanceToVertexAtAnglePsi(int ci, double psi_ci, double cx, do
   return sqrt(pow(x[gi * NDIM] - cx, 2) + pow(x[gi * NDIM + 1] - cy, 2));
 }
 
-double epi2D::getDistanceToRandomUnadheredVertex(int ci, double cx, double cy, int& gi){
+double epi2D::getDistanceToRandomUnadheredVertex(int ci, double cx, double cy, int& gi) {
   // given cell index ci, and center cx cy, modify gi and psi[ci], and return the distance to a random unadhered vertex
   // unadhered is determined by vnn, which is modified by the attractive force routine
   int gj;
   double dx, dy;
   std::vector<int> listOfVoidVertices;
-  for (int vi = 0; vi < nv[ci]; vi++){
+  for (int vi = 0; vi < nv[ci]; vi++) {
     gj = vi + gindex(ci, 0);
     if (vnn[gj][2] < 0) {
       // if vnn[gj][2] is negative, then vnn has no external neighbors, so it is a void-adjacent vertex
@@ -2715,15 +2715,14 @@ double epi2D::getDistanceToRandomUnadheredVertex(int ci, double cx, double cy, i
     }
   }
   // select a vertex from this vector randomly
-  if (listOfVoidVertices.size() > 0){
+  if (listOfVoidVertices.size() > 0) {
     gi = listOfVoidVertices[rand() % listOfVoidVertices.size()];
     dx = x[gi * NDIM] - cx;
     dy = x[gi * NDIM + 1] - cy;
     psi[ci] = atan2(dy, dx);
     return sqrt(pow(dx, 2) + pow(dy, 2));
-  }
-  else 
-    return -1; 
+  } else
+    return -1;
 }
 
 double epi2D::rotateAndCalculateArcLength(int ci, std::vector<int>& woundIndicesBelongingToCi) {
