@@ -177,7 +177,7 @@ for seed = startSeed:max_seed
         %ylim([0 voidArea(1,2)])
         xlabel('$t/\tau$','Interpreter','latex','fontsize', 24);
         ylabel('Area','Interpreter','latex','fontsize', 24);
-        set(gca,'Yscale','log')
+        %set(gca,'Yscale','log')
     end
     if seed == max_seed 
      saveas(gcf, 'VoidArea'+runType+fileheader_short+'_'+max_seed+'.eps', 'epsc')
@@ -470,8 +470,8 @@ for seed = startSeed:max_seed
     % close video object
     if makeAMovie == 1
         close(vobj);
-        cd ../../../../
     end
+    cd ../../../../
     if showVoid
         figure(14); clf, hold on, box on
         time= time - time(1);
