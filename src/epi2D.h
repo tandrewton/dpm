@@ -259,7 +259,6 @@ class epi2D : public dpm {
   double meancalA0();
   double meankb();
   double getPreferredPerimeter(int ci);
-  double distanceLineAndPoint(double x1, double y1, double x2, double y2, double x0, double y0);
   void directorDiffusion();
   std::vector<int> regridSegment(int ci, double vrad);
   void resetActiveEnergy();
@@ -273,7 +272,6 @@ class epi2D : public dpm {
   void repulsiveForceWithCircularApertureWall();
 
   // protocols
-  void vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0);
   void expandBoxAndCenterParticles(double boxLengthScaleFactor,
                                    double boxLengthScale);
   void ageCellAreas(double areaScaleFactor);

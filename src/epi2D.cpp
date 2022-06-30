@@ -94,23 +94,6 @@ double epi2D::vertDistNoPBC(int gi, int gj) {
   return sqrt(dist);
 }
 
-double epi2D::distanceLineAndPoint(double x1, double y1, double x2, double y2, double x0, double y0) {
-  // get the distance from a line segment going through (x1,y1), (x2,y2) and a
-  // point located at (x0,y0)
-  double l2 = pow(x2 - x1, 2) + pow(y2 - y1, 2);  // |(pt2 - pt1)|^2
-  if (l2 == 0.0)                                  // pt2 == pt1 case
-    return sqrt(pow(x0 - x1, 2) + pow(y0 - y1, 2));
-
-  double dot = (x0 - x1) * (x2 - x1) +
-               (y0 - y1) * (y2 - y1);  // (pt0 - pt1) dot (pt2 - pt1)
-  const double t = max(0.0, min(1.0, dot / l2));
-  const double projectionx = x1 + t * (x2 - x1);
-  const double projectiony = y1 + t * (y2 - y1);
-  const double distance =
-      sqrt(pow(x0 - projectionx, 2) + pow(y0 - projectiony, 2));
-  return distance;
-}
-
 void epi2D::directorDiffusion() {
   double r1, r2, grv;
   for (int ci = 0; ci < NCELLS; ci++) {
@@ -683,62 +666,6 @@ void epi2D::substrateadhesionAttractiveForceUpdate() {
                 P R O T O C O L S
 
 *******************************/
-
-void epi2D::vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0) {
-  // same as for dpm, but with less printing at the end
-  // local variables
-  int it = 0, itmax = 1e4;
-  double phi0 = vertexPreferredPackingFraction2D();
-  double scaleFactor = 1.0, P, Sxy;
-
-  // loop while phi0 < phi0Target
-  while (phi0 < phi0Target && it < itmax) {
-    // scale particle sizes
-    scaleParticleSizes2D(scaleFactor);
-
-    // update phi0
-    phi0 = vertexPreferredPackingFraction2D();
-    // relax configuration (pass member function force update)
-    vertexFIRE2D(forceCall, Ftol, dt0);
-
-    // get scale factor
-    scaleFactor = sqrt((phi0 + dphi0) / phi0);
-
-    // get updated pressure
-    P = 0.5 * (stress[0] + stress[1]);
-    Sxy = stress[2];
-
-    // print to console
-    if (it % 50 == 0) {
-      cout << endl
-           << endl;
-      cout << "===============================" << endl;
-      cout << "								"
-           << endl;
-      cout << " 	C O M P R E S S I O N 		" << endl;
-      cout << "								"
-           << endl;
-      cout << "	P R O T O C O L 	  		" << endl;
-      cout << "								"
-           << endl;
-      cout << "===============================" << endl;
-      cout << endl;
-      cout << "	** it 			= " << it << endl;
-      cout << "	** phi0 curr	= " << phi0 << endl;
-      if (phi0 + dphi0 < phi0Target)
-        cout << "	** phi0 next 	= " << phi0 + dphi0 << endl;
-      cout << "	** P 			= " << P << endl;
-      cout << "	** Sxy 			= " << Sxy << endl;
-      cout << "	** U 			= " << U << endl;
-      // printConfiguration2D();
-      cout << endl
-           << endl;
-    }
-
-    // update iterate
-    it++;
-  }
-}
 
 void epi2D::ageCellAreas(double areaScaleFactor) {
   int gi, ci, vi;

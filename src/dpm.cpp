@@ -296,6 +296,29 @@ double dpm::vertexPreferredPackingFraction2D() {
   return val;
 }
 
+// get configuration "preferred" packing fraction with respect to polygon boundaries poly_x and poly_y
+double dpm::vertexPreferredPackingFraction2D_polygon(std::vector<double>& poly_x, std::vector<double>& poly_y){
+  int ci;
+  double val, boxV, areaSum = 0.0;
+
+  // numerator
+  for (ci = 0; ci < NCELLS; ci++)
+    areaSum += a0[ci] + 0.25 * PI * pow(2.0 * r.at(szList[ci]), 2.0) * (0.5 * nv.at(ci) - 1);
+
+  // denominator = boundary polygonal area via shoelace method
+  boxV = 0.0;
+  int j = poly_x.size() - 1;
+  for (int i = 0; i < poly_x.size(); i++){
+    boxV += (poly_x[j] + poly_x[i]) * (poly_y[j] - poly_y[i]);
+    j = i;
+  }
+  boxV = abs(boxV/2.0);
+  
+  // return packing fraction
+  val = areaSum / boxV;
+  return val;
+}
+
 // get vertex kinetic energy
 double dpm::vertexKineticEnergy() {
   double K = 0;
@@ -1368,6 +1391,50 @@ void dpm::drawVelocities2D(double T) {
   }
 }
 
+double dpm::distanceLineAndPoint(double x1, double y1, double x2, double y2, double x0, double y0) {
+  // get the distance from a line segment going through (x1,y1), (x2,y2) and a
+  // point located at (x0,y0)
+  double l2 = pow(x2 - x1, 2) + pow(y2 - y1, 2);  // |(pt2 - pt1)|^2
+  if (l2 == 0.0)                                  // pt2 == pt1 case
+    return sqrt(pow(x0 - x1, 2) + pow(y0 - y1, 2));
+
+  double dot = (x0 - x1) * (x2 - x1) +
+               (y0 - y1) * (y2 - y1);  // (pt0 - pt1) dot (pt2 - pt1)
+  const double t = max(0.0, min(1.0, dot / l2));
+  const double projectionx = x1 + t * (x2 - x1);
+  const double projectiony = y1 + t * (y2 - y1);
+  const double distance =
+      sqrt(pow(x0 - projectionx, 2) + pow(y0 - projectiony, 2));
+  return distance;
+}
+
+double dpm::distanceLinePointComponents(double x1, double y1, double x2, double y2, double x0, double y0, double& xcomp, double& ycomp) {
+  // get the distance from a line segment going through (x1,y1), (x2,y2) and a
+  // point located at (x0,y0), and extract x and y components of the distance
+  double l2 = pow(x2 - x1, 2) + pow(y2 - y1, 2);  // |(pt2 - pt1)|^2
+  if (l2 == 0.0)                                  // pt2 == pt1 case
+    return sqrt(pow(x0 - x1, 2) + pow(y0 - y1, 2));
+
+  double dot = (x0 - x1) * (x2 - x1) +
+               (y0 - y1) * (y2 - y1);  // (pt0 - pt1) dot (pt2 - pt1)
+  const double t = max(0.0, min(1.0, dot / l2));
+  const double projectionx = x1 + t * (x2 - x1);
+  const double projectiony = y1 + t * (y2 - y1);
+  xcomp = x0 - projectionx;
+  ycomp = y0 - projectiony;
+  const double distance = sqrt(pow(xcomp, 2) + pow(ycomp, 2));
+  return distance;
+}
+
+void dpm::generateCircularBoundary(int numEdges, std::vector<double>& poly_x, std::vector<double>& poly_y) {
+  double theta;
+  for (int i = 0; i < numEdges; i++) {
+    theta = 2*PI/i; // make sure this is double(i)
+    poly_x.push_back(cos(theta));
+    poly_y.push_back(sin(theta));
+  }
+}
+
 /******************************
 
         D P M  F O R C E
@@ -2057,6 +2124,31 @@ void dpm::vertexAttractiveForces2D() {
   }
 }
 
+void dpm::evaluatePolygonalWallForces(std::vector<double>& poly_x, std::vector<double>& poly_y) {
+  // evaluates particle-wall forces for a polygonal boundary specified by poly_x,poly_y. Does not compute stress yet.
+  int n = poly_x.size();
+  double distanceParticleWall, Rx, Ry, dw, K=1;
+  double bound_x1, bound_x2, bound_y1, bound_y2;
+  // loop over boundary bars
+  // loop over particles
+  //  compute particle-boundary bar overlaps
+  //  if overlap, Fx += K * dw * Rx/R, where K is a constant, dw = diameter/2 - R, Rx = x - px, R = sqrt(Rx^2 + Ry^2)
+  for (int bound_i = 0; bound_i < n; bound_i++) {
+    // use distanceLineAndPoint to get R, Rx, and Ry
+    bound_x1 = poly_x[bound_i];
+    bound_x2 = poly_x[bound_i+1];
+    bound_y1 = poly_y[bound_i];
+    bound_y2 = poly_y[bound_i+1];
+    for (int i = 0; i < NVTOT; i++) {
+      distanceParticleWall = distanceLinePointComponents(bound_x1, bound_y1, bound_x2, bound_y2, x[i*NDIM], x[i*NDIM+1], Rx, Ry);
+      dw = r[i]/2 - distanceParticleWall;
+      F[i*NDIM] += K * dw * Rx/distanceParticleWall;
+      F[i*NDIM+1] += K * dw * Ry/distanceParticleWall;
+      U += K/2 * pow(dw,2);
+    }
+  }
+}
+
 void dpm::repulsiveForceUpdate() {
   resetForcesAndEnergy();
   shapeForces2D();
@@ -2410,26 +2502,74 @@ void dpm::vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, d
     Sxy = stress[2];
 
     // print to console
-    cout << endl
-         << endl;
-    cout << "===============================" << endl;
-    cout << "								" << endl;
-    cout << " 	C O M P R E S S I O N 		" << endl;
-    cout << "								" << endl;
-    cout << "	P R O T O C O L 	  		" << endl;
-    cout << "								" << endl;
-    cout << "===============================" << endl;
-    cout << endl;
-    cout << "	** it 			= " << it << endl;
-    cout << "	** phi0 curr	= " << phi0 << endl;
-    if (phi0 + dphi0 < phi0Target)
-      cout << "	** phi0 next 	= " << phi0 + dphi0 << endl;
-    cout << "	** P 			= " << P << endl;
-    cout << "	** Sxy 			= " << Sxy << endl;
-    cout << "	** U 			= " << U << endl;
-    // printConfiguration2D();
-    cout << endl
-         << endl;
+    if (it % 50 == 0) {
+      cout << endl
+          << endl;
+      cout << "===============================" << endl;
+      cout << "								" << endl;
+      cout << " 	C O M P R E S S I O N 		" << endl;
+      cout << "								" << endl;
+      cout << "	P R O T O C O L 	  		" << endl;
+      cout << "								" << endl;
+      cout << "===============================" << endl;
+      cout << endl;
+      cout << "	** it 			= " << it << endl;
+      cout << "	** phi0 curr	= " << phi0 << endl;
+      if (phi0 + dphi0 < phi0Target)
+        cout << "	** phi0 next 	= " << phi0 + dphi0 << endl;
+      cout << "	** P 			= " << P << endl;
+      cout << "	** Sxy 			= " << Sxy << endl;
+      cout << "	** U 			= " << U << endl;
+      // printConfiguration2D();
+      cout << endl
+          << endl;
+
+      // update iterate
+      it++;
+    }
+  }
+}
+
+void dpm::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0, std::vector<double>& poly_x, std::vector<double>& poly_y) {
+  // same as vertexCompress2Target2D, but with polygonal boundaries (affects packing fraction calculation, and expects forceCall to 
+  //  account for polygonal boundary forces
+  // local variables
+  int it = 0, itmax = 1e4;
+  double phi0 = vertexPreferredPackingFraction2D();
+  double scaleFactor = 1.0, P, Sxy;
+
+  // loop while phi0 < phi0Target
+  while (phi0 < phi0Target && it < itmax) {
+    // scale particle sizes
+    scaleParticleSizes2D(scaleFactor);
+
+    // update phi0
+    phi0 = vertexPreferredPackingFraction2D_polygon(poly_x, poly_y);
+    // relax configuration (pass member function force update)
+    // make sure that forceCall is a force routine that includes a call to evaluatePolygonalWallForces
+    vertexFIRE2D(forceCall, Ftol, dt0);
+
+    // get scale factor
+    scaleFactor = sqrt((phi0 + dphi0) / phi0);
+
+    // get updated pressure
+    P = 0.5 * (stress[0] + stress[1]);
+    Sxy = stress[2];
+
+    // print to console
+    if (it % 50 == 0) {
+      cout << " 	C O M P R E S S I O N 		" << endl;
+      cout << "	** it 			= " << it << endl;
+      cout << "	** phi0 curr	= " << phi0 << endl;
+      if (phi0 + dphi0 < phi0Target)
+        cout << "	** phi0 next 	= " << phi0 + dphi0 << endl;
+      cout << "	** P 			= " << P << endl;
+      cout << "	** Sxy 			= " << Sxy << endl;
+      cout << "	** U 			= " << U << endl;
+      // printConfiguration2D();
+      cout << endl
+           << endl;
+    }
 
     // update iterate
     it++;

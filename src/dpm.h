@@ -175,6 +175,7 @@ class dpm {
   void com2D(int ci, double& cx, double& cy);
   double vertexPackingFraction2D();
   double vertexPreferredPackingFraction2D();
+  double vertexPreferredPackingFraction2D_polygon(std::vector<double>& poly_x, std::vector<double>& poly_y);
   double vertexKineticEnergy();
   int vvContacts();
   int ccContacts();
@@ -220,12 +221,16 @@ class dpm {
   void scaleParticleSizes2D(double scaleFactor);
   int removeRattlers();
   void drawVelocities2D(double T);
+  double distanceLineAndPoint(double x1, double y1, double x2, double y2, double x0, double y0);
+  double distanceLinePointComponents(double x1, double y1, double x2, double y2, double x0, double y0, double& xcomp, double& ycomp);
+  void generateCircularBoundary(int numEdges, std::vector<double>& poly_x, std::vector<double>& poly_y);
 
   // force definitions
   void resetForcesAndEnergy();
   void shapeForces2D();
   void vertexRepulsiveForces2D();
   void vertexAttractiveForces2D();
+  void evaluatePolygonalWallForces(std::vector<double>& poly_x, std::vector<double>& poly_y);
 
   // force updates
   void repulsiveForceUpdate();
@@ -237,6 +242,8 @@ class dpm {
 
   // protocols
   void vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0);
+  void vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0,
+             std::vector<double>& poly_x, std::vector<double>& poly_y);
   void vertexJamming2D(dpmMemFn forceCall, double Ftol, double Ptol, double dt0, double dphi0, bool plotCompression);
 
   // hessian methods
