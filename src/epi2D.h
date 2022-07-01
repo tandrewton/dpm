@@ -270,6 +270,8 @@ class epi2D : public dpm {
   void activeAttractiveForceUpdate();
   void substrateadhesionAttractiveForceUpdate();
   void repulsiveForceWithCircularApertureWall();
+  void repulsiveForceUpdateWithPolyWall();
+  void attractiveForceUpdateWithPolyWall();
 
   // protocols
   void expandBoxAndCenterParticles(double boxLengthScaleFactor,
@@ -284,6 +286,7 @@ class epi2D : public dpm {
   void dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, int wallsOn);
   void wallForces(bool left, bool bottom, bool right, bool top, double& forceLeft, double& forceBottom, double& forceRight, double& forceTop, int forceOption = 0);
   void circularApertureForces(double radius);
+  //void vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0);
 
   int getIndexOfCellLocatedHere(double xLoc, double yLoc);
   // note: whenever adding member-level data structures that depend on

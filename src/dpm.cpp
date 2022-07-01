@@ -316,6 +316,7 @@ double dpm::vertexPreferredPackingFraction2D_polygon(std::vector<double>& poly_x
   
   // return packing fraction
   val = areaSum / boxV;
+  cout << "packing fraction = " << val << ", boxV = " << boxV << ", areaSum = " << areaSum << '\n';
   return val;
 }
 
@@ -657,7 +658,7 @@ void dpm::sinusoidalPreferredAngle(double thA, double thK) {
 }
 
 // initialize CoM positions of cells (i.e. use soft disks) using SP FIRE
-void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, double aspectRatio) {
+void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, double aspectRatio, bool isCircle) {
   // isFixedBoundary is an optional bool argument that tells cells to stay away from the boundary during initialization
   // aspectRatio is the ratio L[0] / L[1]
   // local variables
@@ -687,11 +688,25 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
     L.at(d) = pow(areaSum / phi0, 1.0 / NDIM) * aspects[d];
 
   // initialize cell centers randomly
-  for (ci = 0; ci < cellDOF; ci += 2) {
-    dpos.at(ci) = L[ci % 2] * drand48();
+  if (~isCircle) {
+    for (ci = 0; ci < cellDOF; ci += 2) {
+      dpos.at(ci) = L[ci % 2] * drand48();
+    }
+    for (ci = cellDOF - 1; ci > 0; ci -= 2) {
+      dpos.at(ci) = L[ci % 2] * drand48();
+    }
   }
-  for (ci = cellDOF - 1; ci > 0; ci -= 2) {
-    dpos.at(ci) = L[ci % 2] * drand48();
+  else {  // initialize cell centers randomly, but reject centers if they are further than R = L/2 from the center of the box
+    for (ci = 0; ci < cellDOF; ci+= 2){
+      double dpos_x = L[ci % 2] * drand48(), dpos_y = L[(ci+1) % 2] * drand48();
+      double center_x = L[ci % 2]/2.0, center_y = L[(ci + 1) % 2]/2.0;
+      while (pow(dpos_x - center_x,2) + pow(dpos_y - center_y,2) < pow(center_x, 2)){
+        dpos_x = L[ci % 2] * drand48();
+        dpos_y = L[(ci+1) % 2] * drand48();
+      }
+      dpos.at(ci) = dpos_x;
+      dpos.at(ci+1) = dpos_y;
+    }
   }
 
   // set radii of SP disks
@@ -1426,13 +1441,33 @@ double dpm::distanceLinePointComponents(double x1, double y1, double x2, double 
   return distance;
 }
 
-void dpm::generateCircularBoundary(int numEdges, std::vector<double>& poly_x, std::vector<double>& poly_y) {
+void dpm::generateCircularBoundary(int numEdges) {
+  // place a circular boundary, then fix L[0] and L[1] just outside the circle for plotting purposes.
+  // in initializePositions2D, isCircle flag is chosen to ensure that particles fall within L/2 (radius) of L/2 (center of box)
+  double longest_dimension = *std::max_element(std::begin(L),std::end(L));
+  double radius = longest_dimension/2.0, cx = radius, cy = cx;
+  cout << "in generateCircularBoundary\n";
+  cout << L[0] << '\t' << L[1] << '\n';
+  generateCircle(numEdges, cx, cy, radius, poly_x, poly_y);
+  // after generating the polygon boundary, set L[0] and L[1] to be outside this boundary
+  L[0] = 1.1 * *max_element(std::begin(poly_x), std::end(poly_x));
+  L[1] = 1.1 * *max_element(std::begin(poly_y), std::end(poly_y));
+  cout << L[0] << '\t' << L[1] << '\n';
+}
+
+void dpm::generateCircle(int numEdges, double cx, double cy, double r, std::vector<double>& px, std::vector<double>& py) {
+  // generate an n-gon at center cx,cy with radius r
   double theta;
+  std::vector<double> poly_x_temp, poly_y_temp;
   for (int i = 0; i < numEdges; i++) {
-    theta = 2*PI/i; // make sure this is double(i)
-    poly_x.push_back(cos(theta));
-    poly_y.push_back(sin(theta));
+    theta = i*2*PI/numEdges; // make sure this is double(i)
+    cout << "i * 2PI / numEdges = " << theta << '\n';
+    poly_x_temp.push_back(r*cos(theta)+cx);
+    poly_y_temp.push_back(r*sin(theta)+cy);
+    cout << "px,py = " << r*cos(theta)+cx << '\t' << r*sin(theta)+cy << '\n';
   }
+  px = poly_x_temp;
+  py = poly_y_temp;
 }
 
 /******************************
@@ -2124,7 +2159,7 @@ void dpm::vertexAttractiveForces2D() {
   }
 }
 
-void dpm::evaluatePolygonalWallForces(std::vector<double>& poly_x, std::vector<double>& poly_y) {
+void dpm::evaluatePolygonalWallForces(const std::vector<double>& poly_x, const std::vector<double>& poly_y) {
   // evaluates particle-wall forces for a polygonal boundary specified by poly_x,poly_y. Does not compute stress yet.
   int n = poly_x.size();
   double distanceParticleWall, Rx, Ry, dw, K=1;
@@ -2142,9 +2177,11 @@ void dpm::evaluatePolygonalWallForces(std::vector<double>& poly_x, std::vector<d
     for (int i = 0; i < NVTOT; i++) {
       distanceParticleWall = distanceLinePointComponents(bound_x1, bound_y1, bound_x2, bound_y2, x[i*NDIM], x[i*NDIM+1], Rx, Ry);
       dw = r[i]/2 - distanceParticleWall;
-      F[i*NDIM] += K * dw * Rx/distanceParticleWall;
-      F[i*NDIM+1] += K * dw * Ry/distanceParticleWall;
-      U += K/2 * pow(dw,2);
+      if (distanceParticleWall <= r[i]) {
+        F[i*NDIM] += K * dw * Rx/distanceParticleWall;
+        F[i*NDIM+1] += K * dw * Ry/distanceParticleWall;
+        U += K/2 * pow(dw,2);
+      }
     }
   }
 }
@@ -2530,7 +2567,7 @@ void dpm::vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, d
   }
 }
 
-void dpm::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0, std::vector<double>& poly_x, std::vector<double>& poly_y) {
+void dpm::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0) {
   // same as vertexCompress2Target2D, but with polygonal boundaries (affects packing fraction calculation, and expects forceCall to 
   //  account for polygonal boundary forces
   // local variables
@@ -2566,7 +2603,7 @@ void dpm::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, doubl
       cout << "	** P 			= " << P << endl;
       cout << "	** Sxy 			= " << Sxy << endl;
       cout << "	** U 			= " << U << endl;
-      // printConfiguration2D();
+      printConfiguration2D();
       cout << endl
            << endl;
     }

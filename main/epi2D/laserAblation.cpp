@@ -212,8 +212,10 @@ int main(int argc, char const* argv[]) {
   epithelial.monodisperse2D(calA0, nsmall);
   epithelial.initializevnn();
 
-  epithelial.initializePositions2D(phi0, Ftol, false);
-  // epithelial.printConfiguration2D();
+  double boxAspectRatio = 1.0;
+  bool isCircle = true;
+  epithelial.initializePositions2D(phi0, Ftol, false, boxAspectRatio, isCircle);
+  epithelial.printConfiguration2D();
 
   epithelial.initializeNeighborLinkedList2D(boxLengthScale);
 
@@ -224,15 +226,21 @@ int main(int argc, char const* argv[]) {
   dpmMemFn substrateAdhesionForceUpdate = static_cast<void (dpm::*)()>(&epi2D::substrateadhesionAttractiveForceUpdate);
   dpmMemFn repulsiveForceUpdateWithCircularAperture = static_cast<void (dpm::*)()>(&epi2D::repulsiveForceWithCircularApertureWall);
 
-  epithelial.vertexCompress2Target2D(repulsiveForceUpdateWithWalls, Ftol, dt0, phiMax, dphi0);
+  int numEdges = 10;
+  epithelial.generateCircularBoundary(numEdges);
+  dpmMemFn repulsiveForceUpdateWithCircularWalls = static_cast<void (dpm::*)()>(&epi2D::repulsiveForceUpdateWithPolyWall);
+  dpmMemFn attractiveForceUpdateWithCircularWalls = static_cast<void (dpm::*)()>(&epi2D::attractiveForceUpdateWithPolyWall);
+
+  //epithelial.vertexCompress2Target2D(repulsiveForceUpdateWithWalls, Ftol, dt0, phiMax, dphi0);
   // epithelial.vertexCompress2Target2D(repulsiveForceUpdateWithCircularAperture, Ftol, dt0, phiMax, dphi0);
-  // epithelial.printConfiguration2D();
+  epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithCircularWalls, Ftol, dt0, phiMax, dphi0);
+  epithelial.printConfiguration2D();
 
   // after compress, turn on damped NVE
   double T = 1e-4;
   double relaxTime = 10.0;
   epithelial.drawVelocities2D(T);
-  epithelial.dampedNP0(attractiveForceUpdate, B, dt0, relaxTime, 0, wallsOff);
+  epithelial.dampedNP0(attractiveForceUpdateWithCircularWalls, B, dt0, relaxTime, relaxTime/10, wallsOff);
   // double boxSizeMultiplier = 1.2;
   // epithelial.expandBoxAndCenterParticles(boxSizeMultiplier, boxLengthScale);
 
@@ -242,11 +250,11 @@ int main(int argc, char const* argv[]) {
   epithelial.laserAblate(numCellsToAblate, sizeratio, nsmall, xLoc, yLoc);
   epithelial.zeroMomentum();
 
-  epithelial.dampedNVE2D(attractiveForceUpdate, B, dt0, relaxTime, 0);
+  epithelial.dampedNVE2D(attractiveForceUpdate, B, dt0, relaxTime, relaxTime/10);
 
   //  dampedNP0 already takes care of purse-string. might want to separate, or just change spring constant
   // wallsOff, wallsOn, fixedWalls
-  epithelial.dampedNP0(substrateAdhesionForceUpdate, B, dt0, time_dbl, time_dbl / 40.0, wallsOff);
+  epithelial.dampedNP0(substrateAdhesionForceUpdate, B, dt0, time_dbl, time_dbl / 10.0, wallsOff);
   // epithelial.dampedNP0(attractiveForceUpdate, B, dt0, time_dbl, time_dbl / 100.0, wallsOff);
 
   cout << "\n** Finished laserAblation.cpp, ending. " << endl;

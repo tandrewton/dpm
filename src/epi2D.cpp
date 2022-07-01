@@ -299,6 +299,20 @@ void epi2D::repulsiveForceWithCircularApertureWall() {
   circularApertureForces(radius);
 }
 
+void epi2D::repulsiveForceUpdateWithPolyWall() {
+  resetForcesAndEnergy();
+  shapeForces2D();
+  vertexRepulsiveForces2D();
+  evaluatePolygonalWallForces(poly_x, poly_y);
+}
+
+void epi2D::attractiveForceUpdateWithPolyWall() {
+  resetForcesAndEnergy();
+  shapeForces2D();
+  vertexAttractiveForces2D_2();
+  evaluatePolygonalWallForces(poly_x, poly_y);
+}
+
 void epi2D::vertexAttractiveForces2D_2() {
   // altered from dpm attractive force code, because it works with larger l2
   // values. (warning: probably won't work with bending.) local variables
@@ -1242,6 +1256,53 @@ void epi2D::circularApertureForces(double radius) {
     }
   }
 }
+
+/*void epi2D::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0) {
+  // TEMPORARY JUST TO USE PRINTCONFIGURATION2D in epi2D overload
+ // same as vertexCompress2Target2D, but with polygonal boundaries (affects packing fraction calculation, and expects forceCall to 
+  //  account for polygonal boundary forces
+  // local variables
+  int it = 0, itmax = 1e4;
+  double phi0 = vertexPreferredPackingFraction2D();
+  double scaleFactor = 1.0, P, Sxy;
+
+  // loop while phi0 < phi0Target
+  while (phi0 < phi0Target && it < itmax) {
+    // scale particle sizes
+    scaleParticleSizes2D(scaleFactor);
+
+    // update phi0
+    phi0 = vertexPreferredPackingFraction2D_polygon(poly_x, poly_y);
+    // relax configuration (pass member function force update)
+    // make sure that forceCall is a force routine that includes a call to evaluatePolygonalWallForces
+    vertexFIRE2D(forceCall, Ftol, dt0);
+
+    // get scale factor
+    scaleFactor = sqrt((phi0 + dphi0) / phi0);
+
+    // get updated pressure
+    P = 0.5 * (stress[0] + stress[1]);
+    Sxy = stress[2];
+
+    // print to console
+    if (it % 50 == 0) {
+      cout << " 	C O M P R E S S I O N 		" << endl;
+      cout << "	** it 			= " << it << endl;
+      cout << "	** phi0 curr	= " << phi0 << endl;
+      if (phi0 + dphi0 < phi0Target)
+        cout << "	** phi0 next 	= " << phi0 + dphi0 << endl;
+      cout << "	** P 			= " << P << endl;
+      cout << "	** Sxy 			= " << Sxy << endl;
+      cout << "	** U 			= " << U << endl;
+      //printConfiguration2D();
+      cout << endl
+           << endl;
+    }
+
+    // update iterate
+    it++;
+  }
+}*/
 
 void epi2D::wallForces(bool left, bool bottom, bool right, bool top, double& forceLeft, double& forceBottom, double& forceRight, double& forceTop, int forceOption) {
   // compute particle-wall forces and wall-particle forces. Only the latter

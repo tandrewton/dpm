@@ -84,6 +84,10 @@ class dpm {
   std::vector<double> L;
   std::vector<bool> pbc;
 
+  // alternative boundary parameters: non-rectangular boundaries
+  std::vector<double> poly_x; // x coordinates of polygonal boundary condition (could be a triangle, square, n-0gon, star, etc.)
+  std::vector<double> poly_y; // set poly_x and poly_y by writing a function like generateCircularBoundary
+
   // particle shape parameters
   std::vector<double> a0;
   std::vector<double> l0;
@@ -211,7 +215,7 @@ class dpm {
   void initializeVertexShapeParameters(double calA0, int nref);
   void initializeVertexShapeParameters(std::vector<double> calA0, int nref);
   void initializeVertexIndexing2D();
-  void initializePositions2D(double phi0, double Ftol, bool isFixedBoundary = false, double aspectRatio = 1.0);
+  void initializePositions2D(double phi0, double Ftol, bool isFixedBoundary = false, double aspectRatio = 1.0, bool isCircle = false);
   void initializeAllPositions(std::string vertexPositionFile, int nref);
   void initializeFromConfigurationFile(std::string vertexPositionFile, double phi0);
   void initializeNeighborLinkedList2D(double boxLengthScale);
@@ -223,14 +227,15 @@ class dpm {
   void drawVelocities2D(double T);
   double distanceLineAndPoint(double x1, double y1, double x2, double y2, double x0, double y0);
   double distanceLinePointComponents(double x1, double y1, double x2, double y2, double x0, double y0, double& xcomp, double& ycomp);
-  void generateCircularBoundary(int numEdges, std::vector<double>& poly_x, std::vector<double>& poly_y);
+  void generateCircularBoundary(int numEdges);
+  void generateCircle(int numEdges, double cx, double cy, double r, std::vector<double>& poly_x, std::vector<double>& poly_y);
 
   // force definitions
   void resetForcesAndEnergy();
   void shapeForces2D();
   void vertexRepulsiveForces2D();
   void vertexAttractiveForces2D();
-  void evaluatePolygonalWallForces(std::vector<double>& poly_x, std::vector<double>& poly_y);
+  void evaluatePolygonalWallForces(const std::vector<double>& poly_x, const std::vector<double>& poly_y);
 
   // force updates
   void repulsiveForceUpdate();
@@ -242,8 +247,7 @@ class dpm {
 
   // protocols
   void vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0);
-  void vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0,
-             std::vector<double>& poly_x, std::vector<double>& poly_y);
+  void vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0);
   void vertexJamming2D(dpmMemFn forceCall, double Ftol, double Ptol, double dt0, double dphi0, bool plotCompression);
 
   // hessian methods
