@@ -1257,7 +1257,7 @@ void epi2D::circularApertureForces(double radius) {
   }
 }
 
-/*void epi2D::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0) {
+void epi2D::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0) {
   // TEMPORARY JUST TO USE PRINTCONFIGURATION2D in epi2D overload
  // same as vertexCompress2Target2D, but with polygonal boundaries (affects packing fraction calculation, and expects forceCall to 
   //  account for polygonal boundary forces
@@ -1268,6 +1268,8 @@ void epi2D::circularApertureForces(double radius) {
 
   // loop while phi0 < phi0Target
   while (phi0 < phi0Target && it < itmax) {
+    if (it >= itmax)
+      cout << "inside vertexCompress2Target2D_polygon, reached maxit. exiting compression steps\n";
     // scale particle sizes
     scaleParticleSizes2D(scaleFactor);
 
@@ -1285,7 +1287,7 @@ void epi2D::circularApertureForces(double radius) {
     Sxy = stress[2];
 
     // print to console
-    if (it % 50 == 0) {
+    if (it % 1 == 0) {
       cout << " 	C O M P R E S S I O N 		" << endl;
       cout << "	** it 			= " << it << endl;
       cout << "	** phi0 curr	= " << phi0 << endl;
@@ -1294,7 +1296,7 @@ void epi2D::circularApertureForces(double radius) {
       cout << "	** P 			= " << P << endl;
       cout << "	** Sxy 			= " << Sxy << endl;
       cout << "	** U 			= " << U << endl;
-      //printConfiguration2D();
+      printConfiguration2D();
       cout << endl
            << endl;
     }
@@ -1302,7 +1304,7 @@ void epi2D::circularApertureForces(double radius) {
     // update iterate
     it++;
   }
-}*/
+}
 
 void epi2D::wallForces(bool left, bool bottom, bool right, bool top, double& forceLeft, double& forceBottom, double& forceRight, double& forceTop, int forceOption) {
   // compute particle-wall forces and wall-particle forces. Only the latter

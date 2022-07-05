@@ -209,16 +209,6 @@ int main(int argc, char const* argv[]) {
     return 1;
   }
 
-  epithelial.monodisperse2D(calA0, nsmall);
-  epithelial.initializevnn();
-
-  double boxAspectRatio = 1.0;
-  bool isCircle = true;
-  epithelial.initializePositions2D(phi0, Ftol, false, boxAspectRatio, isCircle);
-  epithelial.printConfiguration2D();
-
-  epithelial.initializeNeighborLinkedList2D(boxLengthScale);
-
   // set base dpm force, upcast derived epi2D forces
   dpmMemFn repulsiveForceUpdate = &dpm::repulsiveForceUpdate;
   dpmMemFn repulsiveForceUpdateWithWalls = static_cast<void (dpm::*)()>(&epi2D::repulsiveForceUpdateWithWalls);
@@ -226,14 +216,26 @@ int main(int argc, char const* argv[]) {
   dpmMemFn substrateAdhesionForceUpdate = static_cast<void (dpm::*)()>(&epi2D::substrateadhesionAttractiveForceUpdate);
   dpmMemFn repulsiveForceUpdateWithCircularAperture = static_cast<void (dpm::*)()>(&epi2D::repulsiveForceWithCircularApertureWall);
 
-  int numEdges = 10;
-  epithelial.generateCircularBoundary(numEdges);
+  //int numEdges = 10;
+  //epithelial.generateCircularBoundary(numEdges); // is now hidden inside of initializePositions2D
   dpmMemFn repulsiveForceUpdateWithCircularWalls = static_cast<void (dpm::*)()>(&epi2D::repulsiveForceUpdateWithPolyWall);
   dpmMemFn attractiveForceUpdateWithCircularWalls = static_cast<void (dpm::*)()>(&epi2D::attractiveForceUpdateWithPolyWall);
+  
+  epithelial.monodisperse2D(calA0, nsmall);
+  epithelial.initializevnn();
 
-  //epithelial.vertexCompress2Target2D(repulsiveForceUpdateWithWalls, Ftol, dt0, phiMax, dphi0);
+  double boxAspectRatio = 1.0;
+  bool setUpCircularBoundary = false;
+  // initialize positions and setup polygonal boundary condition if setUpCircularBoundary is enabled
+  epithelial.initializePositions2D(phi0, Ftol, false, boxAspectRatio, setUpCircularBoundary);
+  epithelial.printConfiguration2D();
+
+  epithelial.initializeNeighborLinkedList2D(boxLengthScale);
+
+
+  epithelial.vertexCompress2Target2D(repulsiveForceUpdateWithWalls, Ftol, dt0, phiMax, dphi0);
   // epithelial.vertexCompress2Target2D(repulsiveForceUpdateWithCircularAperture, Ftol, dt0, phiMax, dphi0);
-  epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithCircularWalls, Ftol, dt0, phiMax, dphi0);
+  //epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithCircularWalls, Ftol, dt0, phiMax, dphi0);
   epithelial.printConfiguration2D();
 
   // after compress, turn on damped NVE

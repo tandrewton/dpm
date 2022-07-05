@@ -215,7 +215,7 @@ class dpm {
   void initializeVertexShapeParameters(double calA0, int nref);
   void initializeVertexShapeParameters(std::vector<double> calA0, int nref);
   void initializeVertexIndexing2D();
-  void initializePositions2D(double phi0, double Ftol, bool isFixedBoundary = false, double aspectRatio = 1.0, bool isCircle = false);
+  void initializePositions2D(double phi0, double Ftol, bool isFixedBoundary = false, double aspectRatio = 1.0, bool setUpCircularBoundary = false);
   void initializeAllPositions(std::string vertexPositionFile, int nref);
   void initializeFromConfigurationFile(std::string vertexPositionFile, double phi0);
   void initializeNeighborLinkedList2D(double boxLengthScale);
@@ -227,7 +227,7 @@ class dpm {
   void drawVelocities2D(double T);
   double distanceLineAndPoint(double x1, double y1, double x2, double y2, double x0, double y0);
   double distanceLinePointComponents(double x1, double y1, double x2, double y2, double x0, double y0, double& xcomp, double& ycomp);
-  void generateCircularBoundary(int numEdges);
+  void generateCircularBoundary(int numEdges, double radius, double cx, double cy);
   void generateCircle(int numEdges, double cx, double cy, double r, std::vector<double>& poly_x, std::vector<double>& poly_y);
 
   // force definitions
