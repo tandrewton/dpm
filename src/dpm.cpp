@@ -658,13 +658,12 @@ void dpm::sinusoidalPreferredAngle(double thA, double thK) {
   }
 }
 
-// initialize CoM positions of cells (i.e. use soft disks) using SP FIRE. Also, setupCircularBoundaries enables polygonal walls
+// initialize CoM positions of cells (i.e. use soft disks) using SP FIRE. setupCircularBoundaries enables polygonal walls
 void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, double aspectRatio, bool setUpCircularBoundary) {
   // isFixedBoundary is an optional bool argument that tells cells to stay away from the boundary during initialization
   // aspectRatio is the ratio L[0] / L[1]
-  // local variables
   int i, d, ci, cj, vi, vj, gi, cellDOF = NDIM * NCELLS;
-  int numEdges = 10;  // number of edges in the polygonal walls we'll use to approximate a circle
+  int numEdges = 10;  // number of edges in the polygonal walls to approximate a circle
   double areaSum, xtra = 1.1;
   std::vector<double> aspects = {1.0 * aspectRatio, 1.0 / aspectRatio};
 
@@ -692,13 +691,6 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
       L.at(d) = pow(4 / PI * areaSum / phi0, 1.0/NDIM);
   }
 
-  //areaSum = 0.0;
-  //for (ci = 0; ci < NCELLS; ci++)
-  //  areaSum += a0.at(ci) + 0.25 * PI * pow(l0.at(ci), 2.0) * (0.5 * nv.at(ci) - 1);
-  cout << "L[0], L[1] = " << L[0] << '\t' << L[1] << '\n';
-  cout << "areaSum = " << areaSum << "\t, L*L = " << L[0] * L[1] << "\t, pi/4 *L^2 = " << PI/4*L[0]*L[0] << '\n';
-  cout << "areaSum / L^2 = " << areaSum / L[0] / L[1] << "\t, areaSum / (pi/4 * L^2) = " << areaSum / (PI / 4 * L[0] * L[0]) << '\n';
-
   // initialize cell centers randomly
   if (!setUpCircularBoundary) {
     for (ci = 0; ci < cellDOF; ci += 2) {
@@ -708,7 +700,7 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
       dpos.at(ci) = L[ci % 2] * drand48();
     }
   }
-  else {  // initialize cell centers randomly, but reject centers if they are further than R = L/2 - sqrt(a0) from the center of the box
+  else {
     cout << "setUpCircularBoundary is enabled, so initializing cell centers randomly but rejecting if further than R = L/2 from the center (which is (L/2,L/2))\n";
     double scale_radius = 1.1; // make the polygon radius slightly larger so that it encompasses the circle that points are initialized in
     generateCircularBoundary(numEdges, scale_radius * L[0]/2, L[0]/2, L[1]/2);
@@ -716,7 +708,6 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
     for (i = 0; i < cellDOF; i+= 2){
       double dpos_x = L[i % 2] * drand48(), dpos_y = L[(i+1) % 2] * drand48();
       double center_x = L[i % 2]/2.0, center_y = L[(i + 1) % 2]/2.0;
-      //while (pow(dpos_x - center_x,2) + pow(dpos_y - center_y,2) > pow(center_x - sqrt(a0[i/2]/PI), 2)){
       while (pow(dpos_x - center_x,2) + pow(dpos_y - center_y,2) > pow(center_x, 2)){
         dpos_x = L[i % 2] * drand48();
         dpos_y = L[(i+1) % 2] * drand48();
@@ -726,17 +717,16 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
     }
   }
 
-  ofstream initPosStream("initPosSP.txt");
-  for (int i = 0; i < cellDOF; i+= 2){
-    initPosStream << dpos.at(i) << '\t' << dpos.at(i+1) << '\n';
-  }
-
   // set radii of SP disks
   for (ci = 0; ci < NCELLS; ci++){
     if (setUpCircularBoundary)
       xtra = 1.1; // disks should have radius similar to the final particle radius, or could modify vrad[i] condition in wall calculation later
     drad.at(ci) = xtra * sqrt((2.0 * a0.at(ci)) / (nv.at(ci) * sin(2.0 * PI / nv.at(ci))));
-    cout << "drad = " << drad.at(ci) << '\n';
+  }
+
+  ofstream initPosStream("initPosSP.txt");
+  for (int i = 0; i < cellDOF; i+= 2){
+    initPosStream << dpos.at(i) << '\t' << dpos.at(i+1) << '\t' << drad[i/2] << '\n';
   }
 
   // FIRE VARIABLES
@@ -895,7 +885,7 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
     }
     else if (setUpCircularBoundary) { // use a polygon as a boundary condition 
       int n = poly_x.size();
-      double distanceParticleWall, Rx, Ry, dw, K=10;
+      double distanceParticleWall, Rx, Ry, dw, K=1;
       double bound_x1, bound_x2, bound_y1, bound_y2;
       // loop over boundary bars
       // loop over particles
@@ -904,16 +894,18 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
       for (int bound_i = 0; bound_i < n; bound_i++) {
         // use distanceLineAndPoint to get R, Rx, and Ry
         bound_x1 = poly_x[bound_i];
-        bound_x2 = poly_x[bound_i+1];
+        bound_x2 = poly_x[(bound_i+1) % n];
         bound_y1 = poly_y[bound_i];
-        bound_y2 = poly_y[bound_i+1];
+        bound_y2 = poly_y[(bound_i+1) % n];
         for (i = 0; i < cellDOF/NDIM; i++) {
           distanceParticleWall = distanceLinePointComponents(bound_x1, bound_y1, bound_x2, bound_y2, dpos[i*NDIM], dpos[i*NDIM+1], Rx, Ry);
           dw = drad[i] - distanceParticleWall;
           if (distanceParticleWall <= drad[i]) {
-            cout << "particle is touching a wall in SP minimization! calculating force\n";
             dF[i*NDIM] += K * dw * Rx/distanceParticleWall;
             dF[i*NDIM+1] += K * dw * Ry/distanceParticleWall;
+            cout << "force from wall overlap : " << K*dw*Rx/distanceParticleWall << '\t' << K*dw*Ry/distanceParticleWall << ", cell " << i << '\n';
+            cout << "allegedly, cell " << i << " has position " << dpos.at(NDIM*i) << '\t' << dpos.at(NDIM*i+1) << '\n';
+            cout << "boundaries x1,y1,x2,y2 = " << bound_x1 << '\t' << bound_y1 << '\t' << bound_x2 << '\t' << bound_y2 << "\n\n";
           }
         }
       }
@@ -925,8 +917,10 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
 
     // update forces to check
     fcheck = 0.0;
-    for (i = 0; i < cellDOF; i++)
+    for (i = 0; i < cellDOF; i++){
+      cout << "dF = " << dF[i] << "\tcellDOF = " << i << '\n';
       fcheck += dF[i] * dF[i];
+    }
     fcheck = sqrt(fcheck / NCELLS);
 
     // print to console
@@ -981,7 +975,7 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
 
   ofstream initPos2Stream("initPosSP2.txt");
   for (int i = 0; i < cellDOF; i+= 2){
-    initPos2Stream << dpos.at(i) << '\t' << dpos.at(i+1) << '\n';
+    initPos2Stream << dpos.at(i) << '\t' << dpos.at(i+1) << '\t' << drad[i/2] << '\n';
   }
 
   // initialize vertex positions based on cell centers
@@ -996,6 +990,18 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
       // set positions
       x.at(NDIM * gi) = dtmp * cos((2.0 * PI * vi) / nv.at(ci)) + dpos.at(NDIM * ci) + 1e-2 * l0[gi] * drand48();
       x.at(NDIM * gi + 1) = dtmp * sin((2.0 * PI * vi) / nv.at(ci)) + dpos.at(NDIM * ci + 1) + 1e-2 * l0[gi] * drand48();
+    }
+  }
+
+  // for debugging
+  for (int ci = 0; ci < NCELLS; ci++) {
+    double xi = dpos[NDIM*ci];
+    double yi = dpos[NDIM*ci + 1];
+    for (int cj = ci + 1; cj < NCELLS; cj++) {
+      double xj = dpos[NDIM*cj];
+      double yj = dpos[NDIM*cj + 1];
+      double dist = sqrt(pow(xi - xj,2) + pow(yi - yj,2));
+      cout << ci << '\t' << cj << "\tdistance between soft particles = " << dist << ", dtmp = " << dtmp << ", drad[ci]+drad[cj]  = " << drad[ci] + drad[cj] << ", positions = " << xi << '\t' << yi << '\n';
     }
   }
 
@@ -2245,9 +2251,9 @@ void dpm::evaluatePolygonalWallForces(const std::vector<double>& poly_x, const s
   for (int bound_i = 0; bound_i < n; bound_i++) {
     // use distanceLineAndPoint to get R, Rx, and Ry
     bound_x1 = poly_x[bound_i];
-    bound_x2 = poly_x[bound_i+1];
+    bound_x2 = poly_x[(bound_i+1) % n];
     bound_y1 = poly_y[bound_i];
-    bound_y2 = poly_y[bound_i+1];
+    bound_y2 = poly_y[(bound_i+1) % n];
     for (int i = 0; i < NVTOT; i++) {
       distanceParticleWall = distanceLinePointComponents(bound_x1, bound_y1, bound_x2, bound_y2, x[i*NDIM], x[i*NDIM+1], Rx, Ry);
       dw = r[i] - distanceParticleWall;
