@@ -663,7 +663,7 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
   // isFixedBoundary is an optional bool argument that tells cells to stay away from the boundary during initialization
   // aspectRatio is the ratio L[0] / L[1]
   int i, d, ci, cj, vi, vj, gi, cellDOF = NDIM * NCELLS;
-  int numEdges = 10;  // number of edges in the polygonal walls to approximate a circle
+  int numEdges = 20;  // number of edges in the polygonal walls to approximate a circle
   double areaSum, xtra = 1.1;
   std::vector<double> aspects = {1.0 * aspectRatio, 1.0 / aspectRatio};
 
@@ -722,11 +722,6 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
     if (setUpCircularBoundary)
       xtra = 1.1; // disks should have radius similar to the final particle radius, or could modify vrad[i] condition in wall calculation later
     drad.at(ci) = xtra * sqrt((2.0 * a0.at(ci)) / (nv.at(ci) * sin(2.0 * PI / nv.at(ci))));
-  }
-
-  ofstream initPosStream("initPosSP.txt");
-  for (int i = 0; i < cellDOF; i+= 2){
-    initPosStream << dpos.at(i) << '\t' << dpos.at(i+1) << '\t' << drad[i/2] << '\n';
   }
 
   // FIRE VARIABLES
@@ -903,9 +898,6 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
           if (distanceParticleWall <= drad[i]) {
             dF[i*NDIM] += K * dw * Rx/distanceParticleWall;
             dF[i*NDIM+1] += K * dw * Ry/distanceParticleWall;
-            cout << "force from wall overlap : " << K*dw*Rx/distanceParticleWall << '\t' << K*dw*Ry/distanceParticleWall << ", cell " << i << '\n';
-            cout << "allegedly, cell " << i << " has position " << dpos.at(NDIM*i) << '\t' << dpos.at(NDIM*i+1) << '\n';
-            cout << "boundaries x1,y1,x2,y2 = " << bound_x1 << '\t' << bound_y1 << '\t' << bound_x2 << '\t' << bound_y2 << "\n\n";
           }
         }
       }
@@ -917,10 +909,8 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
 
     // update forces to check
     fcheck = 0.0;
-    for (i = 0; i < cellDOF; i++){
-      cout << "dF = " << dF[i] << "\tcellDOF = " << i << '\n';
+    for (i = 0; i < cellDOF; i++)
       fcheck += dF[i] * dF[i];
-    }
     fcheck = sqrt(fcheck / NCELLS);
 
     // print to console
@@ -972,12 +962,6 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
     cout << "	** alpha = " << alpha << endl;
   }
 
-
-  ofstream initPos2Stream("initPosSP2.txt");
-  for (int i = 0; i < cellDOF; i+= 2){
-    initPos2Stream << dpos.at(i) << '\t' << dpos.at(i+1) << '\t' << drad[i/2] << '\n';
-  }
-
   // initialize vertex positions based on cell centers
   for (ci = 0; ci < NCELLS; ci++) {
     for (vi = 0; vi < nv.at(ci); vi++) {
@@ -992,28 +976,6 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
       x.at(NDIM * gi + 1) = dtmp * sin((2.0 * PI * vi) / nv.at(ci)) + dpos.at(NDIM * ci + 1) + 1e-2 * l0[gi] * drand48();
     }
   }
-
-  // for debugging
-  for (int ci = 0; ci < NCELLS; ci++) {
-    double xi = dpos[NDIM*ci];
-    double yi = dpos[NDIM*ci + 1];
-    for (int cj = ci + 1; cj < NCELLS; cj++) {
-      double xj = dpos[NDIM*cj];
-      double yj = dpos[NDIM*cj + 1];
-      double dist = sqrt(pow(xi - xj,2) + pow(yi - yj,2));
-      cout << ci << '\t' << cj << "\tdistance between soft particles = " << dist << ", dtmp = " << dtmp << ", drad[ci]+drad[cj]  = " << drad[ci] + drad[cj] << ", positions = " << xi << '\t' << yi << '\n';
-    }
-  }
-
-  /*if (setUpCircularBoundary) {
-    double maxVertDistSqFromCenter = 0;
-    for (int i = 0; i < NVTOT; i++) {
-      double temp = pow(x[NDIM*i] - L[0]/2,2) + pow(x[NDIM*i + 1] - L[1]/2,2);
-      if (temp > maxVertDistSqFromCenter)
-        maxVertDistSqFromCenter = temp;
-    }
-    generateCircularBoundary(numEdges, sqrt(maxVertDistSqFromCenter) + r[0], L[0]/2, L[1]/2);
-  }*/
 }
 
 void dpm::initializeFromConfigurationFile(std::string vertexPositionFile, double phi0) {
@@ -2373,7 +2335,7 @@ void dpm::vertexFIRE2D(dpmMemFn forceCall, double Ftol, double dt0) {
       cout << "	** U 		= " << U << endl;
       cout << "	** dt 		= " << dt << endl;
       cout << "	** P 		= " << P << endl;
-      cout << " ** phi  = " << vertexPreferredPackingFraction2D() << endl;
+      cout << " ** phi (square boundaries)  = " << vertexPreferredPackingFraction2D() << endl;
       cout << "	** alpha 	= " << alpha << endl;
       cout << "	** npPos 	= " << npPos << endl;
       cout << "	** npNeg 	= " << npNeg << endl;

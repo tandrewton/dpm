@@ -68,8 +68,6 @@ mkdir(subdir_pipeline);
 mkdir(subdir_output);
 
 load("polyBoundary.txt"); % load boundaries of polygon walls
-load("initPosSP.txt");
-load("initPosSP2.txt");
 %txt = 'N = '+N+', NV = '+NV+', calA_o='+calA+', att='+att+', B='+B;
 txt='test';
 
@@ -375,8 +373,6 @@ for seed = startSeed:max_seed
                 plot(flagX(ff,:)./flag(ff,:), flagY(ff,:)./flag(ff,:), 'ro', 'linewidth', 2);
             end
             plot([polyBoundary(:,1); polyBoundary(1,1)], [polyBoundary(:,2); polyBoundary(1,2)], 'k','linewidth', 4)
-            scatter(initPosSP(:,1), initPosSP(:,2), 'k')
-            scatter(initPosSP2(:,1), initPosSP2(:,2), 'r')
             ann = annotation('textbox', [.42 .05 .6 .05],'interpreter', 'latex',...
                 'String', etaStr, 'Edgecolor','none');
             ann.FontSize = 30;

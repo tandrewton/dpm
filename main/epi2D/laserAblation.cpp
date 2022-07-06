@@ -215,9 +215,6 @@ int main(int argc, char const* argv[]) {
   dpmMemFn attractiveForceUpdate = static_cast<void (dpm::*)()>(&epi2D::attractiveForceUpdate_2);
   dpmMemFn substrateAdhesionForceUpdate = static_cast<void (dpm::*)()>(&epi2D::substrateadhesionAttractiveForceUpdate);
   dpmMemFn repulsiveForceUpdateWithCircularAperture = static_cast<void (dpm::*)()>(&epi2D::repulsiveForceWithCircularApertureWall);
-
-  //int numEdges = 10;
-  //epithelial.generateCircularBoundary(numEdges); // is now hidden inside of initializePositions2D
   dpmMemFn repulsiveForceUpdateWithCircularWalls = static_cast<void (dpm::*)()>(&epi2D::repulsiveForceUpdateWithPolyWall);
   dpmMemFn attractiveForceUpdateWithCircularWalls = static_cast<void (dpm::*)()>(&epi2D::attractiveForceUpdateWithPolyWall);
   
@@ -229,7 +226,6 @@ int main(int argc, char const* argv[]) {
   // initialize positions and setup polygonal boundary condition if setUpCircularBoundary is enabled
   epithelial.initializePositions2D(phi0, Ftol, false, boxAspectRatio, setUpCircularBoundary);
   epithelial.printConfiguration2D();
-  assert(false);
 
   epithelial.initializeNeighborLinkedList2D(boxLengthScale);
 
