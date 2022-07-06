@@ -225,17 +225,17 @@ int main(int argc, char const* argv[]) {
   epithelial.initializevnn();
 
   double boxAspectRatio = 1.0;
-  bool setUpCircularBoundary = false;
+  bool setUpCircularBoundary = true;
   // initialize positions and setup polygonal boundary condition if setUpCircularBoundary is enabled
   epithelial.initializePositions2D(phi0, Ftol, false, boxAspectRatio, setUpCircularBoundary);
   epithelial.printConfiguration2D();
+  assert(false);
 
   epithelial.initializeNeighborLinkedList2D(boxLengthScale);
 
-
-  epithelial.vertexCompress2Target2D(repulsiveForceUpdateWithWalls, Ftol, dt0, phiMax, dphi0);
+  //epithelial.vertexCompress2Target2D(repulsiveForceUpdateWithWalls, Ftol, dt0, phiMax, dphi0);
   // epithelial.vertexCompress2Target2D(repulsiveForceUpdateWithCircularAperture, Ftol, dt0, phiMax, dphi0);
-  //epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithCircularWalls, Ftol, dt0, phiMax, dphi0);
+  epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithCircularWalls, Ftol, dt0, phiMax, dphi0);
   epithelial.printConfiguration2D();
 
   // after compress, turn on damped NVE
