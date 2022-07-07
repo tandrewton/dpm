@@ -58,6 +58,24 @@ void cell::attractiveWallCrawlingForceUpdate() {
   wallCrawlingForces();
 }
 
+void cell::repulsiveForceUpdateWithPolyWall() {
+  resetForcesAndEnergy();
+  shapeForces2D();
+  vertexRepulsiveForces2D();
+  for (int i = 0; i < poly_bd_x.size(); i++){
+    evaluatePolygonalWallForces(poly_bd_x[i], poly_bd_y[i]);
+  }
+}
+
+void cell::attractiveForceUpdateWithPolyWall() {
+  resetForcesAndEnergy();
+  shapeForces2D();
+  vertexAttractiveForces2D_2();
+  for (int i = 0; i < poly_bd_x.size(); i++){
+    evaluatePolygonalWallForces(poly_bd_x[i], poly_bd_y[i]);
+  }
+}
+
 void cell::vertexAttractiveForces2D_2() {
   // altered from dpm attractive force code, because it works with larger l2
   // values. (warning: probably won't work with bending.) local variables
@@ -535,8 +553,316 @@ void cell::cellPolarityForces(int ci, double k_polarity, std::string direction) 
 
 //routines
 
-void cell::initializeTransverseTissue(double cx, double cy, int id1, int id2, int numCellsInside) {
-  // initialize the starting position and all related data for a large deformable particle and numCellsInside smaller deformable particles
+void cell::initializeTransverseTissue(double phi0, double Ftol) {
+  // initialize the starting positions and all related data for a large deformable particle and numCellsInside smaller deformable particles
+  // isFixedBoundary is an optional bool argument that tells cells to stay away from the boundary during initialization
+  // aspectRatio is the ratio L[0] / L[1]
+  int i, d, ci, cj, vi, vj, gi, cellDOF = NDIM * NCELLS, cumNumCells = 0;
+  int numEdges = 20;  // number of edges in the polygonal walls to approximate a circle
+  double areaSum, xtra = 1.1;
+
+  // local disk vectors
+  vector<double> drad(NCELLS, 0.0);
+  vector<double> dpos(cellDOF, 0.0);
+  vector<double> dv(cellDOF, 0.0);
+  vector<double> dF(cellDOF, 0.0);
+
+  // print to console
+  cout << "** initializing particle positions using 2D SP model and FIRE relaxation ..." << endl;
+
+  // initialize stress field
+  initializeFieldStress();
+
+  // initial transverse geometry vectors in units of some lengthscale
+  int numTissues = 4;
+  double totalArea = 0.0;
+  vector<double> cx = {1/2, 5/4, 2, 5/4}, cy = {1/2, 3/8, 1/2, 5/4};
+  vector<double> tissueRadii = {1/2, 1/4, 1/2, 1/2}, cellFractionPerTissue, numCellsInTissue;
+  for (int i = 0; i < tissueRadii.size(); i++) {
+    totalArea += tissueRadii[i]*tissueRadii[i];
+  }
+  for (int i = 0; i < tissueRadii.size();i++) { 
+    cellFractionPerTissue.push_back(tissueRadii[i]*tissueRadii[i]/totalArea);
+    numCellsInTissue[i] = round(cellFractionPerTissue[i] * NCELLS);
+    cout << "intializing " << NCELLS << " cells, with tissue " << i << " having cell fraction = " << cellFractionPerTissue[i] << '\n';
+    cout << "NCELLS * cellFraction = " << NCELLS * cellFractionPerTissue[i] << ", which is " << round(NCELLS * cellFractionPerTissue[i]) << " when rounded\n";
+  }
+
+  // initialize box size based on packing fraction
+  areaSum = 0.0;
+  for (ci = 0; ci < NCELLS; ci++)
+    areaSum += a0.at(ci) + 0.25 * PI * pow(l0.at(ci), 2.0) * (0.5 * nv.at(ci) - 1);
+
+  // set box size : phi_0 = areaSum / A => A = areaSum/phi_0 which gives us the following formulas for L
+  for (d = 0; d < NDIM; d++) {
+    L.at(d) = pow(4 / PI * areaSum / phi0, 1.0/NDIM);
+  }
+
+  for (int n = 0; n < numTissues; n++){
+    cout << "initializing cell centers randomly but rejecting if further than R from the center for tissue " << i << "\n";
+    double scale_radius = 1.1; // make the polygon radius slightly larger so that it encompasses the circle that points are initialized in
+    poly_bd_x.push_back(std::vector<double>()); // make new data for generateCircularBoundary to write a polygon
+    poly_bd_y.push_back(std::vector<double>());
+    generateCircularBoundary(numEdges, scale_radius * tissueRadii[n], cx[n], cy[n], poly_bd_x[n], poly_bd_y[n]);
+
+    for (i = cumNumCells; i < cumNumCells + numCellsInTissue[n]; i++){
+      double dpos_x = tissueRadii[n] * drand48() + cx[n], dpos_y = tissueRadii[n] * drand48() + cy[n];
+      while (pow(dpos_x - cx[n],2) + pow(dpos_y - cy[n],2) > pow(tissueRadii[n], 2)){
+        dpos_x = tissueRadii[n] * drand48() + cx;
+        dpos_y = tissueRadii[n] * drand48() + cy;
+      }
+      dpos.at(i*NDIM) = dpos_x;
+      dpos.at(i*NDIM+1) = dpos_y;
+    }
+    cumNumCells += numCellsInTissue[n];
+  }
+
+  // set radii of SP disks
+  for (ci = 0; ci < NCELLS; ci++){
+    xtra = 1.1; // disks should have radius similar to the final particle radius, or could modify vrad[i] condition in wall calculation later
+    drad.at(ci) = xtra * sqrt((2.0 * a0.at(ci)) / (nv.at(ci) * sin(2.0 * PI / nv.at(ci))));
+  }
+
+  // FIRE VARIABLES
+  double P = 0;
+  double fnorm = 0;
+  double vnorm = 0;
+  double alpha = alpha0;
+
+  double dt0 = 1e-2;
+  double dtmax = 10 * dt0;
+  double dtmin = 1e-8 * dt0;
+
+  int npPos = 0;
+  int npNeg = 0;
+
+  int fireit = 0;
+  double fcheck = 10 * Ftol;
+
+  // interaction variables
+  double rij, sij, dtmp, ftmp, vftmp;
+  double dr[NDIM];
+
+  // initial step size
+  dt = dt0;
+
+  // loop until force relaxes
+  while ((fcheck > Ftol) && fireit < itmax) {
+    // FIRE step 1. Compute P
+    P = 0.0;
+    for (i = 0; i < cellDOF; i++)
+      P += dv[i] * dF[i];
+
+    // FIRE step 2. adjust simulation based on net motion of degrees of freedom
+    if (P > 0) {
+      // increase positive counter
+      npPos++;
+
+      // reset negative counter
+      npNeg = 0;
+
+      // alter simulation if enough positive steps have been taken
+      if (npPos > NMIN) {
+        // change time step
+        if (dt * finc < dtmax)
+          dt *= finc;
+
+        // decrease alpha
+        alpha *= falpha;
+      }
+    } else {
+      // reset positive counter
+      npPos = 0;
+
+      // increase negative counter
+      npNeg++;
+
+      // check if simulation is stuck
+      if (npNeg > NNEGMAX) {
+        cerr << "	** ERROR: During initial FIRE minimization, P < 0 for too long, so ending." << endl;
+        exit(1);
+      }
+
+      // take half step backwards, reset velocities
+      for (i = 0; i < cellDOF; i++) {
+        // take half step backwards
+        dpos[i] -= 0.5 * dt * dv[i];
+
+        // reset velocities
+        dv[i] = 0.0;
+      }
+
+      // decrease time step if past initial delay
+      if (fireit > NDELAY) {
+        // decrease time step
+        if (dt * fdec > dtmin)
+          dt *= fdec;
+
+        // reset alpha
+        alpha = alpha0;
+      }
+    }
+
+    // FIRE step 3. First VV update
+    for (i = 0; i < cellDOF; i++)
+      dv[i] += 0.5 * dt * dF[i];
+
+    // FIRE step 4. adjust velocity magnitude
+    fnorm = 0.0;
+    vnorm = 0.0;
+    for (i = 0; i < cellDOF; i++) {
+      fnorm += dF[i] * dF[i];
+      vnorm += dv[i] * dv[i];
+    }
+    fnorm = sqrt(fnorm);
+    vnorm = sqrt(vnorm);
+    if (fnorm > 0) {
+      for (i = 0; i < cellDOF; i++)
+        dv[i] = (1 - alpha) * dv[i] + alpha * (vnorm / fnorm) * dF[i];
+    }
+
+    // FIRE step 4. Second VV update
+    for (i = 0; i < cellDOF; i++) {
+      dpos[i] += dt * dv[i];
+      dF[i] = 0.0;
+    }
+
+    // FIRE step 5. Update forces
+    for (ci = 0; ci < NCELLS; ci++) {
+      for (cj = ci + 1; cj < NCELLS; cj++) {
+        // contact distance
+        sij = drad[ci] + drad[cj];
+
+        // true distance
+        rij = 0.0;
+        for (d = 0; d < NDIM; d++) {
+          // get distance element
+          dtmp = dpos[NDIM * cj + d] - dpos[NDIM * ci + d];
+          if (pbc[d])
+            dtmp -= L[d] * round(dtmp / L[d]);
+
+          // add to true distance
+          rij += dtmp * dtmp;
+
+          // save in distance array
+          dr[d] = dtmp;
+        }
+        rij = sqrt(rij);
+
+        // check distances
+        if (rij < sij) {
+          // force magnitude
+          ftmp = kc * (1.0 - (rij / sij)) / sij;
+
+          // add to vectorial force
+          for (d = 0; d < NDIM; d++) {
+            vftmp = ftmp * (dr[d] / rij);
+            dF[NDIM * ci + d] -= vftmp;
+            dF[NDIM * cj + d] += vftmp;
+          }
+        }
+      }
+    }
+    // FIRE step 4.1 Compute wall force
+    for (i = 0; i < poly_bd_x.size(); i++) {
+      std::vector<double> poly_x = poly_bd_x[i];
+      std::vector<double> poly_y = poly_bd_y[i];
+      int n = poly_x.size();
+      double distanceParticleWall, Rx, Ry, dw, K=1;
+      double bound_x1, bound_x2, bound_y1, bound_y2;
+      // loop over boundary bars
+      // loop over particles
+      //  compute particle-boundary bar overlaps
+      //  if overlap, Fx += K * dw * Rx/R, where K is a constant, dw = diameter/2 - R, Rx = x - px, R = sqrt(Rx^2 + Ry^2)
+      for (int bound_i = 0; bound_i < n; bound_i++) {
+        // use distanceLineAndPoint to get R, Rx, and Ry
+        bound_x1 = poly_x[bound_i];
+        bound_x2 = poly_x[(bound_i+1) % n];
+        bound_y1 = poly_y[bound_i];
+        bound_y2 = poly_y[(bound_i+1) % n];
+        for (i = 0; i < cellDOF/NDIM; i++) {
+          distanceParticleWall = distanceLinePointComponents(bound_x1, bound_y1, bound_x2, bound_y2, dpos[i*NDIM], dpos[i*NDIM+1], Rx, Ry);
+          dw = drad[i] - distanceParticleWall;
+          if (distanceParticleWall <= drad[i]) {
+            dF[i*NDIM] += K * dw * Rx/distanceParticleWall;
+            dF[i*NDIM+1] += K * dw * Ry/distanceParticleWall;
+          }
+        }
+      }
+    }
+    // FIRE step 5. Final VV update
+    for (i = 0; i < cellDOF; i++)
+      dv[i] += 0.5 * dt * dF[i];
+
+    // update forces to check
+    fcheck = 0.0;
+    for (i = 0; i < cellDOF; i++)
+      fcheck += dF[i] * dF[i];
+    fcheck = sqrt(fcheck / NCELLS);
+
+    // print to console
+    if (fireit % NSKIP == 0) {
+      cout << endl
+           << endl;
+      cout << "===========================================" << endl;
+      cout << "		I N I T I A L  S P 			" << endl;
+      cout << " 	F I R E 						" << endl;
+      cout << "		M I N I M I Z A T I O N 	" << endl;
+      cout << "===========================================" << endl;
+      cout << endl;
+      cout << "	** fireit = " << fireit << endl;
+      cout << "	** fcheck = " << fcheck << endl;
+      cout << "	** fnorm = " << fnorm << endl;
+      cout << "	** vnorm = " << vnorm << endl;
+      cout << "	** dt = " << dt << endl;
+      cout << "	** P = " << P << endl;
+      cout << "	** Pdir = " << P / (fnorm * vnorm) << endl;
+      cout << "	** alpha = " << alpha << endl;
+    }
+
+    // update iterate
+    fireit++;
+  }
+  // check if FIRE converged
+  if (fireit == itmax) {
+    cout << "	** FIRE minimization did not converge, fireit = " << fireit << ", itmax = " << itmax << "; ending." << endl;
+    exit(1);
+  } else {
+    cout << endl
+         << endl;
+    cout << "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&" << endl;
+    cout << "===========================================" << endl;
+    cout << " 	F I R E 						" << endl;
+    cout << "		M I N I M I Z A T I O N 	" << endl;
+    cout << "	C O N V E R G E D! 				" << endl
+         << endl;
+
+    cout << "	(for initial disk minimization) " << endl;
+    cout << "===========================================" << endl;
+    cout << "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&" << endl;
+    cout << endl;
+    cout << "	** fireit = " << fireit << endl;
+    cout << "	** fcheck = " << fcheck << endl;
+    cout << "	** vnorm = " << vnorm << endl;
+    cout << "	** dt = " << dt << endl;
+    cout << "	** P = " << P << endl;
+    cout << "	** alpha = " << alpha << endl;
+  }
+
+  // initialize vertex positions based on cell centers
+  for (ci = 0; ci < NCELLS; ci++) {
+    for (vi = 0; vi < nv.at(ci); vi++) {
+      // get global vertex index
+      gi = gindex(ci, vi);
+
+      // length from center to vertex
+      dtmp = sqrt((2.0 * a0.at(ci)) / (nv.at(ci) * sin((2.0 * PI) / nv.at(ci))));
+
+      // set positions
+      x.at(NDIM * gi) = dtmp * cos((2.0 * PI * vi) / nv.at(ci)) + dpos.at(NDIM * ci) + 1e-2 * l0[gi] * drand48();
+      x.at(NDIM * gi + 1) = dtmp * sin((2.0 * PI * vi) / nv.at(ci)) + dpos.at(NDIM * ci + 1) + 1e-2 * l0[gi] * drand48();
+    }
+  }
 }
 
 void cell::vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0) {

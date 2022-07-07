@@ -296,10 +296,12 @@ double dpm::vertexPreferredPackingFraction2D() {
   return val;
 }
 
-// get configuration "preferred" packing fraction with respect to polygon boundaries poly_x and poly_y
-double dpm::vertexPreferredPackingFraction2D_polygon(std::vector<double>& poly_x, std::vector<double>& poly_y){
+// get configuration "preferred" packing fraction with respect to polygon boundaries poly_bd_x[i] and poly_bd_y[i], where we loop over i to get all boundaries
+double dpm::vertexPreferredPackingFraction2D_polygon(){
+  if (poly_bd_x.size() == 0)
+    return 0.0;
   int ci;
-  double val, boxV, areaSum = 0.0;
+  double val, boxV, boxV_temp, areaSum = 0.0;
 
   // numerator
   for (ci = 0; ci < NCELLS; ci++)
@@ -307,12 +309,18 @@ double dpm::vertexPreferredPackingFraction2D_polygon(std::vector<double>& poly_x
 
   // denominator = boundary polygonal area via shoelace method
   boxV = 0.0;
-  int j = poly_x.size() - 1;
-  for (int i = 0; i < poly_x.size(); i++){
-    boxV += (poly_x[j] + poly_x[i]) * (poly_y[j] - poly_y[i]);
-    j = i;
+  for (int i = 0; i < poly_bd_x.size(); i++) {
+    boxV_temp = 0.0;
+    std::vector<double> poly_x = poly_bd_x[i];
+    std::vector<double> poly_y = poly_bd_y[i];
+    int j = poly_x.size() - 1;
+    for (int i = 0; i < poly_x.size(); i++){
+      boxV_temp += (poly_x[j] + poly_x[i]) * (poly_y[j] - poly_y[i]);
+      j = i;
+    }
+    boxV_temp = abs(boxV_temp/2.0);
+    boxV += boxV_temp;
   }
-  boxV = abs(boxV/2.0);
   
   // return packing fraction
   val = areaSum / boxV;
@@ -703,17 +711,19 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
   else {
     cout << "setUpCircularBoundary is enabled, so initializing cell centers randomly but rejecting if further than R = L/2 from the center (which is (L/2,L/2))\n";
     double scale_radius = 1.1; // make the polygon radius slightly larger so that it encompasses the circle that points are initialized in
-    generateCircularBoundary(numEdges, scale_radius * L[0]/2, L[0]/2, L[1]/2);
+    poly_bd_x.push_back(std::vector<double>()); // make new data for generateCircularBoundary to write a polygon
+    poly_bd_y.push_back(std::vector<double>());
+    double cx = L[0]/2, cy = L[1]/2, tissueRadius = L[0]/2;
+    generateCircularBoundary(numEdges, scale_radius * tissueRadius, cx, cy, poly_bd_x[0], poly_bd_y[0]);
 
-    for (i = 0; i < cellDOF; i+= 2){
-      double dpos_x = L[i % 2] * drand48(), dpos_y = L[(i+1) % 2] * drand48();
-      double center_x = L[i % 2]/2.0, center_y = L[(i + 1) % 2]/2.0;
-      while (pow(dpos_x - center_x,2) + pow(dpos_y - center_y,2) > pow(center_x, 2)){
-        dpos_x = L[i % 2] * drand48();
-        dpos_y = L[(i+1) % 2] * drand48();
+    for (i = 0; i < NCELLS; i++){
+      double dpos_x = tissueRadius * drand48() + cx, dpos_y = tissueRadius * drand48() + cy;
+      while (pow(dpos_x - cx,2) + pow(dpos_y - cy,2) > pow(tissueRadius, 2)){
+        dpos_x = tissueRadius * drand48() + cx;
+        dpos_y = tissueRadius * drand48() + cy;
       }
-      dpos.at(i) = dpos_x;
-      dpos.at(i+1) = dpos_y;
+      dpos.at(i*NDIM) = dpos_x;
+      dpos.at(i*NDIM+1) = dpos_y;
     }
   }
 
@@ -879,6 +889,8 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
       }
     }
     else if (setUpCircularBoundary) { // use a polygon as a boundary condition 
+      std::vector<double> poly_x = poly_bd_x[0];
+      std::vector<double> poly_y = poly_bd_y[0];
       int n = poly_x.size();
       double distanceParticleWall, Rx, Ry, dw, K=1;
       double bound_x1, bound_x2, bound_y1, bound_y2;
@@ -1476,7 +1488,7 @@ double dpm::distanceLinePointComponents(double x1, double y1, double x2, double 
   return distance;
 }
 
-void dpm::generateCircularBoundary(int numEdges, double radius, double cx, double cy) {
+void dpm::generateCircularBoundary(int numEdges, double radius, double cx, double cy, std::vector<double>& poly_x, std::vector<double>& poly_y) {
   // place a circular boundary, then fix L[0] and L[1] just outside the circle for plotting purposes.
   // in initializePositions2D, isCircle flag is chosen to ensure that particles fall within L/2 (radius) of L/2 (center of box)
   // cx cy are the center of the boundary polygon
@@ -1497,7 +1509,7 @@ void dpm::generateCircularBoundary(int numEdges, double radius, double cx, doubl
 }
 
 void dpm::generateCircle(int numEdges, double cx, double cy, double r, std::vector<double>& px, std::vector<double>& py) {
-  // generate an n-gon at center cx,cy with radius r
+  // generate an n-gon at center cx,cy with radius r. Modifies data in px, py to give the n-gon
   double theta;
   std::vector<double> poly_x_temp, poly_y_temp;
   // numEdges+1 makes a closed polygon
@@ -2201,6 +2213,7 @@ void dpm::vertexAttractiveForces2D() {
   }
 }
 
+// if there are multiple polygonal bds, need to throw evaluatePolygonalWallForces in a loop over poly_bd_x.size()
 void dpm::evaluatePolygonalWallForces(const std::vector<double>& poly_x, const std::vector<double>& poly_y) {
   // evaluates particle-wall forces for a polygonal boundary specified by poly_x,poly_y. Does not compute stress yet.
   int n = poly_x.size();
@@ -2336,6 +2349,7 @@ void dpm::vertexFIRE2D(dpmMemFn forceCall, double Ftol, double dt0) {
       cout << "	** dt 		= " << dt << endl;
       cout << "	** P 		= " << P << endl;
       cout << " ** phi (square boundaries)  = " << vertexPreferredPackingFraction2D() << endl;
+      cout << " ** phi (polygonal boundaries) = " << vertexPreferredPackingFraction2D_polygon() << endl;
       cout << "	** alpha 	= " << alpha << endl;
       cout << "	** npPos 	= " << npPos << endl;
       cout << "	** npNeg 	= " << npNeg << endl;
@@ -2623,7 +2637,7 @@ void dpm::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, doubl
     scaleParticleSizes2D(scaleFactor);
 
     // update phi0
-    phi0 = vertexPreferredPackingFraction2D_polygon(poly_x, poly_y);
+    phi0 = vertexPreferredPackingFraction2D_polygon();
     // relax configuration (pass member function force update)
     // make sure that forceCall is a force routine that includes a call to evaluatePolygonalWallForces
     vertexFIRE2D(forceCall, Ftol, dt0);

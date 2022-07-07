@@ -303,14 +303,18 @@ void epi2D::repulsiveForceUpdateWithPolyWall() {
   resetForcesAndEnergy();
   shapeForces2D();
   vertexRepulsiveForces2D();
-  evaluatePolygonalWallForces(poly_x, poly_y);
+  for (int i = 0; i < poly_bd_x.size(); i++){
+    evaluatePolygonalWallForces(poly_bd_x[i], poly_bd_y[i]);
+  }
 }
 
 void epi2D::attractiveForceUpdateWithPolyWall() {
   resetForcesAndEnergy();
   shapeForces2D();
   vertexAttractiveForces2D_2();
-  evaluatePolygonalWallForces(poly_x, poly_y);
+  for (int i = 0; i < poly_bd_x.size(); i++){
+    evaluatePolygonalWallForces(poly_bd_x[i], poly_bd_y[i]);
+  }
 }
 
 void epi2D::vertexAttractiveForces2D_2() {
@@ -1274,7 +1278,7 @@ void epi2D::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, dou
     scaleParticleSizes2D(scaleFactor);
 
     // update phi0
-    phi0 = vertexPreferredPackingFraction2D_polygon(poly_x, poly_y);
+    phi0 = vertexPreferredPackingFraction2D_polygon();
     // relax configuration (pass member function force update)
     // make sure that forceCall is a force routine that includes a call to evaluatePolygonalWallForces
     vertexFIRE2D(forceCall, Ftol, dt0);
@@ -1287,7 +1291,7 @@ void epi2D::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, dou
     Sxy = stress[2];
 
     // print to console
-    if (it % 1 == 0) {
+    if (it % NSKIP == 0) {
       cout << " 	C O M P R E S S I O N 		" << endl;
       cout << "	** it 			= " << it << endl;
       cout << "	** phi0 curr	= " << phi0 << endl;

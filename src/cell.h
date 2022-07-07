@@ -72,7 +72,8 @@ class cell : public dpm {
   void attractiveWithPolarityForceUpdate();
   void attractiveWithPolarityForceAndWallCrawlingUpdate();
   void attractiveWallCrawlingForceUpdate();
-
+  void repulsiveForceUpdateWithPolyWall();
+  void attractiveForceUpdateWithPolyWall();
   void wallForces(bool left, bool bottom, bool right, bool top, double& forceLeft, double& forceBottom, double& forceRight, double& forceTop, double appliedUniaxialPressure = 0.0);
   void wallCrawlingForces();
   void cellPolarityForces(int ci, double k_polarity, std::string direction = "y");
@@ -99,7 +100,7 @@ class cell : public dpm {
   }
 
   // routines
-  void initializeTransverseTissue(double cx, double cy, int id1, int id2, int numCellsInside);
+  void initializeTransverseTissue(double phi0, double Ftol);
   void vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0);
   void simulateDampedWithWalls(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, double pressureRate, double adhesionRate, bool wallsOn, bool leftOpen, bool bottomOpen, bool rightOpen, bool topOpen, double trueStrainRateX = 0.0, double trueStrainRateY = 0.0, double appliedUniaxialPressure = 0.0);
 

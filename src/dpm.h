@@ -85,8 +85,8 @@ class dpm {
   std::vector<bool> pbc;
 
   // alternative boundary parameters: non-rectangular boundaries
-  std::vector<double> poly_x; // x coordinates of polygonal boundary condition (could be a triangle, square, n-0gon, star, etc.)
-  std::vector<double> poly_y; // set poly_x and poly_y by writing a function like generateCircularBoundary
+  std::vector<std::vector<double>> poly_bd_x; // x coordinates of polygonal boundary condition (could be a triangle, square, n-0gon, star, etc.)
+  std::vector<std::vector<double>> poly_bd_y; // set poly_x and poly_y by writing a function like generateCircularBoundary
 
   // particle shape parameters
   std::vector<double> a0;
@@ -179,7 +179,7 @@ class dpm {
   void com2D(int ci, double& cx, double& cy);
   double vertexPackingFraction2D();
   double vertexPreferredPackingFraction2D();
-  double vertexPreferredPackingFraction2D_polygon(std::vector<double>& poly_x, std::vector<double>& poly_y);
+  double vertexPreferredPackingFraction2D_polygon();
   double vertexKineticEnergy();
   int vvContacts();
   int ccContacts();
@@ -227,7 +227,7 @@ class dpm {
   void drawVelocities2D(double T);
   double distanceLineAndPoint(double x1, double y1, double x2, double y2, double x0, double y0);
   double distanceLinePointComponents(double x1, double y1, double x2, double y2, double x0, double y0, double& xcomp, double& ycomp);
-  void generateCircularBoundary(int numEdges, double radius, double cx, double cy);
+  void generateCircularBoundary(int numEdges, double radius, double cx, double cy, std::vector<double>& poly_x, std::vector<double>& poly_y);
   void generateCircle(int numEdges, double cx, double cy, double r, std::vector<double>& poly_x, std::vector<double>& poly_y);
 
   // force definitions

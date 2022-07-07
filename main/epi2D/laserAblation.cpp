@@ -7,7 +7,9 @@
 //
 // Compilation command:
 // g++ -O3 --std=c++11 -g -I src main/epi2D/laserAblation.cpp src/dpm.cpp src/epi2D.cpp -o main/epi2D/laserAblation.o
-
+//
+//  note: if using circular boundaries via polyWall, try pmin = 0.9 and pmax = 0.85 because pmin is soft disk density and pmax is DP preferred density
+//
 // below: no purse-string, no crawling (inactive simulation)
 //./main/epi2D/laserAblation.o 20 20 0 1.10 0.92 0.925 1.0 0.5 0.0 0.01  0.0  1.0  4.0 1.0  0.0  1.0 0.5  0  0.00   1  100  test
 // ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  B  Dr0 CIL prate  sd time file
@@ -252,7 +254,7 @@ int main(int argc, char const* argv[]) {
 
   //  dampedNP0 already takes care of purse-string. might want to separate, or just change spring constant
   // wallsOff, wallsOn, fixedWalls
-  epithelial.dampedNP0(substrateAdhesionForceUpdate, B, dt0, time_dbl, time_dbl / 10.0, wallsOff);
+  epithelial.dampedNP0(substrateAdhesionForceUpdate, B, dt0, time_dbl, time_dbl / 20.0, wallsOff);
   // epithelial.dampedNP0(attractiveForceUpdate, B, dt0, time_dbl, time_dbl / 100.0, wallsOff);
 
   cout << "\n** Finished laserAblation.cpp, ending. " << endl;
