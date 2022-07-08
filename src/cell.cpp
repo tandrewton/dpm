@@ -558,7 +558,7 @@ void cell::initializeTransverseTissue(double phi0, double Ftol) {
   // isFixedBoundary is an optional bool argument that tells cells to stay away from the boundary during initialization
   // aspectRatio is the ratio L[0] / L[1]
   int i, d, ci, cj, vi, vj, gi, cellDOF = NDIM * NCELLS, cumNumCells = 0;
-  int numEdges = 20;  // number of edges in the polygonal walls to approximate a circle
+  int numEdges = 10;  // number of edges in the polygonal walls to approximate a circle
   double areaSum, xtra = 1.1;
 
   // local disk vectors
@@ -576,14 +576,17 @@ void cell::initializeTransverseTissue(double phi0, double Ftol) {
   // initial transverse geometry vectors in units of some lengthscale
   int numTissues = 4;
   double totalArea = 0.0;
-  vector<double> cx = {1/2, 5/4, 2, 5/4}, cy = {1/2, 3/8, 1/2, 5/4};
-  vector<double> tissueRadii = {1/2, 1/4, 1/2, 1/2}, cellFractionPerTissue, numCellsInTissue;
+  vector<double> cx = {1/2.0, 5/4.0, 2.0, 5/4.0}, cy = {1/2.0, 3/8.0, 1/2.0, 5/4.0};
+  vector<double> tissueRadii = {1/2.0, 1/4.0, 1/2.0, 1/2.0}, cellFractionPerTissue, numCellsInTissue;
   for (int i = 0; i < tissueRadii.size(); i++) {
     totalArea += tissueRadii[i]*tissueRadii[i];
+    cout << totalArea << '\t' << tissueRadii[i] << '\n';
   }
-  for (int i = 0; i < tissueRadii.size();i++) { 
+
+  for (int i = 0; i < tissueRadii.size(); i++) { 
     cellFractionPerTissue.push_back(tissueRadii[i]*tissueRadii[i]/totalArea);
-    numCellsInTissue[i] = round(cellFractionPerTissue[i] * NCELLS);
+    numCellsInTissue.push_back(round(cellFractionPerTissue[i] * NCELLS));
+    cout << "cellFraction = " << tissueRadii[i]*tissueRadii[i]/totalArea << '\n';
     cout << "intializing " << NCELLS << " cells, with tissue " << i << " having cell fraction = " << cellFractionPerTissue[i] << '\n';
     cout << "NCELLS * cellFraction = " << NCELLS * cellFractionPerTissue[i] << ", which is " << round(NCELLS * cellFractionPerTissue[i]) << " when rounded\n";
   }
@@ -595,24 +598,36 @@ void cell::initializeTransverseTissue(double phi0, double Ftol) {
 
   // set box size : phi_0 = areaSum / A => A = areaSum/phi_0 which gives us the following formulas for L
   for (d = 0; d < NDIM; d++) {
-    L.at(d) = pow(4 / PI * areaSum / phi0, 1.0/NDIM);
+    L.at(d) = pow(4 / PI * areaSum * cellFractionPerTissue[0] / phi0, 1.0/NDIM);
   }
 
+  for (int i = 0; i < numTissues; i++){
+    double tissueLengthscale = L[0];
+    cx[i] *= tissueLengthscale;
+    cy[i] *= tissueLengthscale;
+    tissueRadii[i] *= tissueLengthscale;
+  }
+
+  ofstream boundaryStream("polyBoundary.txt"); // clear boundary text file, for visualizing or for debugging
+  ofstream ipStream("initPosSP.txt"); // clear initialPos text file, for visualizing or for debugging
+  ofstream ip2Stream("initPosSP2.txt"); // clear initialPos text file, for visualizing or for debugging
   for (int n = 0; n < numTissues; n++){
-    cout << "initializing cell centers randomly but rejecting if further than R from the center for tissue " << i << "\n";
+    cout << "initializing cell centers randomly but rejecting if further than R from the center for tissue " << n << "\n";
     double scale_radius = 1.1; // make the polygon radius slightly larger so that it encompasses the circle that points are initialized in
     poly_bd_x.push_back(std::vector<double>()); // make new data for generateCircularBoundary to write a polygon
     poly_bd_y.push_back(std::vector<double>());
     generateCircularBoundary(numEdges, scale_radius * tissueRadii[n], cx[n], cy[n], poly_bd_x[n], poly_bd_y[n]);
 
     for (i = cumNumCells; i < cumNumCells + numCellsInTissue[n]; i++){
-      double dpos_x = tissueRadii[n] * drand48() + cx[n], dpos_y = tissueRadii[n] * drand48() + cy[n];
+      double dpos_x = tissueRadii[n] * (2*drand48()-1) + cx[n], dpos_y = tissueRadii[n] *  (2*drand48()-1) + cy[n];
       while (pow(dpos_x - cx[n],2) + pow(dpos_y - cy[n],2) > pow(tissueRadii[n], 2)){
-        dpos_x = tissueRadii[n] * drand48() + cx;
-        dpos_y = tissueRadii[n] * drand48() + cy;
+        dpos_x = tissueRadii[n] * (2*drand48()-1) + cx[n];
+        dpos_y = tissueRadii[n] * (2*drand48()-1) + cy[n];
       }
       dpos.at(i*NDIM) = dpos_x;
       dpos.at(i*NDIM+1) = dpos_y;
+      ipStream << dpos[i*NDIM] << '\t' << dpos[i*NDIM + 1] << '\n';
+      cout << "cell " << i << " is in tissue number " << n << '\n';
     }
     cumNumCells += numCellsInTissue[n];
   }
@@ -621,6 +636,7 @@ void cell::initializeTransverseTissue(double phi0, double Ftol) {
   for (ci = 0; ci < NCELLS; ci++){
     xtra = 1.1; // disks should have radius similar to the final particle radius, or could modify vrad[i] condition in wall calculation later
     drad.at(ci) = xtra * sqrt((2.0 * a0.at(ci)) / (nv.at(ci) * sin(2.0 * PI / nv.at(ci))));
+    cout << "drad = " << drad[ci] << '\n';
   }
 
   // FIRE VARIABLES
@@ -764,9 +780,13 @@ void cell::initializeTransverseTissue(double phi0, double Ftol) {
       }
     }
     // FIRE step 4.1 Compute wall force
-    for (i = 0; i < poly_bd_x.size(); i++) {
-      std::vector<double> poly_x = poly_bd_x[i];
-      std::vector<double> poly_y = poly_bd_y[i];
+    for (int k = 0; k < poly_bd_x.size(); k++) {
+      cout << "bd_x.size()" << poly_bd_x.size() << '\n';
+      std::vector<double> poly_x = poly_bd_x[k];
+      std::vector<double> poly_y = poly_bd_y[k];
+      for (int j = 0; j < poly_x.size(); j++){
+        cout << "boundary number " << k << ", bd segment number" << j << '\t' << poly_x[j] << '\t' << poly_y[j] << '\n';
+      }
       int n = poly_x.size();
       double distanceParticleWall, Rx, Ry, dw, K=1;
       double bound_x1, bound_x2, bound_y1, bound_y2;
@@ -784,6 +804,7 @@ void cell::initializeTransverseTissue(double phi0, double Ftol) {
           distanceParticleWall = distanceLinePointComponents(bound_x1, bound_y1, bound_x2, bound_y2, dpos[i*NDIM], dpos[i*NDIM+1], Rx, Ry);
           dw = drad[i] - distanceParticleWall;
           if (distanceParticleWall <= drad[i]) {
+            cout << "particle " << i << '\t' << " has been hit by a wall during FIRE SP " << "at location " << dpos[i*NDIM] << '\t' << dpos[i*NDIM + 1] << "\n";
             dF[i*NDIM] += K * dw * Rx/distanceParticleWall;
             dF[i*NDIM+1] += K * dw * Ry/distanceParticleWall;
           }
@@ -851,6 +872,7 @@ void cell::initializeTransverseTissue(double phi0, double Ftol) {
 
   // initialize vertex positions based on cell centers
   for (ci = 0; ci < NCELLS; ci++) {
+    ip2Stream << dpos[ci*NDIM] << '\t' << dpos[ci*NDIM + 1] << '\n';
     for (vi = 0; vi < nv.at(ci); vi++) {
       // get global vertex index
       gi = gindex(ci, vi);
@@ -912,6 +934,55 @@ void cell::vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, 
       cout << "	** Sxy 			= " << Sxy << endl;
       cout << "	** U 			= " << U << endl;
       // printConfiguration2D();
+      cout << endl
+           << endl;
+    }
+
+    // update iterate
+    it++;
+  }
+}
+
+void cell::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0) {
+  // TEMPORARY JUST TO USE OVERLOADED PRINTCONFIGURATION2D
+ // same as vertexCompress2Target2D, but with polygonal boundaries (affects packing fraction calculation, and expects forceCall to 
+  //  account for polygonal boundary forces
+  // local variables
+  int it = 0, itmax = 1e4;
+  double phi0 = vertexPreferredPackingFraction2D();
+  double scaleFactor = 1.0, P, Sxy;
+
+  // loop while phi0 < phi0Target
+  while (phi0 < phi0Target && it < itmax) {
+    if (it >= itmax)
+      cout << "inside vertexCompress2Target2D_polygon, reached maxit. exiting compression steps\n";
+    // scale particle sizes
+    scaleParticleSizes2D(scaleFactor);
+
+    // update phi0
+    phi0 = vertexPreferredPackingFraction2D_polygon();
+    // relax configuration (pass member function force update)
+    // make sure that forceCall is a force routine that includes a call to evaluatePolygonalWallForces
+    vertexFIRE2D(forceCall, Ftol, dt0);
+
+    // get scale factor
+    scaleFactor = sqrt((phi0 + dphi0) / phi0);
+
+    // get updated pressure
+    P = 0.5 * (stress[0] + stress[1]);
+    Sxy = stress[2];
+
+    // print to console
+    if (it % NSKIP == 0) {
+      cout << " 	C O M P R E S S I O N 		" << endl;
+      cout << "	** it 			= " << it << endl;
+      cout << "	** phi0 curr	= " << phi0 << endl;
+      if (phi0 + dphi0 < phi0Target)
+        cout << "	** phi0 next 	= " << phi0 + dphi0 << endl;
+      cout << "	** P 			= " << P << endl;
+      cout << "	** Sxy 			= " << Sxy << endl;
+      cout << "	** U 			= " << U << endl;
+      printConfiguration2D();
       cout << endl
            << endl;
     }

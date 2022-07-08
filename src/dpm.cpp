@@ -309,10 +309,10 @@ double dpm::vertexPreferredPackingFraction2D_polygon(){
 
   // denominator = boundary polygonal area via shoelace method
   boxV = 0.0;
-  for (int i = 0; i < poly_bd_x.size(); i++) {
+  for (int k = 0; k < poly_bd_x.size(); k++) {
     boxV_temp = 0.0;
-    std::vector<double> poly_x = poly_bd_x[i];
-    std::vector<double> poly_y = poly_bd_y[i];
+    std::vector<double> poly_x = poly_bd_x[k];
+    std::vector<double> poly_y = poly_bd_y[k];
     int j = poly_x.size() - 1;
     for (int i = 0; i < poly_x.size(); i++){
       boxV_temp += (poly_x[j] + poly_x[i]) * (poly_y[j] - poly_y[i]);
@@ -714,13 +714,14 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
     poly_bd_x.push_back(std::vector<double>()); // make new data for generateCircularBoundary to write a polygon
     poly_bd_y.push_back(std::vector<double>());
     double cx = L[0]/2, cy = L[1]/2, tissueRadius = L[0]/2;
+    ofstream boundaryStream("polyBoundary.txt"); // clear boundary text file, for visualizing or for debugging
     generateCircularBoundary(numEdges, scale_radius * tissueRadius, cx, cy, poly_bd_x[0], poly_bd_y[0]);
 
     for (i = 0; i < NCELLS; i++){
-      double dpos_x = tissueRadius * drand48() + cx, dpos_y = tissueRadius * drand48() + cy;
+      double dpos_x = tissueRadius * (2*drand48()-1) + cx, dpos_y = tissueRadius * (2*drand48()-1) + cy;
       while (pow(dpos_x - cx,2) + pow(dpos_y - cy,2) > pow(tissueRadius, 2)){
-        dpos_x = tissueRadius * drand48() + cx;
-        dpos_y = tissueRadius * drand48() + cy;
+        dpos_x = tissueRadius * (2*drand48()-1) + cx;
+        dpos_y = tissueRadius * (2*drand48()-1) + cy;
       }
       dpos.at(i*NDIM) = dpos_x;
       dpos.at(i*NDIM+1) = dpos_y;
@@ -1501,11 +1502,12 @@ void dpm::generateCircularBoundary(int numEdges, double radius, double cx, doubl
   L[1] = 1.0 * *max_element(std::begin(poly_y), std::end(poly_y));
   cout << L[0] << '\t' << L[1] << '\n';
 
-    // plot final polygonal boundary
-  ofstream boundaryStream("polyBoundary.txt");
+    // plot final polygonal boundary, make sure to clear the file when running a new simulation (should be run with ofstream polyBoundary.txt without app before generateCircularBoundary is called)
+  ofstream boundaryStream("polyBoundary.txt", std::ios_base::app);
   for (int i = 0; i < poly_x.size(); i++){
-    boundaryStream << poly_x[i] << '\t' << poly_y[i] << '\n';
+    boundaryStream << poly_x[i] << '\t' << poly_y[i] << '\t';
   }
+  boundaryStream << '\n';
 }
 
 void dpm::generateCircle(int numEdges, double cx, double cy, double r, std::vector<double>& px, std::vector<double>& py) {
@@ -1514,8 +1516,7 @@ void dpm::generateCircle(int numEdges, double cx, double cy, double r, std::vect
   std::vector<double> poly_x_temp, poly_y_temp;
   // numEdges+1 makes a closed polygon
   for (int i = 0; i < numEdges+1; i++) {
-    theta = i*2*PI/numEdges; // make sure this is double(i)
-    cout << "i * 2PI / numEdges = " << theta << '\n';
+    theta = i*2*PI/numEdges;
     poly_x_temp.push_back(r*cos(theta)+cx);
     poly_y_temp.push_back(r*sin(theta)+cy);
     cout << "px,py = " << r*cos(theta)+cx << '\t' << r*sin(theta)+cy << '\n';
@@ -2659,7 +2660,7 @@ void dpm::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, doubl
       cout << "	** P 			= " << P << endl;
       cout << "	** Sxy 			= " << Sxy << endl;
       cout << "	** U 			= " << U << endl;
-      printConfiguration2D();
+      //printConfiguration2D();
       cout << endl
            << endl;
     }

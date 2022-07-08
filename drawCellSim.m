@@ -28,7 +28,7 @@ set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
 
 showverts = 0;
-walls = 1;
+walls = 0;
  
 %PC directory
 %pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
@@ -44,6 +44,9 @@ mkdir(subdir_output);
 
 %txt = 'N = '+N+', NV = '+NV+', calA_o='+calA+', att='+att+', B='+B;
 txt='test';
+load("polyBoundary.txt"); % load boundaries of polygon walls
+load("initPosSP.txt");
+load("initPosSP2.txt");
 
 fnum = 1;
 figure(13), clf, hold on, box on;
@@ -73,61 +76,6 @@ for seed = startSeed:max_seed
         energystr = pipeline_dir+fileheader+'.energy';
         stressstr = pipeline_dir+fileheader+'.stress';
     end
-    
-%     figure(13); clf; hold on;
-%     stress = load(stressstr);
-%     plot(stress(:,1), stress(:,3), 'r-', 'linewidth',2, 'DisplayName',...
-%         '$S_{xx}$');
-%     plot(stress(:,1), stress(:,4), 'b-', 'linewidth',2, 'DisplayName',...
-%         '$S_{yy}$');
-%     plot(stress(:,1), stress(:,5),'k-','linewidth',2, 'DisplayName',...
-%         '$S_{xy}$');
-%     xlabel('$\tau$','Interpreter','latex');
-%     ylabel('Stress','Interpreter','latex');
-%     legend('Location', 'southeast', 'Interpreter', 'latex');
-%     ax = gca;
-%     ax.FontSize = 24;
-%     if seed == max_seed 
-%      %annotation('textbox',[.2 .5 .5 .3],'String', txt, 'Edgecolor','none')
-%      saveas(gcf, output_dir + 'Stress'+runType+fileheader+'_'+max_seed+ ...
-%          '.eps', 'epsc')
-%     end
-
-%     figure(14); clf;hold on;
-%     plot(stress(:,1), stress(:,6), 'r--', 'linewidth',2, 'DisplayName',...
-%         '$Sh_{xx}$');
-%     plot(stress(:,1), stress(:,7), 'b--', 'linewidth',2, 'DisplayName',...
-%         '$Sh_{yy}$');
-%     plot(stress(:,1), stress(:,8),'k--','linewidth',2, 'DisplayName',...
-%         '$Sh_{xy}$');
-%     xlabel('$\tau$','Interpreter','latex');
-%     ylabel('Stress','Interpreter','latex');
-%     legend('Location', 'southeast', 'Interpreter', 'latex');
-%     ax = gca;
-%     ax.FontSize = 24;
-%     if seed == max_seed 
-%      %annotation('textbox',[.2 .5 .5 .3],'String', txt, 'Edgecolor','none')
-%      saveas(gcf, output_dir + 'ShapeStress'+runType+fileheader+'_'+max_seed+ ...
-%          '.eps', 'epsc')
-%     end
-
-%     figure(11); clf; hold on 
-%     energy = load(energystr);
-%     U = energy(:,3);
-%     K = energy(:,4);
-%     plot(energy(:,1), K, 'r-', 'linewidth',2, 'DisplayName',...
-%         '$K$');
-%      plot(energy(:,1), U,'--','linewidth',2, 'DisplayName',...
-%         '$U$');
-%     xlabel('$\tau$','Interpreter','latex');
-%     ylabel('Energy','Interpreter','latex');
-%     legend('Location', 'southeast', 'Interpreter', 'latex');
-%     ax = gca;
-%     ax.FontSize = 24;
-%     if seed == max_seed 
-%      saveas(gcf, output_dir + 'Energy'+runType+fileheader+'_'+max_seed+ ...
-%          '.eps', 'epsc')
-%     end
 
     % read in position data
     nvestr
@@ -256,6 +204,13 @@ for seed = startSeed:max_seed
 
         end
 
+        for kk=1:4
+            plot([polyBoundary(kk,1:2:end) polyBoundary(kk,1)],...
+                [polyBoundary(kk,2:2:end) polyBoundary(kk,2)], 'k','linewidth', 4)
+        end
+        scatter(initPosSP(:,1), initPosSP(:,2),'ro')
+        scatter(initPosSP2(:,1),initPosSP2(:,2),'ko')
+
         axis equal;
         ax = gca;
         %ax.XTick = [];
@@ -279,7 +234,7 @@ for seed = startSeed:max_seed
             ax.XLim = [-(viewScale-1) viewScale]*Lx;
             ax.YLim = [-(viewScale-1) viewScale]*Ly;
             % plot box
-            plot([viewLxLow viewLx viewLx viewLxLow viewLxLow], [viewLyLow viewLyLow viewLy viewLy viewLyLow], 'k-', 'linewidth', 1.5);
+            %plot([viewLxLow viewLx viewLx viewLxLow viewLxLow], [viewLyLow viewLyLow viewLy viewLy viewLyLow], 'k-', 'linewidth', 1.5);
         end
         
         %annotationStr = "$$t/\tau$$ = "+time(ff);

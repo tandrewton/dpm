@@ -372,7 +372,8 @@ for seed = startSeed:max_seed
             if (showProtrusion)
                 plot(flagX(ff,:)./flag(ff,:), flagY(ff,:)./flag(ff,:), 'ro', 'linewidth', 2);
             end
-            plot([polyBoundary(:,1); polyBoundary(1,1)], [polyBoundary(:,2); polyBoundary(1,2)], 'k','linewidth', 4)
+            plot([polyBoundary(1,1:2:end) polyBoundary(1,1)],...
+                [polyBoundary(1,2:2:end) polyBoundary(1,2)], 'k','linewidth', 4)
             ann = annotation('textbox', [.42 .05 .6 .05],'interpreter', 'latex',...
                 'String', etaStr, 'Edgecolor','none');
             ann.FontSize = 30;

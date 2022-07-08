@@ -16,7 +16,7 @@ phi0        = textscan(fid,'PACKF %f',1);                   phi0 = phi0{1};
 fline       = fgetl(fid);
 Ltmp        = textscan(fid,'BOXSZ %f %f %f %f',1);
 fline       = fgetl(fid);
-stresstmp   = textscan(fid,'STRSS %f %f %f %f',1);
+stresstmp   = textscan(fid,'STRSS %f %f %f',1);
 fline       = fgetl(fid);
 timetmp        = textscan(fid,'TIME %f',1); 
 fline       = fgetl(fid);
@@ -66,7 +66,7 @@ while ~feof(fid)
     % get info about deformable particle
     for nn = 1:NCELLS
         % get cell pos and asphericity
-        cInfoTmp        = textscan(fid,'CINFO %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f',1); 
+        cInfoTmp        = textscan(fid,'CINFO %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f',1);
         fline           = fgetl(fid);     % goes to next line in file
         NVTMP           = cInfoTmp{1};
         nv(nf,nn)       = NVTMP;
