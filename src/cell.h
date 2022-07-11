@@ -34,18 +34,19 @@ class cell : public dpm {
 
   // energy/force modifiers
   std::vector<int> cellID; // 0/1/2/... = NT/PSM1/NC/PSM2/cell0/cell1/cell2/cell3
-  std::vector<std::vector<double>> cellCellInteractionModifier; // size(cellID) x size(cellID) matrix where (i,j)th entry is the force modifier for interactions between cell types i and j
+  std::vector<std::vector<double>> cellTypeIntMat; // size(cellID) x size(cellID) matrix where (i,j)th entry is the force modifier for interactions between cell types i and j
 
   // activity data
   std::vector<bool> cellTouchesWallsLeft;
   std::vector<bool> cellTouchesWallsRight;
 
  public:
-  cell(int n, double att1, double att2, int seed)
+  cell(int n, double att1, double att2, int seed, int numCellTypes)
       : dpm(n, seed) {
     // set values here
     vector<double> zerosNCELLS(NCELLS, 0.0);
     vector<int> zerosNCELLS_int(NCELLS, 0);
+    vector<int> zerosNumCellTypes(numCellTypes, 0);
     vector<bool> falseNCELLS(NCELLS, false);
     vector<double> temp3(NDIM*2, 0.0);
     l1 = att1;
@@ -53,20 +54,25 @@ class cell : public dpm {
     simclock = 0.0;
     VL = temp3;
     XL = VL;
-    cellID = zerosNCELLS_int; // all cells start with ID 0
-    vector<vector<double>> onesCellIDxCellID(cellID.size(), vector<double>(vector<double>(cellID.size(), 1.0)));
-    cellCellInteractionModifier = onesCellIDxCellID;  // all interactions start with multiplicative modifier 1.0
+    cellID = zerosNCELLS_int; // cellID is a vector of size NCELLS that determines how to evaluate cell-cell forces using cellTypeIntMat
+    // make sure to add and subtract from cellID when adding or removing cells
+    vector<vector<double>> onesCellIDxCellID(numCellTypes, vector<double>(vector<double>(numCellTypes, 1.0)));
+    cellTypeIntMat = onesCellIDxCellID;  // all interactions start with multiplicative modifier 1.0
     cellTouchesWallsLeft = falseNCELLS;
     cellTouchesWallsRight = falseNCELLS;
     cout << "Initializing epi2D object, l1 = " << l1 << ", l2 = " << l2 << '\n';
   }
 
-  void setCellCellAttractionModifiers(int i, int j, double val) {cellCellInteractionModifier[i][j] = val;}
+  // cell-cell interaction matrix routines
+  void setCellTypeAttractionModifiers(int i, int j, double val) {cellTypeIntMat[i][j] = val;}
+  void removeCellIDFromInteractionMatrix(int cellID);
+  void addCellIDToInteractionMatrix(int cellID);
+  void printInteractionMatrix();
+  // consider writing a function that uses cell IDs 
 
   // epi cell interactions
   void repulsiveForceUpdateWithWalls();
   // void repulsiveForceUpdateWithoutTopWall();
-  void vertexAttractiveForces2D_2();
   void attractiveForceUpdate();
   void repulsiveWithPolarityForceUpdate();
   void attractiveWithPolarityForceUpdate();
@@ -74,6 +80,7 @@ class cell : public dpm {
   void attractiveWallCrawlingForceUpdate();
   void repulsiveForceUpdateWithPolyWall();
   void attractiveForceUpdateWithPolyWall();
+  void vertexAttractiveForces2D_2();
   void wallForces(bool left, bool bottom, bool right, bool top, double& forceLeft, double& forceBottom, double& forceRight, double& forceTop, double appliedUniaxialPressure = 0.0);
   void wallCrawlingForces();
   void cellPolarityForces(int ci, double k_polarity, std::string direction = "y");
@@ -99,11 +106,15 @@ class cell : public dpm {
       std::cout << "** Opening file " << str << " ..." << std::endl;
   }
 
+  // boundary routines
+  void replacePolyWallWithDP(int tissueNum);
+
   // routines
   void initializeTransverseTissue(double phi0, double Ftol);
   void vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0);
   void vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0);
   void simulateDampedWithWalls(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, double pressureRate, double adhesionRate, bool wallsOn, bool leftOpen, bool bottomOpen, bool rightOpen, bool topOpen, double trueStrainRateX = 0.0, double trueStrainRateY = 0.0, double appliedUniaxialPressure = 0.0);
+  void dampedVertexNVE(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval);
 
   // printouts
   void printConfiguration2D();

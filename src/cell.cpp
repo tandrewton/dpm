@@ -4,6 +4,39 @@
 using namespace Eigen;
 using namespace std;
 
+void cell::removeCellIDFromInteractionMatrix(int cellID){
+  cellTypeIntMat.erase(cellTypeIntMat.begin() + cellID);  // remove ci row
+  // remove ci column
+  for (int i = 0; i < cellTypeIntMat.size(); i++){
+    if (cellTypeIntMat[i].size() > cellID) {
+      cellTypeIntMat[i].erase(cellTypeIntMat[i].begin() + cellID);
+    }
+  }
+}
+
+void cell::addCellIDToInteractionMatrix(int cellID){
+  assert(cellTypeIntMat.size() >= cellID);
+  assert(cellTypeIntMat[0].size() >= cellID);
+  // add column
+  cout << "adding column of zeros to Interaction Matrix\n";
+  for (auto& row: cellTypeIntMat){
+    row.insert(row.begin() + cellID, 0);
+  }
+  // add row
+  vector<double> tempVec(cellTypeIntMat[0].size(), 0.0);
+  cellTypeIntMat.insert(cellTypeIntMat.begin() + cellID, tempVec);
+  cout << "adding row of zeros to InteractionMatrix\n please use setCellCellIntMat to add interactions to the newly added cell";
+}
+
+void cell::printInteractionMatrix() {
+  cout << "printing interaction matrix\n";
+  for (auto i : cellTypeIntMat) {
+    for (auto j : i)
+      cout << j << '\t';
+  cout << '\n';
+  }
+}
+
 void cell::repulsiveForceUpdateWithWalls() {
   double a, b, c, d;
   resetForcesAndEnergy();
@@ -76,12 +109,20 @@ void cell::attractiveForceUpdateWithPolyWall() {
   }
 }
 
+void cell::attractiveForceUpdate() {
+  resetForcesAndEnergy();
+  shapeForces2D();
+  vertexAttractiveForces2D_2();
+}
+
 void cell::vertexAttractiveForces2D_2() {
   // altered from dpm attractive force code, because it works with larger l2
-  // values. (warning: probably won't work with bending.) local variables
+  // in cell class, also includes cell type specific interactions through cellTypeIntMat
+  // values. (warning: probably won't work with bending. Francesco says it should be fine though, haven't tested.) local variables
   int ci, cj, gi, gj, vi, vj, bi, bj, pi, pj;
   double sij, rij, dx, dy, rho0;
   double ftmp, fx, fy;
+  double cellTypeIntModifier = 1.0;
 
   // attraction shell parameters
   double shellij, cutij, xij, kint = (kc * l1) / (l2 - l1);
@@ -119,6 +160,7 @@ void cell::vertexAttractiveForces2D_2() {
 
         // cell index of j
         cindices(cj, vj, gj);
+        cellTypeIntModifier = cellTypeIntMat[cellID[ci]][cellID[cj]];
 
         if (gj == ip1[gi] || gj == im1[gi]) {
           pj = list[pj];
@@ -151,26 +193,26 @@ void cell::vertexAttractiveForces2D_2() {
                 // if vertices (not neighbors) are in same cell, compute
                 // repulsions
                 if (rij < sij) {
-                  ftmp = kc * (1 - (rij / sij)) * (rho0 / sij);
-                  cellU[ci] += 0.5 * kc * pow((1 - (rij / sij)), 2.0);
+                  ftmp = cellTypeIntModifier * kc * (1 - (rij / sij)) * (rho0 / sij);
+                  cellU[ci] += 0.5 * cellTypeIntModifier * kc * pow((1 - (rij / sij)), 2.0);
                 } else
                   ftmp = 0;
               } else if (rij > cutij) {
                 // force scale
-                ftmp = kint * (xij - 1.0 - l2) / sij;
+                ftmp = kint * cellTypeIntModifier * (xij - 1.0 - l2) / sij;
 
                 // increase potential energy
-                U += -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
-                cellU[ci] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
-                cellU[cj] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
+                U += -0.5 * cellTypeIntModifier * kint * pow(1.0 + l2 - xij, 2.0);
+                cellU[ci] += -0.5 * cellTypeIntModifier * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
+                cellU[cj] += -0.5 * cellTypeIntModifier * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
               } else {
                 // force scale
-                ftmp = kc * (1 - xij) / sij;
+                ftmp = cellTypeIntModifier * kc * (1 - xij) / sij;
 
                 // increase potential energy
-                U += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
-                cellU[ci] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
-                cellU[cj] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
+                U += 0.5 * cellTypeIntModifier * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
+                cellU[ci] += 0.5 * cellTypeIntModifier * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
+                cellU[cj] += 0.5 * cellTypeIntModifier * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
               }
 
               // force elements
@@ -227,6 +269,7 @@ void cell::vertexAttractiveForces2D_2() {
 
           // cell index of j
           cindices(cj, vj, gj);
+          cellTypeIntModifier = cellTypeIntMat[cellID[ci]][cellID[cj]];
 
           if (gj == ip1[gi] || gj == im1[gi]) {
             pj = list[pj];
@@ -259,26 +302,26 @@ void cell::vertexAttractiveForces2D_2() {
                   // if vertices (not neighbors) are in same cell, compute
                   // repulsions
                   if (rij < sij) {
-                    ftmp = kc * (1 - (rij / sij)) * (rho0 / sij);
-                    cellU[ci] += 0.5 * kc * pow((1 - (rij / sij)), 2.0);
+                    ftmp = cellTypeIntModifier * kc * (1 - (rij / sij)) * (rho0 / sij);
+                    cellU[ci] += 0.5 * cellTypeIntModifier * kc * pow((1 - (rij / sij)), 2.0);
                   } else
                     ftmp = 0;
                 } else if (rij > cutij) {
                   // force scale
-                  ftmp = kint * (xij - 1.0 - l2) / sij;
+                  ftmp = cellTypeIntModifier * kint * (xij - 1.0 - l2) / sij;
 
                   // increase potential energy
-                  U += -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
-                  cellU[ci] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
-                  cellU[cj] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
+                  U += -0.5 * cellTypeIntModifier * kint * pow(1.0 + l2 - xij, 2.0);
+                  cellU[ci] += -0.5 * cellTypeIntModifier * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
+                  cellU[cj] += -0.5 * cellTypeIntModifier * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
                 } else {
                   // force scale
-                  ftmp = kc * (1 - xij) / sij;
+                  ftmp = cellTypeIntModifier * kc * (1 - xij) / sij;
 
                   // increase potential energy
-                  U += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
-                  cellU[ci] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
-                  cellU[cj] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
+                  U += 0.5 * cellTypeIntModifier * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
+                  cellU[ci] += 0.5 * cellTypeIntModifier * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
+                  cellU[cj] += 0.5 * cellTypeIntModifier * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
                 }
 
                 // force elements
@@ -342,12 +385,6 @@ void cell::vertexAttractiveForces2D_2() {
     fieldStressCells[ci][1] *= rho0 / a0[ci];
     fieldStressCells[ci][2] *= rho0 / a0[ci];
   }
-}
-
-void cell::attractiveForceUpdate() {
-  resetForcesAndEnergy();
-  shapeForces2D();
-  vertexAttractiveForces2D_2();
 }
 
 void cell::wallForces(bool left, bool bottom, bool right, bool top, double& forceLeft, double& forceBottom, double& forceRight, double& forceTop, double appliedUniaxialPressure) {
@@ -601,6 +638,7 @@ void cell::initializeTransverseTissue(double phi0, double Ftol) {
     L.at(d) = pow(4 / PI * areaSum * cellFractionPerTissue[0] / phi0, 1.0/NDIM);
   }
 
+  // multiply lengths by lengthscale
   for (int i = 0; i < numTissues; i++){
     double tissueLengthscale = L[0];
     cx[i] *= tissueLengthscale;
@@ -627,7 +665,8 @@ void cell::initializeTransverseTissue(double phi0, double Ftol) {
       dpos.at(i*NDIM) = dpos_x;
       dpos.at(i*NDIM+1) = dpos_y;
       ipStream << dpos[i*NDIM] << '\t' << dpos[i*NDIM + 1] << '\n';
-      cout << "cell " << i << " is in tissue number " << n << '\n';
+      cellID[i] = n;
+      cout << "cell " << i << " is in tissue number " << n << "with cell type = " << cellID[i] << '\n';
     }
     cumNumCells += numCellsInTissue[n];
   }
@@ -781,12 +820,8 @@ void cell::initializeTransverseTissue(double phi0, double Ftol) {
     }
     // FIRE step 4.1 Compute wall force
     for (int k = 0; k < poly_bd_x.size(); k++) {
-      cout << "bd_x.size()" << poly_bd_x.size() << '\n';
       std::vector<double> poly_x = poly_bd_x[k];
       std::vector<double> poly_y = poly_bd_y[k];
-      for (int j = 0; j < poly_x.size(); j++){
-        cout << "boundary number " << k << ", bd segment number" << j << '\t' << poly_x[j] << '\t' << poly_y[j] << '\n';
-      }
       int n = poly_x.size();
       double distanceParticleWall, Rx, Ry, dw, K=1;
       double bound_x1, bound_x2, bound_y1, bound_y2;
@@ -804,7 +839,6 @@ void cell::initializeTransverseTissue(double phi0, double Ftol) {
           distanceParticleWall = distanceLinePointComponents(bound_x1, bound_y1, bound_x2, bound_y2, dpos[i*NDIM], dpos[i*NDIM+1], Rx, Ry);
           dw = drad[i] - distanceParticleWall;
           if (distanceParticleWall <= drad[i]) {
-            cout << "particle " << i << '\t' << " has been hit by a wall during FIRE SP " << "at location " << dpos[i*NDIM] << '\t' << dpos[i*NDIM + 1] << "\n";
             dF[i*NDIM] += K * dw * Rx/distanceParticleWall;
             dF[i*NDIM+1] += K * dw * Ry/distanceParticleWall;
           }
@@ -949,7 +983,7 @@ void cell::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, doub
   //  account for polygonal boundary forces
   // local variables
   int it = 0, itmax = 1e4;
-  double phi0 = vertexPreferredPackingFraction2D();
+  double phi0 = vertexPreferredPackingFraction2D_polygon();
   double scaleFactor = 1.0, P, Sxy;
 
   // loop while phi0 < phi0Target
@@ -992,6 +1026,7 @@ void cell::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, doub
   }
 }
 
+// used for running MD on neuralTube simulation
 void cell::simulateDampedWithWalls(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, double pressureRate, double adhesionRate, bool wallsOn, bool leftOpen, bool bottomOpen, bool rightOpen, bool topOpen, double trueStrainRateX, double trueStrainRateY, double appliedUniaxialPressure) {
   // make sure velocities exist or are already initialized before calling this
   // assuming zero temperature - ignore thermostat (not implemented)
@@ -1159,6 +1194,116 @@ void cell::simulateDampedWithWalls(dpmMemFn forceCall, double B, double dt0, dou
     }
   }
 }
+
+void cell::dampedVertexNVE(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval) {
+  // make sure velocities exist or are already initialized before calling this
+  int i;
+  double K, t0 = simclock;
+  double temp_simclock = simclock;
+
+  // set time step magnitude
+  setdt(dt0);
+  int NPRINTSKIP = printInterval / dt;
+
+  // loop over time, print energy
+  while (simclock - t0 < duration) {
+    // VV POSITION UPDATE
+    for (i = 0; i < vertDOF; i++) {
+      // update position
+      x[i] += dt * v[i] + 0.5 * dt * dt * F[i];
+
+      // recenter in box
+      if (x[i] > L[i % NDIM] && pbc[i % NDIM])
+        x[i] -= L[i % NDIM];
+      else if (x[i] < 0 && pbc[i % NDIM])
+        x[i] += L[i % NDIM];
+    }
+    // FORCE UPDATE
+    std::vector<double> F_old = F;
+    CALL_MEMBER_FN(*this, forceCall)
+    ();
+
+    // VV VELOCITY UPDATE #2
+    for (i = 0; i < vertDOF; i++) {
+      F[i] -= (B * v[i] + B * F_old[i] * dt / 2);
+      F[i] /= (1 + B * dt / 2);
+      v[i] += 0.5 * (F[i] + F_old[i]) * dt;
+      // cout << "force at simclock = " << simclock << " = ," << F[i] << '\n';
+    }
+
+    // update sim clock
+    simclock += dt;
+
+    // print to console and file
+    if (int(printInterval) != 0) {
+      if (int((simclock - t0) / dt) % NPRINTSKIP == 0 &&
+          (simclock - temp_simclock) > printInterval / 2) {
+        temp_simclock = simclock;
+        // compute kinetic energy
+        K = vertexKineticEnergy();
+
+        // print to console
+        cout << endl
+             << endl;
+        cout << "===============================" << endl;
+        cout << "	D P M  						"
+             << endl;
+        cout << " 			 				"
+                "	"
+             << endl;
+        cout << "		N V E (DAMPED) 				"
+                "	"
+             << endl;
+        cout << "===============================" << endl;
+        cout << endl;
+        cout << "	** simclock - t0 / duration	= " << simclock - t0
+             << " / " << duration << endl;
+        cout << " **  dt   = " << setprecision(12) << dt << endl;
+        cout << "	** U 		= " << setprecision(12) << U << endl;
+        cout << "	** K 		= " << setprecision(12) << K << endl;
+        cout << "	** E 		= " << setprecision(12) << U + K
+             << endl;
+
+        if (enout.is_open()) {
+          // print to energy file
+          cout << "** printing energy" << endl;
+          enout << setw(wnum) << left << simclock;
+          enout << setw(wnum) << setprecision(12) << U;
+          enout << setw(wnum) << setprecision(12) << K;
+          enout << endl;
+        }
+
+        if (stressout.is_open()) {
+          double shapeStressXX = 0.0, shapeStressYY = 0.0, shapeStressXY = 0.0;
+          for (int ci = 0; ci < NCELLS; ci++) {
+            shapeStressXX += fieldShapeStressCells[ci][0];
+            shapeStressYY += fieldShapeStressCells[ci][1];
+            shapeStressXY += fieldShapeStressCells[ci][2];
+          }
+          // print to stress file
+          cout << "** printing stress" << endl;
+          cout << "field shape stresses: " << -shapeStressXX << '\t'
+               << -shapeStressYY << '\t' << -shapeStressXY << '\n';
+          stressout << setw(wnum) << left << simclock;
+          stressout << setw(wnum) << -stress[0];
+          stressout << setw(wnum) << -stress[1];
+          stressout << setw(wnum) << -stress[2];
+          stressout << setw(wnum) << -shapeStressXX;
+          stressout << setw(wnum) << -shapeStressYY;
+          stressout << setw(wnum) << -shapeStressXY;
+          stressout << endl;
+        }
+
+        // print to configuration only if position file is open
+        if (posout.is_open()) {
+          printConfiguration2D();
+          cout << "done printing in NVE\n";
+        }
+      }
+    }
+  }
+}
+
 
 void cell::printConfiguration2D() {
   // overloaded to print out specific quantities of interest

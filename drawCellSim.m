@@ -206,10 +206,10 @@ for seed = startSeed:max_seed
 
         for kk=1:4
             plot([polyBoundary(kk,1:2:end) polyBoundary(kk,1)],...
-                [polyBoundary(kk,2:2:end) polyBoundary(kk,2)], 'k','linewidth', 4)
+                [polyBoundary(kk,2:2:end) polyBoundary(kk,2)], 'k','linewidth', 1)
         end
-        scatter(initPosSP(:,1), initPosSP(:,2),'ro')
-        scatter(initPosSP2(:,1),initPosSP2(:,2),'ko')
+        %scatter(initPosSP(:,1), initPosSP(:,2),'ro')
+        %scatter(initPosSP2(:,1),initPosSP2(:,2),'ko')
 
         axis equal;
         ax = gca;
@@ -226,7 +226,7 @@ for seed = startSeed:max_seed
             % plot box
             plot([L_left Lx Lx L_left L_left], [L_bottom L_bottom Ly Ly L_bottom], 'k-', 'linewidth', 1.5);
         else
-            viewScale = 1.2;
+            viewScale = 1.5;
             viewLx = viewScale*Lx;
             viewLxLow = -(viewScale-1)*Lx;
             viewLy = viewScale*Ly;

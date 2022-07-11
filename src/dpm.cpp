@@ -2629,7 +2629,7 @@ void dpm::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, doubl
   //  account for polygonal boundary forces
   // local variables
   int it = 0, itmax = 1e4;
-  double phi0 = vertexPreferredPackingFraction2D();
+  double phi0 = vertexPreferredPackingFraction2D_polygon();
   double scaleFactor = 1.0, P, Sxy;
 
   // loop while phi0 < phi0Target
