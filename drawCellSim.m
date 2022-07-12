@@ -27,7 +27,7 @@ makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
 
-showverts = 1;
+showverts = 0;
 walls = 0;
  
 %PC directory
@@ -47,8 +47,6 @@ txt='test';
 load("polyBoundary.txt"); % load boundaries of polygon walls
 load("initPosSP.txt");
 load("initPosSP2.txt");
-load("addDP.txt");
-load("poly_bd.txt");
 
 fnum = 1;
 figure(13), clf, hold on, box on;
@@ -149,6 +147,7 @@ for seed = startSeed:max_seed
         fprintf('printing frame ff = %d/%d\n',ff,FEND);
 
         % get cell positions
+        cellID = trajectoryData.cellID(ff,:);
         xpos = trajectoryData.xpos(ff,:);
         ypos = trajectoryData.ypos(ff,:);
         gi = trajectoryData.gi(ff,:);
@@ -165,6 +164,7 @@ for seed = startSeed:max_seed
         Ly = L(4);
 
         for nn = 1:NCELLS
+            cellIDtmp = cellID(nn);
             xtmp = xpos{nn};
             ytmp = ypos{nn};
             gitmp = gi{nn};
@@ -174,7 +174,9 @@ for seed = startSeed:max_seed
             costmp = cos(psitmp);
             sintmp = sin(psitmp);
 
-            clr = cellCLR(IC(nn),:);
+            %clr = cellCLR(IC(nn),:);
+            colors = ['r','g','b','c','m','y','k'];
+            clr = colors(cellIDtmp+1);
 
             cx = mean(xtmp);
             cy = mean(ytmp);
@@ -206,17 +208,18 @@ for seed = startSeed:max_seed
 
         end
 
-        for kk=1:4
-            plot([polyBoundary(kk,1:2:end) polyBoundary(kk,1)],...
-                [polyBoundary(kk,2:2:end) polyBoundary(kk,2)], 'k','linewidth', 1)
-            plot([poly_bd(kk,1:2:end)], [poly_bd(kk,2:2:end)], 'r', 'linewidth', 1)
-        end
-        scatter(addDP(:,1), addDP(:,2))
+        %for kk=1:4
+        %    plot([polyBoundary(kk,1:2:end) polyBoundary(kk,1)],...
+        %        [polyBoundary(kk,2:2:end) polyBoundary(kk,2)], 'k','linewidth', 1)
+        %end
         %scatter(initPosSP(:,1), initPosSP(:,2),'ro')
         %scatter(initPosSP2(:,1),initPosSP2(:,2),'ko')
 
         axis equal;
         ax = gca;
+        % since boundaries are last in the file, flip children order to get
+        % boundary patch objects below cell patch objects
+        set(gca,'children',flipud(get(gca,'children'))) 
         %ax.XTick = [];
         %ax.YTick = [];
         if showPeriodicImages == 1

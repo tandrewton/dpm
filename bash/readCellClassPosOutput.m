@@ -28,6 +28,7 @@ cell_count = str2num(char(cellfun(@(x) x(1,2), t)));
 
 % cells to save 
 NFRAMES = 1e6;
+cellID  = zeros(NFRAMES,NCELLS);
 nv      = zeros(NFRAMES,NCELLS);
 vrad    = cell(NFRAMES,NCELLS);
 xpos    = cell(NFRAMES,NCELLS);
@@ -66,24 +67,25 @@ while ~feof(fid)
     % get info about deformable particle
     for nn = 1:NCELLS
         % get cell pos and asphericity
-        cInfoTmp        = textscan(fid,'CINFO %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f',1);
+        cInfoTmp        = textscan(fid,'CINFO %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f',1);
         fline           = fgetl(fid);     % goes to next line in file
-        NVTMP           = cInfoTmp{1};
+        cellID(nf,nn)   = cInfoTmp{1};
+        NVTMP           = cInfoTmp{2};
         nv(nf,nn)       = NVTMP;
-        zc(nf,nn)       = cInfoTmp{2};
-        zv(nf,nn)       = cInfoTmp{3};
-        a0(nf,nn)       = cInfoTmp{4};
-        area(nf,nn)    = cInfoTmp{5};
-        perimeter(nf,nn) = cInfoTmp{6};
-        psi(nf,nn)      = cInfoTmp{7};
-        cellStressXX(nf,nn)    = cInfoTmp{8};
-        cellStressYY(nf,nn)    = cInfoTmp{9};
-        cellStressXY(nf,nn)    = cInfoTmp{10};
-        cellStressTrace(nf,nn) = cInfoTmp{11};
-        cellShapeStressXX(nf,nn)    = cInfoTmp{12};
-        cellShapeStressYY(nf,nn)    = cInfoTmp{13};
-        cellShapeStressXY(nf,nn)    = cInfoTmp{14};
-        cellU(nf,nn)                = cInfoTmp{15};
+        zc(nf,nn)       = cInfoTmp{3};
+        zv(nf,nn)       = cInfoTmp{4};
+        a0(nf,nn)       = cInfoTmp{5};
+        area(nf,nn)    = cInfoTmp{6};
+        perimeter(nf,nn) = cInfoTmp{7};
+        psi(nf,nn)      = cInfoTmp{8};
+        cellStressXX(nf,nn)    = cInfoTmp{9};
+        cellStressYY(nf,nn)    = cInfoTmp{10};
+        cellStressXY(nf,nn)    = cInfoTmp{11};
+        cellStressTrace(nf,nn) = cInfoTmp{12};
+        cellShapeStressXX(nf,nn)    = cInfoTmp{13};
+        cellShapeStressYY(nf,nn)    = cInfoTmp{14};
+        cellShapeStressXY(nf,nn)    = cInfoTmp{15};
+        cellU(nf,nn)                = cInfoTmp{16};
         % compute l0 from calA0 and a0       
         calA0(nf,nn)    = perimeter(nf,nn)^2/(4*pi*area(nf,nn));
         %l0(nf,nn)       = sqrt(4.0*pi*calA0(nf,nn)*a0(nf,nn))/nv(nf,nn);
@@ -181,6 +183,7 @@ end
 % delete extra information
 if (nf < NFRAMES)
     NFRAMES = nf-1;
+    cellID(nf:end,:) = [];
     vrad(nf:end,:) = [];
     xpos(nf:end,:) = [];
     ypos(nf:end,:) = [];
@@ -230,6 +233,7 @@ cellTrajectoryData.vShapeStressXX    = vShapeStressXX;
 cellTrajectoryData.vShapeStressYY    = vShapeStressYY;
 cellTrajectoryData.vShapeStressXY    = vShapeStressXY;
 cellTrajectoryData.gi           = gi;
+cellTrajectoryData.cellID       = cellID;
 cellTrajectoryData.nv           = nv;
 cellTrajectoryData.zc           = zc;
 cellTrajectoryData.zv           = zv;

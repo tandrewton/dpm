@@ -594,8 +594,6 @@ void cell::replacePolyWallWithDP(int numCellTypes) {
   // must account for and modify all vectors with size dependent on NCELLS and NVTOT, such as szList
   double polyPerimeter = 0.0;
   vector<double> dp_x, dp_y;
-  std::ofstream addStr("addDP.txt");
-  std::ofstream poly_bd_str("poly_bd.txt");
 
   for (int tissueIt = 0; tissueIt < poly_bd_x.size(); tissueIt++){
     vector<double> poly_x = poly_bd_x[tissueIt];
@@ -603,25 +601,16 @@ void cell::replacePolyWallWithDP(int numCellTypes) {
     for (int i = 0; i < poly_x.size(); i++) {
       polyPerimeter += sqrt(pow(poly_x[i]-poly_x[(i+1) % poly_x.size()],2) + pow(poly_y[i]-poly_y[(i+1) % poly_y.size()],2));
       //cout << "polyPerimeter += " << sqrt(pow(poly_x[i]-poly_x[(i+1) % poly_x.size()],2) + pow(poly_y[i]-poly_y[(i+1) % poly_y.size()],2)) << '\n';
-      poly_bd_str << poly_x[i] << '\t' << poly_y[i] << '\t';
-      if (i == poly_x.size() - 1)
-        poly_bd_str << '\n';
     }
     int numVerts = polyPerimeter/l0[0];
     int cellTypeIndex = numCellTypes - 1;
     // interpolate poly_bd_x,poly_bd_y into dp_x,dp_y 
-    cout << "numVerts, polyPerimeter = " << numVerts << '\t' << polyPerimeter << '\n';
-    cout << "l0[0] = " << l0[0] << '\n';
     vector<double> dp_coords = resample_polygon(poly_x, poly_y, polyPerimeter, numVerts);
     for (int i = 0; i < dp_coords.size(); i+=2) {
       dp_x.push_back(dp_coords[i]);
       dp_y.push_back(dp_coords[i+1]);
-      cout << "dp_coords = " << dp_coords[i] << '\t' << dp_coords[i+1] << '\n';
-      addStr << dp_coords[i] << '\t' << dp_coords[i+1] << '\n';
     }
-    cout << "before addDP\n";
     addDP(numVerts, dp_x, dp_y, cellTypeIndex, numCellTypes);
-    cout << "after addDP\n";
 
     polyPerimeter = 0.0;
     dp_x = {};
@@ -647,13 +636,6 @@ void cell::addDP(int numVerts, vector<double> &dp_x, vector<double> &dp_y, int c
   int j = dp_x.size() - 1;
   for (int vi = 0; vi < dp_x.size(); vi++) {
     dist = sqrt(pow(dp_x[vi] - dp_x[(vi+1)%dp_x.size()],2) + pow(dp_y[vi] - dp_y[(vi+1)%dp_y.size()],2));
-    if (dist > 0.4){
-      cout << "dp_x.size() = " << dp_x.size() << '\n';
-      cout << "vi = " << vi << '\t' << ", (vi + 1) % vi = " << (vi+1)%dp_x.size() << '\t' << ", vi + 1 % vi = " << vi + 1 % dp_x.size() << '\n';
-      cout << "for vi = " << vi << "\t, dist = " << dist << '\n';
-      cout << "from point (a,b) to (c,d) " << dp_x[vi] << '\t' << dp_y[vi] << '\t' << dp_x[(vi+1)%dp_x.size()] << '\t' << dp_y[(vi+1)%dp_y.size()] << '\n';
-    }
-
     l0.push_back(dist);
     t0.push_back(0.0);
     r.push_back(0.5 * dist);
@@ -716,6 +698,7 @@ void cell::addDP(int numVerts, vector<double> &dp_x, vector<double> &dp_y, int c
 //routines
 
 void cell::initializeTransverseTissue(double phi0, double Ftol) {
+  cout << "entered initializeTransverseTissue\n";
   // initialize the starting positions and all related data for a large deformable particle and numCellsInside smaller deformable particles
   // isFixedBoundary is an optional bool argument that tells cells to stay away from the boundary during initialization
   // aspectRatio is the ratio L[0] / L[1]
@@ -736,9 +719,10 @@ void cell::initializeTransverseTissue(double phi0, double Ftol) {
   initializeFieldStress();
 
   // initial transverse geometry vectors in units of some lengthscale
-  int numTissues = 4;
+  int numTissues = 4, totalNumCellsCheck = 0;
   double totalArea = 0.0;
-  vector<double> cx = {1/2.0, 5/4.0, 2.0, 5/4.0}, cy = {1/2.0, 3/8.0, 1/2.0, 5/4.0};
+  double offset = 1/8.0;
+  vector<double> cx = {1/2.0, 5/4.0 + offset, 2.0 + 2*offset, 5/4.0 + offset}, cy = {1/2.0, 3/8.0, 1/2.0, 5/4.0};
   vector<double> tissueRadii = {1/2.0, 1/4.0, 1/2.0, 1/2.0}, cellFractionPerTissue, numCellsInTissue;
   for (int i = 0; i < tissueRadii.size(); i++) {
     totalArea += tissueRadii[i]*tissueRadii[i];
@@ -751,7 +735,10 @@ void cell::initializeTransverseTissue(double phi0, double Ftol) {
     cout << "cellFraction = " << tissueRadii[i]*tissueRadii[i]/totalArea << '\n';
     cout << "intializing " << NCELLS << " cells, with tissue " << i << " having cell fraction = " << cellFractionPerTissue[i] << '\n';
     cout << "NCELLS * cellFraction = " << NCELLS * cellFractionPerTissue[i] << ", which is " << round(NCELLS * cellFractionPerTissue[i]) << " when rounded\n";
+    totalNumCellsCheck += round(NCELLS * cellFractionPerTissue[i]);
   }
+
+  assert(totalNumCellsCheck == NCELLS);
 
   // initialize box size based on packing fraction
   areaSum = 0.0;
@@ -775,13 +762,14 @@ void cell::initializeTransverseTissue(double phi0, double Ftol) {
   ofstream ipStream("initPosSP.txt"); // clear initialPos text file, for visualizing or for debugging
   ofstream ip2Stream("initPosSP2.txt"); // clear initialPos text file, for visualizing or for debugging
   for (int n = 0; n < numTissues; n++){
-    cout << "initializing cell centers randomly but rejecting if further than R from the center for tissue " << n << "\n";
+    cout << "initializing cell centers randomly but rejecting if further than R from the center for tissue " << n << "out of " << numTissues-1 << "\n";
     double scale_radius = 1.1; // make the polygon radius slightly larger so that it encompasses the circle that points are initialized in
     poly_bd_x.push_back(std::vector<double>()); // make new data for generateCircularBoundary to write a polygon
     poly_bd_y.push_back(std::vector<double>());
     generateCircularBoundary(numEdges, scale_radius * tissueRadii[n], cx[n], cy[n], poly_bd_x[n], poly_bd_y[n]);
 
     for (i = cumNumCells; i < cumNumCells + numCellsInTissue[n]; i++){
+      cout << "i = " << i << "\t, dpos.size() = " << dpos.size() << "cumNumCells = " << cumNumCells << "\t, numCellsInTissue[n] = " << numCellsInTissue[n] << '\n';
       double dpos_x = tissueRadii[n] * (2*drand48()-1) + cx[n], dpos_y = tissueRadii[n] *  (2*drand48()-1) + cy[n];
       while (pow(dpos_x - cx[n],2) + pow(dpos_y - cy[n],2) > pow(tissueRadii[n], 2)){
         dpos_x = tissueRadii[n] * (2*drand48()-1) + cx[n];
@@ -793,9 +781,12 @@ void cell::initializeTransverseTissue(double phi0, double Ftol) {
       cellID[i] = n;
       cout << "cell " << i << " is in tissue number " << n << "with cell type = " << cellID[i] << '\n';
     }
+    cout << "before adding to cumNumCells\n";
     cumNumCells += numCellsInTissue[n];
+    cout << "just after adding to cumNumCells\n";
   }
 
+  cout << "setting radii of SP disks\n";
   // set radii of SP disks
   for (ci = 0; ci < NCELLS; ci++){
     xtra = 1.1; // disks should have radius similar to the final particle radius, or could modify vrad[i] condition in wall calculation later
@@ -1361,11 +1352,6 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double B, double dt0, double dura
       F[i] -= (B * v[i] + B * F_old[i] * dt / 2);
       F[i] /= (1 + B * dt / 2);
       v[i] += 0.5 * (F[i] + F_old[i]) * dt;
-      if (NCELLS == 20) {
-        cout << "force at simclock = " << simclock << " = " << F[i] << '\n';
-        printConfiguration2D();
-        assert(false);
-      }
     }
 
     // update sim clock
@@ -1515,6 +1501,10 @@ void cell::printConfiguration2D() {
 
     // cell information
     posout << setw(w) << left << "CINFO";
+    if (cellID.size() > 0)
+      posout << setw(wnum) << left << cellID[ci];
+    else 
+      posout << setw(wnum) << left << 1;
     posout << setw(w) << left << nv[ci];
     posout << setw(w) << left << zc;
     posout << setw(w) << left << zv;
