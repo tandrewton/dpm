@@ -588,6 +588,131 @@ void cell::cellPolarityForces(int ci, double k_polarity, std::string direction) 
   }
 }
 
+//boundary routines
+void cell::replacePolyWallWithDP(int numCellTypes) {
+  // take a polyWall in poly_bd_x and poly_bd_y, create data to replace the polywall with a DP of the same size and shape, then delete the polywall.
+  // must account for and modify all vectors with size dependent on NCELLS and NVTOT, such as szList
+  double polyPerimeter = 0.0;
+  vector<double> dp_x, dp_y;
+  std::ofstream addStr("addDP.txt");
+  std::ofstream poly_bd_str("poly_bd.txt");
+
+  for (int tissueIt = 0; tissueIt < poly_bd_x.size(); tissueIt++){
+    vector<double> poly_x = poly_bd_x[tissueIt];
+    vector<double> poly_y = poly_bd_y[tissueIt];
+    for (int i = 0; i < poly_x.size(); i++) {
+      polyPerimeter += sqrt(pow(poly_x[i]-poly_x[(i+1) % poly_x.size()],2) + pow(poly_y[i]-poly_y[(i+1) % poly_y.size()],2));
+      //cout << "polyPerimeter += " << sqrt(pow(poly_x[i]-poly_x[(i+1) % poly_x.size()],2) + pow(poly_y[i]-poly_y[(i+1) % poly_y.size()],2)) << '\n';
+      poly_bd_str << poly_x[i] << '\t' << poly_y[i] << '\t';
+      if (i == poly_x.size() - 1)
+        poly_bd_str << '\n';
+    }
+    int numVerts = polyPerimeter/l0[0];
+    int cellTypeIndex = numCellTypes - 1;
+    // interpolate poly_bd_x,poly_bd_y into dp_x,dp_y 
+    cout << "numVerts, polyPerimeter = " << numVerts << '\t' << polyPerimeter << '\n';
+    cout << "l0[0] = " << l0[0] << '\n';
+    vector<double> dp_coords = resample_polygon(poly_x, poly_y, polyPerimeter, numVerts);
+    for (int i = 0; i < dp_coords.size(); i+=2) {
+      dp_x.push_back(dp_coords[i]);
+      dp_y.push_back(dp_coords[i+1]);
+      cout << "dp_coords = " << dp_coords[i] << '\t' << dp_coords[i+1] << '\n';
+      addStr << dp_coords[i] << '\t' << dp_coords[i+1] << '\n';
+    }
+    cout << "before addDP\n";
+    addDP(numVerts, dp_x, dp_y, cellTypeIndex, numCellTypes);
+    cout << "after addDP\n";
+
+    polyPerimeter = 0.0;
+    dp_x = {};
+    dp_y = {};
+  }
+}
+
+void cell::addDP(int numVerts, vector<double> &dp_x, vector<double> &dp_y, int cellTypeIndex, int numCellTypes) {
+  // add a DP with cell type = cellID, with numVerts vertices, each of which are located according to (dp_x,dp_y)
+  // must account for and modify all vectors with size dependent on NCELLS and NVTOT, such as szList
+  int gi, vim1, vip1;
+  double dist, polyArea = 0.0;
+  
+  NCELLS += 1;
+  NVTOT += numVerts;
+  vertDOF += NDIM * numVerts;
+  szList.push_back(szList.back() + nv.back());
+  nv.push_back(numVerts);
+  // next: a0, l0, t0, r; im1, ip1, x, v, f in initializeVertexShapeParameters and initializeVertexIndexing
+  gi = szList[NCELLS-1];
+  cout << "gi = " << gi << '\t' << ", which should = szList[NCELLS] = " << szList[NCELLS-1] << "\t, with NCELLS = " << NCELLS << '\n';
+  
+  int j = dp_x.size() - 1;
+  for (int vi = 0; vi < dp_x.size(); vi++) {
+    dist = sqrt(pow(dp_x[vi] - dp_x[(vi+1)%dp_x.size()],2) + pow(dp_y[vi] - dp_y[(vi+1)%dp_y.size()],2));
+    if (dist > 0.4){
+      cout << "dp_x.size() = " << dp_x.size() << '\n';
+      cout << "vi = " << vi << '\t' << ", (vi + 1) % vi = " << (vi+1)%dp_x.size() << '\t' << ", vi + 1 % vi = " << vi + 1 % dp_x.size() << '\n';
+      cout << "for vi = " << vi << "\t, dist = " << dist << '\n';
+      cout << "from point (a,b) to (c,d) " << dp_x[vi] << '\t' << dp_y[vi] << '\t' << dp_x[(vi+1)%dp_x.size()] << '\t' << dp_y[(vi+1)%dp_y.size()] << '\n';
+    }
+
+    l0.push_back(dist);
+    t0.push_back(0.0);
+    r.push_back(0.5 * dist);
+
+    // assign vertex degrees of freedom
+    x.push_back(dp_x[vi]);
+    x.push_back(dp_y[vi]);
+    for (int d = 0; d < NDIM; d++){
+      v.push_back(0.0);
+      F.push_back(0.0);
+    }
+
+    // calculate area of DP for a0 via shoelace method
+    polyArea += (dp_x[j] + dp_x[vi]) * (dp_y[j] - dp_y[vi]);
+    j = vi;
+  }
+  polyArea = abs(polyArea/2.0);
+  a0.push_back(polyArea);
+
+  // save list of adjacent vertices
+  im1.resize(NVTOT);
+  ip1.resize(NVTOT);
+  for (int ci = 0; ci < NCELLS; ci++) {
+    // vertex indexing
+    for (int vi = 0; vi < nv.at(ci); vi++) {
+      // wrap local indices
+      vim1 = (vi - 1 + nv.at(ci)) % nv.at(ci);
+      vip1 = (vi + 1) % nv.at(ci);
+
+      // get global wrapped indices
+      gi = gindex(ci, vi);
+      im1.at(gi) = gindex(ci, vim1);
+      ip1.at(gi) = gindex(ci, vip1);
+    }
+  }
+
+  // linked list variables
+  //  list should have size NVTOT + 1
+  list.resize(NVTOT + 1);
+
+  // other variables 
+  // cellU, stresses, cij in main DPM class need to be resized
+  cellU.resize(NCELLS);
+  fieldStress.resize(NVTOT, vector<double>(3));
+  fieldStressCells.resize(NCELLS, vector<double>(3));
+  fieldShapeStress.resize(NVTOT, vector<double>(3));
+  fieldShapeStressCells.resize(NCELLS, vector<double>(3));
+  cij.resize(NCELLS * (NCELLS - 1) / 2);
+
+  // cellID, cellTouchesLeft, cellTouchesRight in Cell class need to be resized, then I should be good
+  cellID.push_back(cellTypeIndex);
+  if (cellTypeIndex >= numCellTypes) {
+    cout << "error: cellTypeIndex specified in addDP is larger than any existing cellTypes. This is unexpected, either add a cellType or choose a smaller cellType.\n";
+    assert(false);
+  }
+  cellTouchesWallsLeft.push_back(false);
+  cellTouchesWallsRight.push_back(false);
+}
+
 //routines
 
 void cell::initializeTransverseTissue(double phi0, double Ftol) {
@@ -1200,6 +1325,12 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double B, double dt0, double dura
   int i;
   double K, t0 = simclock;
   double temp_simclock = simclock;
+  cout << "inside dampedVertexNVE in Cell class\n";
+  cout << "vertDOF = " << vertDOF << '\n';
+  cout << "x.size() = " << x.size() << '\n';
+  cout << "l0.size() = " << l0.size() << '\n';
+  cout << "a0.size() = " << a0.size() << '\n';
+  cout << "cellID.size() = " << cellID.size() << '\n';
 
   // set time step magnitude
   setdt(dt0);
@@ -1211,6 +1342,8 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double B, double dt0, double dura
     for (i = 0; i < vertDOF; i++) {
       // update position
       x[i] += dt * v[i] + 0.5 * dt * dt * F[i];
+      //if (NCELLS == 20)
+      //  cout << "simclock = " << simclock << '\t' << "x[i] = " << x[i] << '\n';
 
       // recenter in box
       if (x[i] > L[i % NDIM] && pbc[i % NDIM])
@@ -1228,7 +1361,11 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double B, double dt0, double dura
       F[i] -= (B * v[i] + B * F_old[i] * dt / 2);
       F[i] /= (1 + B * dt / 2);
       v[i] += 0.5 * (F[i] + F_old[i]) * dt;
-      // cout << "force at simclock = " << simclock << " = ," << F[i] << '\n';
+      if (NCELLS == 20) {
+        cout << "force at simclock = " << simclock << " = " << F[i] << '\n';
+        printConfiguration2D();
+        assert(false);
+      }
     }
 
     // update sim clock

@@ -309,14 +309,14 @@ double dpm::vertexPreferredPackingFraction2D_polygon(){
 
   // denominator = boundary polygonal area via shoelace method
   boxV = 0.0;
-  for (int k = 0; k < poly_bd_x.size(); k++) {
+  for (int i = 0; i < poly_bd_x.size(); i++) {
     boxV_temp = 0.0;
-    std::vector<double> poly_x = poly_bd_x[k];
-    std::vector<double> poly_y = poly_bd_y[k];
+    std::vector<double> poly_x = poly_bd_x[i];
+    std::vector<double> poly_y = poly_bd_y[i];
     int j = poly_x.size() - 1;
-    for (int i = 0; i < poly_x.size(); i++){
-      boxV_temp += (poly_x[j] + poly_x[i]) * (poly_y[j] - poly_y[i]);
-      j = i;
+    for (int k = 0; k < poly_x.size(); k++){
+      boxV_temp += (poly_x[j] + poly_x[k]) * (poly_y[j] - poly_y[k]);
+      j = k;
     }
     boxV_temp = abs(boxV_temp/2.0);
     boxV += boxV_temp;
@@ -442,7 +442,7 @@ void dpm::initializeVertexIndexing2D() {
   F.resize(vertDOF);
 }
 
-// initialize vertex shape parameters based on nv (nref is the reference nv, smallest nv among the polydispersity)
+// initialize vertex shape parameters and (a0, l0, t0, r) based on nv (nref is the reference nv, smallest nv among the polydispersity)
 void dpm::initializeVertexShapeParameters(double calA0, int nref) {
   // local variables
   int gi, ci, vi, nvtmp;
@@ -1276,6 +1276,17 @@ void dpm::sortNeighborLinkedList2D() {
   // local variables
   int d, gi, boxid, sbtmp;
 
+  /*cout << "before neighborLinkedList\n";
+  cout << "list = \n";
+  for (auto i : list)
+    cout << i << '\t';
+  cout << "\nhead = \n";
+  for (auto i : head)
+    cout << i << '\t';
+  cout << "\nlast = \n";
+  for (auto i : last)
+    cout << i << '\t';*/
+
   // reset linked list info
   fill(list.begin(), list.end(), 0);
   fill(head.begin(), head.end(), 0);
@@ -1301,6 +1312,16 @@ void dpm::sortNeighborLinkedList2D() {
       last[boxid] = gi + 1;
     }
   }
+  /*cout << "after neighborLinkedList\n";
+  cout << "list = \n";
+  for (auto i : list)
+    cout << i << '\t';
+  cout << "\nhead = \n";
+  for (auto i : head)
+    cout << i << '\t';
+  cout << "\nlast = \n";
+  for (auto i : last)
+    cout << i << '\t';*/
 }
 
 // change size of particles
@@ -1514,8 +1535,7 @@ void dpm::generateCircle(int numEdges, double cx, double cy, double r, std::vect
   // generate an n-gon at center cx,cy with radius r. Modifies data in px, py to give the n-gon
   double theta;
   std::vector<double> poly_x_temp, poly_y_temp;
-  // numEdges+1 makes a closed polygon
-  for (int i = 0; i < numEdges+1; i++) {
+  for (int i = 0; i < numEdges; i++) {
     theta = i*2*PI/numEdges;
     poly_x_temp.push_back(r*cos(theta)+cx);
     poly_y_temp.push_back(r*sin(theta)+cy);
@@ -1523,6 +1543,29 @@ void dpm::generateCircle(int numEdges, double cx, double cy, double r, std::vect
   }
   px = poly_x_temp;
   py = poly_y_temp;
+}
+
+std::vector<double> dpm::resample_polygon(std::vector<double> px, std::vector<double> py, double perimeter, int numPoints) {
+  cout << "resample_polygon with perimeter " << perimeter << "\t, numPoints = " << numPoints << "\t, px.size() = " << px.size() << '\n';
+  double arc_length = perimeter/numPoints, t = 0.0, d_t = 0.0;
+  double newx, newy, lerp;
+  vector<double> result = {px[0], py[0]};
+
+  for (int vi = 0; vi < px.size(); vi++) { 
+    d_t = sqrt(pow(px[vi] - px[(vi+1)%px.size()],2)+pow(py[vi] - py[(vi+1)%py.size()],2)) / arc_length;
+    while (t + d_t >= result.size() / 2 && result.size() / 2 < numPoints) {
+      lerp = (result.size() / 2 - t) / d_t;
+      newx = (1 - lerp) * px[vi] + lerp * px[(vi+1) % px.size()];
+      newy = (1 - lerp) * py[vi] + lerp * py[(vi+1) % py.size()];
+      result.push_back(newx);
+      result.push_back(newy);
+      cout << "newx newy = " << newx << '\t' << newy << '\n';
+    }
+    t += d_t;
+  }
+  cout << "arc_length = " << arc_length << '\n';
+  cout << "in resample_polygon, result.size() = " << result.size() << '\n';
+  return result;
 }
 
 /******************************

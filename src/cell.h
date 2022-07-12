@@ -107,7 +107,8 @@ class cell : public dpm {
   }
 
   // boundary routines
-  void replacePolyWallWithDP(int tissueNum);
+  void replacePolyWallWithDP(int numCellTypes);
+  void addDP(int numVerts, vector<double> &dp_x, vector<double> &dp_y, int cellTypeIndex, int numCellTypes);
 
   // routines
   void initializeTransverseTissue(double phi0, double Ftol);
