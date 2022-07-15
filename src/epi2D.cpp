@@ -330,6 +330,7 @@ void epi2D::vertexAttractiveForces2D_2() {
 
   // sort particles
   sortNeighborLinkedList2D();
+  //cout << "r[0] = " << r[0] << '\n';
 
   // get fundamental length
   rho0 = sqrt(a0[0]);
@@ -1006,7 +1007,7 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duratio
 }
 
 // currently, dampedNP0 is my way of coding a simulation without boundaries, i.e. 0 pressure simulation
-void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, int wallsOn) {
+void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, int wallsOn, int purseStringOn) {
   // make sure velocities exist or are already initialized before calling this
   // assuming zero temperature - ignore thermostat (not implemented)
   // allow box lengths to move as a dynamical variable - rudimentary barostat,
@@ -1056,7 +1057,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
     CALL_MEMBER_FN(*this, forceCall)
     ();  // calls main force routine
 
-    if (simclock - t0 > 10) {
+    if (simclock - t0 > 10 && purseStringOn == 1) {
       //.clear();
       initialPreferredPerimeter = 0;
       for (int i = 0; i < nv[0]; i++) {
@@ -1069,6 +1070,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
         for (auto gi : sortedWoundIndices) {
           woundCenterX += x[gi * NDIM];
           woundCenterY += x[gi * NDIM + 1];
+          cout << "x,y of wound vertex gi = " << gi << " is " << x[gi * NDIM] << '\t' << x[gi * NDIM + 1] << '\n';
         }
         woundCenterX /= sortedWoundIndices.size();
         woundCenterY /= sortedWoundIndices.size();
@@ -1103,7 +1105,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
 
       // vout << simclock << '\t' << woundArea << '\n';
       ageCellPerimeters(shapeRelaxationRate, dt);
-      if (int(simclock / dt) % 500 == 0) {
+      if (int(simclock / dt) % 50 == 0) {
         cout << "woundCenterX, Y before calculating area = " << woundCenterX << '\t' << woundCenterY << '\n';
         woundArea = calculateWoundArea(woundCenterX, woundCenterY);
         vout << simclock << '\t' << woundArea << '\n';
@@ -1212,7 +1214,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
 
         // print to configuration only if position file is open
         if (posout.is_open()) {
-          int nthLargestCluster = 2;
+          int nthLargestCluster = 1;
           printConfiguration2D();
           printBoundaries(nthLargestCluster);
           cerr << "done printing in NP0\n";

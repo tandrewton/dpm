@@ -122,7 +122,7 @@ void cell::vertexAttractiveForces2D_2() {
   int ci, cj, gi, gj, vi, vj, bi, bj, pi, pj;
   double sij, rij, dx, dy, rho0;
   double ftmp, fx, fy;
-  double cellTypeIntModifier = 1.0;
+  double cellTypeIntModifier = 1.0, cellTypeIntModifier_repulsion = 1.0;
 
   // attraction shell parameters
   double shellij, cutij, xij, kint = (kc * l1) / (l2 - l1);
@@ -161,6 +161,7 @@ void cell::vertexAttractiveForces2D_2() {
         // cell index of j
         cindices(cj, vj, gj);
         cellTypeIntModifier = cellTypeIntMat[cellID[ci]][cellID[cj]];
+        cellTypeIntModifier_repulsion = 1.0;
 
         if (gj == ip1[gi] || gj == im1[gi]) {
           pj = list[pj];
@@ -193,8 +194,8 @@ void cell::vertexAttractiveForces2D_2() {
                 // if vertices (not neighbors) are in same cell, compute
                 // repulsions
                 if (rij < sij) {
-                  ftmp = cellTypeIntModifier * kc * (1 - (rij / sij)) * (rho0 / sij);
-                  cellU[ci] += 0.5 * cellTypeIntModifier * kc * pow((1 - (rij / sij)), 2.0);
+                  ftmp = cellTypeIntModifier_repulsion * kc * (1 - (rij / sij)) * (rho0 / sij);
+                  cellU[ci] += 0.5 * cellTypeIntModifier_repulsion * kc * pow((1 - (rij / sij)), 2.0);
                 } else
                   ftmp = 0;
               } else if (rij > cutij) {
@@ -270,6 +271,7 @@ void cell::vertexAttractiveForces2D_2() {
           // cell index of j
           cindices(cj, vj, gj);
           cellTypeIntModifier = cellTypeIntMat[cellID[ci]][cellID[cj]];
+          cellTypeIntModifier_repulsion = 1.0;
 
           if (gj == ip1[gi] || gj == im1[gi]) {
             pj = list[pj];
@@ -302,8 +304,8 @@ void cell::vertexAttractiveForces2D_2() {
                   // if vertices (not neighbors) are in same cell, compute
                   // repulsions
                   if (rij < sij) {
-                    ftmp = cellTypeIntModifier * kc * (1 - (rij / sij)) * (rho0 / sij);
-                    cellU[ci] += 0.5 * cellTypeIntModifier * kc * pow((1 - (rij / sij)), 2.0);
+                    ftmp = cellTypeIntModifier_repulsion * kc * (1 - (rij / sij)) * (rho0 / sij);
+                    cellU[ci] += 0.5 * cellTypeIntModifier_repulsion * kc * pow((1 - (rij / sij)), 2.0);
                   } else
                     ftmp = 0;
                 } else if (rij > cutij) {
@@ -721,8 +723,10 @@ void cell::initializeTransverseTissue(double phi0, double Ftol) {
   // initial transverse geometry vectors in units of some lengthscale
   int numTissues = 4, totalNumCellsCheck = 0;
   double totalArea = 0.0;
-  double offset = 1/8.0;
-  vector<double> cx = {1/2.0, 5/4.0 + offset, 2.0 + 2*offset, 5/4.0 + offset}, cy = {1/2.0, 3/8.0, 1/2.0, 5/4.0};
+  // double offset = 1/8.0/2.0
+  double offset = -1/8.0;
+  double yoffset = offset*2;
+  vector<double> cx = {1/2.0, 5/4.0 + offset, 2.0 + 2*offset, 5/4.0 + offset}, cy = {1/2.0, 3/8.0, 1/2.0, 5/4.0+yoffset};
   vector<double> tissueRadii = {1/2.0, 1/4.0, 1/2.0, 1/2.0}, cellFractionPerTissue, numCellsInTissue;
   for (int i = 0; i < tissueRadii.size(); i++) {
     totalArea += tissueRadii[i]*tissueRadii[i];
@@ -733,7 +737,7 @@ void cell::initializeTransverseTissue(double phi0, double Ftol) {
     cellFractionPerTissue.push_back(tissueRadii[i]*tissueRadii[i]/totalArea);
     numCellsInTissue.push_back(round(cellFractionPerTissue[i] * NCELLS));
     cout << "cellFraction = " << tissueRadii[i]*tissueRadii[i]/totalArea << '\n';
-    cout << "intializing " << NCELLS << " cells, with tissue " << i << " having cell fraction = " << cellFractionPerTissue[i] << '\n';
+    cout << "initializing " << NCELLS << " cells, with tissue " << i << " having cell fraction = " << cellFractionPerTissue[i] << '\n';
     cout << "NCELLS * cellFraction = " << NCELLS * cellFractionPerTissue[i] << ", which is " << round(NCELLS * cellFractionPerTissue[i]) << " when rounded\n";
     totalNumCellsCheck += round(NCELLS * cellFractionPerTissue[i]);
   }
@@ -1027,8 +1031,8 @@ void cell::initializeTransverseTissue(double phi0, double Ftol) {
       // get global vertex index
       gi = gindex(ci, vi);
 
-      // length from center to vertex
-      dtmp = sqrt((2.0 * a0.at(ci)) / (nv.at(ci) * sin((2.0 * PI) / nv.at(ci))));
+      // length from center to vertex minus 1/2 the vertex radius to prevent overlaps
+      dtmp = sqrt((2.0 * a0.at(ci)) / (nv.at(ci) * sin((2.0 * PI) / nv.at(ci)))) - r[gi]/2.0;
 
       // set positions
       x.at(NDIM * gi) = dtmp * cos((2.0 * PI * vi) / nv.at(ci)) + dpos.at(NDIM * ci) + 1e-2 * l0[gi] * drand48();
@@ -1046,6 +1050,7 @@ void cell::vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, 
 
   // loop while phi0 < phi0Target
   while (phi0 < phi0Target && it < itmax) {
+    cout << "compressing! it = " << it << '\n';
     // scale particle sizes
     scaleParticleSizes2D(scaleFactor);
 

@@ -64,7 +64,7 @@ class cell : public dpm {
   }
 
   // cell-cell interaction matrix routines
-  void setCellTypeAttractionModifiers(int i, int j, double val) {cellTypeIntMat[i][j] = val;}
+  void setCellTypeAttractionModifiers(int i, int j, double val) {cellTypeIntMat[i][j] = val; cellTypeIntMat[j][i] = val;}
   void removeCellIDFromInteractionMatrix(int cellID);
   void addCellIDToInteractionMatrix(int cellID);
   void printInteractionMatrix();

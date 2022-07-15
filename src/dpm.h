@@ -250,6 +250,8 @@ class dpm {
   void vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0);
   void vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0);
   void vertexJamming2D(dpmMemFn forceCall, double Ftol, double Ptol, double dt0, double dphi0, bool plotCompression);
+  void saveConfiguration(std::vector<double> &positionVector);
+  void loadConfiguration(std::vector<double> &positionVector);
 
   // hessian methods
   // note: dynamical matrix contribution is always M = H - S

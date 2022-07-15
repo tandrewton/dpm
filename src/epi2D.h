@@ -283,7 +283,7 @@ class epi2D : public dpm {
   void zeroMomentum();
   void scaleBoxSize(double boxLengthScale, double scaleFactorX, double scaleFactorY);
   void dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval);
-  void dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, int wallsOn);
+  void dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, int wallsOn, int purseStringOn = 0);
   void wallForces(bool left, bool bottom, bool right, bool top, double& forceLeft, double& forceBottom, double& forceRight, double& forceTop, int forceOption = 0);
   void circularApertureForces(double radius);
   void vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0);

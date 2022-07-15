@@ -1189,78 +1189,109 @@ void dpm::initializeAllPositions(std::string vertexPositionFile, int nref) {
 
 // initialize neighbor linked list
 void dpm::initializeNeighborLinkedList2D(double boxLengthScale) {
-  // local variables
-  double llscale = 2.0 * r.at(0);
-  int i, d, nntmp, scx;
+	// local variables
+	double llscale;
+	int i, d, nntmp, scx;
 
-  // print to console
-  cout << "** initializing neighbor linked list, boxLengthScale = " << boxLengthScale;
+	// print to console
+	cout << "** initializing neighbor linked list, boxLengthScale = " << boxLengthScale << '\n';
 
-  // initialize box length vectors
-  NBX = 1;
-  sb.resize(NDIM);
-  lb.resize(NDIM);
-  for (d = 0; d < NDIM; d++) {
-    // determine number of cells along given dimension by rmax
-    sb[d] = round(L[d] / (boxLengthScale * llscale));
+	// get largest diameter times attraction shell (let buffer be larger than attraction range would ever be) as llscale
+  double buffer = 2.0;
+	llscale = buffer * 2 * (*max_element(r.begin(),r.end()));
+  cout << "llscale = " << llscale << '\n';
 
-    // just in case, if < 3, change to 3 so box neighbor checking will work
-    if (sb[d] < 3)
-      sb[d] = 3;
+	// initialize box length vectors
+	NBX = 1;
+	sb.resize(NDIM);
+	lb.resize(NDIM);
+	for (d = 0; d < NDIM; d++) {
+		// determine number of cells along given dimension by rmax
+		sb[d] = round(L[d] / (boxLengthScale * llscale));
 
-    // determine box length by number of cells
-    lb[d] = L[d] / sb[d];
+		// just in case, if < 3, change to 3 so box neighbor checking will work
+		if (sb[d] < 3)
+			sb[d] = 3;
 
-    // count total number of cells
-    NBX *= sb[d];
-  }
+		// determine box length by number of cells
+		lb[d] = L[d] / sb[d];
 
-  // initialize list of box nearest neighbors
-  scx = sb[0];
-  nn.resize(NBX);
+		// count total number of cells
+		NBX *= sb[d];
+	}
 
-  // loop over cells, save forward neighbors for each box
-  for (i = 0; i < NBX; i++) {
-    // reshape entry
-    nn[i].resize(NNN);
+	// initialize list of box nearest neighbors
+	scx = sb[0];
+	nn.resize(NBX);
 
-    // neighbors
-    nn[i][0] = (i + 1) % NBX;  // right neighbor (i+1)
+	// loop over cells, save forward neighbors for each box
+	for (i = 0; i < NBX; i++) {
+		// reshape entry
+		nn[i].resize(NNN);
 
-    if (pbc[1])                    // top neighbor (j+1)
-      nn[i][1] = (i + scx) % NBX;  // ** top neighbor (j+1) (with pbc)
-    else {
-      if (i >= NBX - scx)
-        nn[i][1] = -1;  // ** NO top neighbor (j+1) when !pbc and on top row
-      else
-        nn[i][1] = i + scx;  // ** top neighbor (j+1) (without pbc, but not on top row)
-    }
+		// right neighbor (i+1)
+		nn[i][0] = (i + 1) % NBX; 
 
-    nntmp = (i + NBX - scx) % NBX;    // bottom neighbor (j-1)
-    nn[i][2] = (nn[i][1] + 1) % NBX;  // top-right neighbor (i+1, j+1)
-    nn[i][3] = nntmp + 1;             // bottom-right neighbor (i+1, j-1)
+		// top neighbors (i,j+1), (i+1,j+1)
+		if (pbc[1]){
+			// (i,j+1) w/ pbc
+			nn[i][1] = (i + scx) % NBX;
 
-    // right-hand bc (periodic)
-    if ((i + 1) % scx == 0) {
-      if (pbc[0]) {
-        nn[i][0] = i - scx + 1;
-        nn[i][2] = nn[i][1] - scx + 1;
-        nn[i][3] = nntmp - scx + 1;
-      } else {
-        nn[i][0] = -1;
-        nn[i][2] = -1;
-        nn[i][3] = -1;
-      }
-    }
-  }
+			// (i+1,j+1) w/ pbc
+			nn[i][2] = (nn[i][1] + 1) % NBX;
+		}
+		else {
+			// if on top row, both = -1
+			if (i >= NBX - scx){
+				nn[i][1] = -1;
+				nn[i][2] = -1;
+			}
+			// if not on top row, still add
+			else{
+				nn[i][1] = i + scx; 
+				nn[i][2] = nn[i][1] + 1;
+			}
+		}
 
-  // linked-list variables
-  head.resize(NBX);
-  last.resize(NBX);
-  list.resize(NVTOT + 1);
+		// bottom neighbor w/ pbc (j-1)
+		nntmp = (i + NBX - scx) % NBX;	
 
-  // print box info to console
-  cout << ";  initially NBX = " << NBX << " ..." << endl;
+		// bottom-right neighbor (i+1, j-1)
+		if (pbc[1])
+			nn[i][3] = nntmp + 1;
+		else{
+			// if on bottom row, skip
+			if (i < scx)
+				nn[i][3] = -1;
+			// otherwise, set
+			else
+				nn[i][3] = nntmp + 1;
+		}
+
+		// right-hand bc (periodic)
+		if ((i + 1) % scx == 0) {
+			if (pbc[0]) {
+				nn[i][0] = i - scx + 1;
+				if (pbc[1]){
+					nn[i][2] = nn[i][1] - scx + 1;
+					nn[i][3] = nntmp - scx + 1;
+				}
+			}
+			else {
+				nn[i][0] = -1;
+				nn[i][2] = -1;
+				nn[i][3] = -1;
+			}
+		}
+	}
+
+	// linked-list variables
+	head.resize(NBX);
+	last.resize(NBX);
+	list.resize(NVTOT + 1);
+
+	// print box info to console
+	cout << ";  initially NBX = " << NBX << " ..." << endl;
 }
 
 /******************************
@@ -1274,7 +1305,7 @@ void dpm::initializeNeighborLinkedList2D(double boxLengthScale) {
 // sort vertices into neighbor linked list
 void dpm::sortNeighborLinkedList2D() {
   // local variables
-  int d, gi, boxid, sbtmp;
+  int d, gi, boxid, sbtmp, xtmp;
 
   /*cout << "before neighborLinkedList\n";
   cout << "list = \n";
@@ -1297,7 +1328,26 @@ void dpm::sortNeighborLinkedList2D() {
     boxid = 0;
     sbtmp = 1;
     for (d = 0; d < NDIM; d++) {
-      // add d index to 1d list
+      // current location
+			/*xtmp = x[NDIM * gi + d];
+
+			// check out-of-bounds
+			if (xtmp < 0){
+				if (pbc[d])
+					xtmp -= L[d]*floor(xtmp/L[d]);
+				else
+					xtmp = 0.00001;
+			}
+			else if (xtmp > L[d]){
+				if (pbc[d])
+					xtmp -= L[d]*floor(xtmp/L[d]);
+				else
+					xtmp = 0.99999*L[d];
+			}
+
+			// add d index to 1d list
+			boxid += floor(xtmp / lb[d]) * sbtmp;*/
+
       // increment dimensional factor
       sbtmp *= sb[d];
     }
@@ -2914,6 +2964,21 @@ void dpm::vertexJamming2D(dpmMemFn forceCall, double Ftol, double Ptol, double d
     // update iterate
     k++;
   }
+}
+
+void dpm::saveConfiguration(std::vector<double> &positionVector){
+  // save configuration data (for now, just vertex positions x)
+  // if anything else changes like r, l0, NCELLS, etc. then this will be bugged.
+  positionVector = x;
+}
+
+void dpm::loadConfiguration(std::vector<double> &positionVector){
+  // load position vector, with some checks to make sure crucial data hasn't been edited that will blow up the simulation
+  // assumes we have a force balanced state with v = F = 0
+  assert(positionVector.size() == x.size());
+  x = positionVector;
+  fill(v.begin(), v.end(), 0.0);
+  fill(F.begin(), F.end(), 0.0);
 }
 
 /******************************
