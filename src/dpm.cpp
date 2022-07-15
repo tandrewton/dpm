@@ -1329,7 +1329,7 @@ void dpm::sortNeighborLinkedList2D() {
     sbtmp = 1;
     for (d = 0; d < NDIM; d++) {
       // current location
-			/*xtmp = x[NDIM * gi + d];
+			xtmp = x[NDIM * gi + d];
 
 			// check out-of-bounds
 			if (xtmp < 0){
@@ -1346,7 +1346,7 @@ void dpm::sortNeighborLinkedList2D() {
 			}
 
 			// add d index to 1d list
-			boxid += floor(xtmp / lb[d]) * sbtmp;*/
+			boxid += floor(xtmp / lb[d]) * sbtmp;
 
       // increment dimensional factor
       sbtmp *= sb[d];
