@@ -2308,11 +2308,12 @@ void dpm::vertexAttractiveForces2D() {
 }
 
 // if there are multiple polygonal bds, need to throw evaluatePolygonalWallForces in a loop over poly_bd_x.size()
-void dpm::evaluatePolygonalWallForces(const std::vector<double>& poly_x, const std::vector<double>& poly_y) {
+void dpm::evaluatePolygonalWallForces(const std::vector<double>& poly_x, const std::vector<double>& poly_y, bool attractionOn) {
   // evaluates particle-wall forces for a polygonal boundary specified by poly_x,poly_y. Does not compute stress yet.
   int n = poly_x.size();
-  double distanceParticleWall, Rx, Ry, dw, K=10;
+  double distanceParticleWall, scaledDistParticleWall, Rx, Ry, dw, K=10;
   double bound_x1, bound_x2, bound_y1, bound_y2;
+  double shellij, cutij, ftmp;
   // loop over boundary bars
   // loop over particles
   //  compute particle-boundary bar overlaps
@@ -2326,7 +2327,23 @@ void dpm::evaluatePolygonalWallForces(const std::vector<double>& poly_x, const s
     for (int i = 0; i < NVTOT; i++) {
       distanceParticleWall = distanceLinePointComponents(bound_x1, bound_y1, bound_x2, bound_y2, x[i*NDIM], x[i*NDIM+1], Rx, Ry);
       dw = r[i] - distanceParticleWall;
-      if (distanceParticleWall <= r[i]) {
+      if (attractionOn){
+        scaledDistParticleWall = distanceParticleWall / r[i];
+        K = 1; 
+        shellij = (1.0 + l2) * r[i];
+        cutij = (1.0 + l1) * r[i];
+        if (distanceParticleWall <= shellij) {  // within attracting shell 2
+          if (distanceParticleWall > cutij) {
+            ftmp = K * (scaledDistParticleWall - 1.0 - l2) / r[i];
+          }
+          else {  // within attracting shell 1, potentially within repulsion distance
+            ftmp = K * (1 - scaledDistParticleWall) / r[i];
+          }
+          F[i*NDIM] += ftmp * Rx / distanceParticleWall;
+          F[i*NDIM + 1] += ftmp * Ry / distanceParticleWall;
+        }
+      }
+      else if (distanceParticleWall <= r[i]) {
         F[i*NDIM] += K * dw * Rx/distanceParticleWall;
         F[i*NDIM+1] += K * dw * Ry/distanceParticleWall;
         U += K/2 * pow(dw,2);

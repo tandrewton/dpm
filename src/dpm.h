@@ -236,7 +236,7 @@ class dpm {
   void shapeForces2D();
   void vertexRepulsiveForces2D();
   void vertexAttractiveForces2D();
-  void evaluatePolygonalWallForces(const std::vector<double>& poly_x, const std::vector<double>& poly_y);
+  void evaluatePolygonalWallForces(const std::vector<double>& poly_x, const std::vector<double>& poly_y, bool attractionOn = false);
 
   // force updates
   void repulsiveForceUpdate();

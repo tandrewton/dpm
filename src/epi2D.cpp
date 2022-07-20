@@ -642,15 +642,6 @@ void epi2D::substrateadhesionAttractiveForceUpdate() {
     // check for protrusions (unimpeded flag toss, and flag location inside box)
     if (flag[ci]) {
       // find nearest vertices
-      /*for (int vi = 0; vi < nv[ci]; vi++) {
-        gi = gindex(ci, vi);
-        distSqVertToFlag[vi] = pow(x[gi * NDIM] - flagPos[ci][0], 2) +
-                               pow(x[gi * NDIM + 1] - flagPos[ci][1], 2);
-      }
-      argmin = std::distance(
-          distSqVertToFlag.begin(),
-          std::min_element(distSqVertToFlag.begin(), distSqVertToFlag.end()));
-      gi = gindex(ci, argmin);*/
       gi = giConnectedToFlag[ci];
 
       // evaluate force for spring-vertex interaction between nearest vertex and
@@ -678,6 +669,13 @@ void epi2D::substrateadhesionAttractiveForceUpdate() {
   }
 }
 
+void epi2D::crawlingWithPurseStringAndCircularWalls() {
+  bool attractionOn = true;
+  substrateadhesionAttractiveForceUpdate();
+  for (int i = 0; i < poly_bd_x.size(); i++){
+    evaluatePolygonalWallForces(poly_bd_x[i], poly_bd_y[i], attractionOn);
+  }
+}
 /******************************
 
         EPI
@@ -2348,6 +2346,7 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
   if (resolution <= 1e-10)
     cerr << "bug: resolution in calculateWoundArea is zero\n";
 
+
   double xLow = *std::min_element(posX.begin(), posX.end());
   double xHigh = *std::max_element(posX.begin(), posX.end());
   double yLow = *std::min_element(posY.begin(), posY.end());
@@ -2376,6 +2375,7 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
       }
     }
   }
+
   /*if (simclock > 100)
     for (int i = 0; i < xResolution; i++) {
       cout << "[ ";
@@ -2751,7 +2751,9 @@ void epi2D::purseStringContraction(double B) {
   // updatePurseStringContacts();
   integratePurseString(B);  // evaluate forces on and due to purse-string, and integrate its position
   for (int psi = 0; psi < psContacts.size(); psi++) {
-    l0_ps[psi] *= exp(-strainRate_ps * dt);
+    //l0_ps[psi] *= exp(-strainRate_ps * dt); // constant strain rate
+    l0_ps[psi] -= strainRate_ps * dt; // constantly increasing tension
+    //if (psi == 0) cout << "purse string length = " << l0_ps[psi] << '\n';
   }
 }
 
@@ -2804,7 +2806,7 @@ void epi2D::evaluatePurseStringForces(double B) {
   double dx, dy, fx, fy, l0i, l0im1;
 
   double fli, flim1, cx, cy, xi, yi, gip1, xip1, yip1;
-  double rho0 = sqrt(a0.at(0));  // shouldn't have shape parameter for the wound. what's my alternative?
+  double rho0 = sqrt(a0.at(0)); 
   double lim1x, lim1y, lix, liy, lip1x, lip1y, li, lim1, dli, dlim1;
   double rim1x, rim1y, rix, riy, rip1x, rip1y;
 
@@ -2851,6 +2853,7 @@ void epi2D::evaluatePurseStringForces(double B) {
     F[gi * NDIM + 1] += fy;
     F_ps[psi * NDIM] -= fx;
     F_ps[psi * NDIM + 1] -= fy;
+    //cout << "k_ps = " << k_ps << ", F_ps_x due to spring = " << fx << '\n';
 
     // stress on gj should be the same as on gi, since it's the opposite separation and also opposite force
     fieldStress[gi][0] += -dx / 2 * fx;
@@ -2902,12 +2905,14 @@ void epi2D::evaluatePurseStringForces(double B) {
     // segment forces
     flim1 = kl * (rho0 / l0im1);
     fli = kl * (rho0 / l0i);
+    //cout << "kl inside ps = " << kl << '\n';
 
     // add to forces
     fx = (fli * dli * lix / li) - (flim1 * dlim1 * lim1x / lim1);
     fy = (fli * dli * liy / li) - (flim1 * dlim1 * lim1y / lim1);
     F_ps[NDIM * psi] += fx;
     F_ps[NDIM * psi + 1] += fy;
+    //cout << "F_ps_x due to segments = " << fx << '\n';
 
     // choosing not to update potential energy of the purse-string itself
     // U += 0.5 * kl * (dli * dli);

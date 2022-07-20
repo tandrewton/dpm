@@ -272,6 +272,7 @@ class epi2D : public dpm {
   void repulsiveForceWithCircularApertureWall();
   void repulsiveForceUpdateWithPolyWall();
   void attractiveForceUpdateWithPolyWall();
+  void crawlingWithPurseStringAndCircularWalls();
 
   // protocols
   void expandBoxAndCenterParticles(double boxLengthScaleFactor,
