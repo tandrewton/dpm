@@ -35,11 +35,12 @@ FSKIP = 1;
 etaStr = " ";
 startSeed = 1;
 max_seed = 1;
-no_plots = 1;
+no_plots = 0;
 makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
 plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
+showWoundAndShapeProperties = 1;
 
 showverts = 0;
 showBoundaries = 0;
@@ -90,6 +91,10 @@ for seed = startSeed:max_seed
         edgeStr = pc_dir+'test.edge';
         purseStr = pc_dir+'test.purseString';
         voidAreaStr = pc_dir+'test.voidArea';
+        innerStr = pc_dir+ 'test.innerCellShape';
+        bulkStr = pc_dir+ 'test.bulkCellShape';
+        woundPropertiesStr = pc_dir+ 'test.woundProperties';
+        innerAndBulkCellIDStr = pc_dir+'test.cellID';
     else
         run_name =runType+"_calA0"+calA0+"_k_a"+k_a+"_strainRate_ps"+strainRate_ps+ ...
             "_deltaSq"+deltaSq+"_k_ps"+k_ps+"_k_lp"+k_lp+...
@@ -108,12 +113,16 @@ for seed = startSeed:max_seed
         edgeStr = pipeline_dir+fileheader+ '.edge';
         purseStr = pipeline_dir+fileheader+ '.purseString';
         voidAreaStr = pipeline_dir+fileheader+ '.voidArea';
+        innerStr = pipeline_dir+fileheader+ '.innerCellShape';
+        bulkStr = pipeline_dir+fileheader+ '.bulkCellShape';
+        woundPropertiesStr = pipeline_dir+fileheader+ '.woundProperties';
+        innerAndBulkCellIDStr = pipeline_dir+fileheader+ '.cellID';
     end
     
     cd(output_dir)
     
     if (~no_plots)
-        figure(13); clf; hold on;
+        figure(11); clf; hold on;
         stress = load(stressstr);
         plot(stress(:,1), stress(:,3), 'r-', 'linewidth',2, 'DisplayName',...
             '$S_{xx}$');
@@ -132,7 +141,7 @@ for seed = startSeed:max_seed
              '.eps', 'epsc')
         end
     
-        figure(14); clf;hold on;
+        figure(12); clf;hold on;
         plot(stress(:,1), stress(:,6), 'r--', 'linewidth',2, 'DisplayName',...
             '$Sh_{xx}$');
         plot(stress(:,1), stress(:,7), 'b--', 'linewidth',2, 'DisplayName',...
@@ -150,7 +159,7 @@ for seed = startSeed:max_seed
              '.eps', 'epsc')
         end
     
-        figure(11); clf; hold on 
+        figure(14); clf; hold on 
         energy = load(energystr);
         U = energy(:,3);
         K = energy(:,4);
@@ -175,13 +184,25 @@ for seed = startSeed:max_seed
         end
     
         if showArea
-            figure(12)
+            figure(15)
             voidArea = load(voidAreaStr);
             plot(voidArea(:,1), voidArea(:,2), 'linewidth', 4)
             %ylim([0 voidArea(1,2)])
             xlabel('$t/\tau$','Interpreter','latex','fontsize', 24);
             ylabel('Area','Interpreter','latex','fontsize', 24);
             %set(gca,'Yscale','log')
+        end
+
+        if showWoundAndShapeProperties
+            innerCellShape = load(innerStr);
+            bulkCellShape = load(bulkStr);
+            woundProperties = load(woundPropertiesStr)
+            cellID = load(innerAndBulkCellIDStr);
+            figure(16); clf; hold on;
+            plot(bulkCellShape(:,1),mean(bulkCellShape(:,2:end),2), ...
+                'linewidth', 4, 'DisplayName', "bulk shapes")
+            plot(innerCellShape(:,1), mean(innerCellShape(:,2:end),2),  ...
+                'linewidth', 4, 'DisplayName', "inner shapes")
         end
         if seed == max_seed 
          saveas(gcf, 'VoidArea'+runType+fileheader_short+'_'+max_seed+'.eps', 'epsc')

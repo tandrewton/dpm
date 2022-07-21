@@ -1005,19 +1005,14 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duratio
 }
 
 // currently, dampedNP0 is my way of coding a simulation without boundaries, i.e. 0 pressure simulation
-void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, int wallsOn, int purseStringOn) {
+void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, int purseStringOn) {
   // make sure velocities exist or are already initialized before calling this
   // assuming zero temperature - ignore thermostat (not implemented)
-  // allow box lengths to move as a dynamical variable - rudimentary barostat,
-  // doesn't matter for non-equilibrium anyway
-
-  // need to erase the lines that recenter stuff? also needs to be set as an
-  // option in e.g. the force calls? in dpm? and in epi2D?
   int i;
-  double K, t0 = simclock;
+  double K, t0 = simclock, shape_ci;
   double temp_simclock = simclock;
-  double FT, FB, FL, FR;
-  double oldFT, oldFB, oldFL, oldFR;
+  double initialWoundArea = 1e10, healingTime = 1e10;
+  bool alreadyRecordedFinalCells = false;
 
   // set time step magnitude
   setdt(dt0);
@@ -1032,6 +1027,23 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
   initialPreferredPerimeter = 0;
   for (int i = 0; i < nv[0]; i++) {
     initialPreferredPerimeter += l0[i];
+  }
+
+  for (int ci = 0; ci < NCELLS; ci++){
+    // if ci is an initial wound cell, record it in the first row. if not, record it in the second row.
+    std::vector<int> firstRow, secondRow;
+    if (std::find(initialWoundCellIndices.begin(), initialWoundCellIndices.end(), ci) != initialWoundCellIndices.end())
+      firstRow.push_back(ci);
+    else 
+      secondRow.push_back(ci);
+    
+    for (auto i : firstRow)
+      cellIDout << i << '\t';
+    cellIDout << '\n';
+
+    for (auto i : secondRow)
+      cellIDout << i << '\t';
+    cellIDout << '\n';
   }
 
   // loop over time, print energy
@@ -1061,7 +1073,8 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
       for (int i = 0; i < nv[0]; i++) {
         initialPreferredPerimeter += l0[i];
       }
-      if (psContacts.size() == 0 && simclock - t0 < 100) {
+      if (psContacts.size() == 0 && woundArea == 1e10) {
+        cout << "inside psContacts.size() == 0 and woundArea == 1e10 case, which should only occur once!\n";
         getWoundVertices(nthLargestCluster);
         woundCenterX = 0;
         woundCenterY = 0;
@@ -1071,9 +1084,13 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
           cout << "x,y of wound vertex gi = " << gi << " is " << x[gi * NDIM] << '\t' << x[gi * NDIM + 1] << '\n';
         }
         woundCenterX /= sortedWoundIndices.size();
-        woundCenterY /= sortedWoundIndices.size();
+        woundCenterY /= sortedWoundIndices.size();\
+
+        woundArea = calculateWoundArea(woundCenterX, woundCenterY);
+        vout << simclock-t0 << '\t' << woundArea << '\n';
+        cout << simclock-t0 << '\t' << woundArea << '\n';
+        initialWoundArea = woundArea;
         initializePurseStringVariables();
-        cout << "initialized purseString variables!\n";
       }
 
       // get max and min of x coords of purse-string; if max-min is near zero, then purse-string should be dissolved
@@ -1104,9 +1121,31 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
       // vout << simclock << '\t' << woundArea << '\n';
       ageCellPerimeters(shapeRelaxationRate, dt);
       if (int(simclock / dt) % 50 == 0) {
-        cout << "woundCenterX, Y before calculating area = " << woundCenterX << '\t' << woundCenterY << '\n';
+        //cout << "woundCenterX, Y before calculating area = " << woundCenterX << '\t' << woundCenterY << '\n';
         woundArea = calculateWoundArea(woundCenterX, woundCenterY);
-        vout << simclock << '\t' << woundArea << '\n';
+        vout << simclock-t0 << '\t' << woundArea << '\n';
+
+        // write shape information to files
+        innerout << simclock - t0 << '\t';
+        bulkout << simclock - t0 << '\t';
+        for (int ci = 0; ci < NCELLS; ci++){
+          shape_ci = pow(perimeter(ci),2)/(4*PI*area(ci));
+          // if ci is an initial wound-edge cell
+          if (std::find(initialWoundCellIndices.begin(), initialWoundCellIndices.end(), ci) != initialWoundCellIndices.end()){
+            innerout << shape_ci << '\t';
+          }
+          else {
+            bulkout << shape_ci << '\t';
+          }
+        }
+        innerout << '\n';
+        bulkout << '\n';
+
+        if (woundArea < 0.05*initialWoundArea && healingTime == 1e10) {
+          cout << "wound area is less than 5 percent of initial!\n";
+          cout << simclock-t0 << '\t' << woundArea << '\n';
+          healingTime = simclock - t0;
+        }
       }
     }
 
@@ -1115,32 +1154,6 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
       F[i] -= (B * v[i] + B * F_old[i] * dt / 2);
       F[i] /= (1 + B * dt / 2);
       v[i] += 0.5 * (F[i] + F_old[i]) * dt;
-    }
-
-    if (wallsOn > 0) {
-      // VV position update (walls)
-      L[0] += dt * VL[0] + 0.5 * dt * dt * FT;
-      L[1] += dt * VL[1] + 0.5 * dt * dt * FR;
-
-      // VV force update (walls)
-      oldFT = FT;
-      oldFB = FB;
-      oldFL = FL;
-      oldFR = FR;
-      if (wallsOn == 1)
-        wallForces(false, false, true, true, FL, FB, FR, FT);
-      if (wallsOn == 2)
-        wallForces(false, false, false, false, FL, FB, FR, FT, wallsOn);  // all walls fixed, and force_multiplier option makes them super sticky
-      FT -= (B * VL[1] + B * oldFT * dt / 2);
-      FT /= (1 + B * dt / 2);
-      FB -= (B * VL[1] + B * oldFB * dt / 2);
-      FB /= (1 + B * dt / 2);
-      FL -= (B * VL[0] + B * oldFL * dt / 2);
-      FL /= (1 + B * dt / 2);
-      FR -= (B * VL[0] + B * oldFR * dt / 2);
-      FR /= (1 + B * dt / 2);
-      VL[0] += 0.5 * (FR + oldFR) * dt;
-      VL[1] += 0.5 * (FT + oldFT) * dt;
     }
 
     // update sim clock
@@ -1221,6 +1234,30 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
         cerr << "Number of polarization deflections: " << polarizationCounter
              << '\n';
       }
+    }
+    // do things after all the simulation steps have been taken, or if the wound is closed
+    if (duration > 100 && (simclock - t0 > duration - dt || woundArea == 0.0) && !alreadyRecordedFinalCells) {  // if this is a production run
+      cout << "healingTime = " << healingTime << '\n';
+      cout << "wound center = " << woundCenterX << '\t' << woundCenterY << '\n';
+      int ci, vi;
+      double fivePercentWoundArea_radius_sq = 0.05 * initialWoundArea / PI;
+      double distance;
+      std::vector<int> finalCellsInCenterOfWound;
+      for (int gi = 0; gi < NVTOT; gi++){
+        distance = pow(x[gi*NDIM] - woundCenterX,2) + pow(x[gi*NDIM + 1] - woundCenterY,2);
+        if (distance < fivePercentWoundArea_radius_sq){ // if vertex is within radius set by 5% of wound area, record the cell
+          cindices(ci, vi, gi);
+          finalCellsInCenterOfWound.push_back(ci); 
+        }
+      }
+      std::sort(finalCellsInCenterOfWound.begin(), finalCellsInCenterOfWound.end());
+      finalCellsInCenterOfWound.erase(std::unique(finalCellsInCenterOfWound.begin(), finalCellsInCenterOfWound.end()), finalCellsInCenterOfWound.end());
+      for (auto i : finalCellsInCenterOfWound)
+        cout << "final cell : " << i << '\n';
+      cout << "number of cells in center = " << finalCellsInCenterOfWound.size() << '\n';
+      cout << "for 5% wound area of radius " << sqrt(fivePercentWoundArea_radius_sq) << '\n';
+      woundPropertiesout << healingTime << '\t' << finalCellsInCenterOfWound.size() << '\n';
+      alreadyRecordedFinalCells = true;
     }
   }
 }
@@ -2415,7 +2452,7 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
       }
     }
     if (offset > searchRange) {
-      cout << "failed to find a nearby point identifiable as a wound, returning 0.0 for area\n";
+      //cout << "failed to find a nearby point identifiable as a wound, returning 0.0 for area\n";
       return 0.0;
     }
     // set wound point to the newly identified point

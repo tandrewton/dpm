@@ -71,7 +71,6 @@ const double dt0 = 0.01;       // initial magnitude of time step in units of MD 
 const double Ptol = 1e-8;
 const double Ftol = 1e-12;
 const double att_range = 0.3;
-int wallsOn = 1, wallsOff = 0, fixedWalls = 2;
 
 int main(int argc, char const* argv[]) {
   // local variables to be read in
@@ -111,6 +110,10 @@ int main(int argc, char const* argv[]) {
   string edgeFile = outFileStem + ".edge";
   string purseStringFile = outFileStem + ".purseString";
   string voidAreaFile = outFileStem + ".voidArea";
+  string bulkCellShapeFile = outFileStem + ".bulkCellShape";
+  string innerCellShapeFile = outFileStem + ".innerCellShape";
+  string woundPropertiesFile = outFileStem + ".woundProperties";
+  string cellIDFile = outFileStem + ".cellID";
 
   // using sstreams to get parameters
   stringstream NCELLSss(NCELLS_str);
@@ -185,6 +188,10 @@ int main(int argc, char const* argv[]) {
   epithelial.openEdgeObject(edgeFile);
   epithelial.openPurseStringObject(purseStringFile);
   epithelial.openVoidAreaObject(voidAreaFile);
+  epithelial.openBulkCellShapeObject(bulkCellShapeFile);
+  epithelial.openInnerCellShapeObject(innerCellShapeFile);
+  epithelial.openWoundPropertiesObject(woundPropertiesFile);
+  epithelial.openCellIDObject(cellIDFile);
 
   // set spring constants
   epithelial.setka(ka);
@@ -242,18 +249,18 @@ int main(int argc, char const* argv[]) {
   double relaxTime = 10.0;
   double runTime = 25.0;
   epithelial.drawVelocities2D(T);
-  epithelial.dampedNP0(attractiveForceUpdateWithCircularWalls, B, dt0, relaxTime, relaxTime/10, wallsOff);
+  epithelial.dampedNP0(attractiveForceUpdateWithCircularWalls, B, dt0, relaxTime, relaxTime/10);
 
-  // begin test scheme with sticky walls
+  /*// begin test scheme with sticky walls
   double xLoc = 0.0, yLoc = 0.0;
   int numCellsToAblate = ndelete;
   epithelial.laserAblate(numCellsToAblate, sizeratio, nsmall, xLoc, yLoc);
   epithelial.zeroMomentum();
   epithelial.dampedNP0(crawlingWithPSForceUpdateWithCircularWalls, B, dt0, time_dbl, time_dbl / 20.0, wallsOff, purseStringOn);
 
-  // end test scheme with sticky walls
+  // end test scheme with sticky walls*/
 
-  /*epithelial.dampedNP0(attractiveForceUpdate, B, dt0, runTime, runTime/10, wallsOff);
+  epithelial.dampedNP0(attractiveForceUpdate, B, dt0, runTime, runTime/10.0);
 
 
   // LASER ABLATION SCHEME
@@ -266,9 +273,9 @@ int main(int argc, char const* argv[]) {
 
   //  dampedNP0 already takes care of purse-string. might want to separate, or just change spring constant
   // wallsOff, wallsOn, fixedWalls
-  epithelial.dampedNP0(crawlingWithPSForceUpdate, B, dt0, time_dbl, time_dbl / 20.0, wallsOff, purseStringOn);
+  epithelial.dampedNP0(crawlingWithPSForceUpdate, B, dt0, time_dbl, time_dbl / 10.0, purseStringOn);
  
-  // epithelial.dampedNP0(attractiveForceUpdate, B, dt0, time_dbl, time_dbl / 100.0, wallsOff);*/
+  // epithelial.dampedNP0(attractiveForceUpdate, B, dt0, time_dbl, time_dbl / 100.0, wallsOff);
 
   cout << "\n** Finished laserAblation.cpp, ending. " << endl;
   return 0;

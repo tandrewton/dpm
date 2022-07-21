@@ -78,6 +78,10 @@ class epi2D : public dpm {
   std::ofstream edgeout;
   std::ofstream purseout;
   std::ofstream vout;
+  std::ofstream bulkout;
+  std::ofstream innerout;
+  std::ofstream woundPropertiesout;
+  std::ofstream cellIDout;
 
   // simulation time keeper (accumulates elapsed simulation time during MD
   // routines)
@@ -93,7 +97,7 @@ class epi2D : public dpm {
   std::vector<int> initialWoundCellIndices;
   double woundCenterX;
   double woundCenterY;
-  double woundArea;
+  double woundArea = 1e10;
 
   // flag for vertex repulsion (if a cell has only 1 wound vertex, then turn off repulsion so that it gets sucked into the bulk)
   std::vector<int> sortedWoundIndices;
@@ -190,7 +194,6 @@ class epi2D : public dpm {
       std::cout << "** Opening file " << str << " ..." << std::endl;
   }
 
-  // File openers
   void openBoundaryObject(std::string& str) {
     bout.open(str.c_str());
     if (!bout.is_open()) {
@@ -211,7 +214,6 @@ class epi2D : public dpm {
       std::cout << "** Opening file " << str << " ..." << std::endl;
   }
 
-  // File openers
   void openEdgeObject(std::string& str) {
     edgeout.open(str.c_str());
     if (!edgeout.is_open()) {
@@ -222,7 +224,6 @@ class epi2D : public dpm {
       std::cout << "** Opening file " << str << " ..." << std::endl;
   }
 
-  // File openers
   void openPurseStringObject(std::string& str) {
     purseout.open(str.c_str());
     if (!purseout.is_open()) {
@@ -232,6 +233,47 @@ class epi2D : public dpm {
     } else
       std::cout << "** Opening file " << str << " ..." << std::endl;
   }
+
+  void openBulkCellShapeObject(std::string& str) {
+    bulkout.open(str.c_str());
+    if (!bulkout.is_open()) {
+      std::cerr << "	ERROR: file could not open " << str << "..."
+                << std::endl;
+      exit(1);
+    } else
+      std::cout << "** Opening file " << str << " ..." << std::endl;
+  }
+
+  void openInnerCellShapeObject(std::string& str) {
+    innerout.open(str.c_str());
+    if (!innerout.is_open()) {
+      std::cerr << "	ERROR: file could not open " << str << "..."
+                << std::endl;
+      exit(1);
+    } else
+      std::cout << "** Opening file " << str << " ..." << std::endl;
+  }
+
+  void openWoundPropertiesObject(std::string& str) {
+    woundPropertiesout.open(str.c_str());
+    if (!woundPropertiesout.is_open()) {
+      std::cerr << "	ERROR: file could not open " << str << "..."
+                << std::endl;
+      exit(1);
+    } else
+      std::cout << "** Opening file " << str << " ..." << std::endl;
+  }
+
+  void openCellIDObject(std::string& str) {
+    cellIDout.open(str.c_str());
+    if (!woundPropertiesout.is_open()) {
+      std::cerr << "	ERROR: file could not open " << str << "..."
+                << std::endl;
+      exit(1);
+    } else
+      std::cout << "** Opening file " << str << " ..." << std::endl;
+  }
+
 
   // setters
   void setkbi(double val) { fill(kbi.begin(), kbi.end(), val); };
@@ -284,7 +326,7 @@ class epi2D : public dpm {
   void zeroMomentum();
   void scaleBoxSize(double boxLengthScale, double scaleFactorX, double scaleFactorY);
   void dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval);
-  void dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, int wallsOn, int purseStringOn = 0);
+  void dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, int purseStringOn = 0);
   void wallForces(bool left, bool bottom, bool right, bool top, double& forceLeft, double& forceBottom, double& forceRight, double& forceTop, int forceOption = 0);
   void circularApertureForces(double radius);
   void vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0);
