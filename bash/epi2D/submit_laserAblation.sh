@@ -1,7 +1,7 @@
 #!/bin/bash
 # directories with code
 
-#example call: bash bash/epi2D/submit_laserAblation.sh 20 20 4 1.10 0.92 0.925 1.0 1.0 0.1 0.01 0.0 1.0 2.0 1.0 3.0 1.0 0.5 0 0.00 200 pi_ohern,day,scavenge 0-12:00:00 1 1
+#example call: bash bash/epi2D/submit_laserAblation.sh 20 20 4 1.10 0.92 0.925 1.0 1.0 0.1 0.01 0.0 1.0 2.0 1.0 3.0 1.0 0.5 0 1 200 pi_ohern,day,scavenge 0-12:00:00 1 1
 #weird bug with configFile
 cellsdir=~/dpm
 srcdir=$cellsdir/src
@@ -41,7 +41,7 @@ d_flag="${15}"
 B="${16}"
 Dr0="${17}"
 boolCIL="${18}"
-prate="${19}"
+bound="${19}"
 duration="${20}"
 partition="${21}"
 time="${22}"
@@ -53,8 +53,7 @@ let numSeeds=$numSeedsPerRun*$numRuns
 let endSeed=$startSeed+$numSeeds-1
 
 # name strings
-#3/7/22 1:17 pm: - just added $prate to basestr, after my runs are complete make sure to git push and pull
-basestr=ablate_calA0"$calA0"_k_a"$ka"_strainRate_ps"$strainRate_ps"_deltaSq"$deltaSq"_k_ps"$k_ps"_k_lp"$k_lp"_tau_lp"$tau_lp"_d_flag"$d_flag"_prate"$prate"
+basestr=ablate_calA0"$calA0"_k_a"$ka"_strainRate_ps"$strainRate_ps"_deltaSq"$deltaSq"_k_ps"$k_ps"_k_lp"$k_lp"_tau_lp"$tau_lp"_d_flag"$d_flag"_bound"$bound"
 runstr="$basestr"_NCELLS"$NCELLS"_Duration"$duration"_att"$att"_startseed"$startSeed"_endseed"$endSeed"
 
 # make directory specific for this simulation
@@ -85,7 +84,7 @@ echo k_lp = $k_lp >> $configFile
 echo tau_lp = $tau_lp >> $configFile
 echo d_flag = $d_flag >> $configFile
 echo B = "$B" >> $configFile
-echo prate = "$prate" >> $configFile
+echo bound = "$bound" >> $configFile
 echo Dr0 = "$Dr0" >> $configFile
 echo boolCIL = "$boolCIL" >> $configFile
 echo duration = "$duration" >> $configFile
@@ -135,7 +134,7 @@ for seed in `seq $startSeed $numSeedsPerRun $endSeed`; do
         outFileStem=$simdatadir/$filestr
 
         # append to runString
-        runString="$runString ; ./$binf $NCELLS $NV $ndelete $calA0 $phiMin $phiMax $kl $ka $att $strainRate_ps $deltaSq $k_ps $k_lp $tau_lp $d_flag $B $Dr0 $boolCIL $prate $seed $duration $outFileStem"
+        runString="$runString ; ./$binf $NCELLS $NV $ndelete $calA0 $phiMin $phiMax $kl $ka $att $strainRate_ps $deltaSq $k_ps $k_lp $tau_lp $d_flag $B $Dr0 $boolCIL $bound $seed $duration $outFileStem"
     done
 
     # finish off run string

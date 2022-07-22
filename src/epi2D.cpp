@@ -1369,11 +1369,6 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
     ();  // calls main force routine
 
     if (simclock - t0 > 10 && purseStringOn == 1) {
-      //.clear();
-      initialPreferredPerimeter = 0;
-      for (int i = 0; i < nv[0]; i++) {
-        initialPreferredPerimeter += l0[i];
-      }
       if (psContacts.size() == 0 && woundArea == 1e10) {
         cout << "inside psContacts.size() == 0 and woundArea == 1e10 case, which should only occur once!\n";
         getWoundVertices(nthLargestCluster);
@@ -1419,8 +1414,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
         purseStringContraction(B);
       }
 
-      // vout << simclock << '\t' << woundArea << '\n';
-      ageCellPerimeters(shapeRelaxationRate, dt);
+      //ageCellPerimeters(shapeRelaxationRate, dt);
       if (int(simclock / dt) % 50 == 0) {
         //cout << "woundCenterX, Y before calculating area = " << woundCenterX << '\t' << woundCenterY << '\n';
         woundArea = calculateWoundArea(woundCenterX, woundCenterY);

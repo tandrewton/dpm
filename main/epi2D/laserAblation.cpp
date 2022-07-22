@@ -11,17 +11,17 @@
 //  note: if using circular boundaries via polyWall, try pmin = 0.9 and pmax = 0.85 because pmin is soft disk density and pmax is DP preferred density
 //
 // below: no purse-string, no crawling (inactive simulation)
-//./main/epi2D/laserAblation.o 20 20 0 1.10 0.92 0.925 1.0 0.5 0.0 0.01  0.0  4.0  4.0 1.0  0.0  1.0 0.5  0  0.00   1  100  test
-// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  B  Dr0 CIL prate  sd time file
+//./main/epi2D/laserAblation.o 20 20 0 1.10 0.92 0.925 1.0 0.5 0.0 0.01  0.0  4.0  4.0 1.0  0.0  1.0 0.5  0  0   1  100  test
+// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  B  Dr0 CIL bound  sd time file
 // below: no purse-string, only crawling
-//./main/epi2D/laserAblation.o 20 20 6 1.15 0.92 0.85 1.0 0.5 0.2 0.01  0.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0.00   1  600  test
-// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  B  Dr0 CIL prate  sd time file
+//./main/epi2D/laserAblation.o 20 20 6 1.15 0.92 0.85 1.0 0.5 0.2 0.01  0.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   1  600  test
+// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  B  Dr0 CIL bound  sd time file
 // below: purse-string, no crawling
-//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.85 1.0 0.5 0.2 0.001  2.0  4.0  4.0 1.0  0.0  1.0 0.5  0  0.00   1  200  test
-// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  B  Dr0 CIL prate  sd time file
+//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.85 1.0 1.0 0.2 0.001  2.0  4.0  4.0 1.0  0.0  1.0 0.5  0   0     1  200  test
+// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  B  Dr0 CIL bound  sd time file
 // below: purse-string, and crawling
-//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.925 1.0 0.5 0.2 0.01  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0.00   1  200  test
-// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  B  Dr0 CIL prate  sd time file
+//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.925 1.0 0.5 0.2 0.01  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   1  200  test
+// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  B  Dr0 CIL bound  sd time file
 
 // ./main/epi2D/laserAblation.o 40 20 4 1.0 0.92 0.925 1.0 0.5 0.2 0.013  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0.00   1  200  test
 
@@ -44,7 +44,7 @@
 // 15. B:           (over)damping coefficient gamma
 // 16. Dr0:         rotational diffusion constant for protrusion activity
 // 17. boolCIL:     bool for whether cells conduct contact inhibition of locomotion
-// 18. shapeRelaxRate rate for how quickly cells relax their perimeters
+// 18. boundary     choice of boundary condition (0 = free, 1 = sticky circular boundaries)
 // 19. seed: 			  seed for random number generator
 // 20. time:        amount of time (tau) to simulate
 // 21. outFileStem  stem of output file names, i.e. for "test", energy.test, position.test, etc.
@@ -76,7 +76,7 @@ int main(int argc, char const* argv[]) {
   // local variables to be read in
   int NCELLS, nsmall, seed, gi, ndelete;
   double calA0, kl, ka = 1.0, kb = 0.0, phiMin, phiMax, att, B, Dr0, time_dbl;
-  bool boolCIL, purseStringOn = true;
+  bool boolCIL, boolBound, purseStringOn = true;
   double strainRate_ps, k_ps, k_LP, tau_LP, deltaSq, maxProtrusionLength, shapeRelaxationRate;
 
   // read in parameters from command line input
@@ -98,7 +98,7 @@ int main(int argc, char const* argv[]) {
   string B_str = argv[16];
   string Dr0_str = argv[17];
   string boolCIL_str = argv[18];
-  string shapeRelax_str = argv[19];
+  string bound_str = argv[19];
   string seed_str = argv[20];
   string time_str = argv[21];
   string outFileStem = argv[22];
@@ -134,7 +134,7 @@ int main(int argc, char const* argv[]) {
   stringstream Bss(B_str);
   stringstream Dr0ss(Dr0_str);
   stringstream boolCILss(boolCIL_str);
-  stringstream shapeRelaxss(shapeRelax_str);
+  stringstream boundss(bound_str);
   stringstream seedss(seed_str);
   stringstream timess(time_str);
 
@@ -157,7 +157,7 @@ int main(int argc, char const* argv[]) {
   Bss >> B;
   Dr0ss >> Dr0;
   boolCILss >> boolCIL;
-  shapeRelaxss >> shapeRelaxationRate;
+  boundss >> boolBound;
   seedss >> seed;
   timess >> time_dbl;
 
@@ -273,7 +273,10 @@ int main(int argc, char const* argv[]) {
 
   //  dampedNP0 already takes care of purse-string. might want to separate, or just change spring constant
   // wallsOff, wallsOn, fixedWalls
-  epithelial.dampedNP0(crawlingWithPSForceUpdate, B, dt0, time_dbl, time_dbl / 10.0, purseStringOn);
+  if (boolBound)
+    epithelial.dampedNP0(crawlingWithPSForceUpdateWithCircularWalls, B, dt0, time_dbl, time_dbl / 10.0, purseStringOn);
+  else
+    epithelial.dampedNP0(crawlingWithPSForceUpdate, B, dt0, time_dbl, time_dbl / 10.0, purseStringOn);
  
   // epithelial.dampedNP0(attractiveForceUpdate, B, dt0, time_dbl, time_dbl / 100.0, wallsOff);
 

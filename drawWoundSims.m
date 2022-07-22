@@ -3,10 +3,10 @@
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
 
-function drawWoundSims(N, strainRate_ps, calA0, tau_lp, deltaSq, d_flag, att, k_ps) %uncomment if using function call to pipeline data
-isTestData = false; %uncomment if using function call to pipeline data
+%function drawWoundSims(N, strainRate_ps, calA0, tau_lp, deltaSq, d_flag, att, k_ps) %uncomment if using function call to pipeline data
+%isTestData = false; %uncomment if using function call to pipeline data
 
-%isTestData = true; %uncomment if using test data
+isTestData = true; %uncomment if using test data
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('C:\Users\atata\projects\dpm\bash')
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
@@ -19,7 +19,7 @@ ndelete="10";
 %calA0="1.10";
 %strainRate_ps="0.01";
 %deltaSq = "2.0";
-k_a = "0.5";
+k_a = "1.0";
 %k_ps = "4.0"; %purse-string spring constant
 k_lp = "4.0"; %lamellipodia spring constant
 %tau_lp = "1.0"; %lamellipodia lifetime
