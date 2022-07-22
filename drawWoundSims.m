@@ -3,10 +3,10 @@
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
 
-%function drawWoundSims(N, strainRate_ps, calA0, tau_lp, deltaSq, d_flag, att, k_ps) %uncomment if using function call to pipeline data
-%isTestData = false; %uncomment if using function call to pipeline data
+function drawWoundSims(N, strainRate_ps, calA0, tau_lp, deltaSq, d_flag, att, k_ps) %uncomment if using function call to pipeline data
+isTestData = false; %uncomment if using function call to pipeline data
 
-isTestData = true; %uncomment if using test data
+%isTestData = true; %uncomment if using test data
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('C:\Users\atata\projects\dpm\bash')
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
@@ -29,7 +29,7 @@ prate = "0.00"; %perimeter relaxation rate
 B="1.0";
 Dr0="0.5";
 boolCIL="0";
-Duration="300";
+Duration="400";
 FSKIP = 1;
 
 etaStr = " ";
@@ -191,6 +191,9 @@ for seed = startSeed:max_seed
             xlabel('$t/\tau$','Interpreter','latex','fontsize', 24);
             ylabel('Area','Interpreter','latex','fontsize', 24);
             %set(gca,'Yscale','log')
+            if seed == max_seed 
+                saveas(gcf, 'VoidArea'+runType+fileheader_short+'_'+max_seed+'.eps', 'epsc')
+            end
         end
 
         if showWoundAndShapeProperties
@@ -199,13 +202,16 @@ for seed = startSeed:max_seed
             woundProperties = load(woundPropertiesStr)
             cellID = load(innerAndBulkCellIDStr);
             figure(16); clf; hold on;
-            plot(bulkCellShape(:,1),mean(bulkCellShape(:,2:end),2), ...
-                'linewidth', 4, 'DisplayName', "bulk shapes")
             plot(innerCellShape(:,1), mean(innerCellShape(:,2:end),2),  ...
                 'linewidth', 4, 'DisplayName', "inner shapes")
-        end
-        if seed == max_seed 
-         saveas(gcf, 'VoidArea'+runType+fileheader_short+'_'+max_seed+'.eps', 'epsc')
+            plot(bulkCellShape(:,1),mean(bulkCellShape(:,2:end),2), ...
+                'linewidth', 4, 'DisplayName', "bulk shapes")
+            xlabel('$t/\tau$','Interpreter','latex','fontsize', 24);
+            ylabel('Shape','Interpreter','latex','fontsize', 24);
+            legend('location','northwest','fontsize', 14)
+            if seed == max_seed 
+                saveas(gcf, 'cellShapes'+runType+fileheader_short+'_'+max_seed+'.eps', 'epsc')
+            end
         end
     end
 

@@ -618,6 +618,307 @@ void epi2D::vertexAttractiveForces2D_2() {
   }
 }
 
+void epi2D::circuloLineAttractiveForces() {
+  // altered from vertexAttractiveForces2D_2, where instead of vertex-vertex distances we only calculate vertex-line segment distances.
+  // models sliding adhesion and sliding repulsion
+  int ci, cj, gi, gj, vi, vj, bi, bj, pi, pj;
+  double sij, rij, dx, dy, rho0;
+  double ftmp, fx, fy;
+
+  // attraction shell parameters
+  double shellij, cutij, xij, kint = (kc * l1) / (l2 - l1);
+  // cout << "kc / kint = " << kc / kint << '\t' << kc << '\t' << kint << '\n';
+
+  // sort particles
+  sortNeighborLinkedList2D();
+  //cout << "r[0] = " << r[0] << '\n';
+
+  // get fundamental length
+  rho0 = sqrt(a0[0]);
+
+  // reset contact network
+  fill(cij.begin(), cij.end(), 0);
+
+  // loop over boxes in neighbor linked list
+  for (bi = 0; bi < NBX; bi++) {
+    // get start of list of vertices
+    pi = head[bi];
+
+    // loop over linked list
+    while (pi > 0) {
+      // real particle index
+      gi = pi - 1;
+
+      // cell index of gi
+      cindices(ci, vi, gi);
+
+      // next particle in list
+      pj = list[pi];
+
+      // loop down neighbors of pi in same cell
+      while (pj > 0) {
+        // real index of pj
+        gj = pj - 1;
+
+        // cell index of j
+        cindices(cj, vj, gj);
+
+        if (gj == ip1[gi] || gj == im1[gi]) {
+          pj = list[pj];
+          continue;
+        }
+
+        // contact distance
+        sij = r[gi] + r[gj];
+
+        // attraction distances
+        shellij = (1.0 + l2) * sij;
+        cutij = (1.0 + l1) * sij;
+
+        // particle distance
+        dx = x[NDIM * gj] - x[NDIM * gi];
+        if (pbc[0])
+          dx -= L[0] * round(dx / L[0]);
+        if (dx < shellij) {
+          dy = x[NDIM * gj + 1] - x[NDIM * gi + 1];
+          if (pbc[1])
+            dy -= L[1] * round(dy / L[1]);
+          if (dy < shellij) {
+            rij = sqrt(dx * dx + dy * dy);
+            if (rij < shellij) {
+              // scaled distance
+              xij = rij / sij;
+
+              // pick force based on vertex-vertex distance
+              if (ci == cj) {
+                // if vertices (not neighbors) are in same cell, compute
+                // repulsions
+                if (rij < sij) {
+                  ftmp = kc * (1 - (rij / sij)) * (rho0 / sij);
+                  cellU[ci] += 0.5 * kc * pow((1 - (rij / sij)), 2.0);
+                } else
+                  ftmp = 0;
+              } else if (rij > cutij) {
+                // force scale
+                ftmp = kint * (xij - 1.0 - l2) / sij;
+
+                // increase potential energy
+                U += -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
+                cellU[ci] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
+                cellU[cj] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
+              } else {
+                // force scale
+                ftmp = kc * (1 - xij) / sij;
+
+                // increase potential energy
+                U += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
+                cellU[ci] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
+                cellU[cj] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
+              }
+
+              // force elements
+              fx = ftmp * (dx / rij);
+              fy = ftmp * (dy / rij);
+
+              // add to forces
+              F[NDIM * gi] -= fx;
+              F[NDIM * gi + 1] -= fy;
+
+              F[NDIM * gj] += fx;
+              F[NDIM * gj + 1] += fy;
+
+              // add to virial stress
+              // note: 4/7/22 I'm using -dx/2 instead of dx and same for dy for stress calculation, since
+              //  I want to calculate force times separation from geometric center of interaction
+              stress[0] += -dx * fx;
+              stress[1] += -dy * fy;
+              stress[2] += -0.5 * (dx * fy + dy * fx);
+
+              fieldStress[gi][0] += -dx / 2 * fx;
+              fieldStress[gi][1] += -dy / 2 * fy;
+              fieldStress[gi][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
+
+              // stress on gj should be the same as on gi, since it's the opposite separation and also opposite force
+              fieldStress[gj][0] += -dx / 2 * fx;
+              fieldStress[gj][1] += -dy / 2 * fy;
+              fieldStress[gj][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
+
+              // add to contacts
+              for (int i = 0; i < vnn[gi].size(); i++) {
+                if (ci == cj)
+                  break;
+
+                if (vnn[gi][i] < 0) {
+                  vnn[gi][i] = gj;  // set the first unused array element to gj, in gi's neighbor list
+
+                  for (int j = 0; j < vnn[gj].size(); j++) {
+                    if (vnn[gj][j] < 0) {
+                      vnn[gj][j] = gi;  // set the first unused array element to gi, in gj's neighbor list
+                      break;
+                    }
+                  }
+
+                  break;
+                }
+              }
+              if (ci > cj)
+                cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2]++;
+              else if (ci < cj)
+                cij[NCELLS * ci + cj - (ci + 1) * (ci + 2) / 2]++;
+            }
+          }
+        }
+
+        // update pj
+        pj = list[pj];
+      }
+      // test overlaps with forward neighboring cells
+      for (bj = 0; bj < NNN; bj++) {
+        // only check if boundaries permit
+        if (nn[bi][bj] == -1)
+          continue;
+
+        // get first particle in neighboring cell
+        pj = head[nn[bi][bj]];
+
+        // loop down neighbors of pi in same cell
+        while (pj > 0) {
+          // real index of pj
+          gj = pj - 1;
+
+          // cell index of j
+          cindices(cj, vj, gj);
+
+          if (gj == ip1[gi] || gj == im1[gi]) {
+            pj = list[pj];
+            continue;
+          }
+
+          // contact distance
+          sij = r[gi] + r[gj];
+
+          // attraction distances
+          shellij = (1.0 + l2) * sij;
+          cutij = (1.0 + l1) * sij;
+
+          // particle distance
+          dx = x[NDIM * gj] - x[NDIM * gi];
+          if (pbc[0])
+            dx -= L[0] * round(dx / L[0]);
+          if (dx < shellij) {
+            dy = x[NDIM * gj + 1] - x[NDIM * gi + 1];
+            if (pbc[1])
+              dy -= L[1] * round(dy / L[1]);
+            if (dy < shellij) {
+              rij = sqrt(dx * dx + dy * dy);
+              if (rij < shellij) {
+                // scaled distance
+                xij = rij / sij;
+
+                // pick force based on vertex-vertex distance
+                if (ci == cj) {
+                  // if vertices (not neighbors) are in same cell, compute
+                  // repulsions
+                  if (rij < sij) {
+                    ftmp = kc * (1 - (rij / sij)) * (rho0 / sij);
+                    cellU[ci] += 0.5 * kc * pow((1 - (rij / sij)), 2.0);
+                  } else
+                    ftmp = 0;
+                } else if (rij > cutij) {
+                  // force scale
+                  ftmp = kint * (xij - 1.0 - l2) / sij;
+
+                  // increase potential energy
+                  U += -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
+                  cellU[ci] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
+                  cellU[cj] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
+                } else {
+                  // force scale
+                  ftmp = kc * (1 - xij) / sij;
+
+                  // increase potential energy
+                  U += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
+                  cellU[ci] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
+                  cellU[cj] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
+                }
+
+                // force elements
+                fx = ftmp * (dx / rij);
+                fy = ftmp * (dy / rij);
+
+                // add to forces
+                F[NDIM * gi] -= fx;
+                F[NDIM * gi + 1] -= fy;
+
+                F[NDIM * gj] += fx;
+                F[NDIM * gj + 1] += fy;
+
+                // add to virial stress
+                stress[0] += -dx * fx;
+                stress[1] += -dy * fy;
+                stress[2] += -0.5 * (dx * fy + dy * fx);
+
+                fieldStress[gi][0] += -dx / 2 * fx;
+                fieldStress[gi][1] += -dy / 2 * fy;
+                fieldStress[gi][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
+
+                // stress on gj should be the same as on gi, since it's the opposite separation and also opposite force
+                fieldStress[gj][0] += -dx / 2 * fx;
+                fieldStress[gj][1] += -dy / 2 * fy;
+                fieldStress[gj][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
+
+                if (ci != cj) {
+                  for (int i = 0; i < vnn[gi].size(); i++) {
+                    if (vnn[gi][i] < 0) {
+                      vnn[gi][i] = gj;  // set the first unused array element to gj, in gi's neighbor list
+
+                      for (int j = 0; j < vnn[gj].size(); j++) {
+                        if (vnn[gj][j] < 0) {
+                          vnn[gj][j] = gi;  // set the first unused array element to gi, in gj's neighbor list
+                          break;
+                        }
+                      }
+
+                      break;
+                    }
+                  }
+                  if (ci > cj)
+                    cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2]++;
+                  else if (ci < cj)
+                    cij[NCELLS * ci + cj - (ci + 1) * (ci + 2) / 2]++;
+                }
+              }
+            }
+          }
+
+          // update pj
+          pj = list[pj];
+        }
+      }
+
+      // update pi index to be next
+      pi = list[pi];
+    }
+  }
+  // normalize stress by box area, make dimensionless
+  stress[0] *= (rho0 / (L[0] * L[1]));
+  stress[1] *= (rho0 / (L[0] * L[1]));
+  stress[2] *= (rho0 / (L[0] * L[1]));
+
+  // normalize per-cell stress by preferred cell area
+  for (int ci = 0; ci < NCELLS; ci++) {
+    for (int vi = 0; vi < nv[ci]; vi++) {
+      int gi = gindex(ci, vi);
+      fieldStressCells[ci][0] += fieldStress[gi][0];
+      fieldStressCells[ci][1] += fieldStress[gi][1];
+      fieldStressCells[ci][2] += fieldStress[gi][2];
+    }
+    fieldStressCells[ci][0] *= rho0 / a0[ci];
+    fieldStressCells[ci][1] *= rho0 / a0[ci];
+    fieldStressCells[ci][2] *= rho0 / a0[ci];
+  }
+}
+
 void epi2D::attractiveForceUpdate_2() {
   resetForcesAndEnergy();
   shapeForces2D();

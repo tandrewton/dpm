@@ -308,6 +308,7 @@ class epi2D : public dpm {
   // epi cell interactions
   void repulsiveForceUpdateWithWalls();
   void vertexAttractiveForces2D_2();
+  void circuloLineAttractiveForces();
   void attractiveForceUpdate_2();
   void activeAttractiveForceUpdate();
   void substrateadhesionAttractiveForceUpdate();
