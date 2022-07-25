@@ -1187,6 +1187,77 @@ void epi2D::updateSubstrateSprings() {
   }
 }
 
+void epi2D::dampedNVETest(dpmMemFn forceCall, double T, double dt0, int NT, int NPRINTSKIP) {
+  // local variables
+  int t, i;
+  double K, simclock, B = 1.0;
+
+  // set time step magnitude
+  setdt(dt0);
+
+  // loop over time, print energy
+  for (t = 0; t < NT; t++) {
+    // VV POSITION UPDATE
+    for (i = 0; i < vertDOF; i++) {
+      // update position
+      x[i] += dt * v[i] + 0.5 * dt * dt * F[i];
+
+      // recenter in box
+      if (x[i] > L[i % NDIM] && pbc[i % NDIM])
+        x[i] -= L[i % NDIM];
+      else if (x[i] < 0 && pbc[i % NDIM])
+        x[i] += L[i % NDIM];
+    }
+    // FORCE UPDATE
+    boundaries();  // build vnn for void detection
+    std::vector<double> F_old = F;
+    CALL_MEMBER_FN(*this, forceCall)
+    ();
+
+    // VV VELOCITY UPDATE #2
+    for (i = 0; i < vertDOF; i++) {
+      F[i] -= (B * v[i] + B * F_old[i] * dt / 2);
+      F[i] /= (1 + B * dt / 2);
+      v[i] += 0.5 * (F[i] + F_old[i]) * dt;
+
+      if (i/2 >= szList[0] && i/2 < szList[1] && i % 2 == 0 && t == 0){
+        //cout << "szList 0 and 1 = " << szList[0] << '\t' << szList[1] << '\n';
+        v[i] += 1.0;
+        cout << 0.5 * (F[i] + F_old[i]) * dt << '\n';
+      }
+      // cout << "force at simclock = " << simclock << " = ," << F[i] << '\n';
+    }
+
+    // update sim clock
+    simclock += dt;
+
+    // print to console and file
+    if (t % NPRINTSKIP == 0) {
+      // compute kinetic energy
+      K = vertexKineticEnergy();
+
+      // print to console
+      cout << endl
+           << endl;
+      cout << "===============================" << endl;
+      cout << "	D P M  						" << endl;
+      cout << " 			 					" << endl;
+      cout << "		N V E 					" << endl;
+      cout << "===============================" << endl;
+      cout << endl;
+      cout << "	** t / NT	= " << t << " / " << NT << endl;
+      cout << "	** U 		= " << setprecision(12) << U << endl;
+      cout << "	** K 		= " << setprecision(12) << K << endl;
+      cout << "	** E 		= " << setprecision(12) << U + K << endl;
+
+
+      // print to configuration only if position file is open
+      if (posout.is_open())
+        printConfiguration2D();
+    }
+  }
+}
+
 void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval) {
   // make sure velocities exist or are already initialized before calling this
   int i;

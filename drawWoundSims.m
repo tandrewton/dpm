@@ -24,7 +24,7 @@ k_a = "1.0";
 k_lp = "4.0"; %lamellipodia spring constant
 %tau_lp = "1.0"; %lamellipodia lifetime
 %d_flag = "0.0"; %lamellipodia max length
-prate = "0.00"; %perimeter relaxation rate
+boundaryType = "1"; %perimeter relaxation rate
 %att="0.2";
 B="1.0";
 Dr0="0.5";
@@ -40,11 +40,11 @@ makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately and dont s
 plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
-showWoundAndShapeProperties = 1;
+showWoundAndShapeProperties = 0;
 
-showverts = 0;
+showverts = 1;
 showBoundaries = 0;
-showArea = 1;
+showArea = 0;
 showQuiver = 0;
 walls = 0;
 %disable showVoid if using printConfig on its own, outside of
@@ -98,7 +98,7 @@ for seed = startSeed:max_seed
     else
         run_name =runType+"_calA0"+calA0+"_k_a"+k_a+"_strainRate_ps"+strainRate_ps+ ...
             "_deltaSq"+deltaSq+"_k_ps"+k_ps+"_k_lp"+k_lp+...
-            "_tau_lp"+tau_lp+"_d_flag"+d_flag+"_prate"+prate;
+            "_tau_lp"+tau_lp+"_d_flag"+d_flag+"_bound"+boundaryType;
         pipeline_dir =  subdir_pipeline + run_name + "/";
         output_dir = subdir_output + run_name + "/";
         mkdir(pipeline_dir)
