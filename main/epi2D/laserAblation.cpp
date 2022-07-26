@@ -230,6 +230,7 @@ int main(int argc, char const* argv[]) {
   dpmMemFn repulsiveForceUpdateWithCircularWalls = static_cast<void (dpm::*)()>(&epi2D::repulsiveForceUpdateWithPolyWall);
   dpmMemFn attractiveForceUpdateWithCircularWalls = static_cast<void (dpm::*)()>(&epi2D::attractiveForceUpdateWithPolyWall);
   dpmMemFn crawlingWithPSForceUpdateWithCircularWalls = static_cast<void (dpm::*)()>(&epi2D::crawlingWithPurseStringAndCircularWalls);
+  dpmMemFn circuloLineAttraction = static_cast<void (dpm::*)()>(&epi2D::attractiveForceUpdate_circulo);
   
   epithelial.monodisperse2D(calA0, nsmall);
   epithelial.initializevnn();
@@ -263,8 +264,8 @@ int main(int argc, char const* argv[]) {
 
   // end test scheme with sticky walls*/
 
-  epithelial.dampedNP0(attractiveForceUpdate, B, dt0, runTime, runTime/10.0);
-
+  //epithelial.dampedNP0(attractiveForceUpdate, B, dt0, runTime, runTime/10.0);
+  epithelial.dampedNP0(circuloLineAttraction, B, dt0, runTime, runTime/10.0);
 
   // LASER ABLATION SCHEME
   double xLoc = 0.0, yLoc = 0.0;

@@ -1528,15 +1528,25 @@ void dpm::drawVelocities2D(double T) {
 double dpm::distanceLineAndPoint(double x1, double y1, double x2, double y2, double x0, double y0) {
   // get the distance from a line segment going through (x1,y1), (x2,y2) and a
   // point located at (x0,y0)
-  double l2 = pow(x2 - x1, 2) + pow(y2 - y1, 2);  // |(pt2 - pt1)|^2
-  if (l2 == 0.0)                                  // pt2 == pt1 case
-    return sqrt(pow(x0 - x1, 2) + pow(y0 - y1, 2));
+   double dx21 = x2-x1, dy21 = y2-y1, dx10 = x1-x0, dy10 = y1-y0;
+  if (pbc[0]){
+    dx21 -= L[0] * round(dx21/L[0]);
+    dx10 -= L[0] * round(dx10/L[0]);
+  }
+  if (pbc[1]){
+    dy21 -= L[1] * round(dy21/L[1]);
+    dy10 -= L[1] * round(dy10/L[1]);
+  }
 
-  double dot = (x0 - x1) * (x2 - x1) +
-               (y0 - y1) * (y2 - y1);  // (pt0 - pt1) dot (pt2 - pt1)
+  double l2 = pow(dx21, 2) + pow(dy21, 2);  // |(pt2 - pt1)|^2
+  if (l2 == 0.0)                                  // pt2 == pt1 case
+    return sqrt(pow(dx10, 2) + pow(dy10, 2));
+
+  double dot = (-dx10) * (dx21) +
+               (-dy10) * (dy21);  // (pt0 - pt1) dot (pt2 - pt1)
   const double t = max(0.0, min(1.0, dot / l2));
-  const double projectionx = x1 + t * (x2 - x1);
-  const double projectiony = y1 + t * (y2 - y1);
+  const double projectionx = x1 + t * (dx21);
+  const double projectiony = y1 + t * (dy21);
   const double distance =
       sqrt(pow(x0 - projectionx, 2) + pow(y0 - projectiony, 2));
   return distance;
@@ -1545,20 +1555,77 @@ double dpm::distanceLineAndPoint(double x1, double y1, double x2, double y2, dou
 double dpm::distanceLinePointComponents(double x1, double y1, double x2, double y2, double x0, double y0, double& xcomp, double& ycomp) {
   // get the distance from a line segment going through (x1,y1), (x2,y2) and a
   // point located at (x0,y0), and extract x and y components of the distance
-  double l2 = pow(x2 - x1, 2) + pow(y2 - y1, 2);  // |(pt2 - pt1)|^2
-  if (l2 == 0.0)                                  // pt2 == pt1 case
-    return sqrt(pow(x0 - x1, 2) + pow(y0 - y1, 2));
+  double dx21 = x2-x1, dy21 = y2-y1, dx10 = x1-x0, dy10 = y1-y0;
+  if (pbc[0]){
+    dx21 -= L[0] * round(dx21/L[0]);
+    dx10 -= L[0] * round(dx10/L[0]);
+  }
+  if (pbc[1]){
+    dy21 -= L[1] * round(dy21/L[1]);
+    dy10 -= L[1] * round(dy10/L[1]);
+  }
 
-  double dot = (x0 - x1) * (x2 - x1) +
-               (y0 - y1) * (y2 - y1);  // (pt0 - pt1) dot (pt2 - pt1)
+  double l2 = pow(dx21, 2) + pow(dy21, 2);  // |(pt2 - pt1)|^2
+  if (l2 == 0.0)                                  // pt2 == pt1 case
+    return sqrt(pow(dx10, 2) + pow(dy10, 2));
+
+  double dot = (-dx10) * (dx21) +
+               (-dy10) * (dy21);  // (pt0 - pt1) dot (pt2 - pt1)
   const double t = max(0.0, min(1.0, dot / l2));
-  const double projectionx = x1 + t * (x2 - x1);
-  const double projectiony = y1 + t * (y2 - y1);
+  const double projectionx = x1 + t * (dx21);
+  const double projectiony = y1 + t * (dy21);
   xcomp = x0 - projectionx;
   ycomp = y0 - projectiony;
   const double distance = sqrt(pow(xcomp, 2) + pow(ycomp, 2));
   return distance;
 }
+
+double dpm::distLinePointComponentsAndContactType(double x1, double y1, double x2, double y2, double x0, double y0,
+ double& xcomp, double& ycomp, int& contactType){
+    // get the distance from a line segment going through (x1,y1), (x2,y2) and a
+  // point located at (x0,y0), and extract x and y components of the distance
+  // and determine whether the contact type is vertex-vertex between 0 and 1 (TRUE)
+  //  or vertex-line-segment betw 0 and 1-2 (FALSE)
+  //  or vertex-vertex betw 0 and 2 (FALSE)
+  double dx21 = x2-x1, dy21 = y2-y1, dx10 = x1-x0, dy10 = y1-y0;
+  if (pbc[0]){
+    dx21 -= L[0] * round(dx21/L[0]);
+    dx10 -= L[0] * round(dx10/L[0]);
+  }
+  if (pbc[1]){
+    dy21 -= L[1] * round(dy21/L[1]);
+    dy10 -= L[1] * round(dy10/L[1]);
+  }
+
+  double l2 = pow(dx21, 2) + pow(dy21, 2);  // |(pt2 - pt1)|^2
+  if (l2 == 0.0)                                  // pt2 == pt1 case
+    return sqrt(pow(dx10, 2) + pow(dy10, 2));
+
+  double dot = (-dx10) * (dx21) +
+               (-dy10) * (dy21);  // (pt0 - pt1) dot (pt2 - pt1)
+  const double t = max(0.0, min(1.0, dot / l2));  // t is restricted to [0,1], which parametrizes the line segment (v + t (w - v))
+  const double projectionx = x1 + t * (dx21);
+  const double projectiony = y1 + t * (dy21);
+  
+  xcomp = x0 - projectionx;
+  if (pbc[0]){
+    xcomp -= L[0] * round(xcomp/L[0]);
+  }
+  ycomp = y0 - projectiony;
+  if (pbc[1]){
+    ycomp -= L[0] * round(ycomp/L[0]);
+  }
+
+  if (t == 0.0) // projection < 0, so the nearest point on the line segment is the position of vertex (x1,x2)
+    contactType = 0;
+  else if (t < 1.0)
+    contactType = 1;
+  else if (t == 1.0)
+    contactType = 2;
+  const double distance = sqrt(pow(xcomp, 2) + pow(ycomp, 2));
+  return distance;
+ }
+
 
 void dpm::generateCircularBoundary(int numEdges, double radius, double cx, double cy, std::vector<double>& poly_x, std::vector<double>& poly_y) {
   // place a circular boundary, then fix L[0] and L[1] just outside the circle for plotting purposes.
