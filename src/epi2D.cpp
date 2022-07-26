@@ -303,7 +303,7 @@ void epi2D::repulsiveForceUpdateWithPolyWall() {
   resetForcesAndEnergy();
   shapeForces2D();
   vertexRepulsiveForces2D();
-  for (int i = 0; i < poly_bd_x.size(); i++){
+  for (int i = 0; i < poly_bd_x.size(); i++) {
     evaluatePolygonalWallForces(poly_bd_x[i], poly_bd_y[i]);
   }
 }
@@ -312,7 +312,7 @@ void epi2D::attractiveForceUpdateWithPolyWall() {
   resetForcesAndEnergy();
   shapeForces2D();
   vertexAttractiveForces2D_2();
-  for (int i = 0; i < poly_bd_x.size(); i++){
+  for (int i = 0; i < poly_bd_x.size(); i++) {
     evaluatePolygonalWallForces(poly_bd_x[i], poly_bd_y[i]);
   }
 }
@@ -330,7 +330,7 @@ void epi2D::vertexAttractiveForces2D_2() {
 
   // sort particles
   sortNeighborLinkedList2D();
-  //cout << "r[0] = " << r[0] << '\n';
+  // cout << "r[0] = " << r[0] << '\n';
 
   // get fundamental length
   rho0 = sqrt(a0[0]);
@@ -425,6 +425,7 @@ void epi2D::vertexAttractiveForces2D_2() {
 
               F[NDIM * gj] += fx;
               F[NDIM * gj + 1] += fy;
+              cout << "updating gi, gj = " << gi << '\t' << gj << ",\t in simclock = " << simclock << '\n';
 
               // add to virial stress
               // note: 4/7/22 I'm using -dx/2 instead of dx and same for dy for stress calculation, since
@@ -551,6 +552,7 @@ void epi2D::vertexAttractiveForces2D_2() {
 
                 F[NDIM * gj] += fx;
                 F[NDIM * gj + 1] += fy;
+                cout << "updating gi, gj = " << gi << '\t' << gj << ",\t in simclock = " << simclock << '\n';
 
                 // add to virial stress
                 stress[0] += -dx * fx;
@@ -631,7 +633,7 @@ void epi2D::circuloLineAttractiveForces() {
 
   // sort particles
   sortNeighborLinkedList2D();
-  //cout << "r[0] = " << r[0] << '\n';
+  // cout << "r[0] = " << r[0] << '\n';
 
   // get fundamental length
   rho0 = sqrt(a0[0]);
@@ -973,7 +975,7 @@ void epi2D::substrateadhesionAttractiveForceUpdate() {
 void epi2D::crawlingWithPurseStringAndCircularWalls() {
   bool attractionOn = true;
   substrateadhesionAttractiveForceUpdate();
-  for (int i = 0; i < poly_bd_x.size(); i++){
+  for (int i = 0; i < poly_bd_x.size(); i++) {
     evaluatePolygonalWallForces(poly_bd_x[i], poly_bd_y[i], attractionOn);
   }
 }
@@ -1220,8 +1222,8 @@ void epi2D::dampedNVETest(dpmMemFn forceCall, double T, double dt0, int NT, int 
       F[i] /= (1 + B * dt / 2);
       v[i] += 0.5 * (F[i] + F_old[i]) * dt;
 
-      if (i/2 >= szList[0] && i/2 < szList[1] && i % 2 == 0 && t == 0){
-        //cout << "szList 0 and 1 = " << szList[0] << '\t' << szList[1] << '\n';
+      if (i / 2 >= szList[0] && i / 2 < szList[1] && i % 2 == 0 && t == 0) {
+        // cout << "szList 0 and 1 = " << szList[0] << '\t' << szList[1] << '\n';
         v[i] += 1.0;
         cout << 0.5 * (F[i] + F_old[i]) * dt << '\n';
       }
@@ -1249,7 +1251,6 @@ void epi2D::dampedNVETest(dpmMemFn forceCall, double T, double dt0, int NT, int 
       cout << "	** U 		= " << setprecision(12) << U << endl;
       cout << "	** K 		= " << setprecision(12) << K << endl;
       cout << "	** E 		= " << setprecision(12) << U + K << endl;
-
 
       // print to configuration only if position file is open
       if (posout.is_open())
@@ -1401,14 +1402,14 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
     initialPreferredPerimeter += l0[i];
   }
 
-  for (int ci = 0; ci < NCELLS; ci++){
+  for (int ci = 0; ci < NCELLS; ci++) {
     // if ci is an initial wound cell, record it in the first row. if not, record it in the second row.
     std::vector<int> firstRow, secondRow;
     if (std::find(initialWoundCellIndices.begin(), initialWoundCellIndices.end(), ci) != initialWoundCellIndices.end())
       firstRow.push_back(ci);
-    else 
+    else
       secondRow.push_back(ci);
-    
+
     for (auto i : firstRow)
       cellIDout << i << '\t';
     cellIDout << '\n';
@@ -1451,11 +1452,11 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
           cout << "x,y of wound vertex gi = " << gi << " is " << x[gi * NDIM] << '\t' << x[gi * NDIM + 1] << '\n';
         }
         woundCenterX /= sortedWoundIndices.size();
-        woundCenterY /= sortedWoundIndices.size();\
+        woundCenterY /= sortedWoundIndices.size();
 
         woundArea = calculateWoundArea(woundCenterX, woundCenterY);
-        vout << simclock-t0 << '\t' << woundArea << '\n';
-        cout << simclock-t0 << '\t' << woundArea << '\n';
+        vout << simclock - t0 << '\t' << woundArea << '\n';
+        cout << simclock - t0 << '\t' << woundArea << '\n';
         initialWoundArea = woundArea;
         initializePurseStringVariables();
       }
@@ -1485,31 +1486,30 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
         purseStringContraction(B);
       }
 
-      //ageCellPerimeters(shapeRelaxationRate, dt);
+      // ageCellPerimeters(shapeRelaxationRate, dt);
       if (int(simclock / dt) % 50 == 0) {
-        //cout << "woundCenterX, Y before calculating area = " << woundCenterX << '\t' << woundCenterY << '\n';
+        // cout << "woundCenterX, Y before calculating area = " << woundCenterX << '\t' << woundCenterY << '\n';
         woundArea = calculateWoundArea(woundCenterX, woundCenterY);
-        vout << simclock-t0 << '\t' << woundArea << '\n';
+        vout << simclock - t0 << '\t' << woundArea << '\n';
 
         // write shape information to files
         innerout << simclock - t0 << '\t';
         bulkout << simclock - t0 << '\t';
-        for (int ci = 0; ci < NCELLS; ci++){
-          shape_ci = pow(perimeter(ci),2)/(4*PI*area(ci));
+        for (int ci = 0; ci < NCELLS; ci++) {
+          shape_ci = pow(perimeter(ci), 2) / (4 * PI * area(ci));
           // if ci is an initial wound-edge cell
-          if (std::find(initialWoundCellIndices.begin(), initialWoundCellIndices.end(), ci) != initialWoundCellIndices.end()){
+          if (std::find(initialWoundCellIndices.begin(), initialWoundCellIndices.end(), ci) != initialWoundCellIndices.end()) {
             innerout << shape_ci << '\t';
-          }
-          else {
+          } else {
             bulkout << shape_ci << '\t';
           }
         }
         innerout << '\n';
         bulkout << '\n';
 
-        if (woundArea < 0.05*initialWoundArea && healingTime == 1e10) {
+        if (woundArea < 0.05 * initialWoundArea && healingTime == 1e10) {
           cout << "wound area is less than 5 percent of initial!\n";
-          cout << simclock-t0 << '\t' << woundArea << '\n';
+          cout << simclock - t0 << '\t' << woundArea << '\n';
           healingTime = simclock - t0;
         }
       }
@@ -1609,11 +1609,11 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
       double fivePercentWoundArea_radius_sq = 0.05 * initialWoundArea / PI;
       double distance;
       std::vector<int> finalCellsInCenterOfWound;
-      for (int gi = 0; gi < NVTOT; gi++){
-        distance = pow(x[gi*NDIM] - woundCenterX,2) + pow(x[gi*NDIM + 1] - woundCenterY,2);
-        if (distance < fivePercentWoundArea_radius_sq){ // if vertex is within radius set by 5% of wound area, record the cell
+      for (int gi = 0; gi < NVTOT; gi++) {
+        distance = pow(x[gi * NDIM] - woundCenterX, 2) + pow(x[gi * NDIM + 1] - woundCenterY, 2);
+        if (distance < fivePercentWoundArea_radius_sq) {  // if vertex is within radius set by 5% of wound area, record the cell
           cindices(ci, vi, gi);
-          finalCellsInCenterOfWound.push_back(ci); 
+          finalCellsInCenterOfWound.push_back(ci);
         }
       }
       std::sort(finalCellsInCenterOfWound.begin(), finalCellsInCenterOfWound.end());
@@ -1666,7 +1666,7 @@ void epi2D::circularApertureForces(double radius) {
 
 void epi2D::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0) {
   // TEMPORARY JUST TO USE PRINTCONFIGURATION2D in epi2D overload
- // same as vertexCompress2Target2D, but with polygonal boundaries (affects packing fraction calculation, and expects forceCall to 
+  // same as vertexCompress2Target2D, but with polygonal boundaries (affects packing fraction calculation, and expects forceCall to
   //  account for polygonal boundary forces
   // local variables
   int it = 0, itmax = 1e4;
@@ -2749,7 +2749,6 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
   if (resolution <= 1e-10)
     cerr << "bug: resolution in calculateWoundArea is zero\n";
 
-
   double xLow = *std::min_element(posX.begin(), posX.end());
   double xHigh = *std::max_element(posX.begin(), posX.end());
   double yLow = *std::min_element(posY.begin(), posY.end());
@@ -2818,7 +2817,7 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
       }
     }
     if (offset > searchRange) {
-      //cout << "failed to find a nearby point identifiable as a wound, returning 0.0 for area\n";
+      // cout << "failed to find a nearby point identifiable as a wound, returning 0.0 for area\n";
       return 0.0;
     }
     // set wound point to the newly identified point
@@ -3154,9 +3153,9 @@ void epi2D::purseStringContraction(double B) {
   // updatePurseStringContacts();
   integratePurseString(B);  // evaluate forces on and due to purse-string, and integrate its position
   for (int psi = 0; psi < psContacts.size(); psi++) {
-    //l0_ps[psi] *= exp(-strainRate_ps * dt); // constant strain rate
-    l0_ps[psi] -= strainRate_ps * dt; // constantly increasing tension
-    //if (psi == 0) cout << "purse string length = " << l0_ps[psi] << '\n';
+    // l0_ps[psi] *= exp(-strainRate_ps * dt); // constant strain rate
+    l0_ps[psi] -= strainRate_ps * dt;  // constantly increasing tension
+    // if (psi == 0) cout << "purse string length = " << l0_ps[psi] << '\n';
   }
 }
 
@@ -3209,7 +3208,7 @@ void epi2D::evaluatePurseStringForces(double B) {
   double dx, dy, fx, fy, l0i, l0im1;
 
   double fli, flim1, cx, cy, xi, yi, gip1, xip1, yip1;
-  double rho0 = sqrt(a0.at(0)); 
+  double rho0 = sqrt(a0.at(0));
   double lim1x, lim1y, lix, liy, lip1x, lip1y, li, lim1, dli, dlim1;
   double rim1x, rim1y, rix, riy, rip1x, rip1y;
 
@@ -3256,7 +3255,7 @@ void epi2D::evaluatePurseStringForces(double B) {
     F[gi * NDIM + 1] += fy;
     F_ps[psi * NDIM] -= fx;
     F_ps[psi * NDIM + 1] -= fy;
-    //cout << "k_ps = " << k_ps << ", F_ps_x due to spring = " << fx << '\n';
+    // cout << "k_ps = " << k_ps << ", F_ps_x due to spring = " << fx << '\n';
 
     // stress on gj should be the same as on gi, since it's the opposite separation and also opposite force
     fieldStress[gi][0] += -dx / 2 * fx;
@@ -3308,14 +3307,14 @@ void epi2D::evaluatePurseStringForces(double B) {
     // segment forces
     flim1 = kl * (rho0 / l0im1);
     fli = kl * (rho0 / l0i);
-    //cout << "kl inside ps = " << kl << '\n';
+    // cout << "kl inside ps = " << kl << '\n';
 
     // add to forces
     fx = (fli * dli * lix / li) - (flim1 * dlim1 * lim1x / lim1);
     fy = (fli * dli * liy / li) - (flim1 * dlim1 * lim1y / lim1);
     F_ps[NDIM * psi] += fx;
     F_ps[NDIM * psi + 1] += fy;
-    //cout << "F_ps_x due to segments = " << fx << '\n';
+    // cout << "F_ps_x due to segments = " << fx << '\n';
 
     // choosing not to update potential energy of the purse-string itself
     // U += 0.5 * kl * (dli * dli);
