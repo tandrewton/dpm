@@ -1197,7 +1197,7 @@ void dpm::initializeNeighborLinkedList2D(double boxLengthScale) {
 	cout << "** initializing neighbor linked list, boxLengthScale = " << boxLengthScale << '\n';
 
 	// get largest diameter times attraction shell (let buffer be larger than attraction range would ever be) as llscale
-  double buffer = 2.0;
+  double buffer = 2.5;
 	llscale = buffer * 2 * (*max_element(r.begin(),r.end()));
   cout << "llscale = " << llscale << '\n';
 

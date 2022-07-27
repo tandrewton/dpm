@@ -35,7 +35,7 @@ FSKIP = 1;
 etaStr = " ";
 startSeed = 1;
 max_seed = 1;
-no_plots = 0;
+no_plots = 1;
 makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
 plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
 set(0,'DefaultFigureWindowStyle','docked')
@@ -314,6 +314,8 @@ for seed = startSeed:max_seed
             %IC = IC * 0 + 1; % <- use for single colored configurations
             NUQ = length(nvUQ);
             %NUQ = 8; % 1<- use for single colored configurations
+            %IC = [1;2]; % <- use for 2 cell testing simulations
+            %cellCLR = jet(2); % <- use for 2 cell testing simulations
             cellCLR = jet(NUQ);
             NCELLS = cell_count(ff);
             

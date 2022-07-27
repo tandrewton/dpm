@@ -26,7 +26,7 @@
 // ./main/epi2D/laserAblation.o 40 20 4 1.0 0.92 0.925 1.0 0.5 0.2 0.013  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   1  200  test
 
 // test suite for sliding adhesion
-// ./main/epi2D/laserAblation.o 4 20 0 1.0 0.92 0.8 1.0 1.0 0.2 0.001  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   1  0  test
+// ./main/epi2D/laserAblation.o 2 20 0 1.0 0.7 0.5 1.0 1.0 0.2 0.001  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   1  0  test
 
 //
 // Parameter input list
@@ -274,7 +274,10 @@ int main(int argc, char const* argv[]) {
   epithelial.zeroMomentum();
 
   //epithelial.dampedNVE2D(attractiveForceUpdate, B, dt0, relaxTime, relaxTime/10);
-  epithelial.dampedNVETest(attractiveForceUpdate, 1.0, dt0, 150.0, 150.0/100.0);
+  //epithelial.dampedNVETest(attractiveForceUpdate, 1.0, dt0, 150.0, 150.0/10.0);
+  epithelial.dampedNP0(circuloLineAttraction, B, dt0, 150.0, 150.0/25.0);
+  //epithelial.dampedNVETest(circuloLineAttraction, 1.0, dt0, 150.0, 150.0/100.0);
+  assert(false);
 
   //  dampedNP0 already takes care of purse-string. might want to separate, or just change spring constant
   // wallsOff, wallsOn, fixedWalls
