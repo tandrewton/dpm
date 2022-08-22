@@ -312,11 +312,14 @@ class epi2D : public dpm {
   void attractiveForceUpdate_circulo();
   void attractiveForceUpdate_2();
   void activeAttractiveForceUpdate();
-  void substrateadhesionAttractiveForceUpdate();
+  void substrateadhesionAttractiveForceUpdate(bool isCirculoLine = false);
   void repulsiveForceWithCircularApertureWall();
   void repulsiveForceUpdateWithPolyWall();
   void attractiveForceUpdateWithPolyWall();
+  void crawlingWithPurseString();
   void crawlingWithPurseStringAndCircularWalls();
+  void crawlingWithPurseStringCirculo();
+  void crawlingWithPurseStringCirculoWalls();
 
   // protocols
   void expandBoxAndCenterParticles(double boxLengthScaleFactor,

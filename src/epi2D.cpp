@@ -1013,7 +1013,7 @@ void epi2D::attractiveForceUpdate_circulo() {
   circuloLineAttractiveForces();
 }
 
-void epi2D::substrateadhesionAttractiveForceUpdate() {
+void epi2D::substrateadhesionAttractiveForceUpdate(bool isCirculoLine) {
   // compute forces for shape, attractive, and substrate adhesion contributions
   int gi = 0, argmin, flagcount = 0;
   int numVerticesAttracted = 1;
@@ -1021,7 +1021,11 @@ void epi2D::substrateadhesionAttractiveForceUpdate() {
   double fx, fy;
 
   // reset forces, then get shape and attractive forces.
-  attractiveForceUpdate_2();
+  if (isCirculoLine)
+    attractiveForceUpdate_circulo();
+  else 
+    attractiveForceUpdate_2();
+
   resetActiveEnergy();
   // directorDiffusion();
   updateSubstrateSprings();
@@ -1058,10 +1062,29 @@ void epi2D::substrateadhesionAttractiveForceUpdate() {
   }
 }
 
+void epi2D::crawlingWithPurseString() {
+  bool isCirculoLine = false;
+  substrateadhesionAttractiveForceUpdate(isCirculoLine);
+}
+
 void epi2D::crawlingWithPurseStringAndCircularWalls() {
   bool attractionOn = true;
   substrateadhesionAttractiveForceUpdate();
   for (int i = 0; i < poly_bd_x.size(); i++) {
+    evaluatePolygonalWallForces(poly_bd_x[i], poly_bd_y[i], attractionOn);
+  }
+}
+
+void epi2D::crawlingWithPurseStringCirculo() {
+  bool isCirculoLine = true;
+  substrateadhesionAttractiveForceUpdate(isCirculoLine);
+}
+
+void epi2D::crawlingWithPurseStringCirculoWalls() {
+  bool isCirculoLine = true;
+  bool attractionOn = true;
+  substrateadhesionAttractiveForceUpdate(isCirculoLine);
+    for (int i = 0; i < poly_bd_x.size(); i++) {
     evaluatePolygonalWallForces(poly_bd_x[i], poly_bd_y[i], attractionOn);
   }
 }
@@ -1507,9 +1530,6 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
 
   // loop over time, print energy
   while (simclock - t0 < duration) {
-    if (simclock > 10 + 100*dt && int(simclock/dt) % 100 == 0 && simclock < 12){
-      printConfiguration2D();
-    }
     // VV POSITION UPDATE
 
     for (i = 0; i < vertDOF; i++) {
@@ -1617,7 +1637,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
     if (int(printInterval) != 0) {
       /*if (int((simclock - t0) / dt) % NPRINTSKIP == 0 &&
           (simclock - temp_simclock) > printInterval / 2) {*/
-      if (int((simclock - t0) / dt) % NPRINTSKIP == 0) {
+      if (int((simclock - t0) / dt) % NPRINTSKIP == 0 ) {
         temp_simclock = simclock;
         // compute kinetic energy
         K = vertexKineticEnergy();

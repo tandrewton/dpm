@@ -35,16 +35,16 @@ FSKIP = 1;
 etaStr = " ";
 startSeed = 1;
 max_seed = 1;
-no_plots = 1;
+no_plots = 0;
 makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
 plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
-showWoundAndShapeProperties = 0;
+showWoundAndShapeProperties = 1;
 
-showverts = 1;
+showverts = 0;
 showBoundaries = 0;
-showArea = 0;
+showArea = 1;
 showQuiver = 0;
 walls = 0;
 %disable showVoid if using printConfig on its own, outside of

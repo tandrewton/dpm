@@ -225,12 +225,15 @@ int main(int argc, char const* argv[]) {
   dpmMemFn repulsiveForceUpdate = &dpm::repulsiveForceUpdate;
   dpmMemFn repulsiveForceUpdateWithWalls = static_cast<void (dpm::*)()>(&epi2D::repulsiveForceUpdateWithWalls);
   dpmMemFn attractiveForceUpdate = static_cast<void (dpm::*)()>(&epi2D::attractiveForceUpdate_2);
-  dpmMemFn crawlingWithPSForceUpdate = static_cast<void (dpm::*)()>(&epi2D::substrateadhesionAttractiveForceUpdate);
+  dpmMemFn crawlingWithPSForceUpdate = static_cast<void (dpm::*)()>(&epi2D::crawlingWithPurseString);
   dpmMemFn repulsiveForceUpdateWithCircularAperture = static_cast<void (dpm::*)()>(&epi2D::repulsiveForceWithCircularApertureWall);
   dpmMemFn repulsiveForceUpdateWithCircularWalls = static_cast<void (dpm::*)()>(&epi2D::repulsiveForceUpdateWithPolyWall);
   dpmMemFn attractiveForceUpdateWithCircularWalls = static_cast<void (dpm::*)()>(&epi2D::attractiveForceUpdateWithPolyWall);
   dpmMemFn crawlingWithPSForceUpdateWithCircularWalls = static_cast<void (dpm::*)()>(&epi2D::crawlingWithPurseStringAndCircularWalls);
   dpmMemFn circuloLineAttraction = static_cast<void (dpm::*)()>(&epi2D::attractiveForceUpdate_circulo);
+  dpmMemFn crawlingWithPSAndCirculo = static_cast<void (dpm::*)()>(&epi2D::crawlingWithPurseStringCirculo);
+  dpmMemFn crawlingWithPSCirculoWalls = static_cast<void (dpm::*)()>(&epi2D::crawlingWithPurseStringCirculoWalls);
+
   
   epithelial.monodisperse2D(calA0, nsmall);
   epithelial.initializevnn();
@@ -251,21 +254,22 @@ int main(int argc, char const* argv[]) {
   // after compress, turn on damped NVE
   double T = 1e-4;
   double relaxTime = 10.0;
+  assert(relaxTime <= 10.0); // if relaxTime > 10.0, then dampedNP0 will run over the hardcoded limit. Could pass a parameter to dampedNP0 to tell it how long to wait, or just hardcode for now.
+  double printInterval = relaxTime/2.0;
   double runTime = 25.0;
   epithelial.drawVelocities2D(T);
-  epithelial.dampedNP0(attractiveForceUpdateWithCircularWalls, B, dt0, relaxTime, relaxTime/10);
 
-  /*// begin test scheme with sticky walls
-  double xLoc = 0.0, yLoc = 0.0;
-  int numCellsToAblate = ndelete;
-  epithelial.laserAblate(numCellsToAblate, sizeratio, nsmall, xLoc, yLoc);
-  epithelial.zeroMomentum();
-  epithelial.dampedNP0(crawlingWithPSForceUpdateWithCircularWalls, B, dt0, time_dbl, time_dbl / 20.0, wallsOff, purseStringOn);
+  //dpmMemFn customForceUpdate_inactive = attractiveForceUpdate;
+  //dpmMemFn customForceUpdate_active = crawlingWithPSForceUpdate;
+  dpmMemFn customForceUpdate_inactive = circuloLineAttraction;
+  dpmMemFn customForceUpdate_active = crawlingWithPSAndCirculo;
+  dpmMemFn customForceUpdate_inactive_with_circular_walls = crawlingWithPSCirculoWalls;
 
-  // end test scheme with sticky walls*/
+  epithelial.dampedNP0(attractiveForceUpdateWithCircularWalls, B, dt0, relaxTime, printInterval);  
+  //epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, B, dt0, runTime, runTime/10.0);
 
-  //epithelial.dampedNP0(attractiveForceUpdate, B, dt0, runTime, runTime/10.0);
-  epithelial.dampedNP0(circuloLineAttraction, B, dt0, runTime, runTime/10.0);
+  for (int i = 0; i < 5; i++)  // try repeating this until relaxed
+    epithelial.dampedNP0(customForceUpdate_inactive, B, dt0, relaxTime, printInterval);
 
   // LASER ABLATION SCHEME
   double xLoc = 0.0, yLoc = 0.0;
@@ -275,16 +279,16 @@ int main(int argc, char const* argv[]) {
 
   //epithelial.dampedNVE2D(attractiveForceUpdate, B, dt0, relaxTime, relaxTime/10);
   //epithelial.dampedNVETest(attractiveForceUpdate, 1.0, dt0, 150.0, 150.0/10.0);
-  epithelial.dampedNP0(circuloLineAttraction, B, dt0, 150.0, 150.0/25.0);
-  //epithelial.dampedNVETest(circuloLineAttraction, 1.0, dt0, 150.0, 150.0/100.0);
-  assert(false);
+  for (int i = 0; i < 2; i++)
+    epithelial.dampedNP0(customForceUpdate_inactive, B, dt0, relaxTime, printInterval);
 
-  //  dampedNP0 already takes care of purse-string. might want to separate, or just change spring constant
-  // wallsOff, wallsOn, fixedWalls
+  //  dampedNP0 runs simulation with purse-string integration and crawling
+
+  cout << "boolBound = " << boolBound << '\n';
   if (boolBound)
-    epithelial.dampedNP0(crawlingWithPSForceUpdateWithCircularWalls, B, dt0, time_dbl, time_dbl / 10.0, purseStringOn);
+    epithelial.dampedNP0(crawlingWithPSForceUpdateWithCircularWalls, B, dt0, time_dbl, printInterval, purseStringOn);
   else
-    epithelial.dampedNP0(crawlingWithPSForceUpdate, B, dt0, time_dbl, time_dbl / 10.0, purseStringOn);
+    epithelial.dampedNP0(customForceUpdate_active, B, dt0, time_dbl, printInterval, purseStringOn);
  
   // epithelial.dampedNP0(attractiveForceUpdate, B, dt0, time_dbl, time_dbl / 100.0, wallsOff);
 

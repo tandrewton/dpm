@@ -4,6 +4,11 @@
 using namespace Eigen;
 using namespace std;
 
+void cell::moveVertex(int gi, double xpos, double ypos){
+  x[gi*NDIM] = xpos;
+  x[gi*NDIM+1] = ypos; 
+}
+
 void cell::removeCellIDFromInteractionMatrix(int cellID){
   cellTypeIntMat.erase(cellTypeIntMat.begin() + cellID);  // remove ci row
   // remove ci column
@@ -113,6 +118,322 @@ void cell::attractiveForceUpdate() {
   resetForcesAndEnergy();
   shapeForces2D();
   vertexAttractiveForces2D_2();
+}
+
+void cell::attractiveForceUpdatePrint(double &forceX, double &forceY, double &energy) {
+  resetForcesAndEnergy();
+  //shapeForces2D();
+  energy = 0.0;
+  vertexAttractiveForces2D_test(energy);
+  forceX = F[0];
+  forceY = F[1];
+}
+
+void cell::attractiveForceUpdateSmoothPrint() {
+  resetForcesAndEnergy();
+  shapeForces2D();
+  vertexAttractiveForces2D_2();
+}
+
+void cell::vertexAttractiveForces2D_test(double &energy) {
+  // attractive forces calculation, focuses on forces and energy involving vertex gi = 0
+  energy = 0.0;
+
+  // altered from dpm attractive force code, because it works with larger l2
+  // in cell class, also includes cell type specific interactions through cellTypeIntMat
+  // values. (warning: probably won't work with bending. Francesco says it should be fine though, haven't tested.) local variables
+  int ci, cj, gi, gj, vi, vj, bi, bj, pi, pj;
+  double sij, rij, dx, dy, rho0;
+  double ftmp, fx, fy;
+  double cellTypeIntModifier = 1.0, cellTypeIntModifier_repulsion = 1.0;
+
+  // attraction shell parameters
+  double shellij, cutij, xij, kint = (kc * l1) / (l2 - l1);
+  // cout << "kc / kint = " << kc / kint << '\t' << kc << '\t' << kint << '\n';
+
+  // sort particles
+  sortNeighborLinkedList2D();
+
+  // get fundamental length
+  rho0 = sqrt(a0[0]);
+
+  // reset contact network
+  fill(cij.begin(), cij.end(), 0);
+
+  // loop over boxes in neighbor linked list
+  for (bi = 0; bi < NBX; bi++) {
+    // get start of list of vertices
+    pi = head[bi];
+
+    // loop over linked list
+    while (pi > 0) {
+      // real particle index
+      gi = pi - 1;
+
+      // cell index of gi
+      cindices(ci, vi, gi);
+
+      // next particle in list
+      pj = list[pi];
+
+      // loop down neighbors of pi in same cell
+      while (pj > 0) {
+        // real index of pj
+        gj = pj - 1;
+
+        // cell index of j
+        cindices(cj, vj, gj);
+        cellTypeIntModifier = cellTypeIntMat[cellID[ci]][cellID[cj]];
+        cellTypeIntModifier_repulsion = 1.0;
+
+        if (gj == ip1[gi] || gj == im1[gi]) {
+          pj = list[pj];
+          continue;
+        }
+
+        // contact distance
+        sij = r[gi] + r[gj];
+
+        // attraction distances
+        shellij = (1.0 + l2) * sij;
+        cutij = (1.0 + l1) * sij;
+
+        // particle distance
+        dx = x[NDIM * gj] - x[NDIM * gi];
+        if (pbc[0])
+          dx -= L[0] * round(dx / L[0]);
+        if (dx < shellij) {
+          dy = x[NDIM * gj + 1] - x[NDIM * gi + 1];
+          if (pbc[1])
+            dy -= L[1] * round(dy / L[1]);
+          if (dy < shellij) {
+            rij = sqrt(dx * dx + dy * dy);
+            if (rij < shellij) {
+              // scaled distance
+              xij = rij / sij;
+
+              // pick force based on vertex-vertex distance
+              if (ci == cj) {
+                // if vertices (not neighbors) are in same cell, compute
+                // repulsions
+                if (rij < sij) {
+                  ftmp = cellTypeIntModifier_repulsion * kc * (1 - (rij / sij)) * (rho0 / sij);
+                  cellU[ci] += 0.5 * cellTypeIntModifier_repulsion * kc * pow((1 - (rij / sij)), 2.0);
+                } else
+                  ftmp = 0;
+              } else if (rij > cutij) {
+                // force scale
+                ftmp = kint * cellTypeIntModifier * (xij - 1.0 - l2) / sij;
+
+                // increase potential energy
+                U += -0.5 * cellTypeIntModifier * kint * pow(1.0 + l2 - xij, 2.0);
+                cellU[ci] += -0.5 * cellTypeIntModifier * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
+                cellU[cj] += -0.5 * cellTypeIntModifier * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
+                if (gi == 0 || gj == 0){
+                  cout << "rij > cut interaction between " << gi << '\t' << gj << '\n';
+                  energy += -0.5 * cellTypeIntModifier * kint * pow(1.0 + l2 - xij, 2.0);
+                }
+              } else {
+                // force scale
+                ftmp = cellTypeIntModifier * kc * (1 - xij) / sij;
+
+                // increase potential energy
+                U += 0.5 * cellTypeIntModifier * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
+                cellU[ci] += 0.5 * cellTypeIntModifier * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
+                cellU[cj] += 0.5 * cellTypeIntModifier * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
+                if (gi == 0 || gj == 0){
+                  cout << "rij < cut interaction between " << gi << '\t' << gj << '\n';
+                  energy += 0.5 * cellTypeIntModifier * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
+                }
+              }
+
+              // force elements
+              fx = ftmp * (dx / rij);
+              fy = ftmp * (dy / rij);
+
+              if (gi == 0 || gj == 0)
+                cout << "fx, fy = " << fx << '\t' << fy << '\n';
+
+              // add to forces
+              F[NDIM * gi] -= fx;
+              F[NDIM * gi + 1] -= fy;
+
+              F[NDIM * gj] += fx;
+              F[NDIM * gj + 1] += fy;
+
+              // add to virial stress
+              // note: 4/7/22 I'm using -dx/2 instead of dx and same for dy for stress calculation, since
+              //  I want to calculate force times separation from geometric center of interaction
+              stress[0] += -dx * fx;
+              stress[1] += -dy * fy;
+              stress[2] += -0.5 * (dx * fy + dy * fx);
+
+              fieldStress[gi][0] += -dx / 2 * fx;
+              fieldStress[gi][1] += -dy / 2 * fy;
+              fieldStress[gi][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
+
+              // stress on gj should be the same as on gi, since it's the opposite separation and also opposite force
+              fieldStress[gj][0] += -dx / 2 * fx;
+              fieldStress[gj][1] += -dy / 2 * fy;
+              fieldStress[gj][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
+
+              if (ci > cj)
+                cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2]++;
+              else if (ci < cj)
+                cij[NCELLS * ci + cj - (ci + 1) * (ci + 2) / 2]++;
+            }
+          }
+        }
+
+        // update pj
+        pj = list[pj];
+      }
+      // test overlaps with forward neighboring cells
+      for (bj = 0; bj < NNN; bj++) {
+        // only check if boundaries permit
+        if (nn[bi][bj] == -1)
+          continue;
+
+        // get first particle in neighboring cell
+        pj = head[nn[bi][bj]];
+
+        // loop down neighbors of pi in same cell
+        while (pj > 0) {
+          // real index of pj
+          gj = pj - 1;
+
+          // cell index of j
+          cindices(cj, vj, gj);
+          cellTypeIntModifier = cellTypeIntMat[cellID[ci]][cellID[cj]];
+          cellTypeIntModifier_repulsion = 1.0;
+
+          if (gj == ip1[gi] || gj == im1[gi]) {
+            pj = list[pj];
+            continue;
+          }
+
+          // contact distance
+          sij = r[gi] + r[gj];
+
+          // attraction distances
+          shellij = (1.0 + l2) * sij;
+          cutij = (1.0 + l1) * sij;
+
+          // particle distance
+          dx = x[NDIM * gj] - x[NDIM * gi];
+          if (pbc[0])
+            dx -= L[0] * round(dx / L[0]);
+          if (dx < shellij) {
+            dy = x[NDIM * gj + 1] - x[NDIM * gi + 1];
+            if (pbc[1])
+              dy -= L[1] * round(dy / L[1]);
+            if (dy < shellij) {
+              rij = sqrt(dx * dx + dy * dy);
+              if (rij < shellij) {
+                // scaled distance
+                xij = rij / sij;
+
+                // pick force based on vertex-vertex distance
+                if (ci == cj) {
+                  // if vertices (not neighbors) are in same cell, compute
+                  // repulsions
+                  if (rij < sij) {
+                    ftmp = cellTypeIntModifier_repulsion * kc * (1 - (rij / sij)) * (rho0 / sij);
+                    cellU[ci] += 0.5 * cellTypeIntModifier_repulsion * kc * pow((1 - (rij / sij)), 2.0);
+                  } else
+                    ftmp = 0;
+                  } else if (rij > cutij) {
+                  // force scale
+                  ftmp = kint * cellTypeIntModifier * (xij - 1.0 - l2) / sij;
+
+                  // increase potential energy
+                  U += -0.5 * cellTypeIntModifier * kint * pow(1.0 + l2 - xij, 2.0);
+                  cellU[ci] += -0.5 * cellTypeIntModifier * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
+                  cellU[cj] += -0.5 * cellTypeIntModifier * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
+                  if (gi == 0 || gj == 0){
+                    cout << "rij > cut interaction between " << gi << '\t' << gj << '\n';
+                    energy += -0.5 * cellTypeIntModifier * kint * pow(1.0 + l2 - xij, 2.0);
+                  }
+                } else {
+                  // force scale
+                  ftmp = cellTypeIntModifier * kc * (1 - xij) / sij;
+
+                  // increase potential energy
+                  U += 0.5 * cellTypeIntModifier * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
+                  cellU[ci] += 0.5 * cellTypeIntModifier * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
+                  cellU[cj] += 0.5 * cellTypeIntModifier * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
+                  if (gi == 0 || gj == 0){
+                    cout << "rij < cut interaction between " << gi << '\t' << gj << '\n';
+                    energy += 0.5 * cellTypeIntModifier * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
+                  }
+                }
+
+                // force elements
+                fx = ftmp * (dx / rij);
+                fy = ftmp * (dy / rij);
+
+                if (gi == 0 || gj == 0){
+                  cout << "fx, fy = " << fx << '\t' << fy << '\n';
+
+                }
+
+                // add to forces
+                F[NDIM * gi] -= fx;
+                F[NDIM * gi + 1] -= fy;
+
+                F[NDIM * gj] += fx;
+                F[NDIM * gj + 1] += fy;
+
+                // add to virial stress
+                stress[0] += -dx * fx;
+                stress[1] += -dy * fy;
+                stress[2] += -0.5 * (dx * fy + dy * fx);
+
+                fieldStress[gi][0] += -dx / 2 * fx;
+                fieldStress[gi][1] += -dy / 2 * fy;
+                fieldStress[gi][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
+
+                // stress on gj should be the same as on gi, since it's the opposite separation and also opposite force
+                fieldStress[gj][0] += -dx / 2 * fx;
+                fieldStress[gj][1] += -dy / 2 * fy;
+                fieldStress[gj][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
+
+                if (ci != cj) {
+                  if (ci > cj)
+                    cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2]++;
+                  else if (ci < cj)
+                    cij[NCELLS * ci + cj - (ci + 1) * (ci + 2) / 2]++;
+                }
+              }
+            }
+          }
+
+          // update pj
+          pj = list[pj];
+        }
+      }
+
+      // update pi index to be next
+      pi = list[pi];
+    }
+  }
+  // normalize stress by box area, make dimensionless
+  stress[0] *= (rho0 / (L[0] * L[1]));
+  stress[1] *= (rho0 / (L[0] * L[1]));
+  stress[2] *= (rho0 / (L[0] * L[1]));
+
+  // normalize per-cell stress by preferred cell area
+  for (int ci = 0; ci < NCELLS; ci++) {
+    for (int vi = 0; vi < nv[ci]; vi++) {
+      int gi = gindex(ci, vi);
+      fieldStressCells[ci][0] += fieldStress[gi][0];
+      fieldStressCells[ci][1] += fieldStress[gi][1];
+      fieldStressCells[ci][2] += fieldStress[gi][2];
+    }
+    fieldStressCells[ci][0] *= rho0 / a0[ci];
+    fieldStressCells[ci][1] *= rho0 / a0[ci];
+    fieldStressCells[ci][2] *= rho0 / a0[ci];
+  }
 }
 
 void cell::vertexAttractiveForces2D_2() {

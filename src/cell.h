@@ -63,6 +63,9 @@ class cell : public dpm {
     cout << "Initializing epi2D object, l1 = " << l1 << ", l2 = " << l2 << '\n';
   }
 
+  // test routines for force calculation
+  void moveVertex(int gi, double xpos, double ypos);
+
   // cell-cell interaction matrix routines
   void setCellTypeAttractionModifiers(int i, int j, double val) {cellTypeIntMat[i][j] = val; cellTypeIntMat[j][i] = val;}
   void removeCellIDFromInteractionMatrix(int cellID);
@@ -80,7 +83,10 @@ class cell : public dpm {
   void attractiveWallCrawlingForceUpdate();
   void repulsiveForceUpdateWithPolyWall();
   void attractiveForceUpdateWithPolyWall();
+  void attractiveForceUpdatePrint(double &forceX, double &forceY, double& energy);
+  void attractiveForceUpdateSmoothPrint();
   void vertexAttractiveForces2D_2();
+  void vertexAttractiveForces2D_test(double &energy);
   void wallForces(bool left, bool bottom, bool right, bool top, double& forceLeft, double& forceBottom, double& forceRight, double& forceTop, double appliedUniaxialPressure = 0.0);
   void wallCrawlingForces();
   void cellPolarityForces(int ci, double k_polarity, std::string direction = "y");
