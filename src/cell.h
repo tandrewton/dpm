@@ -84,9 +84,10 @@ class cell : public dpm {
   void repulsiveForceUpdateWithPolyWall();
   void attractiveForceUpdateWithPolyWall();
   void attractiveForceUpdatePrint(double &forceX, double &forceY, double& energy);
-  void attractiveForceUpdateSmoothPrint();
+  void attractiveForceUpdateSmoothPrint(double &forceX, double &forceY, double &energy);
   void vertexAttractiveForces2D_2();
   void vertexAttractiveForces2D_test(double &energy);
+  void smoothAttractiveForces2D_test(double &energy);
   void wallForces(bool left, bool bottom, bool right, bool top, double& forceLeft, double& forceBottom, double& forceRight, double& forceTop, double appliedUniaxialPressure = 0.0);
   void wallCrawlingForces();
   void cellPolarityForces(int ci, double k_polarity, std::string direction = "y");

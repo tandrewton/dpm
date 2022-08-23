@@ -129,10 +129,396 @@ void cell::attractiveForceUpdatePrint(double &forceX, double &forceY, double &en
   forceY = F[1];
 }
 
-void cell::attractiveForceUpdateSmoothPrint() {
+void cell::attractiveForceUpdateSmoothPrint(double &forceX, double &forceY, double &energy) {
   resetForcesAndEnergy();
-  shapeForces2D();
-  vertexAttractiveForces2D_2();
+  //shapeForces2D();
+  energy = 0.0;
+  smoothAttractiveForces2D_test(energy);
+  forceX = F[0];
+  forceY = F[1];
+}
+
+
+void cell::smoothAttractiveForces2D_test(double &energy) {
+  // altered from vertexAttractiveForces2D_2, where instead of vertex-vertex distances we only calculate vertex-line segment distances.
+  // models sliding adhesion and sliding repulsion
+  int ci, cj, gi, gj, gk, vi, vj, bi, bj, pi, pj;
+  double sij, rij, dx, dy, rho0;
+  double d, dist_x, dist_y;
+  double d_arg, y21, x21, y20, x20, y10, x10, norm_P12, prefix, prefix2;  // for calculating 3-body forces for contactType 1 (vertex-line-segment)
+  int contactType;
+  double ftmp, fx, fy;
+  energy = 0;
+
+  // attraction shell parameters
+  double shellij, cutij, xij, kint = (kc * l1) / (l2 - l1);
+
+  // sort particles
+  sortNeighborLinkedList2D();
+
+  // get fundamental length
+  rho0 = sqrt(a0[0]);
+
+  // reset contact network
+  fill(cij.begin(), cij.end(), 0);
+
+  // loop over boxes in neighbor linked list
+  for (bi = 0; bi < NBX; bi++) {
+    // get start of list of vertices
+    pi = head[bi];
+
+    // loop over linked list
+    while (pi > 0) {
+      // real particle index
+      gi = pi - 1;
+
+      // cell index of gi
+      cindices(ci, vi, gi);
+
+      // next particle in list
+      pj = list[pi];
+
+      // loop down neighbors of pi in same cell
+      while (pj > 0) {
+        // real index of pj
+        gj = pj - 1;
+
+        // cell index of j
+        cindices(cj, vj, gj);
+
+        if (gj == ip1[gi] || gj == im1[gi]) {
+          pj = list[pj];
+          continue;
+        }
+
+        // contact distance
+        sij = r[gi] + r[gj];
+
+        // attraction distances
+        shellij = (1.0 + l2) * sij;
+        cutij = (1.0 + l1) * sij;
+
+        // need to calculate d, d1, d2, which are distances from gi to gj-im1[gj], to gj, and to im1[gj] respectively
+        d = distLinePointComponentsAndContactType(x[NDIM*gj],x[NDIM*gj + 1], x[NDIM*im1[gj]], x[NDIM*im1[gj]+1], x[NDIM*gi], x[NDIM*gi+1], dist_x, dist_y, contactType);
+        // not yet sure if floating point == is good enough, should test.
+        if (contactType == 0 || contactType == 1){  // 
+          // contactType == 0 means that p0 projection onto p1-p2 is less than p1, so it's a pure vertex-vertex contact for gi-gj
+          // contactType == 1 means that p0 projection onto p1-p2 falls between p1 and p2, so it's a vertex-line-segment contact
+          // particle distance
+          //dx = x[NDIM * gj] - x[NDIM * gi];
+          //cout << "contact type = " << contactType << '\t' << ", dx = " << dx << '\t' << ", new dx = " << dist_x << '\n';
+          dx = -dist_x;
+          if (dx < shellij) {
+            dy = -dist_y;
+            if (dy < shellij) {
+              rij = sqrt(dx * dx + dy * dy);
+              if (rij < shellij) {
+                // scaled distance
+                xij = rij / sij;
+
+                // pick force based on vertex-vertex distance
+                if (ci == cj) {
+                  // if vertices (not neighbors) are in same cell, compute
+                  // repulsions
+                  if (rij < sij) {
+                    ftmp = kc * (1 - (rij / sij)) * (rho0 / sij);
+                    cellU[ci] += 0.5 * kc * pow((1 - (rij / sij)), 2.0);
+                  } else
+                    ftmp = 0;
+                } else if (rij > cutij) {
+                  // force scale
+                  ftmp = kint * (xij - 1.0 - l2) / sij;
+
+                  // increase potential energy
+                  U += -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
+                  cellU[ci] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
+                  cellU[cj] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
+                } else {
+                  // force scale
+                  ftmp = kc * (1 - xij) / sij;
+
+                  // increase potential energy
+                  U += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
+                  cellU[ci] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
+                  cellU[cj] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
+                }
+                if (contactType == 0) {
+                  // pure 2-body contact, add to forces
+
+                  // force elements
+                  fx = ftmp * (dx / rij); // dx/rij comes from the chain rule (dU/dx1 = dU/dr * dr/dx1)
+                  fy = ftmp * (dy / rij);
+                  F[NDIM * gi] -= fx;
+                  F[NDIM * gi + 1] -= fy;
+
+                  F[NDIM * gj] += fx;
+                  F[NDIM * gj + 1] += fy;
+                  //cout << "fx, fy = " << fx << '\t' << fy << ", for particles gi, gj = " << gi << '\t' << gj << '\n';
+
+                  // add to virial stress
+                  // note: 4/7/22 I'm using -dx/2 instead of dx and same for dy for stress calculation, since
+                  //  I want to calculate force times separation from geometric center of interaction
+                  stress[0] += -dx * fx;
+                  stress[1] += -dy * fy;
+                  stress[2] += -0.5 * (dx * fy + dy * fx);
+
+                  fieldStress[gi][0] += -dx / 2 * fx;
+                  fieldStress[gi][1] += -dy / 2 * fy;
+                  fieldStress[gi][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
+
+                  // stress on gj should be the same as on gi, since it's the opposite separation and also opposite force
+                  fieldStress[gj][0] += -dx / 2 * fx;
+                  fieldStress[gj][1] += -dy / 2 * fy;
+                  fieldStress[gj][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
+                } else if (contactType == 1){
+                  // 3-body contact, 6 forces
+                  //y21, x21, y20, x20, y10, x10, norm_P12, d_arg
+                  int g2 = im1[gj];
+                  int g2_ind = NDIM*g2;
+                  int g1_ind = NDIM*gj;
+                  x21 = x[g2_ind] - x[g1_ind];
+                  y21 = x[g2_ind+1] - x[g1_ind+1];
+                  x20 = x[g2_ind] - x[NDIM*gi];
+                  y20 = x[g2_ind+1] - x[NDIM*gi + 1];
+                  x10 = x[g1_ind] - x[NDIM*gi];
+                  y10 = x[g1_ind+1] - x[NDIM*gi + 1];
+                  d_arg = x21*y10 - x10*y21;
+                  norm_P12 = sqrt(pow(x21,2)+pow(y21,2));
+                  prefix = d_arg/fabs(d_arg)/norm_P12; 
+                  prefix2 = fabs(d_arg)/pow(norm_P12,3);
+                  F[NDIM * gi] += ftmp * prefix * y21;
+                  F[NDIM * gi + 1] += ftmp * prefix * -x21;
+
+                  F[NDIM * gj] += ftmp*(prefix*-y20 + x21*prefix2);
+                  F[NDIM * gj + 1] += ftmp*(prefix*x20 + y21*prefix2);
+
+                  F[NDIM * g2] += ftmp*(prefix*y10 - x21*prefix2);
+                  F[NDIM * g2 + 1] += ftmp*(prefix*-x10 - y21*prefix2);
+
+                  /*cout << "triplet particles are " << gi << '\t' << gj << "," << g2 << '\n';
+
+                  cout << "sum of forces in X = " << ftmp * prefix * y21 + ftmp*(prefix*-y20 + x21*prefix2) + ftmp*(prefix*y10 - x21*prefix2)<< '\n';
+                  cout << "sum of forces in Y = " << ftmp * prefix * -x21 + ftmp*(prefix*x20 + y21*prefix2) + ftmp*(prefix*-x10 - y21*prefix2)<< '\n';
+
+                  cout << "forces in X = " << ftmp * prefix * y21 << '\t' << ftmp*(prefix*-y20 + x21*prefix2) << '\t' << ftmp*(prefix*y10 - x21*prefix2) << '\n';
+                  cout << "ftmp = " << ftmp << ",\t prefix = " << prefix << ",\t y21 = " << y21 << ",\t\n y20 = " 
+                        << y20 << ",\t x21 = " << x21 << ",\t y10 = " << y10 << ",\t x21 = " << x21 << '\n';
+                  // now should add to energy and stress in an appropriate manner                */
+                }
+                // add to contacts
+                for (int i = 0; i < vnn[gi].size(); i++) {
+                  if (ci == cj)
+                    break;
+
+                  if (vnn[gi][i] < 0) {
+                    vnn[gi][i] = gj;  // set the first unused array element to gj, in gi's neighbor list
+
+                    for (int j = 0; j < vnn[gj].size(); j++) {
+                      if (vnn[gj][j] < 0) {
+                        vnn[gj][j] = gi;  // set the first unused array element to gi, in gj's neighbor list
+                        break;
+                      }
+                    }
+
+                    break;
+                  }
+                }
+                if (ci > cj)
+                  cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2]++;
+                else if (ci < cj)
+                  cij[NCELLS * ci + cj - (ci + 1) * (ci + 2) / 2]++;
+              }
+            }
+          }
+        }
+        // update pj
+        pj = list[pj];
+      }
+      // test overlaps with forward neighboring cells
+      for (bj = 0; bj < NNN; bj++) {
+        // only check if boundaries permit
+        if (nn[bi][bj] == -1)
+          continue;
+
+        // get first particle in neighboring cell
+        pj = head[nn[bi][bj]];
+
+         // loop down neighbors of pi in same cell
+        while (pj > 0) {
+          // real index of pj
+          gj = pj - 1;
+
+          // cell index of j
+          cindices(cj, vj, gj);
+
+          if (gj == ip1[gi] || gj == im1[gi]) {
+            pj = list[pj];
+            continue;
+          }
+
+          // contact distance
+          sij = r[gi] + r[gj];
+
+          // attraction distances
+          shellij = (1.0 + l2) * sij;
+          cutij = (1.0 + l1) * sij;
+
+          // need to calculate d, d1, d2, which are distances from gi to gj-im1[gj], to gj, and to im1[gj] respectively
+          d = distLinePointComponentsAndContactType(x[NDIM*gj],x[NDIM*gj + 1], x[NDIM*im1[gj]], x[NDIM*im1[gj]+1], x[NDIM*gi], x[NDIM*gi+1], dist_x, dist_y, contactType);
+          // not yet sure if floating point == is good enough, should test.
+          if (contactType == 0 || contactType == 1){  // 
+            // contactType == 0 means that p0 projection onto p1-p2 is less than p1, so it's a pure vertex-vertex contact for gi-gj
+            // contactType == 1 means that p0 projection onto p1-p2 falls between p1 and p2, so it's a vertex-line-segment contact
+            // particle distance
+            //dx = x[NDIM * gj] - x[NDIM * gi];
+            //cout << "contact type = " << contactType << '\t' << ", dx = " << dx << '\t' << ", new dx = " << dist_x << '\n';
+            dx = -dist_x;
+            if (dx < shellij) {
+              dy = -dist_y;
+              if (dy < shellij) {
+                rij = sqrt(dx * dx + dy * dy);
+                if (rij < shellij) {
+                  // scaled distance
+                  xij = rij / sij;
+
+                  // pick force based on vertex-vertex distance
+                  if (ci == cj) {
+                    // if vertices (not neighbors) are in same cell, compute
+                    // repulsions
+                    if (rij < sij) {
+                      ftmp = kc * (1 - (rij / sij)) * (rho0 / sij);
+                      cellU[ci] += 0.5 * kc * pow((1 - (rij / sij)), 2.0);
+                    } else
+                      ftmp = 0;
+                  } else if (rij > cutij) {
+                    // force scale
+                    ftmp = kint * (xij - 1.0 - l2) / sij;
+
+                    // increase potential energy
+                    U += -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
+                    cellU[ci] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
+                    cellU[cj] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
+                  } else {
+                    // force scale
+                    ftmp = kc * (1 - xij) / sij;
+
+                    // increase potential energy
+                    U += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
+                    cellU[ci] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
+                    cellU[cj] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
+                  }
+                  if (contactType == 0) {
+                    // pure 2-body contact, add to forces
+
+                    // force elements
+                    fx = ftmp * (dx / rij); // dx/rij comes from the chain rule (dU/dx1 = dU/dr * dr/dx1)
+                    fy = ftmp * (dy / rij);
+                    F[NDIM * gi] -= fx;
+                    F[NDIM * gi + 1] -= fy;
+
+                    F[NDIM * gj] += fx;
+                    F[NDIM * gj + 1] += fy;
+
+                    // add to virial stress
+                    // note: 4/7/22 I'm using -dx/2 instead of dx and same for dy for stress calculation, since
+                    //  I want to calculate force times separation from geometric center of interaction
+                    stress[0] += -dx * fx;
+                    stress[1] += -dy * fy;
+                    stress[2] += -0.5 * (dx * fy + dy * fx);
+
+                    fieldStress[gi][0] += -dx / 2 * fx;
+                    fieldStress[gi][1] += -dy / 2 * fy;
+                    fieldStress[gi][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
+
+                    // stress on gj should be the same as on gi, since it's the opposite separation and also opposite force
+                    fieldStress[gj][0] += -dx / 2 * fx;
+                    fieldStress[gj][1] += -dy / 2 * fy;
+                    fieldStress[gj][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
+                  } else if (contactType == 1){
+                    // 3-body contact, 6 forces
+                    //y21, x21, y20, x20, y10, x10, norm_P12, d_arg
+                    int g2 = im1[gj];
+                    int g2_ind = NDIM*g2;
+                    int g1_ind = NDIM*gj;
+                    x21 = x[g2_ind] - x[g1_ind];
+                    y21 = x[g2_ind+1] - x[g1_ind+1];
+                    x20 = x[g2_ind] - x[NDIM*gi];
+                    y20 = x[g2_ind+1] - x[NDIM*gi + 1];
+                    x10 = x[g1_ind] - x[NDIM*gi];
+                    y10 = x[g1_ind+1] - x[NDIM*gi + 1];
+                    d_arg = x21*y10 - x10*y21;
+                    norm_P12 = sqrt(pow(x21,2)+pow(y21,2));
+                    prefix = d_arg/fabs(d_arg)/norm_P12; 
+                    prefix2 = fabs(d_arg)/pow(norm_P12,3);
+                    F[NDIM * gi] += ftmp * prefix * y21;
+                    F[NDIM * gi + 1] += ftmp * prefix * -x21;
+
+                    F[NDIM * gj] += ftmp*(prefix*-y20 + x21*prefix2);
+                    F[NDIM * gj + 1] += ftmp*(prefix*x20 + y21*prefix2);
+
+                    F[NDIM * g2] += ftmp*(prefix*y10 - x21*prefix2);
+                    F[NDIM * g2 + 1] += ftmp*(prefix*-x10 - y21*prefix2);
+
+                    /*cout << "triplet particles are " << gi << '\t' << gj << "," << g2 << '\n';
+
+                    cout << "sum of forces in X = " << ftmp * prefix * y21 + ftmp*(prefix*-y20 + x21*prefix2) + ftmp*(prefix*y10 - x21*prefix2)<< '\n';
+                    cout << "sum of forces in Y = " << ftmp * prefix * -x21 + ftmp*(prefix*x20 + y21*prefix2) + ftmp*(prefix*-x10 - y21*prefix2)<< '\n';
+
+                    cout << "forces in X = " << ftmp * prefix * y21 << '\t' << ftmp*(prefix*-y20 + x21*prefix2) << '\t' << ftmp*(prefix*y10 - x21*prefix2) << '\n';
+                    cout << "ftmp = " << ftmp << ",\t prefix = " << prefix << ",\t y21 = " << y21 << ",\t\n y20 = " 
+                          << y20 << ",\t x21 = " << x21 << ",\t y10 = " << y10 << ",\t x21 = " << x21 << '\n';
+                    // now should add to energy and stress in an appropriate manner*/
+                  }
+                  if (ci != cj) {
+                    for (int i = 0; i < vnn[gi].size(); i++) {
+                      if (vnn[gi][i] < 0) {
+                        vnn[gi][i] = gj;  // set the first unused array element to gj, in gi's neighbor list
+
+                        for (int j = 0; j < vnn[gj].size(); j++) {
+                          if (vnn[gj][j] < 0) {
+                            vnn[gj][j] = gi;  // set the first unused array element to gi, in gj's neighbor list
+                            break;
+                          }
+                        }
+
+                        break;
+                      }
+                    }
+                    if (ci > cj)
+                      cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2]++;
+                    else if (ci < cj)
+                      cij[NCELLS * ci + cj - (ci + 1) * (ci + 2) / 2]++;
+                  }
+                }
+              }
+            }
+          }
+          // update pj
+          pj = list[pj];
+        }
+      }
+
+      // update pi index to be next
+      pi = list[pi];
+    }
+  }
+  // normalize stress by box area, make dimensionless
+  stress[0] *= (rho0 / (L[0] * L[1]));
+  stress[1] *= (rho0 / (L[0] * L[1]));
+  stress[2] *= (rho0 / (L[0] * L[1]));
+
+  // normalize per-cell stress by preferred cell area
+  for (int ci = 0; ci < NCELLS; ci++) {
+    for (int vi = 0; vi < nv[ci]; vi++) {
+      int gi = gindex(ci, vi);
+      fieldStressCells[ci][0] += fieldStress[gi][0];
+      fieldStressCells[ci][1] += fieldStress[gi][1];
+      fieldStressCells[ci][2] += fieldStress[gi][2];
+    }
+    fieldStressCells[ci][0] *= rho0 / a0[ci];
+    fieldStressCells[ci][1] *= rho0 / a0[ci];
+    fieldStressCells[ci][2] *= rho0 / a0[ci];
+  }
 }
 
 void cell::vertexAttractiveForces2D_test(double &energy) {

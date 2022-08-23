@@ -118,6 +118,8 @@ int main(int argc, char const* argv[]) {
 
   // expecting exactly 2 cells with 10 vertices each here
   double diameter = 2*cell2D.getr(0);
+  double horizontalOffset = - diameter * 0.01;
+
   for (int gi = 0; gi < 20; gi++){  // move vertices into place for testing forces as a function of distance
     if (gi < 10)
       cell2D.moveVertex(gi, -1, -1);
@@ -125,7 +127,7 @@ int main(int argc, char const* argv[]) {
       cell2D.moveVertex(gi, 3, 3);
     else cell2D.moveVertex(gi, 1, 1+(gi % 10)*diameter);
   }
-  cell2D.moveVertex(0, 1-diameter, 1); // place vertex 0 from cell 0 next to vertex 0-2 in cell 1.
+  cell2D.moveVertex(0, 1-diameter-horizontalOffset, 1); // place vertex 0 from cell 0 next to vertex 0-2 in cell 1.
   cell2D.printConfiguration2D();
   cell2D.saveConfiguration(savedPositions);
 
@@ -133,6 +135,7 @@ int main(int argc, char const* argv[]) {
 
   int numRepeats = 2;
   for (int i = 0; i < numRepeats; i++){
+    cout << "att, att_range = " << att << '\t' << att_range << '\n';
     // revert to original position, then change attraction
     cell2D.loadConfiguration(savedPositions);
     cell2D.setl1(att);
@@ -142,7 +145,7 @@ int main(int argc, char const* argv[]) {
     for (int j = 0; j < epsilonInv; j++){
       double fx, fy, u;
       // move vertex 0 in y direction
-      cell2D.moveVertex(0, 1-diameter, 1+j*diameter*3/epsilonInv);
+      cell2D.moveVertex(0, 1-diameter-horizontalOffset, 1+j*diameter*3/epsilonInv);
       
       // print configuration and calculate its forces
       cell2D.printConfiguration2D();
