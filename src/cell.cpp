@@ -140,13 +140,15 @@ void cell::attractiveForceUpdateSmoothPrint(double &forceX, double &forceY, doub
 
 
 void cell::smoothAttractiveForces2D_test(double &energy) {
+  // note: this code is from cell.cpp, and I've commented out vnn stuff which belongs to epi2D.h
   // altered from vertexAttractiveForces2D_2, where instead of vertex-vertex distances we only calculate vertex-line segment distances.
   // models sliding adhesion and sliding repulsion
   int ci, cj, gi, gj, gk, vi, vj, bi, bj, pi, pj;
   double sij, rij, dx, dy, rho0;
   double d, dist_x, dist_y;
   double d_arg, y21, x21, y20, x20, y10, x10, norm_P12, prefix, prefix2;  // for calculating 3-body forces for contactType 1 (vertex-line-segment)
-  int contactType;
+  double contactType; // parameterized projection value. if between [0,1] then it's circulo-line, if < 0 or > 1 then it is either nothing or end-end.
+  double endCapAngle, endEndAngle; // endCapAngle is PI minus interior angle of vertices, endEndAngle is between interaction centers and circulo-line endpoints
   double ftmp, fx, fy;
   energy = 0;
 
@@ -198,19 +200,17 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
         shellij = (1.0 + l2) * sij;
         cutij = (1.0 + l1) * sij;
 
-        // need to calculate d, d1, d2, which are distances from gi to gj-im1[gj], to gj, and to im1[gj] respectively
-        d = distLinePointComponentsAndContactType(x[NDIM*gj],x[NDIM*gj + 1], x[NDIM*im1[gj]], x[NDIM*im1[gj]+1], x[NDIM*gi], x[NDIM*gi+1], dist_x, dist_y, contactType);
-        // not yet sure if floating point == is good enough, should test.
-        if (contactType == 0 || contactType == 1){  // 
-          // contactType == 0 means that p0 projection onto p1-p2 is less than p1, so it's a pure vertex-vertex contact for gi-gj
-          // contactType == 1 means that p0 projection onto p1-p2 falls between p1 and p2, so it's a vertex-line-segment contact
-          // particle distance
-          //dx = x[NDIM * gj] - x[NDIM * gi];
+        // need to calculate d, d1, d2, which are distances from gi to gj-ip1[gj], to gj, and to ip1[gj] respectively
+        d = distLinePointComponentsAndContactType(x[NDIM*gj],x[NDIM*gj + 1], x[NDIM*ip1[gj]], x[NDIM*ip1[gj]+1], x[NDIM*gi], x[NDIM*gi+1], dist_x, dist_y, contactType);
+        if (contactType <= 1){ // check that the projection falls within the interacting portion of vertex i
+          // each vertex i is really a circulo-line i, and a single end cap around vertex i located at projection=0
+          // contactType < 0 means that p0 projection onto p1-p2 is less than p1, so could be a pure vertex-vertex contact for gi-gj
+          // 0 < contactType < 1 means that p0 projection onto p1-p2 falls between p1 and p2, so it's a vertex-line-segment contact
           //cout << "contact type = " << contactType << '\t' << ", dx = " << dx << '\t' << ", new dx = " << dist_x << '\n';
           dx = -dist_x;
-          if (dx < shellij) {
+          if (dx < shellij) { // check that d is within the interaction shell
             dy = -dist_y;
-            if (dy < shellij) {
+            if (dy < shellij) { 
               rij = sqrt(dx * dx + dy * dy);
               if (rij < shellij) {
                 // scaled distance
@@ -233,6 +233,9 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                   U += -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
                   cellU[ci] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
                   cellU[cj] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
+                  if (gi == 0 || gj == 0){
+                    energy += -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
+                  }
                 } else {
                   // force scale
                   ftmp = kc * (1 - xij) / sij;
@@ -241,39 +244,53 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                   U += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
                   cellU[ci] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
                   cellU[cj] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
+                  if (gi == 0 || gj == 0){
+                    energy += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
+                  }
                 }
-                if (contactType == 0) {
-                  // pure 2-body contact, add to forces
+                if (contactType <= 0) {
+                  // endEndAngle = d dot ri+1 - ri / norm d norm (ri+1 - ri)
+                  double drx = x[ip1[gj]*NDIM] - x[gj*NDIM];
+                  double dry = x[ip1[gj]*NDIM + 1] - x[gj*NDIM + 1];
+                  double drx_prev = x[gj*NDIM] - x[im1[gj]*NDIM];
+                  double dry_prev = x[gj*NDIM + 1] - x[im1[gj]*NDIM + 1];
+                  endEndAngle = (dx * drx + dy * dry) / (sqrt(dx*dx + dy*dy) + sqrt(drx*drx+dry*dry));
+                  endEndAngle -= PI/2;
+                  endCapAngle = (drx_prev * drx + dry_prev * dry) / (sqrt(drx_prev*drx_prev + dry_prev*dry_prev) + sqrt(drx*drx + dry*dry));
 
-                  // force elements
-                  fx = ftmp * (dx / rij); // dx/rij comes from the chain rule (dU/dx1 = dU/dr * dr/dx1)
-                  fy = ftmp * (dy / rij);
-                  F[NDIM * gi] -= fx;
-                  F[NDIM * gi + 1] -= fy;
+                  if (endEndAngle > 0 && endEndAngle <= endCapAngle){
+                    // pure 2-body contact, add to forces
 
-                  F[NDIM * gj] += fx;
-                  F[NDIM * gj + 1] += fy;
-                  //cout << "fx, fy = " << fx << '\t' << fy << ", for particles gi, gj = " << gi << '\t' << gj << '\n';
+                    // force elements
+                    fx = ftmp * (dx / rij); // dx/rij comes from the chain rule (dU/dx1 = dU/dr * dr/dx1)
+                    fy = ftmp * (dy / rij);
+                    F[NDIM * gi] -= fx;
+                    F[NDIM * gi + 1] -= fy;
 
-                  // add to virial stress
-                  // note: 4/7/22 I'm using -dx/2 instead of dx and same for dy for stress calculation, since
-                  //  I want to calculate force times separation from geometric center of interaction
-                  stress[0] += -dx * fx;
-                  stress[1] += -dy * fy;
-                  stress[2] += -0.5 * (dx * fy + dy * fx);
+                    F[NDIM * gj] += fx;
+                    F[NDIM * gj + 1] += fy;
+                    //cout << "fx, fy = " << fx << '\t' << fy << ", for particles gi, gj = " << gi << '\t' << gj << '\n';
 
-                  fieldStress[gi][0] += -dx / 2 * fx;
-                  fieldStress[gi][1] += -dy / 2 * fy;
-                  fieldStress[gi][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
+                    // add to virial stress
+                    // note: 4/7/22 I'm using -dx/2 instead of dx and same for dy for stress calculation, since
+                    //  I want to calculate force times separation from geometric center of interaction
+                    stress[0] += -dx * fx;
+                    stress[1] += -dy * fy;
+                    stress[2] += -0.5 * (dx * fy + dy * fx);
 
-                  // stress on gj should be the same as on gi, since it's the opposite separation and also opposite force
-                  fieldStress[gj][0] += -dx / 2 * fx;
-                  fieldStress[gj][1] += -dy / 2 * fy;
-                  fieldStress[gj][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
-                } else if (contactType == 1){
-                  // 3-body contact, 6 forces
+                    fieldStress[gi][0] += -dx / 2 * fx;
+                    fieldStress[gi][1] += -dy / 2 * fy;
+                    fieldStress[gi][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
+
+                    // stress on gj should be the same as on gi, since it's the opposite separation and also opposite force
+                    fieldStress[gj][0] += -dx / 2 * fx;
+                    fieldStress[gj][1] += -dy / 2 * fy;
+                    fieldStress[gj][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
+                  }
+                } else if (contactType < 1){
+                  // 3-body contact, 6 forces (3 pairs of forces)
                   //y21, x21, y20, x20, y10, x10, norm_P12, d_arg
-                  int g2 = im1[gj];
+                  int g2 = ip1[gj];
                   int g2_ind = NDIM*g2;
                   int g1_ind = NDIM*gj;
                   x21 = x[g2_ind] - x[g1_ind];
@@ -306,7 +323,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                   // now should add to energy and stress in an appropriate manner                */
                 }
                 // add to contacts
-                for (int i = 0; i < vnn[gi].size(); i++) {
+                /*for (int i = 0; i < vnn[gi].size(); i++) {
                   if (ci == cj)
                     break;
 
@@ -322,7 +339,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
 
                     break;
                   }
-                }
+                }*/
                 if (ci > cj)
                   cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2]++;
                 else if (ci < cj)
@@ -363,19 +380,17 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
           shellij = (1.0 + l2) * sij;
           cutij = (1.0 + l1) * sij;
 
-          // need to calculate d, d1, d2, which are distances from gi to gj-im1[gj], to gj, and to im1[gj] respectively
-          d = distLinePointComponentsAndContactType(x[NDIM*gj],x[NDIM*gj + 1], x[NDIM*im1[gj]], x[NDIM*im1[gj]+1], x[NDIM*gi], x[NDIM*gi+1], dist_x, dist_y, contactType);
-          // not yet sure if floating point == is good enough, should test.
-          if (contactType == 0 || contactType == 1){  // 
-            // contactType == 0 means that p0 projection onto p1-p2 is less than p1, so it's a pure vertex-vertex contact for gi-gj
-            // contactType == 1 means that p0 projection onto p1-p2 falls between p1 and p2, so it's a vertex-line-segment contact
-            // particle distance
-            //dx = x[NDIM * gj] - x[NDIM * gi];
+          // need to calculate d, d1, d2, which are distances from gi to gj-ip1[gj], to gj, and to ip1[gj] respectively
+          d = distLinePointComponentsAndContactType(x[NDIM*gj],x[NDIM*gj + 1], x[NDIM*ip1[gj]], x[NDIM*ip1[gj]+1], x[NDIM*gi], x[NDIM*gi+1], dist_x, dist_y, contactType);
+          if (contactType <= 1){ // check that the projection falls within the interacting portion of vertex i
+            // each vertex i is really a circulo-line i, and a single end cap around vertex i located at projection=0
+            // contactType < 0 means that p0 projection onto p1-p2 is less than p1, so could be a pure vertex-vertex contact for gi-gj
+            // 0 < contactType < 1 means that p0 projection onto p1-p2 falls between p1 and p2, so it's a vertex-line-segment contact
             //cout << "contact type = " << contactType << '\t' << ", dx = " << dx << '\t' << ", new dx = " << dist_x << '\n';
             dx = -dist_x;
-            if (dx < shellij) {
+            if (dx < shellij) { // check that d is within the interaction shell
               dy = -dist_y;
-              if (dy < shellij) {
+              if (dy < shellij) { 
                 rij = sqrt(dx * dx + dy * dy);
                 if (rij < shellij) {
                   // scaled distance
@@ -398,6 +413,9 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                     U += -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
                     cellU[ci] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
                     cellU[cj] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
+                    if (gi == 0 || gj == 0){
+                      energy += -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
+                    }
                   } else {
                     // force scale
                     ftmp = kc * (1 - xij) / sij;
@@ -406,38 +424,53 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                     U += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
                     cellU[ci] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
                     cellU[cj] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
-                  }
-                  if (contactType == 0) {
-                    // pure 2-body contact, add to forces
+                    if (gi == 0 || gj == 0){
+                      energy += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
+                    }
+                  }                  
+                  if (contactType <= 0) {
+                    // endEndAngle = d dot ri+1 - ri / norm d norm (ri+1 - ri)
+                    double drx = x[ip1[gj]*NDIM] - x[gj*NDIM];
+                    double dry = x[ip1[gj]*NDIM + 1] - x[gj*NDIM + 1];
+                    double drx_prev = x[gj*NDIM] - x[im1[gj]*NDIM];
+                    double dry_prev = x[gj*NDIM + 1] - x[im1[gj]*NDIM + 1];
+                    endEndAngle = (dx * drx + dy * dry) / (sqrt(dx*dx + dy*dy) + sqrt(drx*drx+dry*dry));
+                    endEndAngle -= PI/2;
+                    endCapAngle = (drx_prev * drx + dry_prev * dry) / (sqrt(drx_prev*drx_prev + dry_prev*dry_prev) + sqrt(drx*drx + dry*dry));
 
-                    // force elements
-                    fx = ftmp * (dx / rij); // dx/rij comes from the chain rule (dU/dx1 = dU/dr * dr/dx1)
-                    fy = ftmp * (dy / rij);
-                    F[NDIM * gi] -= fx;
-                    F[NDIM * gi + 1] -= fy;
+                    if (endEndAngle > 0 && endEndAngle <= endCapAngle){
+                      // pure 2-body contact, add to forces
 
-                    F[NDIM * gj] += fx;
-                    F[NDIM * gj + 1] += fy;
+                      // force elements
+                      fx = ftmp * (dx / rij); // dx/rij comes from the chain rule (dU/dx1 = dU/dr * dr/dx1)
+                      fy = ftmp * (dy / rij);
+                      F[NDIM * gi] -= fx;
+                      F[NDIM * gi + 1] -= fy;
 
-                    // add to virial stress
-                    // note: 4/7/22 I'm using -dx/2 instead of dx and same for dy for stress calculation, since
-                    //  I want to calculate force times separation from geometric center of interaction
-                    stress[0] += -dx * fx;
-                    stress[1] += -dy * fy;
-                    stress[2] += -0.5 * (dx * fy + dy * fx);
+                      F[NDIM * gj] += fx;
+                      F[NDIM * gj + 1] += fy;
+                      //cout << "fx, fy = " << fx << '\t' << fy << ", for particles gi, gj = " << gi << '\t' << gj << '\n';
 
-                    fieldStress[gi][0] += -dx / 2 * fx;
-                    fieldStress[gi][1] += -dy / 2 * fy;
-                    fieldStress[gi][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
+                      // add to virial stress
+                      // note: 4/7/22 I'm using -dx/2 instead of dx and same for dy for stress calculation, since
+                      //  I want to calculate force times separation from geometric center of interaction
+                      stress[0] += -dx * fx;
+                      stress[1] += -dy * fy;
+                      stress[2] += -0.5 * (dx * fy + dy * fx);
 
-                    // stress on gj should be the same as on gi, since it's the opposite separation and also opposite force
-                    fieldStress[gj][0] += -dx / 2 * fx;
-                    fieldStress[gj][1] += -dy / 2 * fy;
-                    fieldStress[gj][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
-                  } else if (contactType == 1){
-                    // 3-body contact, 6 forces
+                      fieldStress[gi][0] += -dx / 2 * fx;
+                      fieldStress[gi][1] += -dy / 2 * fy;
+                      fieldStress[gi][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
+
+                      // stress on gj should be the same as on gi, since it's the opposite separation and also opposite force
+                      fieldStress[gj][0] += -dx / 2 * fx;
+                      fieldStress[gj][1] += -dy / 2 * fy;
+                      fieldStress[gj][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
+                    }
+                  } else if (contactType < 1){
+                    // 3-body contact, 6 forces (3 pairs of forces)
                     //y21, x21, y20, x20, y10, x10, norm_P12, d_arg
-                    int g2 = im1[gj];
+                    int g2 = ip1[gj];
                     int g2_ind = NDIM*g2;
                     int g1_ind = NDIM*gj;
                     x21 = x[g2_ind] - x[g1_ind];
@@ -467,10 +500,10 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                     cout << "forces in X = " << ftmp * prefix * y21 << '\t' << ftmp*(prefix*-y20 + x21*prefix2) << '\t' << ftmp*(prefix*y10 - x21*prefix2) << '\n';
                     cout << "ftmp = " << ftmp << ",\t prefix = " << prefix << ",\t y21 = " << y21 << ",\t\n y20 = " 
                           << y20 << ",\t x21 = " << x21 << ",\t y10 = " << y10 << ",\t x21 = " << x21 << '\n';
-                    // now should add to energy and stress in an appropriate manner*/
-                  }
+                    // now should add to energy and stress in an appropriate manner                */
+                  }                  
                   if (ci != cj) {
-                    for (int i = 0; i < vnn[gi].size(); i++) {
+                    /*for (int i = 0; i < vnn[gi].size(); i++) {
                       if (vnn[gi][i] < 0) {
                         vnn[gi][i] = gj;  // set the first unused array element to gj, in gi's neighbor list
 
@@ -483,7 +516,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
 
                         break;
                       }
-                    }
+                    }*/
                     if (ci > cj)
                       cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2]++;
                     else if (ci < cj)
@@ -760,7 +793,6 @@ void cell::vertexAttractiveForces2D_test(double &energy) {
 
                 if (gi == 0 || gj == 0){
                   cout << "fx, fy = " << fx << '\t' << fy << '\n';
-
                 }
 
                 // add to forces

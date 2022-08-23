@@ -1581,12 +1581,12 @@ double dpm::distanceLinePointComponents(double x1, double y1, double x2, double 
 }
 
 double dpm::distLinePointComponentsAndContactType(double x1, double y1, double x2, double y2, double x0, double y0,
- double& xcomp, double& ycomp, int& contactType){
-    // get the distance from a line segment going through (x1,y1), (x2,y2) and a
-  // point located at (x0,y0), and extract x and y components of the distance
-  // and determine whether the contact type is vertex-vertex between 0 and 1 (TRUE)
-  //  or vertex-line-segment betw 0 and 1-2 (FALSE)
-  //  or vertex-vertex betw 0 and 2 (FALSE)
+    double& xcomp, double& ycomp, double& contactType){
+    // get the distance from a line SEGMENT (ending at its endpoints) going through (x1,y1), (x2,y2) and a
+  // point located at (x0,y0), and extract x and y components of the distance.
+  // and determine whether the contact type (parameterized projection) is vertex-vertex between 0 and 1 (<0)
+  //  or vertex-line-segment betw 0 and 1-2 (0<x<1)
+  //  or vertex-vertex betw 0 and 2 (>1)
   double dx21 = x2-x1, dy21 = y2-y1, dx10 = x1-x0, dy10 = y1-y0;
   if (pbc[0]){
     dx21 -= L[0] * round(dx21/L[0]);
@@ -1616,15 +1616,10 @@ double dpm::distLinePointComponentsAndContactType(double x1, double y1, double x
     ycomp -= L[0] * round(ycomp/L[0]);
   }
 
-  if (t == 0.0) // projection < 0, so the nearest point on the line segment is the position of vertex (x1,x2)
-    contactType = 0;
-  else if (t < 1.0)
-    contactType = 1;
-  else if (t == 1.0)
-    contactType = 2;
+  contactType = dot / l2;
   const double distance = sqrt(pow(xcomp, 2) + pow(ycomp, 2));
   return distance;
- }
+}
 
 
 void dpm::generateCircularBoundary(int numEdges, double radius, double cx, double cy, std::vector<double>& poly_x, std::vector<double>& poly_y) {

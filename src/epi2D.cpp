@@ -619,13 +619,14 @@ void epi2D::vertexAttractiveForces2D_2() {
 }
 
 void epi2D::circuloLineAttractiveForces() {
+  // note: this is definitely broken for 8/23/22. Making modifications and testing in cell.cpp
   // altered from vertexAttractiveForces2D_2, where instead of vertex-vertex distances we only calculate vertex-line segment distances.
   // models sliding adhesion and sliding repulsion
   int ci, cj, gi, gj, gk, vi, vj, bi, bj, pi, pj;
   double sij, rij, dx, dy, rho0;
   double d, dist_x, dist_y;
   double d_arg, y21, x21, y20, x20, y10, x10, norm_P12, prefix, prefix2;  // for calculating 3-body forces for contactType 1 (vertex-line-segment)
-  int contactType;
+  double contactType;
   double ftmp, fx, fy;
 
   // attraction shell parameters
@@ -681,8 +682,8 @@ void epi2D::circuloLineAttractiveForces() {
         // need to calculate d, d1, d2, which are distances from gi to gj-im1[gj], to gj, and to im1[gj] respectively
         d = distLinePointComponentsAndContactType(x[NDIM*gj],x[NDIM*gj + 1], x[NDIM*im1[gj]], x[NDIM*im1[gj]+1], x[NDIM*gi], x[NDIM*gi+1], dist_x, dist_y, contactType);
         // not yet sure if floating point == is good enough, should test.
-        if (contactType == 0 || contactType == 1){  // 
-          // contactType == 0 means that p0 projection onto p1-p2 is less than p1, so it's a pure vertex-vertex contact for gi-gj
+        if (contactType < 0 || contactType < 1){  // 
+          // contactType <= 0 means that p0 projection onto p1-p2 is less than p1, so it's a pure vertex-vertex contact for gi-gj
           // contactType == 1 means that p0 projection onto p1-p2 falls between p1 and p2, so it's a vertex-line-segment contact
           // particle distance
           //dx = x[NDIM * gj] - x[NDIM * gi];
@@ -722,7 +723,7 @@ void epi2D::circuloLineAttractiveForces() {
                   cellU[ci] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
                   cellU[cj] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
                 }
-                if (contactType == 0) {
+                if (contactType <= 0) {
                   // pure 2-body contact, add to forces
 
                   // force elements
@@ -750,7 +751,7 @@ void epi2D::circuloLineAttractiveForces() {
                   fieldStress[gj][0] += -dx / 2 * fx;
                   fieldStress[gj][1] += -dy / 2 * fy;
                   fieldStress[gj][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
-                } else if (contactType == 1){
+                } else if (contactType < 1){
                   // 3-body contact, 6 forces
                   //y21, x21, y20, x20, y10, x10, norm_P12, d_arg
                   int g2 = im1[gj];
@@ -846,7 +847,7 @@ void epi2D::circuloLineAttractiveForces() {
           // need to calculate d, d1, d2, which are distances from gi to gj-im1[gj], to gj, and to im1[gj] respectively
           d = distLinePointComponentsAndContactType(x[NDIM*gj],x[NDIM*gj + 1], x[NDIM*im1[gj]], x[NDIM*im1[gj]+1], x[NDIM*gi], x[NDIM*gi+1], dist_x, dist_y, contactType);
           // not yet sure if floating point == is good enough, should test.
-          if (contactType == 0 || contactType == 1){  // 
+          if (contactType <= 0 || contactType <= 1){  // 
             // contactType == 0 means that p0 projection onto p1-p2 is less than p1, so it's a pure vertex-vertex contact for gi-gj
             // contactType == 1 means that p0 projection onto p1-p2 falls between p1 and p2, so it's a vertex-line-segment contact
             // particle distance
@@ -887,7 +888,7 @@ void epi2D::circuloLineAttractiveForces() {
                     cellU[ci] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
                     cellU[cj] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
                   }
-                  if (contactType == 0) {
+                  if (contactType <= 0) {
                     // pure 2-body contact, add to forces
 
                     // force elements
@@ -914,7 +915,7 @@ void epi2D::circuloLineAttractiveForces() {
                     fieldStress[gj][0] += -dx / 2 * fx;
                     fieldStress[gj][1] += -dy / 2 * fy;
                     fieldStress[gj][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
-                  } else if (contactType == 1){
+                  } else if (contactType > 1){
                     // 3-body contact, 6 forces
                     //y21, x21, y20, x20, y10, x10, norm_P12, d_arg
                     int g2 = im1[gj];

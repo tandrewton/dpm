@@ -133,7 +133,7 @@ int main(int argc, char const* argv[]) {
 
   std::vector<double> forcex, forcey, energy;
 
-  int numRepeats = 2;
+  int numRepeats = 1;
   for (int i = 0; i < numRepeats; i++){
     cout << "att, att_range = " << att << '\t' << att_range << '\n';
     // revert to original position, then change attraction
@@ -149,7 +149,8 @@ int main(int argc, char const* argv[]) {
       
       // print configuration and calculate its forces
       cell2D.printConfiguration2D();
-      cell2D.attractiveForceUpdatePrint(fx, fy, u);
+      //cell2D.attractiveForceUpdatePrint(fx, fy, u);
+      cell2D.attractiveForceUpdateSmoothPrint(fx, fy, u);
       forcex.push_back(fx);
       forcey.push_back(fy);
       energy.push_back(u);
