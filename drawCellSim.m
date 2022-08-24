@@ -187,6 +187,7 @@ for seed = startSeed:max_seed
                     for xx = itLow:itHigh
                         for yy = itLow:itHigh
                             rectangle('Position',[xplot+xx*Lx, yplot + yy*Ly, 2*vradtmp(vv), 2*vradtmp(vv)],'Curvature',[1 1],'EdgeColor','k','FaceColor',clr);
+                            text(xplot,yplot,num2str(vv))
                         end
                     end
                 end
@@ -245,8 +246,9 @@ for seed = startSeed:max_seed
         end
         
         %annotationStr = "$$t/\tau$$ = "+time(ff);
-        %annotation('textbox',[0.48, 0.5, 0, 0],...
-        %    'interpreter', 'latex', 'String', annotationStr, 'Edgecolor','none', 'FitBoxToText','on');
+        annotationStr = "frame="+ff;
+        annotation('textbox',[0.4, 0.4, 0, 0],...
+            'interpreter', 'latex', 'String', annotationStr, 'Edgecolor','none', 'FitBoxToText','on');
 
 
         % if making a movie, save frame

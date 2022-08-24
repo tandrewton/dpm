@@ -202,7 +202,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
 
         // need to calculate d, d1, d2, which are distances from gi to gj-ip1[gj], to gj, and to ip1[gj] respectively
         d = distLinePointComponentsAndContactType(x[NDIM*gj],x[NDIM*gj + 1], x[NDIM*ip1[gj]], x[NDIM*ip1[gj]+1], x[NDIM*gi], x[NDIM*gi+1], dist_x, dist_y, contactType);
-        if (contactType <= 1){ // check that the projection falls within the interacting portion of vertex i
+        if (contactType < 1) { // check that the projection falls within the interacting portion of vertex i
           // each vertex i is really a circulo-line i, and a single end cap around vertex i located at projection=0
           // contactType < 0 means that p0 projection onto p1-p2 is less than p1, so could be a pure vertex-vertex contact for gi-gj
           // 0 < contactType < 1 means that p0 projection onto p1-p2 falls between p1 and p2, so it's a vertex-line-segment contact
@@ -248,7 +248,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                     energy += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
                   }
                 }
-                if (contactType <= 0) {
+                if (contactType <= 0) { // projection is either on the endpoint or outside the endpoint, i.e. not on the line segment
                   // endEndAngle = d dot ri+1 - ri / norm d norm (ri+1 - ri)
                   double drx = x[ip1[gj]*NDIM] - x[gj*NDIM];
                   double dry = x[ip1[gj]*NDIM + 1] - x[gj*NDIM + 1];
@@ -287,7 +287,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                     fieldStress[gj][1] += -dy / 2 * fy;
                     fieldStress[gj][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
                   }
-                } else if (contactType < 1){
+                } else { // contactType less than 1 and greater than 0, so we're on main line segment
                   // 3-body contact, 6 forces (3 pairs of forces)
                   //y21, x21, y20, x20, y10, x10, norm_P12, d_arg
                   int g2 = ip1[gj];
@@ -428,7 +428,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                       energy += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
                     }
                   }                  
-                  if (contactType <= 0) {
+                  if (contactType <= 0) { // projection is either on the endpoint or outside the endpoint, i.e. not on the line segment
                     // endEndAngle = d dot ri+1 - ri / norm d norm (ri+1 - ri)
                     double drx = x[ip1[gj]*NDIM] - x[gj*NDIM];
                     double dry = x[ip1[gj]*NDIM + 1] - x[gj*NDIM + 1];
@@ -467,7 +467,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                       fieldStress[gj][1] += -dy / 2 * fy;
                       fieldStress[gj][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
                     }
-                  } else if (contactType < 1){
+                  } else { // contactType less than 1 and greater than 0, so we're on main line segment
                     // 3-body contact, 6 forces (3 pairs of forces)
                     //y21, x21, y20, x20, y10, x10, norm_P12, d_arg
                     int g2 = ip1[gj];

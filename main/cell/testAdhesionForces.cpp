@@ -100,8 +100,8 @@ int main(int argc, char const* argv[]) {
   cell2D.initializeNeighborLinkedList2D(boxLengthScale);
 
   // compress to target packing fraction
-  cell2D.vertexCompress2Target2D(repulsiveForceUpdate, Ftol, dt0, phiMax, dphi0);
-  cout << "done compressing to target packing fraction\n";
+  //cell2D.vertexCompress2Target2D(repulsiveForceUpdate, Ftol, dt0, phiMax, dphi0);
+  //cout << "done compressing to target packing fraction\n";
   //cell2D.printConfiguration2D();
 
   bool wallsBool = true;
@@ -114,38 +114,66 @@ int main(int argc, char const* argv[]) {
   // dpmMemFn customForceUpdate = repulsivePolarityForceUpdate;
   // dpmMemFn customForceUpdate = attractivePolarityForceUpdate;
   dpmMemFn customForceUpdate = attractiveForceUpdate;
-  cell2D.dampedVertexNVE(customForceUpdate, B, dt0, relaxTimeShort, relaxTimeShort/5);
+  //cell2D.dampedVertexNVE(customForceUpdate, B, dt0, relaxTimeShort, relaxTimeShort/5);
 
   // expecting exactly 2 cells with 10 vertices each here
   double diameter = 2*cell2D.getr(0);
-  double horizontalOffset = - diameter * 0.01;
+  double offset = - diameter * 0.25;
 
-  for (int gi = 0; gi < 20; gi++){  // move vertices into place for testing forces as a function of distance
+  for (int gi = 0; gi < 20; gi++){  // move vertices in cell 1 into a rectangle for testing forces on vertex 0 cell 0 as a function of distance
     if (gi < 10)
       cell2D.moveVertex(gi, -1, -1);
-    else if (gi > 12) 
+    /*else if (gi > 12) 
       cell2D.moveVertex(gi, 3, 3);
-    else cell2D.moveVertex(gi, 1, 1+(gi % 10)*diameter);
+    else cell2D.moveVertex(gi, 1, 1+(gi % 10)*diameter);*/
   }
-  cell2D.moveVertex(0, 1-diameter-horizontalOffset, 1); // place vertex 0 from cell 0 next to vertex 0-2 in cell 1.
-  cell2D.printConfiguration2D();
+
+  // dpm is written counterclockwise for vertex numbering
+
+  cell2D.moveVertex(19, 1+0*diameter, 1+0*diameter);
+  cell2D.moveVertex(18, 1+0*diameter, 1+1*diameter);
+  cell2D.moveVertex(17, 1+0*diameter, 1+2*diameter);
+  cell2D.moveVertex(16, 1+0*diameter, 1+3*diameter);
+  cell2D.moveVertex(15, 1+1*diameter, 1+3*diameter);
+  cell2D.moveVertex(14, 1+2*diameter, 1+3*diameter);
+  cell2D.moveVertex(13, 1+2*diameter, 1+2*diameter);
+  cell2D.moveVertex(12, 1+2*diameter, 1+1*diameter);
+  cell2D.moveVertex(11, 1+2*diameter, 1+0*diameter);
+  cell2D.moveVertex(10, 1+1*diameter, 1+0*diameter);
+
+
+  double origin = 1-diameter-offset;
+  cell2D.moveVertex(0, origin, 1); // place vertex 0 from cell 0 next to vertex 0-2 in cell 1.
+  //cell2D.printConfiguration2D();
   cell2D.saveConfiguration(savedPositions);
 
   std::vector<double> forcex, forcey, energy;
 
-  int numRepeats = 1;
-  for (int i = 0; i < numRepeats; i++){
+  int numDirections = 4;
+  for (int i = 0; i < numDirections; i++){
     cout << "att, att_range = " << att << '\t' << att_range << '\n';
     // revert to original position, then change attraction
     cell2D.loadConfiguration(savedPositions);
     cell2D.setl1(att);
     cell2D.setl2(att_range);
     
-    int epsilonInv = 20;
-    for (int j = 0; j < epsilonInv; j++){
+    int epsilonInv = 50;
+
+    for (int j = 0; j < epsilonInv + 1; j++){
       double fx, fy, u;
-      // move vertex 0 in y direction
-      cell2D.moveVertex(0, 1-diameter-horizontalOffset, 1+j*diameter*3/epsilonInv);
+      // move vertex 0 in x or y direction along the rectangle made by cell 1
+      if (i == 0){
+        cell2D.moveVertex(0, origin, origin + j*(diameter*5.0 + 2*offset)/epsilonInv);
+      }
+      if (i == 1){
+        cell2D.moveVertex(0, origin + j*(diameter*4.0 + 2*offset) /epsilonInv, origin + diameter*5.0 + 2*offset);
+      }
+      if (i == 2){
+        cell2D.moveVertex(0, origin + diameter*4.0 + 2*offset, origin + diameter*5.0 + 2*offset - j*(diameter*5.0 + 2*offset)/epsilonInv);
+      }
+      if (i == 3){
+        cell2D.moveVertex(0, origin + diameter*4.0 + 2*offset - j*(diameter*4.0 + 2*offset)/epsilonInv, origin);
+      }
       
       // print configuration and calculate its forces
       cell2D.printConfiguration2D();
