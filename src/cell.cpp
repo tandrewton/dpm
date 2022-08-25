@@ -144,8 +144,8 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
   // altered from vertexAttractiveForces2D_2, where instead of vertex-vertex distances we only calculate vertex-line segment distances.
   // models sliding adhesion and sliding repulsion
   int ci, cj, gi, gj, gk, vi, vj, bi, bj, pi, pj;
-  double sij, rij, dx, dy, rho0;
-  double d, dist_x, dist_y;
+  double sij, rij, rho0;
+  double d, rx, ry, dx, dy; // distance and components of separation between projection of point p onto line segment v-w
   double d_arg, y21, x21, y20, x20, y10, x10, norm_P12, prefix, prefix2;  // for calculating 3-body forces for contactType 1 (vertex-line-segment)
   double contactType; // parameterized projection value. if between [0,1] then it's circulo-line, if < 0 or > 1 then it is either nothing or end-end.
   double endCapAngle, endEndAngle; // endCapAngle is PI minus interior angle of vertices, endEndAngle is between interaction centers and circulo-line endpoints
@@ -201,21 +201,19 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
         cutij = (1.0 + l1) * sij;
 
         // need to calculate d, d1, d2, which are distances from gi to gj-ip1[gj], to gj, and to ip1[gj] respectively
-        d = distLinePointComponentsAndContactType(x[NDIM*gj],x[NDIM*gj + 1], x[NDIM*ip1[gj]], x[NDIM*ip1[gj]+1], x[NDIM*gi], x[NDIM*gi+1], dist_x, dist_y, contactType);
+        d = distLinePointComponentsAndContactType(x[NDIM*gj],x[NDIM*gj + 1], x[NDIM*ip1[gj]], x[NDIM*ip1[gj]+1], x[NDIM*gi], x[NDIM*gi+1], rx, ry, contactType);
         if (contactType < 1) { // check that the projection falls within the interacting portion of vertex i
           // each vertex i is really a circulo-line i, and a single end cap around vertex i located at projection=0
           // contactType < 0 means that p0 projection onto p1-p2 is less than p1, so could be a pure vertex-vertex contact for gi-gj
           // 0 < contactType < 1 means that p0 projection onto p1-p2 falls between p1 and p2, so it's a vertex-line-segment contact
-          //cout << "contact type = " << contactType << '\t' << ", dx = " << dx << '\t' << ", new dx = " << dist_x << '\n';
-          dx = -dist_x;
+          dx = -rx;
           if (dx < shellij) { // check that d is within the interaction shell
-            dy = -dist_y;
+            dy = -ry;
             if (dy < shellij) { 
               rij = sqrt(dx * dx + dy * dy);
               if (rij < shellij) {
                 // scaled distance
                 xij = rij / sij;
-
                 // pick force based on vertex-vertex distance
                 if (ci == cj) {
                   // if vertices (not neighbors) are in same cell, compute
@@ -288,6 +286,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                     fieldStress[gj][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
                   }
                 } else { // contactType less than 1 and greater than 0, so we're on main line segment
+                  // Force on particle 0,1,2 is determined by F = - dU/dr = (partials) dU/dr * <dr/dxi , dr/dyi> 
                   // 3-body contact, 6 forces (3 pairs of forces)
                   //y21, x21, y20, x20, y10, x10, norm_P12, d_arg
                   int g2 = ip1[gj];
@@ -303,6 +302,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                   norm_P12 = sqrt(pow(x21,2)+pow(y21,2));
                   prefix = d_arg/fabs(d_arg)/norm_P12; 
                   prefix2 = fabs(d_arg)/pow(norm_P12,3);
+                  
                   F[NDIM * gi] += ftmp * prefix * y21;
                   F[NDIM * gi + 1] += ftmp * prefix * -x21;
 
@@ -312,8 +312,27 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                   F[NDIM * g2] += ftmp*(prefix*y10 - x21*prefix2);
                   F[NDIM * g2 + 1] += ftmp*(prefix*-x10 - y21*prefix2);
 
-                  /*cout << "triplet particles are " << gi << '\t' << gj << "," << g2 << '\n';
+                  // above force calculation is my complicated derivatives
+                  // below force calculation is the simpler version, hopefully
 
+                  /*F[NDIM * gi] += ftmp * (x[NDIM * gi] - dx)/d;
+                  F[NDIM * gi + 1] += ftmp * (x[NDIM*gi+1] - dy)/d;
+
+                  F[NDIM * gj] += ftmp * (x[NDIM * gi] - dx) * (contactType - 1)/d;
+                  F[NDIM * gj + 1] += ftmp * (x[NDIM * gi + 1] - dy) * (contactType - 1)/d;
+
+                  F[NDIM * g2] += ftmp * (x[NDIM * gi] - dx) * (-contactType)/d;
+                  F[NDIM * g2 + 1] += ftmp * (x[NDIM * gi + 1] - dy) * (-contactType)/d;*/
+                  if (gi == 0) {
+                    cout << "force calculation!\n\n\n";
+                    cout << "forces on gi: andrew smooth = " << ftmp * prefix * y21 << '\t' << ftmp * prefix * -x21 << '\n';
+                    cout << "forces on gi: francesco smooth = " << ftmp * (x[NDIM * gi] - dx)/d << '\t' << ftmp * (x[NDIM*gi+1] - dy)/d << '\n';
+                    cout << "forces on gj: andrew smooth = " << ftmp*(prefix*-y20 + x21*prefix2) << '\t' << ftmp*(prefix*x20 + y21*prefix2) << '\n';
+                    cout << "forces on gj: francesco smooth = " << ftmp * (x[NDIM * gi] - dx) * (contactType - 1)/d << '\t' << ftmp * (x[NDIM * gi + 1] - dy) * (contactType - 1)/d << '\n';
+                    cout << "forces on g2: andrew smooth = " << ftmp*(prefix*y10 - x21*prefix2) << '\t' << ftmp*(prefix*-x10 - y21*prefix2) << '\n';
+                    cout << "forces on g2: francesco smooth = " << ftmp * (x[NDIM * gi] - dx) * (-contactType)/d << '\t' << ftmp * (x[NDIM * gi + 1] - dy) * (-contactType)/d <<'\n';
+                  }
+                  /*cout << "triplet particles are " << gi << '\t' << gj << "," << g2 << '\n';
                   cout << "sum of forces in X = " << ftmp * prefix * y21 + ftmp*(prefix*-y20 + x21*prefix2) + ftmp*(prefix*y10 - x21*prefix2)<< '\n';
                   cout << "sum of forces in Y = " << ftmp * prefix * -x21 + ftmp*(prefix*x20 + y21*prefix2) + ftmp*(prefix*-x10 - y21*prefix2)<< '\n';
 
@@ -380,22 +399,20 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
           shellij = (1.0 + l2) * sij;
           cutij = (1.0 + l1) * sij;
 
-          // need to calculate d, d1, d2, which are distances from gi to gj-ip1[gj], to gj, and to ip1[gj] respectively
-          d = distLinePointComponentsAndContactType(x[NDIM*gj],x[NDIM*gj + 1], x[NDIM*ip1[gj]], x[NDIM*ip1[gj]+1], x[NDIM*gi], x[NDIM*gi+1], dist_x, dist_y, contactType);
-          if (contactType <= 1){ // check that the projection falls within the interacting portion of vertex i
+            // need to calculate d, d1, d2, which are distances from gi to gj-ip1[gj], to gj, and to ip1[gj] respectively
+          d = distLinePointComponentsAndContactType(x[NDIM*gj],x[NDIM*gj + 1], x[NDIM*ip1[gj]], x[NDIM*ip1[gj]+1], x[NDIM*gi], x[NDIM*gi+1], rx, ry, contactType);
+          if (contactType < 1) { // check that the projection falls within the interacting portion of vertex i
             // each vertex i is really a circulo-line i, and a single end cap around vertex i located at projection=0
             // contactType < 0 means that p0 projection onto p1-p2 is less than p1, so could be a pure vertex-vertex contact for gi-gj
             // 0 < contactType < 1 means that p0 projection onto p1-p2 falls between p1 and p2, so it's a vertex-line-segment contact
-            //cout << "contact type = " << contactType << '\t' << ", dx = " << dx << '\t' << ", new dx = " << dist_x << '\n';
-            dx = -dist_x;
+            dx = -rx;
             if (dx < shellij) { // check that d is within the interaction shell
-              dy = -dist_y;
+              dy = -ry;
               if (dy < shellij) { 
                 rij = sqrt(dx * dx + dy * dy);
                 if (rij < shellij) {
                   // scaled distance
                   xij = rij / sij;
-
                   // pick force based on vertex-vertex distance
                   if (ci == cj) {
                     // if vertices (not neighbors) are in same cell, compute
@@ -427,7 +444,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                     if (gi == 0 || gj == 0){
                       energy += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
                     }
-                  }                  
+                  }
                   if (contactType <= 0) { // projection is either on the endpoint or outside the endpoint, i.e. not on the line segment
                     // endEndAngle = d dot ri+1 - ri / norm d norm (ri+1 - ri)
                     double drx = x[ip1[gj]*NDIM] - x[gj*NDIM];
@@ -468,6 +485,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                       fieldStress[gj][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
                     }
                   } else { // contactType less than 1 and greater than 0, so we're on main line segment
+                    // Force on particle 0,1,2 is determined by F = - dU/dr = (partials) dU/dr * <dr/dxi , dr/dyi> 
                     // 3-body contact, 6 forces (3 pairs of forces)
                     //y21, x21, y20, x20, y10, x10, norm_P12, d_arg
                     int g2 = ip1[gj];
@@ -483,6 +501,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                     norm_P12 = sqrt(pow(x21,2)+pow(y21,2));
                     prefix = d_arg/fabs(d_arg)/norm_P12; 
                     prefix2 = fabs(d_arg)/pow(norm_P12,3);
+                    
                     F[NDIM * gi] += ftmp * prefix * y21;
                     F[NDIM * gi + 1] += ftmp * prefix * -x21;
 
@@ -492,6 +511,27 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                     F[NDIM * g2] += ftmp*(prefix*y10 - x21*prefix2);
                     F[NDIM * g2 + 1] += ftmp*(prefix*-x10 - y21*prefix2);
 
+                    // above force calculation is my complicated derivatives
+                    // below force calculation is the simpler version, hopefully
+
+                    /*F[NDIM * gi] += ftmp * (x[NDIM * gi] - dx)/d;
+                    F[NDIM * gi + 1] += ftmp * (x[NDIM*gi+1] - dy)/d;
+
+                    F[NDIM * gj] += ftmp * (x[NDIM * gi] - dx) * (contactType - 1)/d;
+                    F[NDIM * gj + 1] += ftmp * (x[NDIM * gi + 1] - dy) * (contactType - 1)/d;
+
+                    F[NDIM * g2] += ftmp * (x[NDIM * gi] - dx) * (-contactType)/d;
+                    F[NDIM * g2 + 1] += ftmp * (x[NDIM * gi + 1] - dy) * (-contactType)/d;*/
+                    
+                    if (gi == 0) {
+                      cout << "force calculation!\n\n\n";
+                      cout << "forces on gi: andrew smooth = " << ftmp * prefix * y21 << '\t' << ftmp * prefix * -x21 << '\n';
+                      cout << "forces on gi: francesco smooth = " << ftmp * (x[NDIM * gi] - dx)/d << '\t' << ftmp * (x[NDIM*gi+1] - dy)/d << '\n';
+                      cout << "forces on gj: andrew smooth = " << ftmp*(prefix*-y20 + x21*prefix2) << '\t' << ftmp*(prefix*x20 + y21*prefix2) << '\n';
+                      cout << "forces on gj: francesco smooth = " << ftmp * (x[NDIM * gi] - dx) * (contactType - 1)/d << '\t' << ftmp * (x[NDIM * gi + 1] - dy) * (contactType - 1)/d << '\n';
+                      cout << "forces on g2: andrew smooth = " << ftmp*(prefix*y10 - x21*prefix2) << '\t' << ftmp*(prefix*-x10 - y21*prefix2) << '\n';
+                      cout << "forces on g2: francesco smooth = " << ftmp * (x[NDIM * gi] - dx) * (-contactType)/d << '\t' << ftmp * (x[NDIM * gi + 1] - dy) * (-contactType)/d <<'\n';
+                    }
                     /*cout << "triplet particles are " << gi << '\t' << gj << "," << g2 << '\n';
 
                     cout << "sum of forces in X = " << ftmp * prefix * y21 + ftmp*(prefix*-y20 + x21*prefix2) + ftmp*(prefix*y10 - x21*prefix2)<< '\n';
