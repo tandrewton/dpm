@@ -104,7 +104,11 @@ for seed = startSeed:max_seed
     FEND = NFRAMES;
 
     if makeAMovie == 1
-        moviestr = output_dir + runType+fileheader+'seed_'+seed+'.mp4';
+        movieName = output_dir + runType+fileheader+'seed_'+seed+'.mp4';
+        if exist(movieName, 'file')==2
+          delete(movieName);
+        end
+        moviestr = movieName;
         vobj = VideoWriter(moviestr, 'MPEG-4');
         vobj.Quality = 100;
             
@@ -187,7 +191,7 @@ for seed = startSeed:max_seed
                     for xx = itLow:itHigh
                         for yy = itLow:itHigh
                             rectangle('Position',[xplot+xx*Lx, yplot + yy*Ly, 2*vradtmp(vv), 2*vradtmp(vv)],'Curvature',[1 1],'EdgeColor','k','FaceColor',clr);
-                            text(xplot,yplot,num2str(vv))
+                            text(xplot,yplot,num2str(vv-1))
                         end
                     end
                 end
@@ -256,6 +260,10 @@ for seed = startSeed:max_seed
             currframe = getframe(gcf);
             writeVideo(vobj,currframe);
         end
+        while (ff == 77)
+            disp("hi")
+        end
+
     end
 
 

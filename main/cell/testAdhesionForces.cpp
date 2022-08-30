@@ -26,7 +26,7 @@ const double sizeratio = 1.0;  // size ratio between small and large particles
 const double dt0 = 1e-2;       // initial magnitude of time step in units of MD time
 const double Ptol = 1e-8;
 const double Ftol = 1e-12;
-const double att_range = 0.5;
+const double att_range = 0.01;  // att_range > 0 might cause problems with current scheme for smooth forces
 
 int main(int argc, char const* argv[]) {
   // local variables to be read in
@@ -95,7 +95,7 @@ int main(int argc, char const* argv[]) {
   cell2D.monodisperse2D(calA0, nv);
   // initialize particle positions
   cell2D.initializePositions2D(phi0, Ftol);
-  cell2D.printConfiguration2D();
+  // cell2D.printConfiguration2D();
 
   cell2D.initializeNeighborLinkedList2D(boxLengthScale);
 
@@ -120,16 +120,13 @@ int main(int argc, char const* argv[]) {
   double diameter = 2*cell2D.getr(0);
   double offset = - diameter * 0.25;
 
-  for (int gi = 0; gi < 20; gi++){  // move vertices in cell 1 into a rectangle for testing forces on vertex 0 cell 0 as a function of distance
+  for (int gi = 0; gi < 20; gi++){  
     if (gi < 10)
-      cell2D.moveVertex(gi, -1, -1);
-    /*else if (gi > 12) 
-      cell2D.moveVertex(gi, 3, 3);
-    else cell2D.moveVertex(gi, 1, 1+(gi % 10)*diameter);*/
+      cell2D.moveVertex(gi, 0, 0); // move most cell 0 vertices out of the way
   }
 
   // dpm is written counterclockwise for vertex numbering
-
+  // move vertices in cell 1 into a rectangle for testing forces on vertex 0 cell 0 as a function of distance
   cell2D.moveVertex(19, 1+0*diameter, 1+0*diameter);
   cell2D.moveVertex(18, 1+0*diameter, 1+1*diameter);
   cell2D.moveVertex(17, 1+0*diameter, 1+2*diameter);
@@ -144,6 +141,7 @@ int main(int argc, char const* argv[]) {
 
   double origin = 1-diameter-offset;
   cell2D.moveVertex(0, origin, 1); // place vertex 0 from cell 0 next to vertex 0-2 in cell 1.
+
   //cell2D.printConfiguration2D();
   cell2D.saveConfiguration(savedPositions);
 
@@ -174,11 +172,13 @@ int main(int argc, char const* argv[]) {
       if (i == 3){
         cell2D.moveVertex(0, origin + diameter*4.0 + 2*offset - j*(diameter*4.0 + 2*offset)/epsilonInv, origin);
       }
-      
+      cout <<  "in frame = " << i*epsilonInv + j + 1 << "\n\n\n";
       // print configuration and calculate its forces
       cell2D.printConfiguration2D();
       //cell2D.attractiveForceUpdatePrint(fx, fy, u);
       cell2D.attractiveForceUpdateSmoothPrint(fx, fy, u);
+      if (fy == 0)
+        cout << "frame " << i*epsilonInv + j + 1 << " has fy = 0!\n\n";
       forcex.push_back(fx);
       forcey.push_back(fy);
       energy.push_back(u);

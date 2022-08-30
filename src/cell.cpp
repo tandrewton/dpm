@@ -200,12 +200,13 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
         shellij = (1.0 + l2) * sij;
         cutij = (1.0 + l1) * sij;
 
-        // need to calculate d, d1, d2, which are distances from gi to gj-ip1[gj], to gj, and to ip1[gj] respectively
-        d = distLinePointComponentsAndContactType(x[NDIM*gj],x[NDIM*gj + 1], x[NDIM*ip1[gj]], x[NDIM*ip1[gj]+1], x[NDIM*gi], x[NDIM*gi+1], rx, ry, contactType);
+        // need to calculate d, d1, d2, which are distances from gi to im1[gj]-gj, to im1[gj], and to gj respectively
+        d = distLinePointComponentsAndContactType(x[NDIM*im1[gj]],x[NDIM*im1[gj] + 1], x[NDIM*gj], x[NDIM*gj+1], x[NDIM*gi], x[NDIM*gi+1], rx, ry, contactType);
         if (contactType < 1) { // check that the projection falls within the interacting portion of vertex i
-          // each vertex i is really a circulo-line i, and a single end cap around vertex i located at projection=0
-          // contactType < 0 means that p0 projection onto p1-p2 is less than p1, so could be a pure vertex-vertex contact for gi-gj
+          // each vertex i is really a circulo-line between i and i-1, and a single end cap around vertex i located at projection=0
+          // contactType <= 0 means that p0 projection onto p1-p2 is behind p1, potential v-v interaction
           // 0 < contactType < 1 means that p0 projection onto p1-p2 falls between p1 and p2, so it's a vertex-line-segment contact
+          // contactType > 1 means p0 projection falls ahead of p2, so ignore
           dx = -rx;
           if (dx < shellij) { // check that d is within the interaction shell
             dy = -ry;
@@ -247,16 +248,35 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                   }
                 }
                 if (contactType <= 0) { // projection is either on the endpoint or outside the endpoint, i.e. not on the line segment
-                  // endEndAngle = d dot ri+1 - ri / norm d norm (ri+1 - ri)
-                  double drx = x[ip1[gj]*NDIM] - x[gj*NDIM];
-                  double dry = x[ip1[gj]*NDIM + 1] - x[gj*NDIM + 1];
-                  double drx_prev = x[gj*NDIM] - x[im1[gj]*NDIM];
-                  double dry_prev = x[gj*NDIM + 1] - x[im1[gj]*NDIM + 1];
-                  endEndAngle = (dx * drx + dy * dry) / (sqrt(dx*dx + dy*dy) + sqrt(drx*drx+dry*dry));
+                  // endEndAngle = arccos[(d dot rj - rj-1 / norm d norm (rj - rj-1))] - pi/2
+                  // endEndAngle is the angle between the separation between interacting vertices and the endcap edge closest to the circulo-line.
+                  // endCapAngle is the angle between the far edge of the endcap and the near edge of the endcap
+                  // endCapAngle = pi - arccos[((rj+1 - rj) dot (rj - rj-1) / norm (rj+1-rj) norm (rj - rj-1))]
+                  int left = gj;
+                  int middle = im1[gj];
+                  int right = im1[im1[gj]];
+                  
+                  double drx = x[left*NDIM] - x[middle*NDIM];
+                  double dry = x[left*NDIM + 1] - x[middle*NDIM + 1];
+                  double drx_prev = x[middle*NDIM] - x[right*NDIM];
+                  double dry_prev = x[middle*NDIM + 1] - x[right*NDIM + 1];
+                  endEndAngle = acos( (dx * drx_prev + dy * dry_prev) / (sqrt((dx*dx + dy*dy)*(drx_prev*drx_prev+dry_prev*dry_prev))) );
                   endEndAngle -= PI/2;
-                  endCapAngle = (drx_prev * drx + dry_prev * dry) / (sqrt(drx_prev*drx_prev + dry_prev*dry_prev) + sqrt(drx*drx + dry*dry));
+                  endCapAngle = acos( (drx_prev * drx + dry_prev * dry) / (sqrt(drx_prev*drx_prev + dry_prev*dry_prev)*(drx*drx + dry*dry)) );
+                  endCapAngle = PI - endCapAngle;
 
-                  if (endEndAngle > 0 && endEndAngle <= endCapAngle){
+                  // d is 
+                  if (gi == 0){
+                    cout << "shellij = " << shellij << '\n';
+                    cout << setw(25) << "gi" << '\t' << "left" << '\t' << "middle" << "\n\n";                    
+                    cout << setw(25) << gi << '\t' << left << '\t' << middle << "\n\n";
+                    cout << setw(25) << d << '\t' << rij << '\t' << x[left*NDIM] << '\t' << x[middle*NDIM] << '\t' << x[right*NDIM] << '\n';
+                    cout << setw(25) << drx_prev << '\t' << drx << '\t' << dry_prev << '\t' << dry << '\n';
+                    cout << setw(25) << "endEndAngle = " << endEndAngle << '\t' << ", endCapAngle = " << endCapAngle << '\n';
+                    cout << setw(25) << "endCapAngle is between gj = " << left << '\t' << middle << '\t' << ", and " << middle << '\t' << right << '\n';
+                  }
+
+                  if ((endEndAngle > 0 && endEndAngle <= endCapAngle)) {
                     // pure 2-body contact, add to forces
 
                     // force elements
@@ -289,7 +309,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                   // Force on particle 0,1,2 is determined by F = - dU/dr = (partials) dU/dr * <dr/dxi , dr/dyi> 
                   // 3-body contact, 6 forces (3 pairs of forces)
                   //y21, x21, y20, x20, y10, x10, norm_P12, d_arg
-                  int g2 = ip1[gj];
+                  int g2 = im1[gj];
                   int g2_ind = NDIM*g2;
                   int g1_ind = NDIM*gj;
                   x21 = x[g2_ind] - x[g1_ind];
@@ -315,23 +335,6 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                   // above force calculation is my complicated derivatives
                   // below force calculation is the simpler version, hopefully
 
-                  /*F[NDIM * gi] += ftmp * (x[NDIM * gi] - dx)/d;
-                  F[NDIM * gi + 1] += ftmp * (x[NDIM*gi+1] - dy)/d;
-
-                  F[NDIM * gj] += ftmp * (x[NDIM * gi] - dx) * (contactType - 1)/d;
-                  F[NDIM * gj + 1] += ftmp * (x[NDIM * gi + 1] - dy) * (contactType - 1)/d;
-
-                  F[NDIM * g2] += ftmp * (x[NDIM * gi] - dx) * (-contactType)/d;
-                  F[NDIM * g2 + 1] += ftmp * (x[NDIM * gi + 1] - dy) * (-contactType)/d;*/
-                  if (gi == 0) {
-                    cout << "force calculation!\n\n\n";
-                    cout << "forces on gi: andrew smooth = " << ftmp * prefix * y21 << '\t' << ftmp * prefix * -x21 << '\n';
-                    cout << "forces on gi: francesco smooth = " << ftmp * (x[NDIM * gi] - dx)/d << '\t' << ftmp * (x[NDIM*gi+1] - dy)/d << '\n';
-                    cout << "forces on gj: andrew smooth = " << ftmp*(prefix*-y20 + x21*prefix2) << '\t' << ftmp*(prefix*x20 + y21*prefix2) << '\n';
-                    cout << "forces on gj: francesco smooth = " << ftmp * (x[NDIM * gi] - dx) * (contactType - 1)/d << '\t' << ftmp * (x[NDIM * gi + 1] - dy) * (contactType - 1)/d << '\n';
-                    cout << "forces on g2: andrew smooth = " << ftmp*(prefix*y10 - x21*prefix2) << '\t' << ftmp*(prefix*-x10 - y21*prefix2) << '\n';
-                    cout << "forces on g2: francesco smooth = " << ftmp * (x[NDIM * gi] - dx) * (-contactType)/d << '\t' << ftmp * (x[NDIM * gi + 1] - dy) * (-contactType)/d <<'\n';
-                  }
                   /*cout << "triplet particles are " << gi << '\t' << gj << "," << g2 << '\n';
                   cout << "sum of forces in X = " << ftmp * prefix * y21 + ftmp*(prefix*-y20 + x21*prefix2) + ftmp*(prefix*y10 - x21*prefix2)<< '\n';
                   cout << "sum of forces in Y = " << ftmp * prefix * -x21 + ftmp*(prefix*x20 + y21*prefix2) + ftmp*(prefix*-x10 - y21*prefix2)<< '\n';
@@ -399,12 +402,13 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
           shellij = (1.0 + l2) * sij;
           cutij = (1.0 + l1) * sij;
 
-            // need to calculate d, d1, d2, which are distances from gi to gj-ip1[gj], to gj, and to ip1[gj] respectively
-          d = distLinePointComponentsAndContactType(x[NDIM*gj],x[NDIM*gj + 1], x[NDIM*ip1[gj]], x[NDIM*ip1[gj]+1], x[NDIM*gi], x[NDIM*gi+1], rx, ry, contactType);
+          // need to calculate d, d1, d2, which are distances from gi to im1[gj]-gj, to im1[gj], and to gj respectively
+          d = distLinePointComponentsAndContactType(x[NDIM*im1[gj]],x[NDIM*im1[gj] + 1], x[NDIM*gj], x[NDIM*gj+1], x[NDIM*gi], x[NDIM*gi+1], rx, ry, contactType);
           if (contactType < 1) { // check that the projection falls within the interacting portion of vertex i
-            // each vertex i is really a circulo-line i, and a single end cap around vertex i located at projection=0
-            // contactType < 0 means that p0 projection onto p1-p2 is less than p1, so could be a pure vertex-vertex contact for gi-gj
+            // each vertex i is really a circulo-line between i and i-1, and a single end cap around vertex i located at projection=0
+            // contactType <= 0 means that p0 projection onto p1-p2 is behind p1, potential v-v interaction
             // 0 < contactType < 1 means that p0 projection onto p1-p2 falls between p1 and p2, so it's a vertex-line-segment contact
+            // contactType > 1 means p0 projection falls ahead of p2, so ignore
             dx = -rx;
             if (dx < shellij) { // check that d is within the interaction shell
               dy = -ry;
@@ -446,16 +450,35 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                     }
                   }
                   if (contactType <= 0) { // projection is either on the endpoint or outside the endpoint, i.e. not on the line segment
-                    // endEndAngle = d dot ri+1 - ri / norm d norm (ri+1 - ri)
-                    double drx = x[ip1[gj]*NDIM] - x[gj*NDIM];
-                    double dry = x[ip1[gj]*NDIM + 1] - x[gj*NDIM + 1];
-                    double drx_prev = x[gj*NDIM] - x[im1[gj]*NDIM];
-                    double dry_prev = x[gj*NDIM + 1] - x[im1[gj]*NDIM + 1];
-                    endEndAngle = (dx * drx + dy * dry) / (sqrt(dx*dx + dy*dy) + sqrt(drx*drx+dry*dry));
+                    // endEndAngle = arccos[(d dot rj - rj-1 / norm d norm (rj - rj-1))] - pi/2
+                    // endEndAngle is the angle between the separation between interacting vertices and the endcap edge closest to the circulo-line.
+                    // endCapAngle is the angle between the far edge of the endcap and the near edge of the endcap
+                    // endCapAngle = pi - arccos[((rj+1 - rj) dot (rj - rj-1) / norm (rj+1-rj) norm (rj - rj-1))]
+                    int left = gj;
+                    int middle = im1[gj];
+                    int right = im1[im1[gj]];
+                    
+                    double drx = x[left*NDIM] - x[middle*NDIM];
+                    double dry = x[left*NDIM + 1] - x[middle*NDIM + 1];
+                    double drx_prev = x[middle*NDIM] - x[right*NDIM];
+                    double dry_prev = x[middle*NDIM + 1] - x[right*NDIM + 1];
+                    endEndAngle = acos( (dx * drx_prev + dy * dry_prev) / (sqrt((dx*dx + dy*dy)*(drx_prev*drx_prev+dry_prev*dry_prev))) );
                     endEndAngle -= PI/2;
-                    endCapAngle = (drx_prev * drx + dry_prev * dry) / (sqrt(drx_prev*drx_prev + dry_prev*dry_prev) + sqrt(drx*drx + dry*dry));
+                    endCapAngle = acos( (drx_prev * drx + dry_prev * dry) / (sqrt(drx_prev*drx_prev + dry_prev*dry_prev)*(drx*drx + dry*dry)) );
+                    endCapAngle = PI - endCapAngle;
 
-                    if (endEndAngle > 0 && endEndAngle <= endCapAngle){
+                    // d is 
+                    if (gi == 0){
+                      cout << "shellij = " << shellij << '\n';
+                      cout << setw(25) << "gi" << '\t' << "left" << '\t' << "middle" << "\n\n";                    
+                      cout << setw(25) << gi << '\t' << left << '\t' << middle << "\n\n";
+                      cout << setw(25) << d << '\t' << rij << '\t' << x[left*NDIM] << '\t' << x[middle*NDIM] << '\t' << x[right*NDIM] << '\n';
+                      cout << setw(25) << drx_prev << '\t' << drx << '\t' << dry_prev << '\t' << dry << '\n';
+                      cout << setw(25) << "endEndAngle = " << endEndAngle << '\t' << ", endCapAngle = " << endCapAngle << '\n';
+                      cout << setw(25) << "endCapAngle is between gj = " << left << '\t' << middle << '\t' << ", and " << middle << '\t' << right << '\n';
+                    }
+
+                    if ((endEndAngle > 0 && endEndAngle <= endCapAngle)) {
                       // pure 2-body contact, add to forces
 
                       // force elements
@@ -488,7 +511,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                     // Force on particle 0,1,2 is determined by F = - dU/dr = (partials) dU/dr * <dr/dxi , dr/dyi> 
                     // 3-body contact, 6 forces (3 pairs of forces)
                     //y21, x21, y20, x20, y10, x10, norm_P12, d_arg
-                    int g2 = ip1[gj];
+                    int g2 = im1[gj];
                     int g2_ind = NDIM*g2;
                     int g1_ind = NDIM*gj;
                     x21 = x[g2_ind] - x[g1_ind];
@@ -514,26 +537,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                     // above force calculation is my complicated derivatives
                     // below force calculation is the simpler version, hopefully
 
-                    /*F[NDIM * gi] += ftmp * (x[NDIM * gi] - dx)/d;
-                    F[NDIM * gi + 1] += ftmp * (x[NDIM*gi+1] - dy)/d;
-
-                    F[NDIM * gj] += ftmp * (x[NDIM * gi] - dx) * (contactType - 1)/d;
-                    F[NDIM * gj + 1] += ftmp * (x[NDIM * gi + 1] - dy) * (contactType - 1)/d;
-
-                    F[NDIM * g2] += ftmp * (x[NDIM * gi] - dx) * (-contactType)/d;
-                    F[NDIM * g2 + 1] += ftmp * (x[NDIM * gi + 1] - dy) * (-contactType)/d;*/
-                    
-                    if (gi == 0) {
-                      cout << "force calculation!\n\n\n";
-                      cout << "forces on gi: andrew smooth = " << ftmp * prefix * y21 << '\t' << ftmp * prefix * -x21 << '\n';
-                      cout << "forces on gi: francesco smooth = " << ftmp * (x[NDIM * gi] - dx)/d << '\t' << ftmp * (x[NDIM*gi+1] - dy)/d << '\n';
-                      cout << "forces on gj: andrew smooth = " << ftmp*(prefix*-y20 + x21*prefix2) << '\t' << ftmp*(prefix*x20 + y21*prefix2) << '\n';
-                      cout << "forces on gj: francesco smooth = " << ftmp * (x[NDIM * gi] - dx) * (contactType - 1)/d << '\t' << ftmp * (x[NDIM * gi + 1] - dy) * (contactType - 1)/d << '\n';
-                      cout << "forces on g2: andrew smooth = " << ftmp*(prefix*y10 - x21*prefix2) << '\t' << ftmp*(prefix*-x10 - y21*prefix2) << '\n';
-                      cout << "forces on g2: francesco smooth = " << ftmp * (x[NDIM * gi] - dx) * (-contactType)/d << '\t' << ftmp * (x[NDIM * gi + 1] - dy) * (-contactType)/d <<'\n';
-                    }
                     /*cout << "triplet particles are " << gi << '\t' << gj << "," << g2 << '\n';
-
                     cout << "sum of forces in X = " << ftmp * prefix * y21 + ftmp*(prefix*-y20 + x21*prefix2) + ftmp*(prefix*y10 - x21*prefix2)<< '\n';
                     cout << "sum of forces in Y = " << ftmp * prefix * -x21 + ftmp*(prefix*x20 + y21*prefix2) + ftmp*(prefix*-x10 - y21*prefix2)<< '\n';
 
