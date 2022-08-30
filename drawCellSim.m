@@ -250,7 +250,8 @@ for seed = startSeed:max_seed
         end
         
         %annotationStr = "$$t/\tau$$ = "+time(ff);
-        annotationStr = "frame="+ff;
+        framenum = ff-1;
+        annotationStr = "frame="+framenum;
         annotation('textbox',[0.4, 0.4, 0, 0],...
             'interpreter', 'latex', 'String', annotationStr, 'Edgecolor','none', 'FitBoxToText','on');
 
@@ -260,9 +261,9 @@ for seed = startSeed:max_seed
             currframe = getframe(gcf);
             writeVideo(vobj,currframe);
         end
-        while (ff == 77)
-            disp("hi")
-        end
+        %while (ff == 77)
+        %    disp("hi")
+        %end
 
     end
 

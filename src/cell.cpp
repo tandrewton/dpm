@@ -232,7 +232,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                   U += -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
                   cellU[ci] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
                   cellU[cj] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
-                  if (gi == 0 || gj == 0){
+                  if (gi == 0){
                     energy += -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
                   }
                 } else {
@@ -243,7 +243,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                   U += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
                   cellU[ci] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
                   cellU[cj] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
-                  if (gi == 0 || gj == 0){
+                  if (gi == 0){
                     energy += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
                   }
                 }
@@ -258,11 +258,11 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                   
                   double drx = x[left*NDIM] - x[middle*NDIM];
                   double dry = x[left*NDIM + 1] - x[middle*NDIM + 1];
-                  double drx_prev = x[middle*NDIM] - x[right*NDIM];
-                  double dry_prev = x[middle*NDIM + 1] - x[right*NDIM + 1];
-                  endEndAngle = acos( (dx * drx_prev + dy * dry_prev) / (sqrt((dx*dx + dy*dy)*(drx_prev*drx_prev+dry_prev*dry_prev))) );
+                  double drx_prev = x[right*NDIM] - x[middle*NDIM];
+                  double dry_prev = x[right*NDIM + 1] - x[middle*NDIM + 1];
+                  endEndAngle = acos( (rx * drx_prev + ry * dry_prev) / (sqrt((rx*rx + ry*ry)*(drx_prev*drx_prev+dry_prev*dry_prev))) );
                   endEndAngle -= PI/2;
-                  endCapAngle = acos( (drx_prev * drx + dry_prev * dry) / (sqrt(drx_prev*drx_prev + dry_prev*dry_prev)*(drx*drx + dry*dry)) );
+                  endCapAngle = acos( (drx_prev * drx + dry_prev * dry) / (sqrt((drx_prev*drx_prev + dry_prev*dry_prev)*(drx*drx + dry*dry))) );
                   endCapAngle = PI - endCapAngle;
 
                   // d is 
@@ -270,9 +270,12 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                     cout << "shellij = " << shellij << '\n';
                     cout << setw(25) << "gi" << '\t' << "left" << '\t' << "middle" << "\n\n";                    
                     cout << setw(25) << gi << '\t' << left << '\t' << middle << "\n\n";
-                    cout << setw(25) << d << '\t' << rij << '\t' << x[left*NDIM] << '\t' << x[middle*NDIM] << '\t' << x[right*NDIM] << '\n';
+                    cout << setw(25) << d << '\t' << rij << '\t' << x[gi*NDIM] << '\t' << x[left*NDIM] << '\t' << x[middle*NDIM] << '\t' << x[right*NDIM] << '\n';
                     cout << setw(25) << drx_prev << '\t' << drx << '\t' << dry_prev << '\t' << dry << '\n';
                     cout << setw(25) << "endEndAngle = " << endEndAngle << '\t' << ", endCapAngle = " << endCapAngle << '\n';
+                    cout << setw(25) << "cos(theta) = " << 
+                          (rx * drx_prev + ry * dry_prev) / (sqrt((rx*rx + ry*ry)*(drx_prev*drx_prev+dry_prev*dry_prev)))
+                          << '\t' << (drx_prev * drx + dry_prev * dry) / (sqrt((drx_prev*drx_prev + dry_prev*dry_prev)*(drx*drx + dry*dry))) << '\n';
                     cout << setw(25) << "endCapAngle is between gj = " << left << '\t' << middle << '\t' << ", and " << middle << '\t' << right << '\n';
                   }
 
@@ -434,7 +437,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                     U += -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
                     cellU[ci] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
                     cellU[cj] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
-                    if (gi == 0 || gj == 0){
+                    if (gi == 0){
                       energy += -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
                     }
                   } else {
@@ -445,7 +448,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                     U += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
                     cellU[ci] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
                     cellU[cj] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
-                    if (gi == 0 || gj == 0){
+                    if (gi == 0){
                       energy += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
                     }
                   }
@@ -460,11 +463,11 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                     
                     double drx = x[left*NDIM] - x[middle*NDIM];
                     double dry = x[left*NDIM + 1] - x[middle*NDIM + 1];
-                    double drx_prev = x[middle*NDIM] - x[right*NDIM];
-                    double dry_prev = x[middle*NDIM + 1] - x[right*NDIM + 1];
-                    endEndAngle = acos( (dx * drx_prev + dy * dry_prev) / (sqrt((dx*dx + dy*dy)*(drx_prev*drx_prev+dry_prev*dry_prev))) );
+                    double drx_prev = x[right*NDIM] - x[middle*NDIM];
+                    double dry_prev = x[right*NDIM + 1] - x[middle*NDIM + 1];
+                    endEndAngle = acos( (rx * drx_prev + ry * dry_prev) / (sqrt((rx*rx + ry*ry)*(drx_prev*drx_prev+dry_prev*dry_prev))) );
                     endEndAngle -= PI/2;
-                    endCapAngle = acos( (drx_prev * drx + dry_prev * dry) / (sqrt(drx_prev*drx_prev + dry_prev*dry_prev)*(drx*drx + dry*dry)) );
+                    endCapAngle = acos( (drx_prev * drx + dry_prev * dry) / (sqrt((drx_prev*drx_prev + dry_prev*dry_prev)*(drx*drx + dry*dry))) );
                     endCapAngle = PI - endCapAngle;
 
                     // d is 
@@ -472,9 +475,12 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                       cout << "shellij = " << shellij << '\n';
                       cout << setw(25) << "gi" << '\t' << "left" << '\t' << "middle" << "\n\n";                    
                       cout << setw(25) << gi << '\t' << left << '\t' << middle << "\n\n";
-                      cout << setw(25) << d << '\t' << rij << '\t' << x[left*NDIM] << '\t' << x[middle*NDIM] << '\t' << x[right*NDIM] << '\n';
+                      cout << setw(25) << d << '\t' << rij << '\t' << x[gi*NDIM] << '\t' << x[left*NDIM] << '\t' << x[middle*NDIM] << '\t' << x[right*NDIM] << '\n';
                       cout << setw(25) << drx_prev << '\t' << drx << '\t' << dry_prev << '\t' << dry << '\n';
                       cout << setw(25) << "endEndAngle = " << endEndAngle << '\t' << ", endCapAngle = " << endCapAngle << '\n';
+                      cout << setw(25) << "cos(theta) = " << 
+                            (rx * drx_prev + ry * dry_prev) / (sqrt((rx*rx + ry*ry)*(drx_prev*drx_prev+dry_prev*dry_prev)))
+                            << '\t' << (drx_prev * drx + dry_prev * dry) / (sqrt((drx_prev*drx_prev + dry_prev*dry_prev)*(drx*drx + dry*dry))) << '\n';
                       cout << setw(25) << "endCapAngle is between gj = " << left << '\t' << middle << '\t' << ", and " << middle << '\t' << right << '\n';
                     }
 
