@@ -149,7 +149,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
   double d_arg, y21, x21, y20, x20, y10, x10, norm_P12, prefix, prefix2;  // for calculating 3-body forces for contactType 1 (vertex-line-segment)
   double contactType; // parameterized projection value. if between [0,1] then it's circulo-line, if < 0 or > 1 then it is either nothing or end-end.
   double endCapAngle, endEndAngle; // endCapAngle is PI minus interior angle of vertices, endEndAngle is between interaction centers and circulo-line endpoints
-  double ftmp, fx, fy;
+  double ftmp, fx, fy, energytmp;
   energy = 0;
 
   // attraction shell parameters
@@ -221,7 +221,8 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                   // repulsions
                   if (rij < sij) {
                     ftmp = kc * (1 - (rij / sij)) * (rho0 / sij);
-                    cellU[ci] += 0.5 * kc * pow((1 - (rij / sij)), 2.0);
+                    //cellU[ci] += 0.5 * kc * pow((1 - (rij / sij)), 2.0);
+                    energytmp =  0.5 * kc * pow((1 - (rij / sij)), 2.0);
                   } else
                     ftmp = 0;
                 } else if (rij > cutij) {
@@ -229,23 +230,25 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                   ftmp = kint * (xij - 1.0 - l2) / sij;
 
                   // increase potential energy
-                  U += -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
+                  /*U += -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
                   cellU[ci] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
                   cellU[cj] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
                   if (gi == 0){
                     energy += -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
-                  }
+                  }*/
+                  energytmp = -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
                 } else {
                   // force scale
                   ftmp = kc * (1 - xij) / sij;
 
                   // increase potential energy
-                  U += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
+                  /*U += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
                   cellU[ci] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
                   cellU[cj] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
                   if (gi == 0){
                     energy += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
-                  }
+                  }*/
+                  energytmp = 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
                 }
                 if (contactType <= 0) { // projection is either on the endpoint or outside the endpoint, i.e. not on the line segment
                   // endEndAngle = arccos[(d dot rj - rj-1 / norm d norm (rj - rj-1))] - pi/2
@@ -279,7 +282,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                     cout << setw(25) << "endCapAngle is between gj = " << left << '\t' << middle << '\t' << ", and " << middle << '\t' << right << '\n';
                   }
 
-                  if ((endEndAngle > 0 && endEndAngle <= endCapAngle)) {
+                  if ((endEndAngle >= 0 && endEndAngle <= endCapAngle)) {
                     // pure 2-body contact, add to forces
 
                     // force elements
@@ -290,7 +293,13 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
 
                     F[NDIM * gj] += fx;
                     F[NDIM * gj + 1] += fy;
-                    //cout << "fx, fy = " << fx << '\t' << fy << ", for particles gi, gj = " << gi << '\t' << gj << '\n';
+
+                    cellU[ci] += energytmp/2;
+                    cellU[cj] += energytmp/2;
+                    
+                    if (gi == 0){
+                      energy += energytmp;
+                    }
 
                     // add to virial stress
                     // note: 4/7/22 I'm using -dx/2 instead of dx and same for dy for stress calculation, since
@@ -335,17 +344,12 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                   F[NDIM * g2] += ftmp*(prefix*y10 - x21*prefix2);
                   F[NDIM * g2 + 1] += ftmp*(prefix*-x10 - y21*prefix2);
 
-                  // above force calculation is my complicated derivatives
-                  // below force calculation is the simpler version, hopefully
-
-                  /*cout << "triplet particles are " << gi << '\t' << gj << "," << g2 << '\n';
-                  cout << "sum of forces in X = " << ftmp * prefix * y21 + ftmp*(prefix*-y20 + x21*prefix2) + ftmp*(prefix*y10 - x21*prefix2)<< '\n';
-                  cout << "sum of forces in Y = " << ftmp * prefix * -x21 + ftmp*(prefix*x20 + y21*prefix2) + ftmp*(prefix*-x10 - y21*prefix2)<< '\n';
-
-                  cout << "forces in X = " << ftmp * prefix * y21 << '\t' << ftmp*(prefix*-y20 + x21*prefix2) << '\t' << ftmp*(prefix*y10 - x21*prefix2) << '\n';
-                  cout << "ftmp = " << ftmp << ",\t prefix = " << prefix << ",\t y21 = " << y21 << ",\t\n y20 = " 
-                        << y20 << ",\t x21 = " << x21 << ",\t y10 = " << y10 << ",\t x21 = " << x21 << '\n';
-                  // now should add to energy and stress in an appropriate manner                */
+                  cellU[ci] += energytmp/2;
+                  cellU[cj] += energytmp/2;
+                  
+                  if (gi == 0){
+                    energy += energytmp;
+                  }
                 }
                 // add to contacts
                 /*for (int i = 0; i < vnn[gi].size(); i++) {
@@ -426,7 +430,8 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                     // repulsions
                     if (rij < sij) {
                       ftmp = kc * (1 - (rij / sij)) * (rho0 / sij);
-                      cellU[ci] += 0.5 * kc * pow((1 - (rij / sij)), 2.0);
+                      //cellU[ci] += 0.5 * kc * pow((1 - (rij / sij)), 2.0);
+                      energytmp =  0.5 * kc * pow((1 - (rij / sij)), 2.0);
                     } else
                       ftmp = 0;
                   } else if (rij > cutij) {
@@ -434,23 +439,25 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                     ftmp = kint * (xij - 1.0 - l2) / sij;
 
                     // increase potential energy
-                    U += -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
+                    /*U += -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
                     cellU[ci] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
                     cellU[cj] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
                     if (gi == 0){
                       energy += -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
-                    }
+                    }*/
+                    energytmp = -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
                   } else {
                     // force scale
                     ftmp = kc * (1 - xij) / sij;
 
                     // increase potential energy
-                    U += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
+                    /*U += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
                     cellU[ci] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
                     cellU[cj] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
                     if (gi == 0){
                       energy += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
-                    }
+                    }*/
+                    energytmp = 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
                   }
                   if (contactType <= 0) { // projection is either on the endpoint or outside the endpoint, i.e. not on the line segment
                     // endEndAngle = arccos[(d dot rj - rj-1 / norm d norm (rj - rj-1))] - pi/2
@@ -484,7 +491,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                       cout << setw(25) << "endCapAngle is between gj = " << left << '\t' << middle << '\t' << ", and " << middle << '\t' << right << '\n';
                     }
 
-                    if ((endEndAngle > 0 && endEndAngle <= endCapAngle)) {
+                    if ((endEndAngle >= 0 && endEndAngle <= endCapAngle)) {
                       // pure 2-body contact, add to forces
 
                       // force elements
@@ -495,7 +502,13 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
 
                       F[NDIM * gj] += fx;
                       F[NDIM * gj + 1] += fy;
-                      //cout << "fx, fy = " << fx << '\t' << fy << ", for particles gi, gj = " << gi << '\t' << gj << '\n';
+
+                      cellU[ci] += energytmp/2;
+                      cellU[cj] += energytmp/2;
+                      
+                      if (gi == 0){
+                        energy += energytmp;
+                      }
 
                       // add to virial stress
                       // note: 4/7/22 I'm using -dx/2 instead of dx and same for dy for stress calculation, since
@@ -540,38 +553,35 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                     F[NDIM * g2] += ftmp*(prefix*y10 - x21*prefix2);
                     F[NDIM * g2 + 1] += ftmp*(prefix*-x10 - y21*prefix2);
 
-                    // above force calculation is my complicated derivatives
-                    // below force calculation is the simpler version, hopefully
-
-                    /*cout << "triplet particles are " << gi << '\t' << gj << "," << g2 << '\n';
-                    cout << "sum of forces in X = " << ftmp * prefix * y21 + ftmp*(prefix*-y20 + x21*prefix2) + ftmp*(prefix*y10 - x21*prefix2)<< '\n';
-                    cout << "sum of forces in Y = " << ftmp * prefix * -x21 + ftmp*(prefix*x20 + y21*prefix2) + ftmp*(prefix*-x10 - y21*prefix2)<< '\n';
-
-                    cout << "forces in X = " << ftmp * prefix * y21 << '\t' << ftmp*(prefix*-y20 + x21*prefix2) << '\t' << ftmp*(prefix*y10 - x21*prefix2) << '\n';
-                    cout << "ftmp = " << ftmp << ",\t prefix = " << prefix << ",\t y21 = " << y21 << ",\t\n y20 = " 
-                          << y20 << ",\t x21 = " << x21 << ",\t y10 = " << y10 << ",\t x21 = " << x21 << '\n';
-                    // now should add to energy and stress in an appropriate manner                */
-                  }                  
-                  if (ci != cj) {
-                    /*for (int i = 0; i < vnn[gi].size(); i++) {
-                      if (vnn[gi][i] < 0) {
-                        vnn[gi][i] = gj;  // set the first unused array element to gj, in gi's neighbor list
-
-                        for (int j = 0; j < vnn[gj].size(); j++) {
-                          if (vnn[gj][j] < 0) {
-                            vnn[gj][j] = gi;  // set the first unused array element to gi, in gj's neighbor list
-                            break;
-                          }
-                        }
-
-                        break;
-                      }
-                    }*/
-                    if (ci > cj)
-                      cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2]++;
-                    else if (ci < cj)
-                      cij[NCELLS * ci + cj - (ci + 1) * (ci + 2) / 2]++;
+                    cellU[ci] += energytmp/2;
+                    cellU[cj] += energytmp/2;
+                    
+                    if (gi == 0){
+                      energy += energytmp;
+                    }
                   }
+                  // add to contacts
+                  /*for (int i = 0; i < vnn[gi].size(); i++) {
+                    if (ci == cj)
+                      break;
+
+                    if (vnn[gi][i] < 0) {
+                      vnn[gi][i] = gj;  // set the first unused array element to gj, in gi's neighbor list
+
+                      for (int j = 0; j < vnn[gj].size(); j++) {
+                        if (vnn[gj][j] < 0) {
+                          vnn[gj][j] = gi;  // set the first unused array element to gi, in gj's neighbor list
+                          break;
+                        }
+                      }
+
+                      break;
+                    }
+                  }*/
+                  if (ci > cj)
+                    cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2]++;
+                  else if (ci < cj)
+                    cij[NCELLS * ci + cj - (ci + 1) * (ci + 2) / 2]++;
                 }
               }
             }

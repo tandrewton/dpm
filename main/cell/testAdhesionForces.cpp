@@ -126,18 +126,55 @@ int main(int argc, char const* argv[]) {
   }
 
   // dpm is written counterclockwise for vertex numbering
-  // move vertices in cell 1 into a rectangle for testing forces on vertex 0 cell 0 as a function of distance
-  cell2D.moveVertex(19, 1+0*diameter, 1+0*diameter);
-  cell2D.moveVertex(18, 1+0*diameter, 1+1*diameter);
-  cell2D.moveVertex(17, 1+0*diameter, 1+2*diameter);
-  cell2D.moveVertex(16, 1+0*diameter, 1+3*diameter);
-  cell2D.moveVertex(15, 1+1*diameter, 1+3*diameter);
-  cell2D.moveVertex(14, 1+2*diameter, 1+3*diameter);
-  cell2D.moveVertex(13, 1+2*diameter, 1+2*diameter);
-  cell2D.moveVertex(12, 1+2*diameter, 1+1*diameter);
-  cell2D.moveVertex(11, 1+2*diameter, 1+0*diameter);
-  cell2D.moveVertex(10, 1+1*diameter, 1+0*diameter);
+  bool testConcave = true;
+  bool test90Degrees = false;
+  double psi, theta, dx, dy, dx2, dy2;
+  if (!testConcave){
+    // move vertices in cell 1 into a rectangle for testing forces on vertex 0 cell 0 as a function of distance
+    cell2D.moveVertex(19, 1+0*diameter, 1+0*diameter);
+    cell2D.moveVertex(18, 1+0*diameter, 1+1*diameter);
+    cell2D.moveVertex(17, 1+0*diameter, 1+2*diameter);
+    cell2D.moveVertex(16, 1+0*diameter, 1+3*diameter);
+    cell2D.moveVertex(15, 1+1*diameter, 1+3*diameter);
+    cell2D.moveVertex(14, 1+2*diameter, 1+3*diameter);
+    cell2D.moveVertex(13, 1+2*diameter, 1+2*diameter);
+    cell2D.moveVertex(12, 1+2*diameter, 1+1*diameter);
+    cell2D.moveVertex(11, 1+2*diameter, 1+0*diameter);
+    cell2D.moveVertex(10, 1+1*diameter, 1+0*diameter);
+  } else if (testConcave && test90Degrees) {
+    // move vertices in cell 1 into a concave shape for concave testing
+    cell2D.moveVertex(19, 1+1*diameter, 1+1*diameter);
+    cell2D.moveVertex(18, 1+1*diameter, 1+2*diameter);
+    cell2D.moveVertex(17, 1+0*diameter, 1+2*diameter);
+    cell2D.moveVertex(16, 1+0*diameter, 1+3*diameter);
+    cell2D.moveVertex(15, 1+1*diameter, 1+3*diameter);
+    cell2D.moveVertex(14, 1+2*diameter, 1+3*diameter);
+    cell2D.moveVertex(13, 1+2*diameter, 1+2*diameter);
+    cell2D.moveVertex(12, 1+2*diameter, 1+1*diameter);
+    cell2D.moveVertex(11, 1+2*diameter, 1+0*diameter);
+    cell2D.moveVertex(10, 1+1*diameter, 1+0*diameter);
+  } else if (testConcave && !test90Degrees) {
+    psi = 3*PI/4;
+    theta = PI/4;
+    dx = diameter*cos(theta), dy = diameter*sin(theta);
+    dx2 = diameter*cos(5*PI/4 - psi), dy2 = diameter*sin(5*PI/4 - psi);
+    // move vertices in cell 1 into a concave shape for concave testing
+    cell2D.moveVertex(19, 1+0*diameter, 1+0*diameter);
+    cell2D.moveVertex(18, 1+0*diameter, 1+1*diameter);
+    cell2D.moveVertex(17, 1+0*diameter, 1+2*diameter);
+    cell2D.moveVertex(16, 1+0*diameter+dx, 1+2*diameter+dy);
+    cell2D.moveVertex(15, 1+0*diameter+dx+dx2, 1+2*diameter+dy+dy2);
+    cell2D.moveVertex(14, 1+2*diameter, 1+3*diameter);
+    cell2D.moveVertex(13, 1+2*diameter, 1+2*diameter);
+    cell2D.moveVertex(12, 1+2*diameter, 1+1*diameter);
+    cell2D.moveVertex(11, 1+2*diameter, 1+0*diameter);
+    cell2D.moveVertex(10, 1+1*diameter, 1+0*diameter);
+  }
 
+  /*// test case : move 17 16 15 out of the way to see if the presence of 17 affects forces
+  cell2D.moveVertex(17, 1+1*diameter, 1+3*diameter);
+  cell2D.moveVertex(16, 1+1*diameter, 1+4*diameter);
+  cell2D.moveVertex(15, 1+2*diameter, 1+4*diameter);*/
 
   double origin = 1-diameter-offset;
   cell2D.moveVertex(0, origin, 1); // place vertex 0 from cell 0 next to vertex 0-2 in cell 1.
@@ -156,32 +193,87 @@ int main(int argc, char const* argv[]) {
     cell2D.setl2(att_range);
     
     int epsilonInv = 50;
-
-    for (int j = 0; j < epsilonInv + 1; j++){
-      double fx, fy, u;
-      // move vertex 0 in x or y direction along the rectangle made by cell 1
-      if (i == 0){
-        cell2D.moveVertex(0, origin, origin + j*(diameter*5.0 + 2*offset)/epsilonInv);
+    if (!testConcave){
+      for (int j = 0; j < epsilonInv + 1; j++){
+        double fx, fy, u;
+        // move vertex 0 in x or y direction along the rectangle made by cell 1
+        if (i == 0){
+          cell2D.moveVertex(0, origin, origin + j*(diameter*5.0 + 2*offset)/epsilonInv);
+        }
+        if (i == 1){
+          cell2D.moveVertex(0, origin + j*(diameter*4.0 + 2*offset) /epsilonInv, origin + diameter*5.0 + 2*offset);
+        }        
+        if (i == 2){
+          cell2D.moveVertex(0, origin + diameter*4.0 + 2*offset, origin + diameter*5.0 + 2*offset - j*(diameter*5.0 + 2*offset)/epsilonInv);
+        }
+        if (i == 3){
+          cell2D.moveVertex(0, origin + diameter*4.0 + 2*offset - j*(diameter*4.0 + 2*offset)/epsilonInv, origin);
+        }
+        cout <<  "in frame = " << i*epsilonInv + j + 1 << "\n\n\n";
+        // print configuration and calculate its forces
+        cell2D.printConfiguration2D();
+        //cell2D.attractiveForceUpdatePrint(fx, fy, u);
+        cell2D.attractiveForceUpdateSmoothPrint(fx, fy, u);
+        if (fy == 0)
+          cout << "frame " << i*epsilonInv + j + 1 << " has fy = 0!\n\n";
+        forcex.push_back(fx);
+        forcey.push_back(fy);
+        energy.push_back(u);
       }
-      if (i == 1){
-        cell2D.moveVertex(0, origin + j*(diameter*4.0 + 2*offset) /epsilonInv, origin + diameter*5.0 + 2*offset);
+    } else if (testConcave && test90Degrees){
+      for (int j = 0; j < epsilonInv + 1; j++){
+        double fx, fy, u;
+        // move vertex 0 in x or y direction along the rectangle made by cell 1
+        if (i == 0){
+          cell2D.moveVertex(0, origin+ 1*diameter, origin + j*(diameter*2.0)/epsilonInv);
+        }
+        if (i == 1){
+          cell2D.moveVertex(0, origin+ 1*diameter - j*(diameter) /epsilonInv, origin + diameter*2.0);
+        }
+        if (i == 2){
+          cell2D.moveVertex(0, origin, origin + diameter*2.0 + j*(diameter*3.0 + 2*offset)/epsilonInv);
+        }
+        if (i == 3){
+          cell2D.moveVertex(0, origin + j*(diameter*4.0 + 2*offset)/epsilonInv, origin + 2*diameter + 3*diameter + 2*offset);
+        }
+        cout <<  "in frame = " << i*epsilonInv + j + 1 << "\n\n\n";
+        // print configuration and calculate its forces
+        cell2D.printConfiguration2D();
+        //cell2D.attractiveForceUpdatePrint(fx, fy, u);
+        cell2D.attractiveForceUpdateSmoothPrint(fx, fy, u);
+        if (fy == 0)
+          cout << "frame " << i*epsilonInv + j + 1 << " has fy = 0!\n\n";
+        forcex.push_back(fx);
+        forcey.push_back(fy);
+        energy.push_back(u);
       }
-      if (i == 2){
-        cell2D.moveVertex(0, origin + diameter*4.0 + 2*offset, origin + diameter*5.0 + 2*offset - j*(diameter*5.0 + 2*offset)/epsilonInv);
+    } else if (testConcave) {
+      for (int j = 0; j < epsilonInv + 1; j++){
+        double fx, fy, u;
+        // move vertex 0 in x or y direction along the rectangle made by cell 1
+        if (i == 0){
+          cell2D.moveVertex(0, 1 + offset + j/epsilonInv*dx, 1 + 2*diameter + offset * j/epsilonInv*dy);
+        }
+        if (i == 1){
+          cell2D.moveVertex(0, 1 + offset + dx + j/epsilonInv*dx2, 1 + 2*diameter + offset + dy + j/epsilonInv*dy2);
+        }
+        if (i == 2){
+          cell2D.moveVertex(0, origin + diameter*4.0 + 2*offset, origin + diameter*5.0 + 2*offset - j*(diameter*5.0 + 2*offset)/epsilonInv);
+        }
+        if (i == 3){
+          cell2D.moveVertex(0, origin + diameter*4.0 + 2*offset - j*(diameter*4.0 + 2*offset)/epsilonInv, origin);
+        }
+        cout <<  "in frame = " << i*epsilonInv + j + 1 << "\n\n\n";
+        // print configuration and calculate its forces
+        cell2D.printConfiguration2D();
+        //cell2D.attractiveForceUpdatePrint(fx, fy, u);
+        cell2D.attractiveForceUpdateSmoothPrint(fx, fy, u);
+        if (fy == 0)
+          cout << "frame " << i*epsilonInv + j + 1 << " has fy = 0!\n\n";
+        forcex.push_back(fx);
+        forcey.push_back(fy);
+        energy.push_back(u);
       }
-      if (i == 3){
-        cell2D.moveVertex(0, origin + diameter*4.0 + 2*offset - j*(diameter*4.0 + 2*offset)/epsilonInv, origin);
-      }
-      cout <<  "in frame = " << i*epsilonInv + j + 1 << "\n\n\n";
-      // print configuration and calculate its forces
-      cell2D.printConfiguration2D();
-      //cell2D.attractiveForceUpdatePrint(fx, fy, u);
-      cell2D.attractiveForceUpdateSmoothPrint(fx, fy, u);
-      if (fy == 0)
-        cout << "frame " << i*epsilonInv + j + 1 << " has fy = 0!\n\n";
-      forcex.push_back(fx);
-      forcey.push_back(fy);
-      energy.push_back(u);
     }
   }
 
@@ -195,3 +287,4 @@ int main(int argc, char const* argv[]) {
       
   return 0;
 }
+
