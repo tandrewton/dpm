@@ -129,6 +129,7 @@ int main(int argc, char const* argv[]) {
   bool testConcave = true;
   bool test90Degrees = false;
   double psi, theta, dx, dy, dx2, dy2;
+  int numDirections = 4; // numDirections sets how many directions we're scanning over when testing overlaps
   if (!testConcave){
     // move vertices in cell 1 into a rectangle for testing forces on vertex 0 cell 0 as a function of distance
     cell2D.moveVertex(19, 1+0*diameter, 1+0*diameter);
@@ -154,6 +155,7 @@ int main(int argc, char const* argv[]) {
     cell2D.moveVertex(11, 1+2*diameter, 1+0*diameter);
     cell2D.moveVertex(10, 1+1*diameter, 1+0*diameter);
   } else if (testConcave && !test90Degrees) {
+    numDirections = 2;
     psi = 3*PI/4;
     theta = PI/4;
     dx = diameter*cos(theta), dy = diameter*sin(theta);
@@ -184,7 +186,6 @@ int main(int argc, char const* argv[]) {
 
   std::vector<double> forcex, forcey, energy;
 
-  int numDirections = 4;
   for (int i = 0; i < numDirections; i++){
     cout << "att, att_range = " << att << '\t' << att_range << '\n';
     // revert to original position, then change attraction
@@ -252,10 +253,10 @@ int main(int argc, char const* argv[]) {
         double fx, fy, u;
         // move vertex 0 in x or y direction along the rectangle made by cell 1
         if (i == 0){
-          cell2D.moveVertex(0, 1 + offset + j/epsilonInv*dx, 1 + 2*diameter + offset * j/epsilonInv*dy);
+          cell2D.moveVertex(0, 1 + 3.5*offset + j*1.0/epsilonInv*dx, 1 + 2*diameter + 0*offset + j*1.0/epsilonInv*dy);
         }
         if (i == 1){
-          cell2D.moveVertex(0, 1 + offset + dx + j/epsilonInv*dx2, 1 + 2*diameter + offset + dy + j/epsilonInv*dy2);
+          cell2D.moveVertex(0, 1 + 3.5*offset + dx + j*1.0/epsilonInv*dx2, 1 + 2*diameter + 0*offset + dy + j*1.0/epsilonInv*dy2);
         }
         if (i == 2){
           cell2D.moveVertex(0, origin + diameter*4.0 + 2*offset, origin + diameter*5.0 + 2*offset - j*(diameter*5.0 + 2*offset)/epsilonInv);

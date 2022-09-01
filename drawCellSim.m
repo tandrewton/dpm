@@ -28,6 +28,7 @@ set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
 
 showverts = 1;
+showcirculoline = 1;
 walls = 0;
  
 %PC directory
@@ -193,6 +194,40 @@ for seed = startSeed:max_seed
                             rectangle('Position',[xplot+xx*Lx, yplot + yy*Ly, 2*vradtmp(vv), 2*vradtmp(vv)],'Curvature',[1 1],'EdgeColor','k','FaceColor',clr);
                             text(xplot,yplot,num2str(vv-1))
                         end
+                    end
+                end
+                for vv = 1:nv(ff,nn)
+                    if nn == 1
+                        continue
+                    end
+                    xplot = xtmp(vv) - vradtmp(vv);
+                    yplot = ytmp(vv) - vradtmp(vv);
+                    if showcirculoline == 1% calculate coordinates of a rectangle representing the line segment between successive vertices in a DP
+                        vnext = mod(vv, nv(ff,nn))+1;
+                        xtmpnext = xtmp(vnext);
+                        ytmpnext = ytmp(vnext);
+                        rx = xtmpnext - xtmp(vv);
+                        ry = ytmpnext - ytmp(vv);
+                        if (rx == 0) % if line is vertical, perpendicular is <1,0>
+                           perp_x = 1;
+                           perp_y = 0;
+                        else
+                             % dot product of r and perp = 0, so perp is perpendicular to r
+                            perp_x = -ry/rx;
+                            perp_y = 1;
+                        end
+                        norm = sqrt(perp_x^2 + perp_y^2);
+                        perp_x = perp_x / norm;
+                        perp_y = perp_y / norm;
+                        % calculate 4 coordinates of a rectangle
+                        % for the segment
+                        offsetx = vradtmp(vv)*perp_x;
+                        offsety = vradtmp(vv)*perp_y;
+                        cornerx = [xtmp(vv)-offsetx, xtmp(vv)+offsetx, ...
+                            xtmpnext+offsetx, xtmpnext-offsetx];
+                        cornery = [ytmp(vv)-offsety, ytmp(vv)+offsety,...
+                            ytmpnext+offsety, ytmpnext-offsety];
+                        patch(cornerx, cornery, cornerx./cornerx, 'black','EdgeColor','blue', 'LineWidth',2)
                     end
                 end
             else
