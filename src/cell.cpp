@@ -268,20 +268,6 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                   endCapAngle = acos( (drx_prev * drx + dry_prev * dry) / (sqrt((drx_prev*drx_prev + dry_prev*dry_prev)*(drx*drx + dry*dry))) );
                   endCapAngle = PI - endCapAngle;
 
-                  // d is 
-                  if (gi == 0){
-                    cout << "shellij = " << shellij << '\n';
-                    cout << setw(25) << "gi" << '\t' << "left" << '\t' << "middle" << "\n\n";                    
-                    cout << setw(25) << gi << '\t' << left << '\t' << middle << "\n\n";
-                    cout << setw(25) << d << '\t' << rij << '\t' << x[gi*NDIM] << '\t' << x[left*NDIM] << '\t' << x[middle*NDIM] << '\t' << x[right*NDIM] << '\n';
-                    cout << setw(25) << drx_prev << '\t' << drx << '\t' << dry_prev << '\t' << dry << '\n';
-                    cout << setw(25) << "endEndAngle = " << endEndAngle << '\t' << ", endCapAngle = " << endCapAngle << '\n';
-                    cout << setw(25) << "cos(theta) = " << 
-                          (rx * drx_prev + ry * dry_prev) / (sqrt((rx*rx + ry*ry)*(drx_prev*drx_prev+dry_prev*dry_prev)))
-                          << '\t' << (drx_prev * drx + dry_prev * dry) / (sqrt((drx_prev*drx_prev + dry_prev*dry_prev)*(drx*drx + dry*dry))) << '\n';
-                    cout << setw(25) << "endCapAngle is between gj = " << left << '\t' << middle << '\t' << ", and " << middle << '\t' << right << '\n';
-                  }
-
                   if ((endEndAngle >= 0 && endEndAngle <= endCapAngle)) {
                     // pure 2-body contact, add to forces
 
@@ -476,20 +462,6 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                     endEndAngle -= PI/2;
                     endCapAngle = acos( (drx_prev * drx + dry_prev * dry) / (sqrt((drx_prev*drx_prev + dry_prev*dry_prev)*(drx*drx + dry*dry))) );
                     endCapAngle = PI - endCapAngle;
-
-                    // d is 
-                    if (gi == 0){
-                      cout << "shellij = " << shellij << '\n';
-                      cout << setw(25) << "gi" << '\t' << "left" << '\t' << "middle" << "\n\n";                    
-                      cout << setw(25) << gi << '\t' << left << '\t' << middle << "\n\n";
-                      cout << setw(25) << d << '\t' << rij << '\t' << x[gi*NDIM] << '\t' << x[left*NDIM] << '\t' << x[middle*NDIM] << '\t' << x[right*NDIM] << '\n';
-                      cout << setw(25) << drx_prev << '\t' << drx << '\t' << dry_prev << '\t' << dry << '\n';
-                      cout << setw(25) << "endEndAngle = " << endEndAngle << '\t' << ", endCapAngle = " << endCapAngle << '\n';
-                      cout << setw(25) << "cos(theta) = " << 
-                            (rx * drx_prev + ry * dry_prev) / (sqrt((rx*rx + ry*ry)*(drx_prev*drx_prev+dry_prev*dry_prev)))
-                            << '\t' << (drx_prev * drx + dry_prev * dry) / (sqrt((drx_prev*drx_prev + dry_prev*dry_prev)*(drx*drx + dry*dry))) << '\n';
-                      cout << setw(25) << "endCapAngle is between gj = " << left << '\t' << middle << '\t' << ", and " << middle << '\t' << right << '\n';
-                    }
 
                     if ((endEndAngle >= 0 && endEndAngle <= endCapAngle)) {
                       // pure 2-body contact, add to forces

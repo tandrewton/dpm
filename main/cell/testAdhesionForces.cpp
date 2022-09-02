@@ -253,10 +253,10 @@ int main(int argc, char const* argv[]) {
         double fx, fy, u;
         // move vertex 0 in x or y direction along the rectangle made by cell 1
         if (i == 0){
-          cell2D.moveVertex(0, 1 + 3.5*offset + j*1.0/epsilonInv*dx, 1 + 2*diameter + 0*offset + j*1.0/epsilonInv*dy);
+          cell2D.moveVertex(0, 1 + 4.0*offset + j*1.0/epsilonInv*dx, 1 + 2*diameter + 0*offset + j*1.0/epsilonInv*dy);
         }
         if (i == 1){
-          cell2D.moveVertex(0, 1 + 3.5*offset + dx + j*1.0/epsilonInv*dx2, 1 + 2*diameter + 0*offset + dy + j*1.0/epsilonInv*dy2);
+          cell2D.moveVertex(0, 1 + 4.0*offset + dx + j*1.0/epsilonInv*dx2, 1 + 2*diameter + 0*offset + dy + j*1.0/epsilonInv*dy2);
         }
         if (i == 2){
           cell2D.moveVertex(0, origin + diameter*4.0 + 2*offset, origin + diameter*5.0 + 2*offset - j*(diameter*5.0 + 2*offset)/epsilonInv);
