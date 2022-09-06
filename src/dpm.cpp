@@ -1598,8 +1598,11 @@ double dpm::distLinePointComponentsAndContactType(double x1, double y1, double x
   }
 
   double l2 = pow(dx21, 2) + pow(dy21, 2);  // |(pt2 - pt1)|^2
-  if (l2 == 0.0)                                  // pt2 == pt1 case
+  if (l2 == 0.0){                                  // pt2 == pt1 case
+    xcomp = dx10;
+    ycomp = dy10;
     return sqrt(pow(dx10, 2) + pow(dy10, 2));
+  }
 
   double dot = (-dx10) * (dx21) +
                (-dy10) * (dy21);  // (pt0 - pt1) dot (pt2 - pt1)

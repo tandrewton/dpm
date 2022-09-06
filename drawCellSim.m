@@ -28,8 +28,9 @@ set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
 
 showverts = 1;
-showcirculoline = 1;
+showcirculoline = 0;
 walls = 0;
+att_range = 0.5;
  
 %PC directory
 %pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
@@ -174,7 +175,7 @@ for seed = startSeed:max_seed
             ytmp = ypos{nn};
             gitmp = gi{nn};
             l0tmp = l0{nn};
-            vradtmp = vrad{nn};
+            vradtmp = vrad{nn}*(1.0+att_range);
             psitmp = psi(nn);
             costmp = cos(psitmp);
             sintmp = sin(psitmp);

@@ -150,6 +150,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
   double contactType; // parameterized projection value. if between [0,1] then it's circulo-line, if < 0 or > 1 then it is either nothing or end-end.
   double endCapAngle, endEndAngle; // endCapAngle is PI minus interior angle of vertices, endEndAngle is between interaction centers and circulo-line endpoints
   double ftmp, fx, fy, energytmp;
+//  bool isSelfInteraction = false; // flag determining whether interaction is within same cell (ci == cj)
   energy = 0;
 
   // attraction shell parameters
@@ -215,10 +216,12 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
               if (rij < shellij) {
                 // scaled distance
                 xij = rij / sij;
+                //isSelfInteraction = false;
                 // pick force based on vertex-vertex distance
                 if (ci == cj) {
+                  //isSelfInteraction = true;
                   // if vertices (not neighbors) are in same cell, compute
-                  // repulsions
+                  // repulsions and set a flag to skip to the vertex-vertex repulsion case.
                   if (rij < sij) {
                     ftmp = kc * (1 - (rij / sij)) * (rho0 / sij);
                     //cellU[ci] += 0.5 * kc * pow((1 - (rij / sij)), 2.0);
@@ -268,8 +271,9 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                   endCapAngle = acos( (drx_prev * drx + dry_prev * dry) / (sqrt((drx_prev*drx_prev + dry_prev*dry_prev)*(drx*drx + dry*dry))) );
                   endCapAngle = PI - endCapAngle;
 
-                  if ((endEndAngle >= 0 && endEndAngle <= endCapAngle)) {
-                    // pure 2-body contact, add to forces
+                  if ((endEndAngle >= 0 && endEndAngle <= endCapAngle)){//|| isSelfInteraction) {
+                    // pure 2-body contact determined by angles and distances between contact points or by self interaction, 
+                    // so compute and accumulate forces
 
                     // force elements
                     fx = ftmp * (dx / rij); // dx/rij comes from the chain rule (dU/dx1 = dU/dr * dr/dx1)
@@ -285,6 +289,9 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                     
                     if (gi == 0){
                       energy += energytmp;
+                      cout << "vertex-vertex, ftmp = " << ftmp << ", dx = " << dx << ", rij = " << rij << '\n';
+                      cout << "energy += " << energytmp << '\t' << ", fx,fy = " << fx << '\t' << fy << '\n';
+
                     }
 
                     // add to virial stress
@@ -335,6 +342,13 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                   
                   if (gi == 0){
                     energy += energytmp;
+                    cout << "vertex-line, ftmp = " << ftmp << ", prefix = " << prefix << ", y21 = " << y21 << '\n';
+                    cout << "gi, g1, g2 = " << gi << '\t' << gj << '\t' << g2 << '\n';
+                    /*cout << x[NDIM*gi] << '\t' << x[NDIM*gi + 1] << '\n';
+                    cout << x[g1_ind] << '\t' << x[g1_ind + 1] << '\n';
+                    cout << x[g2_ind] << '\t' << x[g2_ind + 1] << '\n';
+                    cout << "d_arg = " << d_arg << ", norm_P12 = " << norm_P12 << '\n';*/
+                    cout << "energy += " << energytmp << '\t' << ", fx,fy = " << ftmp*prefix*y21 << '\t' << ftmp*prefix*-x21 << '\n';
                   }
                 }
                 // add to contacts
@@ -410,10 +424,12 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                 if (rij < shellij) {
                   // scaled distance
                   xij = rij / sij;
+                  //isSelfInteraction = false;
                   // pick force based on vertex-vertex distance
                   if (ci == cj) {
+                    //isSelfInteraction = true;
                     // if vertices (not neighbors) are in same cell, compute
-                    // repulsions
+                    // repulsions and set a flag to skip to the vertex-vertex repulsion case.
                     if (rij < sij) {
                       ftmp = kc * (1 - (rij / sij)) * (rho0 / sij);
                       //cellU[ci] += 0.5 * kc * pow((1 - (rij / sij)), 2.0);
@@ -463,8 +479,9 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                     endCapAngle = acos( (drx_prev * drx + dry_prev * dry) / (sqrt((drx_prev*drx_prev + dry_prev*dry_prev)*(drx*drx + dry*dry))) );
                     endCapAngle = PI - endCapAngle;
 
-                    if ((endEndAngle >= 0 && endEndAngle <= endCapAngle)) {
-                      // pure 2-body contact, add to forces
+                    if ((endEndAngle >= 0 && endEndAngle <= endCapAngle)){ //|| isSelfInteraction) {
+                      // pure 2-body contact determined by angles and distances between contact points or by self interaction, 
+                      // so compute and accumulate forces
 
                       // force elements
                       fx = ftmp * (dx / rij); // dx/rij comes from the chain rule (dU/dx1 = dU/dr * dr/dx1)
@@ -480,6 +497,9 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                       
                       if (gi == 0){
                         energy += energytmp;
+                        cout << "vertex-vertex, ftmp = " << ftmp << ", dx = " << dx << ", rij = " << rij << '\n';
+                        cout << "energy += " << energytmp << '\t' << ", fx,fy = " << fx << '\t' << fy << '\n';
+
                       }
 
                       // add to virial stress
@@ -530,6 +550,13 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                     
                     if (gi == 0){
                       energy += energytmp;
+                      cout << "vertex-line, ftmp = " << ftmp << ", prefix = " << prefix << ", y21 = " << y21 << '\n';
+                      cout << "gi, g1, g2 = " << gi << '\t' << gj << '\t' << g2 << '\n';
+                      /*cout << x[NDIM*gi] << '\t' << x[NDIM*gi + 1] << '\n';
+                      cout << x[g1_ind] << '\t' << x[g1_ind + 1] << '\n';
+                      cout << x[g2_ind] << '\t' << x[g2_ind + 1] << '\n';
+                      cout << "d_arg = " << d_arg << ", norm_P12 = " << norm_P12 << '\n';*/
+                      cout << "energy += " << energytmp << '\t' << ", fx,fy = " << ftmp*prefix*y21 << '\t' << ftmp*prefix*-x21 << '\n';
                     }
                   }
                   // add to contacts

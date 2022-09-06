@@ -2,7 +2,7 @@
 // Compilation command:
 // g++ -O3 --std=c++11 -g -I src main/cell/testAdhesionForces.cpp src/dpm.cpp src/cell.cpp -o main/cell/testAdhesion.o
 // run command:
-// ./main/cell/testAdhesion.o   2   10 1.0 0.0  1    test
+// ./main/cell/testAdhesion.o   2   10 1.0 0.3  1    test
 //                          NCELLS NV  A0  att seed outFileStem
 
 #include <sstream>
@@ -26,7 +26,7 @@ const double sizeratio = 1.0;  // size ratio between small and large particles
 const double dt0 = 1e-2;       // initial magnitude of time step in units of MD time
 const double Ptol = 1e-8;
 const double Ftol = 1e-12;
-const double att_range = 0.01;  // att_range > 0 might cause problems with current scheme for smooth forces
+const double att_range = 0.5;  // att_range > 0 might cause problems with current scheme for smooth forces
 
 int main(int argc, char const* argv[]) {
   // local variables to be read in
@@ -126,8 +126,9 @@ int main(int argc, char const* argv[]) {
   }
 
   // dpm is written counterclockwise for vertex numbering
-  bool testConcave = true;
+  bool testConcave = false;
   bool test90Degrees = false;
+  bool testAttraction = true;
   double psi, theta, dx, dy, dx2, dy2;
   int numDirections = 4; // numDirections sets how many directions we're scanning over when testing overlaps
   if (!testConcave){
@@ -178,7 +179,11 @@ int main(int argc, char const* argv[]) {
   cell2D.moveVertex(16, 1+1*diameter, 1+4*diameter);
   cell2D.moveVertex(15, 1+2*diameter, 1+4*diameter);*/
 
+  if (testAttraction){
+   offset = -offset/2;
+  }
   double origin = 1-diameter-offset;
+
   cell2D.moveVertex(0, origin, 1); // place vertex 0 from cell 0 next to vertex 0-2 in cell 1.
 
   //cell2D.printConfiguration2D();
