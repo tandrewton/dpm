@@ -126,9 +126,9 @@ int main(int argc, char const* argv[]) {
   }
 
   // dpm is written counterclockwise for vertex numbering
-  bool testConcave = true;
+  bool testConcave = false;
   bool test90Degrees = false;
-  bool testAttraction = true;
+  bool testAttraction = false;
   double psi, theta, dx, dy, dx2, dy2;
   int numDirections = 4; // numDirections sets how many directions we're scanning over when testing overlaps
   if (!testConcave){

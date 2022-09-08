@@ -28,9 +28,9 @@ set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
 
 showverts = 1;
-showcirculoline = 0;
+showcirculoline = 1;
 walls = 0;
-att_range = 0.5;
+att_range = 0.0;
  
 %PC directory
 %pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
@@ -193,7 +193,7 @@ for seed = startSeed:max_seed
                     for xx = itLow:itHigh
                         for yy = itLow:itHigh
                             rectangle('Position',[xplot+xx*Lx, yplot + yy*Ly, 2*vradtmp(vv), 2*vradtmp(vv)],'Curvature',[1 1],'EdgeColor','k','FaceColor',clr);
-                            text(xplot,yplot,num2str(vv-1))
+                            text(xplot-0.25,yplot-0.25,num2str(vv-1))
                         end
                     end
                 end

@@ -232,64 +232,79 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                   ftmp = kc * (1 - xij) / sij;
                   energytmp = 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
                 }
-                if (contactType <= 0) { // projection is either on the endpoint or outside the endpoint, i.e. not on the line segment
-                  // endEndAngle = arccos[(d dot rj - rj-1 / norm d norm (rj - rj-1))] - pi/2
-                  // endEndAngle is the angle between the separation between interacting vertices and the endcap edge closest to the circulo-line.
-                  // endCapAngle is the angle between the far edge of the endcap and the near edge of the endcap
-                  // endCapAngle = pi - arccos[((rj+1 - rj) dot (rj - rj-1) / norm (rj+1-rj) norm (rj - rj-1))]
-                  int left = gj;
-                  int middle = im1[gj];
-                  int right = im1[im1[gj]];
-                  
-                  double drx = x[left*NDIM] - x[middle*NDIM];
-                  double dry = x[left*NDIM + 1] - x[middle*NDIM + 1];
-                  double drx_prev = x[right*NDIM] - x[middle*NDIM];
-                  double dry_prev = x[right*NDIM + 1] - x[middle*NDIM + 1];
-                  endEndAngle = acos( (rx * drx_prev + ry * dry_prev) / (sqrt((rx*rx + ry*ry)*(drx_prev*drx_prev+dry_prev*dry_prev))) );
-                  endEndAngle -= PI/2;
-                  endCapAngle = acos( (drx_prev * drx + dry_prev * dry) / (sqrt((drx_prev*drx_prev + dry_prev*dry_prev)*(drx*drx + dry*dry))) );
-                  endCapAngle = PI - endCapAngle;
+                // endEndAngle = arccos[(d dot rj - rj-1 / norm d norm (rj - rj-1))] - pi/2
+                // endEndAngle is the angle between the separation between interacting vertices and the endcap edge closest to the circulo-line.
+                // endCapAngle is the angle between the far edge of the endcap and the near edge of the endcap
+                // endCapAngle = pi - arccos[((rj+1 - rj) dot (rj - rj-1) / norm (rj+1-rj) norm (rj - rj-1))]
+                int left = gj;  // i
+                int middle = im1[gj]; // i-1
+                int right = im1[im1[gj]]; // i-2
+                
+                double drx = x[left*NDIM] - x[middle*NDIM];
+                double dry = x[left*NDIM + 1] - x[middle*NDIM + 1];
+                double drx_prev = x[right*NDIM] - x[middle*NDIM];
+                double dry_prev = x[right*NDIM + 1] - x[middle*NDIM + 1];
+                endEndAngle = acos( (rx * drx_prev + ry * dry_prev) / (sqrt((rx*rx + ry*ry)*(drx_prev*drx_prev+dry_prev*dry_prev))) );
+                endEndAngle -= PI/2;
+                endCapAngle = atan2(drx_prev*dry-drx*dry_prev,drx_prev*drx+dry_prev*dry);
 
-                  if ((endEndAngle >= 0 && endEndAngle <= endCapAngle)){
-                    // pure 2-body contact determined by angles and distances between contact points or by self interaction, 
-                    // so compute and accumulate forces
+                if (endCapAngle < 0) 
+                  endCapAngle += 2*PI;
 
-                    // force elements
-                    fx = ftmp * (dx / rij); // dx/rij comes from the chain rule (dU/dx1 = dU/dr * dr/dx1)
-                    fy = ftmp * (dy / rij);
-                    F[NDIM * gi] -= fx;
-                    F[NDIM * gi + 1] -= fy;
+                endCapAngle = endCapAngle - PI;
 
-                    F[NDIM * gj] += fx;
-                    F[NDIM * gj + 1] += fy;
+                cout << "between " << right << '\t' << middle << '\t' << left << '\t' << ", atan2 = " << endCapAngle << '\n';
+                //cout << left << " is located at " << x[left*NDIM] << '\t' << x[left*NDIM + 1] << '\n';
+                cout << "endEndAngle = " << '\t' << endEndAngle << '\t' << ", endCapAngle = " << endCapAngle << '\n';
 
-                    cellU[ci] += energytmp/2;
-                    cellU[cj] += energytmp/2;
-                    U += energytmp;
-                    
-                    if (gi == 0){
-                      energy += energytmp;
-                      cout << "vertex-vertex, ftmp = " << ftmp << ", dx = " << dx << ", rij = " << rij << '\n';
-                      cout << "energy += " << energytmp << '\t' << ", fx,fy = " << fx << '\t' << fy << '\n';
+                bool isConvexInteraction = (endEndAngle >= 0 && endEndAngle <= endCapAngle);
+                bool isConcaveInteraction = (endCapAngle < 0 && endEndAngle < 0 && endEndAngle >= endCapAngle);
+                
+                // projection is either on the endpoint or outside the endpoint, i.e. not on the line segment
+                if ((contactType <= 0 && isConvexInteraction)){// || (contactType > 0 && isConcaveInteraction)){
+                  // pure 2-body contact determined by angles and distances between contact points or by self interaction, 
+                  // so compute and accumulate forces
 
-                    }
-                    // add to virial stress
-                    // note: 4/7/22 I'm using -dx/2 instead of dx and same for dy for stress calculation, since
-                    //  I want to calculate force times separation from geometric center of interaction
-                    stress[0] += -dx * fx;
-                    stress[1] += -dy * fy;
-                    stress[2] += -0.5 * (dx * fy + dy * fx);
-
-                    fieldStress[gi][0] += -dx / 2 * fx;
-                    fieldStress[gi][1] += -dy / 2 * fy;
-                    fieldStress[gi][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
-
-                    // stress on gj should be the same as on gi, since it's the opposite separation and also opposite force
-                    fieldStress[gj][0] += -dx / 2 * fx;
-                    fieldStress[gj][1] += -dy / 2 * fy;
-                    fieldStress[gj][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
+                  if (isConcaveInteraction){
+                    ftmp = -ftmp;   // concave interaction includes an external potential subtracting off a vertex-vertex interaction to maintain continuity
                   }
-                } else { // contactType less than 1 and greater than 0, so we're on main line segment
+
+                  // force elements
+                  fx = ftmp * (dx / rij); // dx/rij comes from the chain rule (dU/dx1 = dU/dr * dr/dx1)
+                  fy = ftmp * (dy / rij);
+                  F[NDIM * gi] -= fx;
+                  F[NDIM * gi + 1] -= fy;
+
+                  F[NDIM * gj] += fx;
+                  F[NDIM * gj + 1] += fy;
+
+                  cellU[ci] += energytmp/2;
+                  cellU[cj] += energytmp/2;
+                  U += energytmp;
+                  
+                  if (gi == 0){
+                    energy += energytmp;
+                    cout << "vertex-vertex, ftmp = " << ftmp << ", dx = " << dx << ", rij = " << rij << '\n';
+                    cout << "energy += " << energytmp << '\t' << ", fx,fy = " << fx << '\t' << fy << '\n';
+
+                  }
+                  // add to virial stress
+                  // note: 4/7/22 I'm using -dx/2 instead of dx and same for dy for stress calculation, since
+                  //  I want to calculate force times separation from geometric center of interaction
+                  stress[0] += -dx * fx;
+                  stress[1] += -dy * fy;
+                  stress[2] += -0.5 * (dx * fy + dy * fx);
+
+                  fieldStress[gi][0] += -dx / 2 * fx;
+                  fieldStress[gi][1] += -dy / 2 * fy;
+                  fieldStress[gi][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
+
+                  // stress on gj should be the same as on gi, since it's the opposite separation and also opposite force
+                  fieldStress[gj][0] += -dx / 2 * fx;
+                  fieldStress[gj][1] += -dy / 2 * fy;
+                  fieldStress[gj][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
+                } 
+                if (contactType > 0) { // contactType less than 1 and greater than 0, so we're on main line segment
                   // Force on particle 0,1,2 is determined by F = - dU/dr = (partials) dU/dr * <dr/dxi , dr/dyi> 
                   // 3-body contact, 6 forces (3 pairs of forces)
                   //y21, x21, y20, x20, y10, x10, norm_P12, d_arg
@@ -325,7 +340,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                     cout << "vertex-line, ftmp = " << ftmp << ", prefix = " << prefix << ", y21 = " << y21 << '\n';
                     cout << "gi, g1, g2 = " << gi << '\t' << gj << '\t' << g2 << '\n';
                     cout << "energy += " << energytmp << '\t' << ", fx,fy = " << ftmp*prefix*y21 << '\t' << ftmp*prefix*-x21 << '\n';
-                  }
+                  }          
                 }
                 // add to contacts
                 /*for (int i = 0; i < vnn[gi].size(); i++) {
@@ -417,64 +432,77 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                     ftmp = kc * (1 - xij) / sij;
                     energytmp = 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
                   }
-                  if (contactType <= 0) { // projection is either on the endpoint or outside the endpoint, i.e. not on the line segment
-                    // endEndAngle = arccos[(d dot rj - rj-1 / norm d norm (rj - rj-1))] - pi/2
-                    // endEndAngle is the angle between the separation between interacting vertices and the endcap edge closest to the circulo-line.
-                    // endCapAngle is the angle between the far edge of the endcap and the near edge of the endcap
-                    // endCapAngle = pi - arccos[((rj+1 - rj) dot (rj - rj-1) / norm (rj+1-rj) norm (rj - rj-1))]
-                    int left = gj;
-                    int middle = im1[gj];
-                    int right = im1[im1[gj]];
-                    
-                    double drx = x[left*NDIM] - x[middle*NDIM];
-                    double dry = x[left*NDIM + 1] - x[middle*NDIM + 1];
-                    double drx_prev = x[right*NDIM] - x[middle*NDIM];
-                    double dry_prev = x[right*NDIM + 1] - x[middle*NDIM + 1];
-                    endEndAngle = acos( (rx * drx_prev + ry * dry_prev) / (sqrt((rx*rx + ry*ry)*(drx_prev*drx_prev+dry_prev*dry_prev))) );
-                    endEndAngle -= PI/2;
-                    endCapAngle = acos( (drx_prev * drx + dry_prev * dry) / (sqrt((drx_prev*drx_prev + dry_prev*dry_prev)*(drx*drx + dry*dry))) );
-                    endCapAngle = PI - endCapAngle;
+                  // endEndAngle = arccos[(d dot rj - rj-1 / norm d norm (rj - rj-1))] - pi/2
+                  // endEndAngle is the angle between the separation between interacting vertices and the endcap edge closest to the circulo-line.
+                  // endCapAngle is the angle between the far edge of the endcap and the near edge of the endcap
+                  // endCapAngle = pi - arccos[((rj+1 - rj) dot (rj - rj-1) / norm (rj+1-rj) norm (rj - rj-1))]
+                  int left = gj;  // i
+                  int middle = im1[gj]; // i-1
+                  int right = im1[im1[gj]]; // i-2
+                  
+                  double drx = x[left*NDIM] - x[middle*NDIM];
+                  double dry = x[left*NDIM + 1] - x[middle*NDIM + 1];
+                  double drx_prev = x[right*NDIM] - x[middle*NDIM];
+                  double dry_prev = x[right*NDIM + 1] - x[middle*NDIM + 1];
+                  endEndAngle = acos( (rx * drx_prev + ry * dry_prev) / (sqrt((rx*rx + ry*ry)*(drx_prev*drx_prev+dry_prev*dry_prev))) );
+                  endEndAngle -= PI/2;
+                  endCapAngle = atan2(drx_prev*dry-drx*dry_prev,drx_prev*drx+dry_prev*dry);
+                  if (endCapAngle < 0) 
+                    endCapAngle += 2*PI;
+                  endCapAngle = endCapAngle - PI;
 
-                    if ((endEndAngle >= 0 && endEndAngle <= endCapAngle)){
-                      // pure 2-body contact determined by angles and distances between contact points or by self interaction, 
-                      // so compute and accumulate forces
+                  cout << "between " << right << '\t' << middle << '\t' << left << '\t' << ", atan2 = " << endCapAngle << '\n';
+                  //cout << left << " is located at " << x[left*NDIM] << '\t' << x[left*NDIM + 1] << '\n';
+                  cout << "endEndAngle = " << '\t' << endEndAngle << '\t' << ", endCapAngle = " << endCapAngle << '\n';
 
-                      // force elements
-                      fx = ftmp * (dx / rij); // dx/rij comes from the chain rule (dU/dx1 = dU/dr * dr/dx1)
-                      fy = ftmp * (dy / rij);
-                      F[NDIM * gi] -= fx;
-                      F[NDIM * gi + 1] -= fy;
+                  bool isConvexInteraction = (endEndAngle >= 0 && endEndAngle <= endCapAngle);
+                  bool isConcaveInteraction = (endCapAngle < 0 && endEndAngle < 0 && endEndAngle >= endCapAngle);
+                  
+                  // projection is either on the endpoint or outside the endpoint, i.e. not on the line segment
+                  if ((contactType <= 0 && isConvexInteraction)){// || (contactType > 0 && isConcaveInteraction)){
+                    // pure 2-body contact determined by angles and distances between contact points or by self interaction, 
+                    // so compute and accumulate forces
 
-                      F[NDIM * gj] += fx;
-                      F[NDIM * gj + 1] += fy;
-
-                      cellU[ci] += energytmp/2;
-                      cellU[cj] += energytmp/2;
-                      U += energytmp;
-                      
-                      if (gi == 0){
-                        energy += energytmp;
-                        cout << "vertex-vertex, ftmp = " << ftmp << ", dx = " << dx << ", rij = " << rij << '\n';
-                        cout << "energy += " << energytmp << '\t' << ", fx,fy = " << fx << '\t' << fy << '\n';
-
-                      }
-                      // add to virial stress
-                      // note: 4/7/22 I'm using -dx/2 instead of dx and same for dy for stress calculation, since
-                      //  I want to calculate force times separation from geometric center of interaction
-                      stress[0] += -dx * fx;
-                      stress[1] += -dy * fy;
-                      stress[2] += -0.5 * (dx * fy + dy * fx);
-
-                      fieldStress[gi][0] += -dx / 2 * fx;
-                      fieldStress[gi][1] += -dy / 2 * fy;
-                      fieldStress[gi][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
-
-                      // stress on gj should be the same as on gi, since it's the opposite separation and also opposite force
-                      fieldStress[gj][0] += -dx / 2 * fx;
-                      fieldStress[gj][1] += -dy / 2 * fy;
-                      fieldStress[gj][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
+                    if (isConcaveInteraction){
+                      ftmp = -ftmp;   // concave interaction includes an external potential subtracting off a vertex-vertex interaction to maintain continuity
                     }
-                  } else { // contactType less than 1 and greater than 0, so we're on main line segment
+
+                    // force elements
+                    fx = ftmp * (dx / rij); // dx/rij comes from the chain rule (dU/dx1 = dU/dr * dr/dx1)
+                    fy = ftmp * (dy / rij);
+                    F[NDIM * gi] -= fx;
+                    F[NDIM * gi + 1] -= fy;
+
+                    F[NDIM * gj] += fx;
+                    F[NDIM * gj + 1] += fy;
+
+                    cellU[ci] += energytmp/2;
+                    cellU[cj] += energytmp/2;
+                    U += energytmp;
+                    
+                    if (gi == 0){
+                      energy += energytmp;
+                      cout << "vertex-vertex, ftmp = " << ftmp << ", dx = " << dx << ", rij = " << rij << '\n';
+                      cout << "energy += " << energytmp << '\t' << ", fx,fy = " << fx << '\t' << fy << '\n';
+
+                    }
+                    // add to virial stress
+                    // note: 4/7/22 I'm using -dx/2 instead of dx and same for dy for stress calculation, since
+                    //  I want to calculate force times separation from geometric center of interaction
+                    stress[0] += -dx * fx;
+                    stress[1] += -dy * fy;
+                    stress[2] += -0.5 * (dx * fy + dy * fx);
+
+                    fieldStress[gi][0] += -dx / 2 * fx;
+                    fieldStress[gi][1] += -dy / 2 * fy;
+                    fieldStress[gi][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
+
+                    // stress on gj should be the same as on gi, since it's the opposite separation and also opposite force
+                    fieldStress[gj][0] += -dx / 2 * fx;
+                    fieldStress[gj][1] += -dy / 2 * fy;
+                    fieldStress[gj][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
+                  } 
+                  if (contactType > 0) { // contactType less than 1 and greater than 0, so we're on main line segment
                     // Force on particle 0,1,2 is determined by F = - dU/dr = (partials) dU/dr * <dr/dxi , dr/dyi> 
                     // 3-body contact, 6 forces (3 pairs of forces)
                     //y21, x21, y20, x20, y10, x10, norm_P12, d_arg
@@ -510,9 +538,9 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                       cout << "vertex-line, ftmp = " << ftmp << ", prefix = " << prefix << ", y21 = " << y21 << '\n';
                       cout << "gi, g1, g2 = " << gi << '\t' << gj << '\t' << g2 << '\n';
                       cout << "energy += " << energytmp << '\t' << ", fx,fy = " << ftmp*prefix*y21 << '\t' << ftmp*prefix*-x21 << '\n';
-                    }
-                  }                  // add to contacts
-                  /*for (int i = 0; i < vnn[gi].size(); i++) {
+                    }          
+                  }
+                                    /*for (int i = 0; i < vnn[gi].size(); i++) {
                     if (ci == cj)
                       break;
 
