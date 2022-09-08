@@ -8,7 +8,7 @@ plot(0:numIts-1, A(:,3), 'DisplayName', "energy")
 xlabel("frame number")
 ylabel("force or energy")
 
-numDirections = 4;
+numDirections = 2;
 for i=1:numDirections
     xline(i*numIts/numDirections - 1, 'HandleVisibility','off')
 end
