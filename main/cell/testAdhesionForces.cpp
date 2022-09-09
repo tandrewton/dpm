@@ -126,9 +126,9 @@ int main(int argc, char const* argv[]) {
   }
 
   // dpm is written counterclockwise for vertex numbering
-  bool testConcave = false;
+  bool testConcave = true;
   bool test90Degrees = false;
-  bool testAttraction = false;
+  bool testAttraction = true;
   double psi, theta, dx, dy, dx2, dy2;
   int numDirections = 4; // numDirections sets how many directions we're scanning over when testing overlaps
   if (!testConcave){
@@ -215,13 +215,13 @@ int main(int argc, char const* argv[]) {
         if (i == 3){
           cell2D.moveVertex(0, origin + diameter*4.0 + 2*offset - j*(diameter*4.0 + 2*offset)/epsilonInv, origin);
         }
-        cout <<  "in frame = " << i*epsilonInv + j + 1 << "\n\n\n";
+        cout <<  "XXXXXXXXXX  in frame = " << i*epsilonInv + j << "XXXXXXXXXXXXX \n\n\n";
         // print configuration and calculate its forces
         cell2D.printConfiguration2D();
         //cell2D.attractiveForceUpdatePrint(fx, fy, u);
         cell2D.attractiveForceUpdateSmoothPrint(fx, fy, u);
         if (fy == 0)
-          cout << "frame " << i*epsilonInv + j + 1 << " has fy = 0!\n\n";
+          cout << "frame " << i*epsilonInv + j << " has fy = 0!\n\n";
         forcex.push_back(fx);
         forcey.push_back(fy);
         energy.push_back(u);
@@ -242,13 +242,13 @@ int main(int argc, char const* argv[]) {
         if (i == 3){
           cell2D.moveVertex(0, origin + j*(diameter*4.0 + 2*offset)/epsilonInv, origin + 2*diameter + 3*diameter + 2*offset);
         }
-        cout <<  "in frame = " << i*epsilonInv + j + 1 << "\n\n\n";
+        cout <<  "XXXXXXXXXX  in frame = " << i*epsilonInv + j << "XXXXXXXXXXXXX \n\n\n";
         // print configuration and calculate its forces
         cell2D.printConfiguration2D();
         //cell2D.attractiveForceUpdatePrint(fx, fy, u);
         cell2D.attractiveForceUpdateSmoothPrint(fx, fy, u);
         if (fy == 0)
-          cout << "frame " << i*epsilonInv + j + 1 << " has fy = 0!\n\n";
+          cout << "frame " << i*epsilonInv + j  << " has fy = 0!\n\n";
         forcex.push_back(fx);
         forcey.push_back(fy);
         energy.push_back(u);
@@ -269,13 +269,13 @@ int main(int argc, char const* argv[]) {
         if (i == 3){
           cell2D.moveVertex(0, origin + diameter*4.0 + 2*offset - j*(diameter*4.0 + 2*offset)/epsilonInv, origin);
         }
-        cout <<  "in frame = " << i*epsilonInv + j + 1 << "\n\n\n";
+        cout <<  "XXXXXXXXXX  in frame = " << i*epsilonInv + j << "XXXXXXXXXXXXX \n\n\n";
         // print configuration and calculate its forces
         cell2D.printConfiguration2D();
         //cell2D.attractiveForceUpdatePrint(fx, fy, u);
         cell2D.attractiveForceUpdateSmoothPrint(fx, fy, u);
         if (fy == 0)
-          cout << "frame " << i*epsilonInv + j + 1 << " has fy = 0!\n\n";
+          cout << "frame " << i*epsilonInv + j  << " has fy = 0!\n\n";
         forcex.push_back(fx);
         forcey.push_back(fy);
         energy.push_back(u);

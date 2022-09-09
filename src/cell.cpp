@@ -150,6 +150,8 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
   double contactType; // parameterized projection value. if between [0,1] then it's circulo-line, if < 0 or > 1 then it is either nothing or end-end.
   double endCapAngle, endEndAngle; // endCapAngle is PI minus interior angle of vertices, endEndAngle is between interaction centers and circulo-line endpoints
   double ftmp, fx, fy, energytmp;
+  bool isConcaveInteraction, isConvexInteraction;
+  int sign = 1; // used to flip the sign of force and energy in the concave interaction case for negative endCap vertex-vertex interactions
   energy = 0;
 
   // attraction shell parameters
@@ -244,48 +246,109 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                 double dry = x[left*NDIM + 1] - x[middle*NDIM + 1];
                 double drx_prev = x[right*NDIM] - x[middle*NDIM];
                 double dry_prev = x[right*NDIM + 1] - x[middle*NDIM + 1];
-                endEndAngle = acos( (rx * drx_prev + ry * dry_prev) / (sqrt((rx*rx + ry*ry)*(drx_prev*drx_prev+dry_prev*dry_prev))) );
-                endEndAngle -= PI/2;
-                endCapAngle = atan2(drx_prev*dry-drx*dry_prev,drx_prev*drx+dry_prev*dry);
+                // note that using r dot dr_prev only gives the correct endEndangle for the convex case
+                //  because the vertex-line distance in the convex case will be measured from the end of the projection cutoff which is P = 0
+                // When generalizing to the concave case, the measurement needs to explicitly be from vertex-vertex (vv) at P = 0
+                
+                double vv_rx = x[NDIM*gi] - x[NDIM*middle]; // if this works, reduce redundancy and set dx = vv_rx inside the concave evaluation segment
+                double vv_ry = x[NDIM*gi + 1] - x[NDIM*middle + 1];
+                  
+                //endEndAngle = acos( (rx * drx_prev + ry * dry_prev) / (sqrt((rx*rx + ry*ry)*(drx_prev*drx_prev+dry_prev*dry_prev))) );
+                //endEndAngle = acos( (vv_rx * drx_prev + vv_ry * dry_prev) / (sqrt((vv_rx*vv_rx + vv_ry*vv_ry) *(drx_prev*drx_prev+dry_prev*dry_prev))));
+                //endEndAngle -= PI/2;
 
+                endEndAngle = atan2(vv_rx*dry - drx * vv_ry, vv_rx*drx + vv_ry*dry);
+                //if (endEndAngle < 0)
+                //  endEndAngle += 2*PI;
+                endEndAngle = endEndAngle - PI/2; // theta' - pi/2 in the circulo-polygon diagram
+
+                endCapAngle = atan2(drx_prev*dry-drx*dry_prev,drx_prev*drx+dry_prev*dry);
                 if (endCapAngle < 0) 
                   endCapAngle += 2*PI;
+                endCapAngle = endCapAngle - PI; // phi in the circulo-polygon diagram
 
-                endCapAngle = endCapAngle - PI;
 
-                cout << "between " << right << '\t' << middle << '\t' << left << '\t' << ", atan2 = " << endCapAngle << '\n';
+                /*cout << "between " << right << '\t' << middle << '\t' << left << '\t' << ", atan2 = " << endCapAngle << '\n';
                 //cout << left << " is located at " << x[left*NDIM] << '\t' << x[left*NDIM + 1] << '\n';
-                cout << "endEndAngle = " << '\t' << endEndAngle << '\t' << ", endCapAngle = " << endCapAngle << '\n';
+                cout << "endEndAngle = " << '\t' << endEndAngle << '\t' << ", endCapAngle = " << endCapAngle << '\n';*/
 
-                bool isConvexInteraction = (endEndAngle >= 0 && endEndAngle <= endCapAngle);
-                bool isConcaveInteraction = (endCapAngle < 0 && endEndAngle < 0 && endEndAngle >= endCapAngle);
+                isConvexInteraction = (endEndAngle >= 0 && endEndAngle <= endCapAngle);
+                isConcaveInteraction = (endCapAngle < 0 && endEndAngle < 0 && endEndAngle >= endCapAngle);
+                if (gi == 0){
+                  cout << "endCapAngle, endEndAngle, isConcaveInteraction = " << endCapAngle << '\t' << endEndAngle << '\t' << isConcaveInteraction << '\n';
+                  cout << "arg of acos = " << rx*drx_prev+ry*dry_prev << '\t' << ", divided by " << sqrt((rx*rx + ry*ry)*(drx_prev*drx_prev + dry_prev*dry_prev)) << '\n';
+                  cout << gi << '\t' << left << '\t' << middle << '\t' << right << '\n';
+
+                  if (contactType > 0 && isConcaveInteraction){
+                    cout << "\nconcave interaction!\n";
+                    cout << "endCapAngle, endEndAngle = " << endCapAngle << '\t' << endEndAngle << '\n';
+                    cout << "contactType = " << contactType << '\n';
+                    cout << "between gi = " << gi << ", and " << left << '\t' << middle << '\t' << right << '\n';
+                  }
+                }
                 
                 // projection is either on the endpoint or outside the endpoint, i.e. not on the line segment
-                if ((contactType <= 0 && isConvexInteraction)){// || (contactType > 0 && isConcaveInteraction)){
+                if ((contactType <= 0 && isConvexInteraction) || (contactType > 0 && isConcaveInteraction)){
                   // pure 2-body contact determined by angles and distances between contact points or by self interaction, 
                   // so compute and accumulate forces
 
-                  if (isConcaveInteraction){
-                    ftmp = -ftmp;   // concave interaction includes an external potential subtracting off a vertex-vertex interaction to maintain continuity
+                  if (isConcaveInteraction){  // if concave, compute interaction between vertex and inverse vertex. sign = -1 to compute negative of usual force. 
+                    // have to reevaluate the distances because the previous code uses vertex-line distance, whereas we need vertex-vertex distance 
+                    sign = 0;
+                    if (gi == 0)
+                      cout << "testing concave interaction between " << gi << '\t' << left << '\t' << middle << '\t' << right << "\n\n";
+                    // if (not close enough to interact) sign = 0;
+                    dx = x[NDIM*middle] - x[NDIM*gi];
+                    if (pbc[0])
+                      dx -= L[0] * round(dx / L[0]);
+                    if (dx < shellij && gi == 0) {
+                      dy = x[NDIM *middle+1] - x[NDIM * gi + 1];
+                      if (pbc[1])
+                        dy -= L[1] * round(dy / L[1]);
+                      if (dy < shellij) {
+                        rij = sqrt(dx * dx + dy * dy);
+                        if (rij < shellij) {
+                          sign = -1;
+                          cout << "approved concave interaction!\n";
+                          cout << "x(middle) - x(gi) = " << dx << '\t' << ", y(middle) - y(gi) = " << dy << '\n';
+                          cout << "rij = " << rij << '\t' << ", cutij = " << cutij << '\t' << ", shellij = " << shellij << '\n';
+                          cout << "x(middle), x(gi) = " << x[NDIM*middle] << '\t' << x[NDIM*middle+1] << '\t' << x[NDIM*gi] << '\t' << x[NDIM*gi+1] << '\n';
+                          xij = rij / sij;
+                          if (rij > cutij) {
+                            ftmp = kint * (xij - 1.0 - l2) / sij;
+                            energytmp = -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
+                          } else { 
+                            ftmp = kc * (1 - xij) / sij;
+                            energytmp = 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
+                          }
+                        }
+                      }
+                    }
+                  } else if (isConvexInteraction){
+                    sign = 1;
                   }
 
                   // force elements
-                  fx = ftmp * (dx / rij); // dx/rij comes from the chain rule (dU/dx1 = dU/dr * dr/dx1)
-                  fy = ftmp * (dy / rij);
+                  fx = sign * ftmp * (dx / rij); // dx/rij comes from the chain rule (dU/dx1 = dU/dr * dr/dx1)
+                  fy = sign * ftmp * (dy / rij);
                   F[NDIM * gi] -= fx;
                   F[NDIM * gi + 1] -= fy;
 
                   F[NDIM * gj] += fx;
                   F[NDIM * gj + 1] += fy;
 
-                  cellU[ci] += energytmp/2;
-                  cellU[cj] += energytmp/2;
-                  U += energytmp;
+                  if (fabs(fx)+fabs(fy) > 0) {
+                    cout << "found a v-v interaction between " << gi << '\t' << left << '\t' << middle << '\t' << right << '\n';
+                  }
+
+                  cellU[ci] += sign * energytmp/2;
+                  cellU[cj] += sign * energytmp/2;
+                  U += sign * energytmp;
                   
                   if (gi == 0){
-                    energy += energytmp;
-                    cout << "vertex-vertex, ftmp = " << ftmp << ", dx = " << dx << ", rij = " << rij << '\n';
-                    cout << "energy += " << energytmp << '\t' << ", fx,fy = " << fx << '\t' << fy << '\n';
+                    energy += sign * energytmp;
+                    //cout << "vertex-vertex, ftmp = " << ftmp << ", dx = " << dx << ", rij = " << rij << '\n';
+                    //cout << "energy += " << energytmp << '\t' << ", fx,fy = " << fx << '\t' << fy << '\n';
 
                   }
                   // add to virial stress
@@ -331,15 +394,20 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                   F[NDIM * g2] += ftmp*(prefix*y10 - x21*prefix2);
                   F[NDIM * g2 + 1] += ftmp*(prefix*-x10 - y21*prefix2);
 
+                  if (fabs(ftmp * prefix * y21)+fabs(ftmp * prefix * -x21) > 0) {
+                    cout << "found a line interaction between " << gi << '\t' << left << '\t' << middle << '\t' << right << '\n';
+                  }
+
+
                   cellU[ci] += energytmp/2;
                   cellU[cj] += energytmp/2;
                   U += energytmp;
                   
                   if (gi == 0){
                     energy += energytmp;
-                    cout << "vertex-line, ftmp = " << ftmp << ", prefix = " << prefix << ", y21 = " << y21 << '\n';
-                    cout << "gi, g1, g2 = " << gi << '\t' << gj << '\t' << g2 << '\n';
-                    cout << "energy += " << energytmp << '\t' << ", fx,fy = " << ftmp*prefix*y21 << '\t' << ftmp*prefix*-x21 << '\n';
+                    //cout << "vertex-line, ftmp = " << ftmp << ", prefix = " << prefix << ", y21 = " << y21 << '\n';
+                    //cout << "gi, g1, g2 = " << gi << '\t' << gj << '\t' << g2 << '\n';
+                    //cout << "energy += " << energytmp << '\t' << ", fx,fy = " << ftmp*prefix*y21 << '\t' << ftmp*prefix*-x21 << '\n';
                   }          
                 }
                 // add to contacts
@@ -444,46 +512,109 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                   double dry = x[left*NDIM + 1] - x[middle*NDIM + 1];
                   double drx_prev = x[right*NDIM] - x[middle*NDIM];
                   double dry_prev = x[right*NDIM + 1] - x[middle*NDIM + 1];
-                  endEndAngle = acos( (rx * drx_prev + ry * dry_prev) / (sqrt((rx*rx + ry*ry)*(drx_prev*drx_prev+dry_prev*dry_prev))) );
-                  endEndAngle -= PI/2;
+                  // note that using r dot dr_prev only gives the correct endEndangle for the convex case
+                  //  because the vertex-line distance in the convex case will be measured from the end of the projection cutoff which is P = 0
+                  // When generalizing to the concave case, the measurement needs to explicitly be from vertex-vertex (vv) at P = 0
+                  
+                  double vv_rx = x[NDIM*gi] - x[NDIM*middle]; // if this works, reduce redundancy and set dx = vv_rx inside the concave evaluation segment
+                  double vv_ry = x[NDIM*gi + 1] - x[NDIM*middle + 1];
+                  
+                  //endEndAngle = acos( (rx * drx_prev + ry * dry_prev) / (sqrt((rx*rx + ry*ry)*(drx_prev*drx_prev+dry_prev*dry_prev))) );
+                  //endEndAngle = acos( (vv_rx * drx_prev + vv_ry * dry_prev) / (sqrt((vv_rx*vv_rx + vv_ry*vv_ry) *(drx_prev*drx_prev+dry_prev*dry_prev))));
+                  //endEndAngle -= PI/2;
+
+                  endEndAngle = atan2(vv_rx*dry - drx * vv_ry, vv_rx*drx + vv_ry*dry);
+                  //if (endEndAngle < 0)
+                  //  endEndAngle += 2*PI;
+                  endEndAngle = endEndAngle - PI/2; // theta' - pi/2 in the circulo-polygon diagram
+
                   endCapAngle = atan2(drx_prev*dry-drx*dry_prev,drx_prev*drx+dry_prev*dry);
                   if (endCapAngle < 0) 
                     endCapAngle += 2*PI;
-                  endCapAngle = endCapAngle - PI;
+                  endCapAngle = endCapAngle - PI; // phi in the circulo-polygon diagram
 
-                  cout << "between " << right << '\t' << middle << '\t' << left << '\t' << ", atan2 = " << endCapAngle << '\n';
+
+                  /*cout << "between " << right << '\t' << middle << '\t' << left << '\t' << ", atan2 = " << endCapAngle << '\n';
                   //cout << left << " is located at " << x[left*NDIM] << '\t' << x[left*NDIM + 1] << '\n';
-                  cout << "endEndAngle = " << '\t' << endEndAngle << '\t' << ", endCapAngle = " << endCapAngle << '\n';
+                  cout << "endEndAngle = " << '\t' << endEndAngle << '\t' << ", endCapAngle = " << endCapAngle << '\n';*/
 
-                  bool isConvexInteraction = (endEndAngle >= 0 && endEndAngle <= endCapAngle);
-                  bool isConcaveInteraction = (endCapAngle < 0 && endEndAngle < 0 && endEndAngle >= endCapAngle);
+                  isConvexInteraction = (endEndAngle >= 0 && endEndAngle <= endCapAngle);
+                  isConcaveInteraction = (endCapAngle < 0 && endEndAngle < 0 && endEndAngle >= endCapAngle);
+                  if (gi == 0){
+                    cout << "endCapAngle, endEndAngle, isConcaveInteraction = " << endCapAngle << '\t' << endEndAngle << '\t' << isConcaveInteraction << '\n';
+                    cout << "arg of acos = " << rx*drx_prev+ry*dry_prev << '\t' << ", divided by " << sqrt((rx*rx + ry*ry)*(drx_prev*drx_prev + dry_prev*dry_prev)) << '\n';
+                    cout << gi << '\t' << left << '\t' << middle << '\t' << right << '\n';
+
+                    if (contactType > 0 && isConcaveInteraction){
+                      cout << "\nconcave interaction!\n";
+                      cout << "endCapAngle, endEndAngle = " << endCapAngle << '\t' << endEndAngle << '\n';
+                      cout << "contactType = " << contactType << '\n';
+                      cout << "between gi = " << gi << ", and " << left << '\t' << middle << '\t' << right << '\n';
+                    }
+                  }
                   
                   // projection is either on the endpoint or outside the endpoint, i.e. not on the line segment
-                  if ((contactType <= 0 && isConvexInteraction)){// || (contactType > 0 && isConcaveInteraction)){
+                  if ((contactType <= 0 && isConvexInteraction) || (contactType > 0 && isConcaveInteraction)){
                     // pure 2-body contact determined by angles and distances between contact points or by self interaction, 
                     // so compute and accumulate forces
 
-                    if (isConcaveInteraction){
-                      ftmp = -ftmp;   // concave interaction includes an external potential subtracting off a vertex-vertex interaction to maintain continuity
+                    if (isConcaveInteraction){  // if concave, compute interaction between vertex and inverse vertex. sign = -1 to compute negative of usual force. 
+                      // have to reevaluate the distances because the previous code uses vertex-line distance, whereas we need vertex-vertex distance 
+                      sign = 0;
+                      if (gi == 0)
+                        cout << "testing concave interaction between " << gi << '\t' << left << '\t' << middle << '\t' << right << "\n\n";
+                      // if (not close enough to interact) sign = 0;
+                      dx = x[NDIM*middle] - x[NDIM*gi];
+                      if (pbc[0])
+                        dx -= L[0] * round(dx / L[0]);
+                      if (dx < shellij && gi == 0) {
+                        dy = x[NDIM *middle+1] - x[NDIM * gi + 1];
+                        if (pbc[1])
+                          dy -= L[1] * round(dy / L[1]);
+                        if (dy < shellij) {
+                          rij = sqrt(dx * dx + dy * dy);
+                          if (rij < shellij) {
+                            sign = -1;
+                            cout << "approved concave interaction!\n";
+                            cout << "x(middle) - x(gi) = " << dx << '\t' << ", y(middle) - y(gi) = " << dy << '\n';
+                            cout << "rij = " << rij << '\t' << ", cutij = " << cutij << '\t' << ", shellij = " << shellij << '\n';
+                            cout << "x(middle), x(gi) = " << x[NDIM*middle] << '\t' << x[NDIM*middle+1] << '\t' << x[NDIM*gi] << '\t' << x[NDIM*gi+1] << '\n';
+                            xij = rij / sij;
+                            if (rij > cutij) {
+                              ftmp = kint * (xij - 1.0 - l2) / sij;
+                              energytmp = -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
+                            } else { 
+                              ftmp = kc * (1 - xij) / sij;
+                              energytmp = 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
+                            }
+                          }
+                        }
+                      }
+                    } else if (isConvexInteraction){
+                      sign = 1;
                     }
 
                     // force elements
-                    fx = ftmp * (dx / rij); // dx/rij comes from the chain rule (dU/dx1 = dU/dr * dr/dx1)
-                    fy = ftmp * (dy / rij);
+                    fx = sign * ftmp * (dx / rij); // dx/rij comes from the chain rule (dU/dx1 = dU/dr * dr/dx1)
+                    fy = sign * ftmp * (dy / rij);
                     F[NDIM * gi] -= fx;
                     F[NDIM * gi + 1] -= fy;
 
                     F[NDIM * gj] += fx;
                     F[NDIM * gj + 1] += fy;
 
-                    cellU[ci] += energytmp/2;
-                    cellU[cj] += energytmp/2;
-                    U += energytmp;
+                    if (fabs(fx)+fabs(fy) > 0) {
+                      cout << "found a v-v interaction between " << gi << '\t' << left << '\t' << middle << '\t' << right << '\n';
+                    }
+
+                    cellU[ci] += sign * energytmp/2;
+                    cellU[cj] += sign * energytmp/2;
+                    U += sign * energytmp;
                     
                     if (gi == 0){
-                      energy += energytmp;
-                      cout << "vertex-vertex, ftmp = " << ftmp << ", dx = " << dx << ", rij = " << rij << '\n';
-                      cout << "energy += " << energytmp << '\t' << ", fx,fy = " << fx << '\t' << fy << '\n';
+                      energy += sign * energytmp;
+                      //cout << "vertex-vertex, ftmp = " << ftmp << ", dx = " << dx << ", rij = " << rij << '\n';
+                      //cout << "energy += " << energytmp << '\t' << ", fx,fy = " << fx << '\t' << fy << '\n';
 
                     }
                     // add to virial stress
@@ -529,15 +660,19 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                     F[NDIM * g2] += ftmp*(prefix*y10 - x21*prefix2);
                     F[NDIM * g2 + 1] += ftmp*(prefix*-x10 - y21*prefix2);
 
+                    if (fabs(ftmp * prefix * y21)+fabs(ftmp * prefix * -x21) > 0) {
+                      cout << "found a line interaction between " << gi << '\t' << left << '\t' << middle << '\t' << right << '\n';
+                    }
+
                     cellU[ci] += energytmp/2;
                     cellU[cj] += energytmp/2;
                     U += energytmp;
                     
                     if (gi == 0){
                       energy += energytmp;
-                      cout << "vertex-line, ftmp = " << ftmp << ", prefix = " << prefix << ", y21 = " << y21 << '\n';
-                      cout << "gi, g1, g2 = " << gi << '\t' << gj << '\t' << g2 << '\n';
-                      cout << "energy += " << energytmp << '\t' << ", fx,fy = " << ftmp*prefix*y21 << '\t' << ftmp*prefix*-x21 << '\n';
+                      //cout << "vertex-line, ftmp = " << ftmp << ", prefix = " << prefix << ", y21 = " << y21 << '\n';
+                      //cout << "gi, g1, g2 = " << gi << '\t' << gj << '\t' << g2 << '\n';
+                      //cout << "energy += " << energytmp << '\t' << ", fx,fy = " << ftmp*prefix*y21 << '\t' << ftmp*prefix*-x21 << '\n';
                     }          
                   }
                                     /*for (int i = 0; i < vnn[gi].size(); i++) {
