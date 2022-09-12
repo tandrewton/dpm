@@ -198,7 +198,7 @@ int main(int argc, char const* argv[]) {
     cell2D.setl1(att);
     cell2D.setl2(att_range);
     
-    int epsilonInv = 50;
+    int epsilonInv = 100;
     if (!testConcave){
       for (int j = 0; j < epsilonInv + 1; j++){
         double fx, fy, u;
