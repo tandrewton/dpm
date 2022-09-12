@@ -250,25 +250,13 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                 
                 double vv_rx = x[NDIM*gi] - x[NDIM*middle]; // if this works, reduce redundancy and set dx = vv_rx inside the concave evaluation segment
                 double vv_ry = x[NDIM*gi + 1] - x[NDIM*middle + 1];
-                
-                //endEndAngle = acos( (rx * drx_prev + ry * dry_prev) / (sqrt((rx*rx + ry*ry)*(drx_prev*drx_prev+dry_prev*dry_prev))) );
-                //endEndAngle = acos( (vv_rx * drx_prev + vv_ry * dry_prev) / (sqrt((vv_rx*vv_rx + vv_ry*vv_ry) *(drx_prev*drx_prev+dry_prev*dry_prev))));
-                //endEndAngle -= PI/2;
-
                 endEndAngle = atan2(vv_rx*dry - drx * vv_ry, vv_rx*drx + vv_ry*dry);
-                //if (endEndAngle < 0)
-                //  endEndAngle += 2*PI;
                 endEndAngle = endEndAngle - PI/2; // theta' - pi/2 in the circulo-polygon diagram
 
                 endCapAngle = atan2(drx_prev*dry-drx*dry_prev,drx_prev*drx+dry_prev*dry);
                 if (endCapAngle < 0) 
                   endCapAngle += 2*PI;
                 endCapAngle = endCapAngle - PI; // phi in the circulo-polygon diagram
-
-
-                /*cout << "between " << right << '\t' << middle << '\t' << left << '\t' << ", atan2 = " << endCapAngle << '\n';
-                //cout << left << " is located at " << x[left*NDIM] << '\t' << x[left*NDIM + 1] << '\n';
-                cout << "endEndAngle = " << '\t' << endEndAngle << '\t' << ", endCapAngle = " << endCapAngle << '\n';*/
 
                 isConvexInteraction = (endEndAngle >= 0 && endEndAngle <= endCapAngle);
                 isConcaveInteraction = (endCapAngle < 0 && endEndAngle < 0 && endEndAngle >= endCapAngle);
@@ -319,8 +307,10 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                   cellU[cj] += energytmp/2;
                   U += energytmp;
                   
-                  if (gi == 0)
-                    energy += sign * energytmp;
+                  if (gi == 0){
+                    energy += energytmp;
+                    cout << "energytmp for gi 0 = " << energytmp << '\n';
+                  }
                   
                   // add to virial stress
                   // note: 4/7/22 I'm using -dx/2 instead of dx and same for dy for stress calculation, since
@@ -362,9 +352,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                         if (rij < shellij) {
                           sign = -1;
                           cout << "approved concave interaction!\n";
-                          cout << "x(middle) - x(gi) = " << dx << '\t' << ", y(middle) - y(gi) = " << dy << '\n';
                           cout << "rij = " << rij << '\t' << ", cutij = " << cutij << '\t' << ", shellij = " << shellij << '\n';
-                          cout << "x(middle), x(gi) = " << x[NDIM*middle] << '\t' << x[NDIM*middle+1] << '\t' << x[NDIM*gi] << '\t' << x[NDIM*gi+1] << '\n';
                           xij = rij / sij;
                           cout << "concave xij = " << xij << '\n';
                           if (rij > cutij) {
@@ -402,10 +390,9 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                   
                   if (gi == 0){
                     energy += sign * energytmp;
-                    //cout << "vertex-vertex, ftmp = " << ftmp << ", dx = " << dx << ", rij = " << rij << '\n';
-                    //cout << "energy += " << energytmp << '\t' << ", fx,fy = " << fx << '\t' << fy << '\n';
-
+                    cout << "sign*energytmp for gi 0 = " << sign*energytmp << '\n';
                   }
+
                   // add to virial stress
                   // note: 4/7/22 I'm using -dx/2 instead of dx and same for dy for stress calculation, since
                   //  I want to calculate force times separation from geometric center of interaction
@@ -529,25 +516,13 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                   
                   double vv_rx = x[NDIM*gi] - x[NDIM*middle]; // if this works, reduce redundancy and set dx = vv_rx inside the concave evaluation segment
                   double vv_ry = x[NDIM*gi + 1] - x[NDIM*middle + 1];
-                  
-                  //endEndAngle = acos( (rx * drx_prev + ry * dry_prev) / (sqrt((rx*rx + ry*ry)*(drx_prev*drx_prev+dry_prev*dry_prev))) );
-                  //endEndAngle = acos( (vv_rx * drx_prev + vv_ry * dry_prev) / (sqrt((vv_rx*vv_rx + vv_ry*vv_ry) *(drx_prev*drx_prev+dry_prev*dry_prev))));
-                  //endEndAngle -= PI/2;
-
                   endEndAngle = atan2(vv_rx*dry - drx * vv_ry, vv_rx*drx + vv_ry*dry);
-                  //if (endEndAngle < 0)
-                  //  endEndAngle += 2*PI;
                   endEndAngle = endEndAngle - PI/2; // theta' - pi/2 in the circulo-polygon diagram
 
                   endCapAngle = atan2(drx_prev*dry-drx*dry_prev,drx_prev*drx+dry_prev*dry);
                   if (endCapAngle < 0) 
                     endCapAngle += 2*PI;
                   endCapAngle = endCapAngle - PI; // phi in the circulo-polygon diagram
-
-
-                  /*cout << "between " << right << '\t' << middle << '\t' << left << '\t' << ", atan2 = " << endCapAngle << '\n';
-                  //cout << left << " is located at " << x[left*NDIM] << '\t' << x[left*NDIM + 1] << '\n';
-                  cout << "endEndAngle = " << '\t' << endEndAngle << '\t' << ", endCapAngle = " << endCapAngle << '\n';*/
 
                   isConvexInteraction = (endEndAngle >= 0 && endEndAngle <= endCapAngle);
                   isConcaveInteraction = (endCapAngle < 0 && endEndAngle < 0 && endEndAngle >= endCapAngle);
@@ -598,9 +573,11 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                     cellU[cj] += energytmp/2;
                     U += energytmp;
                     
-                    if (gi == 0)
-                      energy += sign * energytmp;
-
+                    if (gi == 0){
+                      energy += energytmp;
+                      cout << "energytmp for gi 0 = " << energytmp << '\n';
+                    }
+                    
                     // add to virial stress
                     // note: 4/7/22 I'm using -dx/2 instead of dx and same for dy for stress calculation, since
                     //  I want to calculate force times separation from geometric center of interaction
@@ -641,9 +618,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                           if (rij < shellij) {
                             sign = -1;
                             cout << "approved concave interaction!\n";
-                            cout << "x(middle) - x(gi) = " << dx << '\t' << ", y(middle) - y(gi) = " << dy << '\n';
                             cout << "rij = " << rij << '\t' << ", cutij = " << cutij << '\t' << ", shellij = " << shellij << '\n';
-                            cout << "x(middle), x(gi) = " << x[NDIM*middle] << '\t' << x[NDIM*middle+1] << '\t' << x[NDIM*gi] << '\t' << x[NDIM*gi+1] << '\n';
                             xij = rij / sij;
                             cout << "concave xij = " << xij << '\n';
                             if (rij > cutij) {
@@ -681,10 +656,9 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                     
                     if (gi == 0){
                       energy += sign * energytmp;
-                      //cout << "vertex-vertex, ftmp = " << ftmp << ", dx = " << dx << ", rij = " << rij << '\n';
-                      //cout << "energy += " << energytmp << '\t' << ", fx,fy = " << fx << '\t' << fy << '\n';
-
+                      cout << "sign*energytmp for gi 0 = " << sign*energytmp << '\n';
                     }
+
                     // add to virial stress
                     // note: 4/7/22 I'm using -dx/2 instead of dx and same for dy for stress calculation, since
                     //  I want to calculate force times separation from geometric center of interaction
@@ -700,7 +674,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                     fieldStress[gj][0] += -dx / 2 * fx;
                     fieldStress[gj][1] += -dy / 2 * fy;
                     fieldStress[gj][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
-                  }
+                  }                   
                   /*for (int i = 0; i < vnn[gi].size(); i++) {
                     if (ci == cj)
                       break;
