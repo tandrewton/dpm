@@ -138,12 +138,11 @@ void cell::attractiveForceUpdateSmoothPrint(double &forceX, double &forceY, doub
   forceY = F[1];
 }
 
-
 void cell::smoothAttractiveForces2D_test(double &energy) {
   // note: this code is from cell.cpp, and I've commented out vnn stuff which belongs to epi2D.h
-  // altered from vertexAttractiveForces2D_2, where instead of vertex-vertex distances we only calculate vertex-line segment distances.
-  // models sliding adhesion and sliding repulsion
-  int ci, cj, gi, gj, gk, vi, vj, bi, bj, pi, pj;
+  // altered from vertexAttractiveForces2D_2, where we use vertex-vertex and vertex-line segment distances to make a smooth interaction
+  // models sliding adhesion and repulsion. 
+  int ci, cj, gi, gj, vi, vj, bi, bj, pi, pj;
   double sij, rij, rho0;
   double d, rx, ry, dx, dy; // distance and components of separation between projection of point p onto line segment v-w
   double d_arg, y21, x21, y20, x20, y10, x10, norm_P12, prefix, prefix2;  // for calculating 3-body forces for contactType 1 (vertex-line-segment)
@@ -203,7 +202,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
         cutij = (1.0 + l1) * sij;
 
         // need to calculate d, d1, d2, which are distances from gi to im1[gj]-gj, to im1[gj], and to gj respectively
-        d = distLinePointComponentsAndContactType(x[NDIM*im1[gj]],x[NDIM*im1[gj] + 1], x[NDIM*gj], x[NDIM*gj+1], x[NDIM*gi], x[NDIM*gi+1], rx, ry, contactType);
+        d = linePointDistancesAndProjection(x[NDIM*im1[gj]],x[NDIM*im1[gj] + 1], x[NDIM*gj], x[NDIM*gj+1], x[NDIM*gi], x[NDIM*gi+1], rx, ry, contactType);
         if (contactType < 1) { // check that the projection falls within the interacting portion of vertex i
           // each vertex i is really a circulo-line between i and i-1, and a single end cap around vertex i located at projection=0
           // contactType <= 0 means that p0 projection onto p1-p2 is behind p1, potential v-v interaction
@@ -469,7 +468,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
           cutij = (1.0 + l1) * sij;
 
           // need to calculate d, d1, d2, which are distances from gi to im1[gj]-gj, to im1[gj], and to gj respectively
-          d = distLinePointComponentsAndContactType(x[NDIM*im1[gj]],x[NDIM*im1[gj] + 1], x[NDIM*gj], x[NDIM*gj+1], x[NDIM*gi], x[NDIM*gi+1], rx, ry, contactType);
+          d = linePointDistancesAndProjection(x[NDIM*im1[gj]],x[NDIM*im1[gj] + 1], x[NDIM*gj], x[NDIM*gj+1], x[NDIM*gi], x[NDIM*gi+1], rx, ry, contactType);
           if (contactType < 1) { // check that the projection falls within the interacting portion of vertex i
             // each vertex i is really a circulo-line between i and i-1, and a single end cap around vertex i located at projection=0
             // contactType <= 0 means that p0 projection onto p1-p2 is behind p1, potential v-v interaction

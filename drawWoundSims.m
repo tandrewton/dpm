@@ -40,13 +40,22 @@ makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately and dont s
 plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
-showWoundAndShapeProperties = 1;
+showWoundAndShapeProperties = 0;
 
-showverts = 0;
+
+showverts = 1;
 showBoundaries = 0;
-showArea = 1;
+showcirculoline = 0; % show line segments of circulo-lines
+att_range = 0.001;
+showArea = 0;
 showQuiver = 0;
 walls = 0;
+showCustomView = 0; % specific choice of coordinates to zoom in on for movie
+viewLeft = 0.8;
+viewRight = 1.6;
+viewTop = 1.8;
+viewBottom = 1.0;
+
 %disable showVoid if using printConfig on its own, outside of
 %dampedNVE/dampedNP0 routines
 showGlobalIndex = 0;
@@ -163,16 +172,18 @@ for seed = startSeed:max_seed
         energy = load(energystr);
         U = energy(:,3);
         K = energy(:,4);
-        U_ps = energy(:,5);
-        U_crawling = energy(:,6);
+        %U_ps = energy(:,5);
+        %U_crawling = energy(:,6);
         plot(energy(:,1), K, 'r-', 'linewidth',2, 'DisplayName',...
             '$K$');
-        plot(energy(:,1), U_ps, 'b-', 'linewidth',2, 'DisplayName',...
-            '$U_{ps}$');
-        plot(energy(:,1), U_crawling,'k-','linewidth',2, 'DisplayName',...
-            '$U_{crawling}$');
-         plot(energy(:,1), U,'--','linewidth',2, 'DisplayName',...
-            '$U$');
+        %plot(energy(:,1), U_ps, 'b-', 'linewidth',2, 'DisplayName',...
+        %    '$U_{ps}$');
+        %plot(energy(:,1), U_crawling,'k-','linewidth',2, 'DisplayName',...
+        %    '$U_{crawling}$');
+        plot(energy(:,1), U,'r--','linewidth',2, 'DisplayName',...
+           '$U$');
+        plot(energy(:,1), K+U,'r.','linewidth',2, 'DisplayName',...
+           '$K+U$');
         xlabel('$\tau$','Interpreter','latex');
         ylabel('Energy','Interpreter','latex');
         legend('Location', 'southeast', 'Interpreter', 'latex');
@@ -245,6 +256,9 @@ for seed = startSeed:max_seed
 
     if makeAMovie == 1
         moviestr = runType+fileheader_short+'.mp4';
+        if exist(moviestr, 'file')==2
+          delete(moviestr);
+        end
         vobj = VideoWriter(moviestr, 'MPEG-4');
         vobj.Quality = 100;
             
@@ -349,7 +363,7 @@ for seed = startSeed:max_seed
                 ytmp = ypos{nn};
                 gitmp = gi{nn};
                 l0tmp = l0{nn};
-                vradtmp = vrad{nn};
+                vradtmp = vrad{nn}*(1 + att_range);
                 psitmp = psi(nn);
                 costmp = cos(psitmp);
                 sintmp = sin(psitmp);
@@ -369,6 +383,38 @@ for seed = startSeed:max_seed
                                     text(xtmp(vv), ytmp(vv), num2str(gitmp(vv)));
                                 end
                             end
+                        end
+                    end
+
+                    for vv = 1:nv(ff,nn)
+                        xplot = xtmp(vv) - vradtmp(vv);
+                        yplot = ytmp(vv) - vradtmp(vv);
+                        if showcirculoline == 1% calculate coordinates of a rectangle representing the line segment between successive vertices in a DP
+                            vnext = mod(vv, nv(ff,nn))+1;
+                            xtmpnext = xtmp(vnext);
+                            ytmpnext = ytmp(vnext);
+                            rx = xtmpnext - xtmp(vv);
+                            ry = ytmpnext - ytmp(vv);
+                            if (rx == 0) % if line is vertical, perpendicular is <1,0>
+                               perp_x = 1;
+                               perp_y = 0;
+                            else
+                                 % dot product of r and perp = 0, so perp is perpendicular to r
+                                perp_x = -ry/rx;
+                                perp_y = 1;
+                            end
+                            norm = sqrt(perp_x^2 + perp_y^2);
+                            perp_x = perp_x / norm;
+                            perp_y = perp_y / norm;
+                            % calculate 4 coordinates of a rectangle
+                            % for the segment
+                            offsetx = vradtmp(vv)*perp_x;
+                            offsety = vradtmp(vv)*perp_y;
+                            cornerx = [xtmp(vv)-offsetx, xtmp(vv)+offsetx, ...
+                                xtmpnext+offsetx, xtmpnext-offsetx];
+                            cornery = [ytmp(vv)-offsety, ytmp(vv)+offsety,...
+                                ytmpnext+offsety, ytmpnext-offsety];
+                            patch(cornerx, cornery, cornerx./cornerx, 'black','EdgeColor','blue', 'LineWidth',2)
                         end
                     end
                 else
@@ -421,6 +467,9 @@ for seed = startSeed:max_seed
                 ax.YLim = [0 1]*Ly;
                 % plot box
                 plot([0 Lx Lx 0 0], [0 0 Ly Ly 0], 'k-', 'linewidth', 1.5);
+            elseif showCustomView == 1
+                ax.XLim = [viewLeft viewRight];
+                ax.YLim = [viewBottom viewTop];
             else
                 viewScale = 1.2;
                 viewLx = viewScale*Lx;
@@ -433,7 +482,8 @@ for seed = startSeed:max_seed
                 plot([viewLxLow viewLx viewLx viewLxLow viewLxLow], [viewLyLow viewLyLow viewLy viewLy viewLyLow], 'k-', 'linewidth', 1.5);
             end
             
-            annotationStr = "$$t/\tau$$ = "+time(ff);
+            %annotationStr = "$$t/\tau$$ = "+time(ff);
+            annotationStr = "frame = "+ff;
             annotation('textbox',[0.48, 0.5, 0, 0],...
                 'interpreter', 'latex', 'String', annotationStr, 'Edgecolor','none', 'FitBoxToText','on');
             if showVoid
@@ -512,7 +562,7 @@ for seed = startSeed:max_seed
     end
     cd ../../../../
     if showVoid
-        figure(14); clf, hold on, box on
+        figure(15); clf, hold on, box on
         time= time - time(1);
         plot(time,voidArea, 'DisplayName', 'A', 'linewidth', 3);
         plot(time, gradient(voidArea(:))./gradient(time(:)), 'DisplayName', 'dA/dt','linewidth', 3);

@@ -320,6 +320,7 @@ class epi2D : public dpm {
   void crawlingWithPurseStringAndCircularWalls();
   void crawlingWithPurseStringCirculo();
   void crawlingWithPurseStringCirculoWalls();
+  void circuloLineAttractionWithCircularWalls();
 
   // protocols
   void expandBoxAndCenterParticles(double boxLengthScaleFactor,
@@ -331,6 +332,7 @@ class epi2D : public dpm {
   void zeroMomentum();
   void scaleBoxSize(double boxLengthScale, double scaleFactorX, double scaleFactorY);
   void dampedNVETest(dpmMemFn forceCall, double T, double dt0, int NT, int NPRINTSKIP);
+  void vertexNVE(ofstream& enout, dpmMemFn forceCall, double T, double dt0, int NT, int NPRINTSKIP);
   void dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval);
   void dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, int purseStringOn = 0);
   void wallForces(bool left, bool bottom, bool right, bool top, double& forceLeft, double& forceBottom, double& forceRight, double& forceTop, int forceOption = 0);

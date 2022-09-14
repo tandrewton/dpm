@@ -290,9 +290,6 @@ for seed = startSeed:max_seed
         annotationStr = "frame="+framenum;
         annotation('textbox',[0.4, 0.4, 0, 0],...
             'interpreter', 'latex', 'String', annotationStr, 'Edgecolor','none', 'FitBoxToText','on');
-        while (framenum == 14)
-            disp("stalling")
-        end
 
         % if making a movie, save frame
         if makeAMovie == 1
