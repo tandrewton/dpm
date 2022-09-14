@@ -265,11 +265,11 @@ int main(int argc, char const* argv[]) {
   double runTime = 25.0;
   epithelial.drawVelocities2D(T);
 
-  dpmMemFn customForceUpdate_inactive = attractiveForceUpdate;
+  //dpmMemFn customForceUpdate_inactive = attractiveForceUpdate;
   //dpmMemFn customForceUpdate_active = crawlingWithPSForceUpdate;
   //dpmMemFn customForceUpdate_inactive_with_circular_walls = attractiveForceUpdateWithCircularWalls;
 
-  //dpmMemFn customForceUpdate_inactive = circuloLineAttraction;
+  dpmMemFn customForceUpdate_inactive = circuloLineAttraction;
   dpmMemFn customForceUpdate_active = crawlingWithPSAndCirculo;
   dpmMemFn customForceUpdate_inactive_with_circular_walls = circuloLineAttractionWithCircularWalls;
 

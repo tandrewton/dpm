@@ -630,7 +630,7 @@ void epi2D::circuloLineAttractiveForces() {
   double contactType; // parameterized projection value. if between [0,1] then it's circulo-line, if < 0 or > 1 then it is either nothing or end-end.
   double endCapAngle, endEndAngle; // endCapAngle is PI minus interior angle of vertices, endEndAngle is between interaction centers and circulo-line endpoints
   double ftmp, fx, fy, energytmp;
-  bool isConcaveInteraction, isConvexInteraction;
+  bool isConcaveInteraction, isConvexInteraction, isSelfInteraction = false;
   int sign = 1; // used to flip the sign of force and energy in the concave interaction case for negative endCap vertex-vertex interactions
 
   // attraction shell parameters
@@ -681,13 +681,50 @@ void epi2D::circuloLineAttractiveForces() {
         shellij = (1.0 + l2) * sij;
         cutij = (1.0 + l1) * sij;
 
+        isSelfInteraction = false;
+        // calculate self-penetration: if self penetrating, compute self-repulsion and move on
+        // self-repulsion will always be in the same window, so don't need to repeat
+        if (ci == cj){
+          isSelfInteraction = true;  
+          dx = x[NDIM * gj] - x[NDIM * gi];
+          if (pbc[0])
+            dx -= L[0] * round(dx / L[0]);
+          if (dx < shellij) {
+            dy = x[NDIM * gj + 1] - x[NDIM * gi + 1];
+            if (pbc[1])
+              dy -= L[1] * round(dy / L[1]);
+            if (dy < shellij) {
+              rij = sqrt(dx * dx + dy * dy);
+              if (rij < shellij) {
+                // scaled distance
+                xij = rij / sij;
+                if (rij < sij) {
+                  ftmp = kc * (1 - (rij / sij)) * (1 / sij);
+                  cellU[ci] += 0.5 * kc * pow((1 - (rij / sij)), 2.0);
+                  U += 0.5 * kc * pow((1 - (rij / sij)), 2.0);
+                  // force elements
+                  fx = ftmp * (dx / rij);
+                  fy = ftmp * (dy / rij);
+
+                  // add to forces
+                  F[NDIM * gi] -= fx;
+                  F[NDIM * gi + 1] -= fy;
+
+                  F[NDIM * gj] += fx;
+                  F[NDIM * gj + 1] += fy;
+                } 
+              }
+            }
+          }
+        }
+
         // calculate d, rx, ry, and contactType. 
         // d = distance from point [gi] to line segment (next[gj] to gj)
         // rx, ry = x,y components of d
         // contactType = parametrization value of the projection of gi onto the line segment. 
 
         d = linePointDistancesAndProjection(x[NDIM*im1[gj]],x[NDIM*im1[gj] + 1], x[NDIM*gj], x[NDIM*gj+1], x[NDIM*gi], x[NDIM*gi+1], rx, ry, contactType);
-        if (contactType < 1) { // check that the projection falls within the interacting portion of vertex i
+        if (contactType < 1 && !isSelfInteraction) { // check that the projection falls within the interacting portion of vertex i
           // each vertex i is really a circulo-line between i and i-1, and a single end cap around vertex i located at projection=0
           // contactType <= 0 means that p0 projection onto p1-p2 is behind p1, which is a potential v-v interaction
           // 0 < contactType < 1 means that p0 projection onto p1-p2 falls between p1 and p2, so it's a vertex-line-segment contact
@@ -702,14 +739,7 @@ void epi2D::circuloLineAttractiveForces() {
                 // scaled distance
                 xij = rij / sij;
                 // pick force based on vertex-vertex distance
-                if (ci == cj) {
-                  // if vertices (not neighbors) are in same cell, compute repulsions
-                  if (rij < sij) {
-                    ftmp = kc * (1 - (rij / sij)) * (rho0 / sij);
-                    energytmp =  0.5 * kc * pow((1 - (rij / sij)), 2.0);
-                  } else
-                    ftmp = 0;
-                } else if (rij > cutij) {
+                if (rij > cutij) {
                   // force scale for inner layer of interaction shell
                   ftmp = kint * (xij - 1.0 - l2) / sij;
                   energytmp = -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
@@ -917,6 +947,10 @@ void epi2D::circuloLineAttractiveForces() {
           shellij = (1.0 + l2) * sij;
           cutij = (1.0 + l1) * sij;
 
+          if (ci == cj){
+            assert(false);
+          }
+
           // calculate d, rx, ry, and contactType. 
           // d = distance from point [gi] to line segment (next[gj] to gj)
           // rx, ry = x,y components of d
@@ -938,14 +972,7 @@ void epi2D::circuloLineAttractiveForces() {
                   // scaled distance
                   xij = rij / sij;
                   // pick force based on vertex-vertex distance
-                  if (ci == cj) {
-                    // if vertices (not neighbors) are in same cell, compute repulsions
-                    if (rij < sij) {
-                      ftmp = kc * (1 - (rij / sij)) * (rho0 / sij);
-                      energytmp =  0.5 * kc * pow((1 - (rij / sij)), 2.0);
-                    } else
-                      ftmp = 0;
-                  } else if (rij > cutij) {
+                  if (rij > cutij) {
                     // force scale for inner layer of interaction shell
                     ftmp = kint * (xij - 1.0 - l2) / sij;
                     energytmp = -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
