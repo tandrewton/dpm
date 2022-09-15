@@ -291,13 +291,13 @@ int main(int argc, char const* argv[]) {
   for (int i = 0; i < numIts; i++){  // try repeating this until relaxed
     epithelial.setkc(1.0);
     // equilibrate
-    epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 10000, 0);
+    epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 1000, 0);
     /*if (!boolBound)
       epithelial.dampedNP0(customForceUpdate_inactive, B, dt0, relaxTime, printInterval);
     else
       epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, B, dt0, relaxTime, printInterval);
     */
-    epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 100000, 1000);
+    epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 1000, 10);
   }
 
   /*// LASER ABLATION SCHEME

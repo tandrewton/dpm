@@ -948,11 +948,11 @@ void epi2D::calculateSmoothInteraction(double &rx, double &ry, double &sij, doub
 
           if (fabs(ftmp*prefix*y21) + fabs(ftmp*prefix*-x21) > 0){
             cout << gi << '\t' << gj << " are interacting via vertex-line simclock = " << simclock << "\n";
-            cout << "energytmp = " << energytmp << '\n';
-          } else {
+            //cout << "energytmp = " << energytmp << '\n';
+          } /*else {
             cout << gi << '\t' << gj << " are not interacting via vertex-line simclock = " << simclock << "\n";
             cout << "energytmp = " << energytmp << " = zero " << '\n';
-          }
+          }*/
           
           // add to virial stress - not including this code now because I haven't worked out the stress of a 3-body interaction
         }
@@ -961,6 +961,7 @@ void epi2D::calculateSmoothInteraction(double &rx, double &ry, double &sij, doub
         if (((contactType <= 0) && isConvexInteraction) || (contactType > 0 && isConcaveInteraction)) {
           // pure 2-body contact determined by angles and distances between contact points or by self interaction
           if (isConcaveInteraction){  
+            cout << "is concave interaction!\n";
             // if concave, compute interaction between vertex and inverse vertex. sign = -1 to compute negative potential 
             // have to reevaluate the distances because previous code uses vertex-line distance, whereas we need vertex-vertex distance
             //  for the special case of concave interactions  
@@ -1001,16 +1002,22 @@ void epi2D::calculateSmoothInteraction(double &rx, double &ry, double &sij, doub
           F[NDIM * gi] -= fx;
           F[NDIM * gi + 1] -= fy;
 
-          F[NDIM * gj] += fx;
-          F[NDIM * gj + 1] += fy;
+          F[NDIM * middle] += fx;
+          F[NDIM * middle + 1] += fy;
 
           if (fabs(fx) + fabs(fy) > 0){
             cout << gi << '\t' << gj << " are interacting via vertex-vertex simclock = " << simclock << "\n";
-            cout << "energytmp = " << energytmp << '\n';
-          } else {
+            cout << "dx = " << dx << '\t' << ", dy = " << dy << '\n';
+            cout << "rx = " << rx << '\t' << ", ry = " << ry << '\n';
+            if (sign == -1){
+              cout << "external field computed\n";
+              //assert(false);
+            }
+            //cout << "energytmp = " << sign*energytmp << '\n';
+          } /*else {
             cout << gi << '\t' << gj << " are not interacting via vertex-vertex simclock = " << simclock << "\n";
-            cout << "energytmp = " << energytmp << " = zero " << '\n';
-          }
+            cout << "energytmp = " << sign*energytmp << " = zero " << '\n';
+          }*/
 
           cellU[ci] += sign * energytmp/2;
           cellU[cj] += sign * energytmp/2;
