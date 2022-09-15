@@ -39,13 +39,13 @@ no_plots = 0;
 makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
 plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
 set(0,'DefaultFigureWindowStyle','docked')
-showPeriodicImages = 0;
+showPeriodicImages = 1;
 showWoundAndShapeProperties = 0;
 
 
 showverts = 1;
 showBoundaries = 0;
-showcirculoline = 0; % show line segments of circulo-lines
+showcirculoline = 1; % show line segments of circulo-lines
 att_range = 0.001;
 showArea = 0;
 showQuiver = 0;
@@ -482,8 +482,8 @@ for seed = startSeed:max_seed
                 plot([viewLxLow viewLx viewLx viewLxLow viewLxLow], [viewLyLow viewLyLow viewLy viewLy viewLyLow], 'k-', 'linewidth', 1.5);
             end
             
-            %annotationStr = "$$t/\tau$$ = "+time(ff);
-            annotationStr = "frame = "+ff;
+            annotationStr = "$$t/\tau$$ = "+time(ff);
+            %annotationStr = "frame = "+ff;
             annotation('textbox',[0.48, 0.5, 0, 0],...
                 'interpreter', 'latex', 'String', annotationStr, 'Edgecolor','none', 'FitBoxToText','on');
             if showVoid

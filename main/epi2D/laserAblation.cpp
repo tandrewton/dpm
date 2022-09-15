@@ -79,6 +79,7 @@ const double dt0 = 0.01;       // initial magnitude of time step in units of MD 
 const double Ptol = 1e-8;
 const double Ftol = 1e-12;
 const double att_range = 0.3;
+bool isPbcOn = false;
 
 int main(int argc, char const* argv[]) {
   // local variables to be read in
@@ -210,8 +211,10 @@ int main(int argc, char const* argv[]) {
 
   // set CIL option
   epithelial.setboolCIL(boolCIL);
-  epithelial.setpbc(0, false);
-  epithelial.setpbc(1, false);
+
+  epithelial.setpbc(0, isPbcOn);
+  epithelial.setpbc(1, isPbcOn);
+
   epithelial.setRandPsi();
 
   // set adhesion scale
@@ -254,7 +257,10 @@ int main(int argc, char const* argv[]) {
 
   //epithelial.vertexCompress2Target2D(repulsiveForceUpdateWithWalls, Ftol, dt0, phiMax, dphi0);
   // epithelial.vertexCompress2Target2D(repulsiveForceUpdateWithCircularAperture, Ftol, dt0, phiMax, dphi0);
-  epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithCircularWalls, Ftol, dt0, phiMax, dphi0);
+  if (isPbcOn)
+    epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdate, Ftol, dt0, phiMax, dphi0);
+  else
+    epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithCircularWalls, Ftol, dt0, phiMax, dphi0);
   epithelial.printConfiguration2D();
 
   // after compress, turn on damped NVE
@@ -273,21 +279,27 @@ int main(int argc, char const* argv[]) {
   dpmMemFn customForceUpdate_active = crawlingWithPSAndCirculo;
   dpmMemFn customForceUpdate_inactive_with_circular_walls = circuloLineAttractionWithCircularWalls;
 
-  epithelial.dampedNP0(attractiveForceUpdateWithCircularWalls, B, dt0, relaxTime, printInterval);  
+  if (isPbcOn)
+    epithelial.dampedNP0(customForceUpdate_inactive, B, dt0, relaxTime, printInterval);  
+  else
+    epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, B, dt0, relaxTime, printInterval);  
+  
   //epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, B, dt0, runTime, runTime/10.0);
 
   std::ofstream myenergy("energyNVETest.txt");
   int numIts = 1;
   for (int i = 0; i < numIts; i++){  // try repeating this until relaxed
     epithelial.setkc(1.0);
-    double testTemperature = 1e-2;
+    // equilibrate
+    //epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 100000, 0);
     /*if (!boolBound)
       epithelial.dampedNP0(customForceUpdate_inactive, B, dt0, relaxTime, printInterval);
     else
       epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, B, dt0, relaxTime, printInterval);
     */
-    epithelial.vertexNVE(myenergy, customForceUpdate_inactive, testTemperature, dt0, 10000, 100);
+    epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 10000, 100);
   }
+
   /*// LASER ABLATION SCHEME
   double xLoc = 0.0, yLoc = 0.0;
   int numCellsToAblate = ndelete;

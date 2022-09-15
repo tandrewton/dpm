@@ -1617,7 +1617,7 @@ double dpm::linePointDistancesAndProjection(double x1, double y1, double x2, dou
   }
   ycomp = y0 - projectiony;
   if (pbc[1]){
-    ycomp -= L[0] * round(ycomp/L[0]);
+    ycomp -= L[1] * round(ycomp/L[1]);
   }
 
   contactType = dot / l2;

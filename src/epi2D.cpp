@@ -674,6 +674,8 @@ void epi2D::circuloLineAttractiveForces() {
           continue;
         }
 
+        //cout << "simclock = " << simclock << ", testing interaction between " << gi << '\t' << gj << '\n';
+
         // contact distance
         sij = r[gi] + r[gj];
 
@@ -730,190 +732,7 @@ void epi2D::circuloLineAttractiveForces() {
           // 0 < contactType < 1 means that p0 projection onto p1-p2 falls between p1 and p2, so it's a vertex-line-segment contact
           // contactType > 1 means p0 projection falls ahead of p2, so ignore
 
-          dx = -rx;
-          if (dx < shellij) { // check that d is within the interaction shell
-            dy = -ry;
-            if (dy < shellij) { 
-              rij = sqrt(dx * dx + dy * dy);
-              if (rij < shellij) {
-                // scaled distance
-                xij = rij / sij;
-                // pick force based on vertex-vertex distance
-                if (rij > cutij) {
-                  // force scale for inner layer of interaction shell
-                  ftmp = kint * (xij - 1.0 - l2) / sij;
-                  energytmp = -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
-                } else {
-                  // force scale for outer layer of interaction shell
-                  ftmp = kc * (1 - xij) / sij;
-                  energytmp = 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
-                }
-                // endEndAngle is the angle between the separation between interacting vertices and the endcap edge closest to the circulo-line.
-                // endCapAngle is the angle between the far edge of the endcap and the near edge of the endcap
-                int left = gj;  // i
-                int middle = im1[gj]; // i-1
-                int right = im1[im1[gj]]; // i-2
-                
-                double drx = x[left*NDIM] - x[middle*NDIM];
-                double dry = x[left*NDIM + 1] - x[middle*NDIM + 1];
-                double drx_prev = x[right*NDIM] - x[middle*NDIM];
-                double dry_prev = x[right*NDIM + 1] - x[middle*NDIM + 1];
-                // note that using r dot dr_prev only gives the correct endEndangle for the convex case
-                //  because the vertex-line distance in the convex case will be measured from the end of the projection cutoff which is P = 0
-                // When generalizing to the concave case, the measurement needs to explicitly be from vertex-vertex (vv) at P = 0
-                
-                double vv_rx = x[NDIM*gi] - x[NDIM*middle];
-                double vv_ry = x[NDIM*gi + 1] - x[NDIM*middle + 1];
-                endEndAngle = atan2(vv_rx*dry - drx * vv_ry, vv_rx*drx + vv_ry*dry);
-                endEndAngle = endEndAngle - PI/2; // theta' - pi/2 in the circulo-polygon diagram
-
-                endCapAngle = atan2(drx_prev*dry-drx*dry_prev,drx_prev*drx+dry_prev*dry);
-                if (endCapAngle < 0) 
-                  endCapAngle += 2*PI;
-                endCapAngle = endCapAngle - PI; // phi in the circulo-polygon diagram
-
-                isConvexInteraction = (endEndAngle >= 0 && endEndAngle <= endCapAngle);
-                isConcaveInteraction = (endCapAngle < 0 && endEndAngle < 0 && endEndAngle >= endCapAngle);
-                if (contactType > 0) { // contactType less than 1 and greater than 0, so projection is on the main line segment
-                  // Force on particle 0,1,2 is determined by F = - dU/dr = (partials) dU/dr * <dr/dxi , dr/dyi> 
-                  // 3-body contact, 6 forces (3 pairs of forces)
-                  //y21, x21, y20, x20, y10, x10, norm_P12, d_arg
-                  int g2 = im1[gj];
-                  int g2_ind = NDIM*g2;
-                  int g1_ind = NDIM*gj;
-                  x21 = x[g2_ind] - x[g1_ind];
-                  y21 = x[g2_ind+1] - x[g1_ind+1];
-                  x20 = x[g2_ind] - x[NDIM*gi];
-                  y20 = x[g2_ind+1] - x[NDIM*gi + 1];
-                  x10 = x[g1_ind] - x[NDIM*gi];
-                  y10 = x[g1_ind+1] - x[NDIM*gi + 1];
-                  d_arg = x21*y10 - x10*y21;
-                  norm_P12 = sqrt(pow(x21,2)+pow(y21,2));
-                  prefix = d_arg/fabs(d_arg)/norm_P12; 
-                  prefix2 = fabs(d_arg)/pow(norm_P12,3);
-                  
-                  F[NDIM * gi] += ftmp * prefix * y21;
-                  F[NDIM * gi + 1] += ftmp * prefix * -x21;
-
-                  F[NDIM * gj] += ftmp*(prefix*-y20 + x21*prefix2);
-                  F[NDIM * gj + 1] += ftmp*(prefix*x20 + y21*prefix2);
-
-                  F[NDIM * g2] += ftmp*(prefix*y10 - x21*prefix2);
-                  F[NDIM * g2 + 1] += ftmp*(prefix*-x10 - y21*prefix2);
-
-                  cellU[ci] += energytmp/2;
-                  cellU[cj] += energytmp/2;
-                  U += energytmp;
-                  
-                  // add to virial stress
-                  // note: 4/7/22 I'm using -dx/2 instead of dx and same for dy for stress calculation, since
-                  //  I want to calculate force times separation from geometric center of interaction
-                  stress[0] += -dx * fx;
-                  stress[1] += -dy * fy;
-                  stress[2] += -0.5 * (dx * fy + dy * fx);
-
-                  fieldStress[gi][0] += -dx / 2 * fx;
-                  fieldStress[gi][1] += -dy / 2 * fy;
-                  fieldStress[gi][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
-
-                  // stress on gj should be the same as on gi, since it's the opposite separation and also opposite force
-                  fieldStress[gj][0] += -dx / 2 * fx;
-                  fieldStress[gj][1] += -dy / 2 * fy;
-                  fieldStress[gj][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
-                }
-
-                // projection is either on the endpoint or outside the endpoint, i.e. not on the line segment
-                if ((contactType <= 0 && isConvexInteraction) || (contactType > 0 && isConcaveInteraction)){
-                  // pure 2-body contact determined by angles and distances between contact points or by self interaction
-                  if (isConcaveInteraction){  
-                    // if concave, compute interaction between vertex and inverse vertex. sign = -1 to compute negative potential 
-                    // have to reevaluate the distances because previous code uses vertex-line distance, whereas we need vertex-vertex distance
-                    //  for the special case of concave interactions  
-                    sign = 0;
-                    // if (not close enough to interact) sign = 0;
-                    dx = vv_rx;
-                    if (pbc[0])
-                      dx -= L[0] * round(dx / L[0]);
-                    if (dx < shellij && gi == 0) {
-                      dy = vv_ry;
-                      if (pbc[1])
-                        dy -= L[1] * round(dy / L[1]);
-                      if (dy < shellij) {
-                        rij = sqrt(dx * dx + dy * dy);
-                        if (rij < shellij) {
-                          //sign = -1;  // confirmed contact with negative potential vertex, so flip sign
-                          sign=0;
-                          xij = rij / sij;
-                          if (rij > cutij) {
-                            ftmp = kint * (xij - 1.0 - l2) / sij;
-                            energytmp = -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
-                          } else {
-                            ftmp = kc * (1 - xij) / sij;
-                            energytmp = 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
-                          }
-                        }
-                      }
-                    }
-                  } else if (isConvexInteraction){
-                    sign = 1;
-                  }
-                  // above, if concave, altered dx, dy, rij, xij, ftmp, energytmp. 
-
-                  // force elements
-                  fx = sign * ftmp * (dx / rij); // dx/rij comes from the chain rule (dU/dx1 = dU/dr * dr/dx1)
-                  fy = sign * ftmp * (dy / rij);
-                  F[NDIM * gi] -= fx;
-                  F[NDIM * gi + 1] -= fy;
-
-                  F[NDIM * gj] += fx;
-                  F[NDIM * gj + 1] += fy;
-
-                  cellU[ci] += sign * energytmp/2;
-                  cellU[cj] += sign * energytmp/2;
-                  U += sign * energytmp;
-
-                  // add to virial stress
-                  // note: 4/7/22 I'm using -dx/2 instead of dx and same for dy for stress calculation, since
-                  //  I want to calculate force times separation from geometric center of interaction
-                  stress[0] += -dx * fx;
-                  stress[1] += -dy * fy;
-                  stress[2] += -0.5 * (dx * fy + dy * fx);
-
-                  fieldStress[gi][0] += -dx / 2 * fx;
-                  fieldStress[gi][1] += -dy / 2 * fy;
-                  fieldStress[gi][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
-
-                  // stress on gj should be the same as on gi, since it's the opposite separation and also opposite force
-                  fieldStress[gj][0] += -dx / 2 * fx;
-                  fieldStress[gj][1] += -dy / 2 * fy;
-                  fieldStress[gj][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
-                } 
-
-                // add to contacts
-                for (int i = 0; i < vnn[gi].size(); i++) {
-                  if (ci == cj)
-                    break;
-
-                  if (vnn[gi][i] < 0) {
-                    vnn[gi][i] = gj;  // set the first unused array element to gj, in gi's neighbor list
-
-                    for (int j = 0; j < vnn[gj].size(); j++) {
-                      if (vnn[gj][j] < 0) {
-                        vnn[gj][j] = gi;  // set the first unused array element to gi, in gj's neighbor list
-                        break;
-                      }
-                    }
-
-                    break;
-                  }
-                }
-                if (ci > cj)
-                  cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2]++;
-                else if (ci < cj)
-                  cij[NCELLS * ci + cj - (ci + 1) * (ci + 2) / 2]++;
-              }
-            }
-          }
+          calculateSmoothInteraction(rx, ry, sij, shellij, cutij, kint, kc, gi, gj, contactType, ci, cj);
         }
         // update pj
         pj = list[pj];
@@ -940,16 +759,14 @@ void epi2D::circuloLineAttractiveForces() {
             continue;
           }
 
+          //cout << "simclock = " << simclock << ", testing interaction between " << gi << '\t' << gj << '\n';
+
           // contact distance
           sij = r[gi] + r[gj];
 
           // attraction distances
           shellij = (1.0 + l2) * sij;
           cutij = (1.0 + l1) * sij;
-
-          if (ci == cj){
-            assert(false);
-          }
 
           // calculate d, rx, ry, and contactType. 
           // d = distance from point [gi] to line segment (next[gj] to gj)
@@ -963,188 +780,7 @@ void epi2D::circuloLineAttractiveForces() {
             // 0 < contactType < 1 means that p0 projection onto p1-p2 falls between p1 and p2, so it's a vertex-line-segment contact
             // contactType > 1 means p0 projection falls ahead of p2, so ignore
 
-            dx = -rx;
-            if (dx < shellij) { // check that d is within the interaction shell
-              dy = -ry;
-              if (dy < shellij) { 
-                rij = sqrt(dx * dx + dy * dy);
-                if (rij < shellij) {
-                  // scaled distance
-                  xij = rij / sij;
-                  // pick force based on vertex-vertex distance
-                  if (rij > cutij) {
-                    // force scale for inner layer of interaction shell
-                    ftmp = kint * (xij - 1.0 - l2) / sij;
-                    energytmp = -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
-                  } else {
-                    // force scale for outer layer of interaction shell
-                    ftmp = kc * (1 - xij) / sij;
-                    energytmp = 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
-                  }
-                  // endEndAngle is the angle between the separation between interacting vertices and the endcap edge closest to the circulo-line.
-                  // endCapAngle is the angle between the far edge of the endcap and the near edge of the endcap
-                  int left = gj;  // i
-                  int middle = im1[gj]; // i-1
-                  int right = im1[im1[gj]]; // i-2
-                  
-                  double drx = x[left*NDIM] - x[middle*NDIM];
-                  double dry = x[left*NDIM + 1] - x[middle*NDIM + 1];
-                  double drx_prev = x[right*NDIM] - x[middle*NDIM];
-                  double dry_prev = x[right*NDIM + 1] - x[middle*NDIM + 1];
-                  // note that using r dot dr_prev only gives the correct endEndangle for the convex case
-                  //  because the vertex-line distance in the convex case will be measured from the end of the projection cutoff which is P = 0
-                  // When generalizing to the concave case, the measurement needs to explicitly be from vertex-vertex (vv) at P = 0
-                  
-                  double vv_rx = x[NDIM*gi] - x[NDIM*middle];
-                  double vv_ry = x[NDIM*gi + 1] - x[NDIM*middle + 1];
-                  endEndAngle = atan2(vv_rx*dry - drx * vv_ry, vv_rx*drx + vv_ry*dry);
-                  endEndAngle = endEndAngle - PI/2; // theta' - pi/2 in the circulo-polygon diagram
-
-                  endCapAngle = atan2(drx_prev*dry-drx*dry_prev,drx_prev*drx+dry_prev*dry);
-                  if (endCapAngle < 0) 
-                    endCapAngle += 2*PI;
-                  endCapAngle = endCapAngle - PI; // phi in the circulo-polygon diagram
-
-                  isConvexInteraction = (endEndAngle >= 0 && endEndAngle <= endCapAngle);
-                  isConcaveInteraction = (endCapAngle < 0 && endEndAngle < 0 && endEndAngle >= endCapAngle);
-                  if (contactType > 0) { // contactType less than 1 and greater than 0, so projection is on the main line segment
-                    // Force on particle 0,1,2 is determined by F = - dU/dr = (partials) dU/dr * <dr/dxi , dr/dyi> 
-                    // 3-body contact, 6 forces (3 pairs of forces)
-                    //y21, x21, y20, x20, y10, x10, norm_P12, d_arg
-                    int g2 = im1[gj];
-                    int g2_ind = NDIM*g2;
-                    int g1_ind = NDIM*gj;
-                    x21 = x[g2_ind] - x[g1_ind];
-                    y21 = x[g2_ind+1] - x[g1_ind+1];
-                    x20 = x[g2_ind] - x[NDIM*gi];
-                    y20 = x[g2_ind+1] - x[NDIM*gi + 1];
-                    x10 = x[g1_ind] - x[NDIM*gi];
-                    y10 = x[g1_ind+1] - x[NDIM*gi + 1];
-                    d_arg = x21*y10 - x10*y21;
-                    norm_P12 = sqrt(pow(x21,2)+pow(y21,2));
-                    prefix = d_arg/fabs(d_arg)/norm_P12; 
-                    prefix2 = fabs(d_arg)/pow(norm_P12,3);
-                    
-                    F[NDIM * gi] += ftmp * prefix * y21;
-                    F[NDIM * gi + 1] += ftmp * prefix * -x21;
-
-                    F[NDIM * gj] += ftmp*(prefix*-y20 + x21*prefix2);
-                    F[NDIM * gj + 1] += ftmp*(prefix*x20 + y21*prefix2);
-
-                    F[NDIM * g2] += ftmp*(prefix*y10 - x21*prefix2);
-                    F[NDIM * g2 + 1] += ftmp*(prefix*-x10 - y21*prefix2);
-
-                    cellU[ci] += energytmp/2;
-                    cellU[cj] += energytmp/2;
-                    U += energytmp;
-                    
-                    // add to virial stress
-                    // note: 4/7/22 I'm using -dx/2 instead of dx and same for dy for stress calculation, since
-                    //  I want to calculate force times separation from geometric center of interaction
-                    stress[0] += -dx * fx;
-                    stress[1] += -dy * fy;
-                    stress[2] += -0.5 * (dx * fy + dy * fx);
-
-                    fieldStress[gi][0] += -dx / 2 * fx;
-                    fieldStress[gi][1] += -dy / 2 * fy;
-                    fieldStress[gi][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
-
-                    // stress on gj should be the same as on gi, since it's the opposite separation and also opposite force
-                    fieldStress[gj][0] += -dx / 2 * fx;
-                    fieldStress[gj][1] += -dy / 2 * fy;
-                    fieldStress[gj][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
-                  }
-
-                  // projection is either on the endpoint or outside the endpoint, i.e. not on the line segment
-                  if ((contactType <= 0 && isConvexInteraction) || (contactType > 0 && isConcaveInteraction)){
-                    // pure 2-body contact determined by angles and distances between contact points or by self interaction
-                    if (isConcaveInteraction){  
-                      // if concave, compute interaction between vertex and inverse vertex. sign = -1 to compute negative potential 
-                      // have to reevaluate the distances because previous code uses vertex-line distance, whereas we need vertex-vertex distance
-                      //  for the special case of concave interactions  
-                      sign = 0;
-                      // if (not close enough to interact) sign = 0;
-                      dx = vv_rx;
-                      if (pbc[0])
-                        dx -= L[0] * round(dx / L[0]);
-                      if (dx < shellij && gi == 0) {
-                        dy = vv_ry;
-                        if (pbc[1])
-                          dy -= L[1] * round(dy / L[1]);
-                        if (dy < shellij) {
-                          rij = sqrt(dx * dx + dy * dy);
-                          if (rij < shellij) {
-                            //sign = -1;  // confirmed contact with negative potential vertex, so flip sign
-                            sign=0;
-                            xij = rij / sij;
-                            if (rij > cutij) {
-                              ftmp = kint * (xij - 1.0 - l2) / sij;
-                              energytmp = -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
-                            } else {
-                              ftmp = kc * (1 - xij) / sij;
-                              energytmp = 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
-                            }
-                          }
-                        }
-                      }
-                    } else if (isConvexInteraction){
-                      sign = 1;
-                    }
-                    // above, if concave, altered dx, dy, rij, xij, ftmp, energytmp. 
-
-                    // force elements
-                    fx = sign * ftmp * (dx / rij); // dx/rij comes from the chain rule (dU/dx1 = dU/dr * dr/dx1)
-                    fy = sign * ftmp * (dy / rij);
-                    F[NDIM * gi] -= fx;
-                    F[NDIM * gi + 1] -= fy;
-
-                    F[NDIM * gj] += fx;
-                    F[NDIM * gj + 1] += fy;
-
-                    cellU[ci] += sign * energytmp/2;
-                    cellU[cj] += sign * energytmp/2;
-                    U += sign * energytmp;
-
-                    // add to virial stress
-                    // note: 4/7/22 I'm using -dx/2 instead of dx and same for dy for stress calculation, since
-                    //  I want to calculate force times separation from geometric center of interaction
-                    stress[0] += -dx * fx;
-                    stress[1] += -dy * fy;
-                    stress[2] += -0.5 * (dx * fy + dy * fx);
-
-                    fieldStress[gi][0] += -dx / 2 * fx;
-                    fieldStress[gi][1] += -dy / 2 * fy;
-                    fieldStress[gi][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
-
-                    // stress on gj should be the same as on gi, since it's the opposite separation and also opposite force
-                    fieldStress[gj][0] += -dx / 2 * fx;
-                    fieldStress[gj][1] += -dy / 2 * fy;
-                    fieldStress[gj][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
-                  } 
-                  for (int i = 0; i < vnn[gi].size(); i++) {
-                    if (ci == cj)
-                      break;
-
-                    if (vnn[gi][i] < 0) {
-                      vnn[gi][i] = gj;  // set the first unused array element to gj, in gi's neighbor list
-
-                      for (int j = 0; j < vnn[gj].size(); j++) {
-                        if (vnn[gj][j] < 0) {
-                          vnn[gj][j] = gi;  // set the first unused array element to gi, in gj's neighbor list
-                          break;
-                        }
-                      }
-
-                      break;
-                    }
-                  }
-                  if (ci > cj)
-                    cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2]++;
-                  else if (ci < cj)
-                    cij[NCELLS * ci + cj - (ci + 1) * (ci + 2) / 2]++;
-                }
-              }
-            }
+            calculateSmoothInteraction(rx, ry, sij, shellij, cutij, kint, kc, gi, gj, contactType, ci, cj);
           }
           // update pj
           pj = list[pj];
@@ -1174,6 +810,219 @@ void epi2D::circuloLineAttractiveForces() {
   }
 }
 
+void epi2D::calculateSmoothInteraction(double &rx, double &ry, double &sij, double &shellij, double &cutij, double &kint, 
+        double &kc, int &gi, int &gj, double &contactType, int &ci, int &cj){
+  double rij, xij, ftmp, energytmp;
+  double dx, dy, fx, fy;
+  double endEndAngle, endCapAngle;
+  bool isConvexInteraction, isConcaveInteraction;
+  double d_arg, y21, x21, y20, x20, y10, x10, norm_P12, prefix, prefix2;  // for calculating 3-body forces for contactType 1 (vertex-line-segment)
+  int sign = 1;
+
+  //cout << "separation between " << gi << '\t' << gj << ", is = " << rx << '\t' << ry << ", with boxl = " << L[0] << '\t' << L[1] << '\n';
+
+  dx = -rx;
+  if (pbc[0])
+    dx -= L[0] * round(dx/L[0]);
+  if (dx < shellij) { // check that d is within the interaction shell
+    dy = -ry;
+    if (pbc[1])
+      dy -= L[1] * round(dy/L[1]);
+    if (dy < shellij) { 
+      rij = sqrt(dx * dx + dy * dy);
+      if (rij < shellij) {
+        // scaled distance
+        xij = rij / sij;
+        // pick force based on vertex-vertex distance
+        if (rij > cutij) {
+          // force scale for inner layer of interaction shell
+          ftmp = kint * (xij - 1.0 - l2) / sij;
+          energytmp = -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
+        } else {
+          // force scale for outer layer of interaction shell
+          ftmp = kc * (1 - xij) / sij;
+          energytmp = 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
+        }
+        // endEndAngle is the angle between the separation between interacting vertices and the endcap edge closest to the circulo-line.
+        // endCapAngle is the angle between the far edge of the endcap and the near edge of the endcap
+        int left = gj;  // i
+        int middle = im1[gj]; // i-1
+        int right = im1[im1[gj]]; // i-2
+        
+        double drx = x[left*NDIM] - x[middle*NDIM];
+        double dry = x[left*NDIM + 1] - x[middle*NDIM + 1];
+        double drx_prev = x[right*NDIM] - x[middle*NDIM];
+        double dry_prev = x[right*NDIM + 1] - x[middle*NDIM + 1];
+        double vv_rx = x[NDIM*gi] - x[NDIM*middle];
+        double vv_ry = x[NDIM*gi + 1] - x[NDIM*middle + 1];
+
+        if (pbc[0]){
+          drx -= L[0] * round(drx/L[0]);
+          drx_prev -= L[0] * round(drx_prev/L[0]);
+          vv_rx -= L[0] * round(vv_rx/L[0]);
+        }
+
+        if (pbc[1]){
+          dry -= L[1] * round(dry/L[1]);
+          dry_prev -= L[1] * round(dry_prev/L[1]);
+          vv_ry -= L[1] * round(vv_ry/L[1]);
+        }
+
+        // note that using r dot dr_prev only gives the correct endEndangle for the convex case
+        //  because the vertex-line distance in the convex case will be measured from the end of the projection cutoff which is P = 0
+        // When generalizing to the concave case, the measurement needs to explicitly be from vertex-vertex (vv) at P = 0
+        
+        endEndAngle = atan2(vv_rx*dry - drx * vv_ry, vv_rx*drx + vv_ry*dry);
+        endEndAngle = endEndAngle - PI/2; // theta' - pi/2 in the circulo-polygon diagram
+
+        endCapAngle = atan2(drx_prev*dry-drx*dry_prev,drx_prev*drx+dry_prev*dry);
+        if (endCapAngle < 0) 
+          endCapAngle += 2*PI;
+        endCapAngle = endCapAngle - PI; // phi in the circulo-polygon diagram
+
+        isConvexInteraction = (endEndAngle >= 0 && endEndAngle <= endCapAngle);
+        isConcaveInteraction = (endCapAngle < 0 && endEndAngle < 0 && endEndAngle >= endCapAngle);
+        if (contactType > 0) { // contactType less than 1 and greater than 0, so projection is on the main line segment
+          // Force on particle 0,1,2 is determined by F = - dU/dr = (partials) dU/dr * <dr/dxi , dr/dyi> 
+          // 3-body contact, 6 forces (3 pairs of forces)
+          //y21, x21, y20, x20, y10, x10, norm_P12, d_arg
+          int g2 = im1[gj];
+          int g2_ind = NDIM*g2;
+          int g1_ind = NDIM*gj;
+          x21 = x[g2_ind] - x[g1_ind];
+          y21 = x[g2_ind+1] - x[g1_ind+1];
+          x20 = x[g2_ind] - x[NDIM*gi];
+          y20 = x[g2_ind+1] - x[NDIM*gi + 1];
+          x10 = x[g1_ind] - x[NDIM*gi];
+          y10 = x[g1_ind+1] - x[NDIM*gi + 1];
+          d_arg = x21*y10 - x10*y21;
+          norm_P12 = sqrt(pow(x21,2)+pow(y21,2));
+          prefix = d_arg/fabs(d_arg)/norm_P12; 
+          prefix2 = fabs(d_arg)/pow(norm_P12,3);
+          
+          F[NDIM * gi] += ftmp * prefix * y21;
+          F[NDIM * gi + 1] += ftmp * prefix * -x21;
+
+          F[NDIM * gj] += ftmp*(prefix*-y20 + x21*prefix2);
+          F[NDIM * gj + 1] += ftmp*(prefix*x20 + y21*prefix2);
+
+          F[NDIM * g2] += ftmp*(prefix*y10 - x21*prefix2);
+          F[NDIM * g2 + 1] += ftmp*(prefix*-x10 - y21*prefix2);
+
+          cellU[ci] += energytmp/2;
+          cellU[cj] += energytmp/2;
+          U += energytmp;
+
+          /*if (fabs(ftmp*prefix*y21) + fabs(ftmp*prefix*-x21) > 0){
+            cout << gi << '\t' << gj << " are interacting via vertex-line simclock = " << simclock << "\n";
+          } else {
+            cout << gi << '\t' << gj << " are not interacting via vertex-line simclock = " << simclock << "\n";
+          }*/
+          
+          // add to virial stress - not including this code now because I haven't worked out the stress of a 3-body interaction
+        }
+
+        // projection is either on the endpoint or outside the endpoint, i.e. not on the line segment
+        if (((contactType <= 0) && isConvexInteraction) || (contactType > 0 && isConcaveInteraction)) {
+          // pure 2-body contact determined by angles and distances between contact points or by self interaction
+          if (isConcaveInteraction){  
+            // if concave, compute interaction between vertex and inverse vertex. sign = -1 to compute negative potential 
+            // have to reevaluate the distances because previous code uses vertex-line distance, whereas we need vertex-vertex distance
+            //  for the special case of concave interactions  
+            sign = 0;
+            // if (not close enough to interact) sign = 0;
+            dx = -vv_rx;
+            if (pbc[0])
+              dx -= L[0] * round(dx / L[0]);
+            if (dx < shellij) {
+              dy = -vv_ry;
+              if (pbc[1])
+                dy -= L[1] * round(dy / L[1]);
+              if (dy < shellij) {
+                rij = sqrt(dx * dx + dy * dy);
+                if (rij < shellij) {
+                  //sign = -1;  // confirmed contact with negative potential vertex, so flip sign
+                  sign=0;
+                  xij = rij / sij;
+                  if (rij > cutij) {
+                    ftmp = kint * (xij - 1.0 - l2) / sij;
+                    energytmp = -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
+                  } else {
+                    ftmp = kc * (1 - xij) / sij;
+                    energytmp = 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
+                  }
+                }
+              }
+            }
+          } else if (isConvexInteraction){
+            sign = 1;
+          }
+          // above, if concave, altered dx, dy, rij, xij, ftmp, energytmp. 
+          //cout << vv_rx << " = " << -dx << '\n';
+
+          // force elements
+          fx = sign * ftmp * (dx / rij); // dx/rij comes from the chain rule (dU/dx1 = dU/dr * dr/dx1)
+          fy = sign * ftmp * (dy / rij);
+          F[NDIM * gi] -= fx;
+          F[NDIM * gi + 1] -= fy;
+
+          F[NDIM * gj] += fx;
+          F[NDIM * gj + 1] += fy;
+
+          /*if (fabs(fx) + fabs(fy) > 0){
+            cout << gi << '\t' << gj << " are interacting via vertex-vertex simclock = " << simclock << "\n";
+          } else {
+            cout << gi << '\t' << gj << " are not interacting via vertex-vertex simclock = " << simclock << "\n";
+          }*/
+
+          cellU[ci] += sign * energytmp/2;
+          cellU[cj] += sign * energytmp/2;
+          U += sign * energytmp;
+
+          // add to virial stress
+          // note: 4/7/22 I'm using -dx/2 instead of dx and same for dy for stress calculation, since
+          //  I want to calculate force times separation from geometric center of interaction
+          stress[0] += -dx * fx;
+          stress[1] += -dy * fy;
+          stress[2] += -0.5 * (dx * fy + dy * fx);
+
+          fieldStress[gi][0] += -dx / 2 * fx;
+          fieldStress[gi][1] += -dy / 2 * fy;
+          fieldStress[gi][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
+
+          // stress on gj should be the same as on gi, since it's the opposite separation and also opposite force
+          fieldStress[gj][0] += -dx / 2 * fx;
+          fieldStress[gj][1] += -dy / 2 * fy;
+          fieldStress[gj][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
+        } 
+
+        // add to contacts
+        for (int i = 0; i < vnn[gi].size(); i++) {
+          if (ci == cj)
+            break;
+
+          if (vnn[gi][i] < 0) {
+            vnn[gi][i] = gj;  // set the first unused array element to gj, in gi's neighbor list
+
+            for (int j = 0; j < vnn[gj].size(); j++) {
+              if (vnn[gj][j] < 0) {
+                vnn[gj][j] = gi;  // set the first unused array element to gi, in gj's neighbor list
+                break;
+              }
+            }
+
+            break;
+          }
+        }
+        if (ci > cj)
+          cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2]++;
+        else if (ci < cj)
+          cij[NCELLS * ci + cj - (ci + 1) * (ci + 2) / 2]++;
+      }
+    }
+  }
+}
+
 void epi2D::attractiveForceUpdate_2() {
   resetForcesAndEnergy();
   shapeForces2D();
@@ -1183,7 +1032,15 @@ void epi2D::attractiveForceUpdate_2() {
 void epi2D::attractiveForceUpdate_circulo() {
   resetForcesAndEnergy();
   shapeForces2D();
+  std::vector<double> shapeForce(NDIM*NVTOT,0.0);
+  shapeForce = F;
   circuloLineAttractiveForces();
+  /*for (int i = 0; i < NVTOT; i++){
+    if (fabs(shapeForce[NDIM*i] - F[NDIM*i]) > 1e-10 || fabs(shapeForce[NDIM*i+1] - F[NDIM*i+1]) > 1e-10) {
+      cout << "shapeForce is different from F for gi = " << i << '\n';
+      cout << ", in simclock = " << simclock << '\n';
+    }
+  }*/
 }
 
 void epi2D::substrateadhesionAttractiveForceUpdate(bool isCirculoLine) {
@@ -1552,19 +1409,16 @@ void epi2D::dampedNVETest(dpmMemFn forceCall, double T, double dt0, int NT, int 
 }
 
 // for testing numerical stability
-void epi2D::vertexNVE(ofstream& enout, dpmMemFn forceCall, double T, double dt0, int NT, int NPRINTSKIP) {
+void epi2D::vertexNVE(ofstream& enout, dpmMemFn forceCall, double dt0, int NT, int NPRINTSKIP) {
   // local variables
   int t, i;
-  double K, simclock;
+  double K;
 
   // set time step magnitude
   setdt(dt0);
 
   // initialize time keeper
   simclock = 0.0;
-
-  // initialize velocities
-  drawVelocities2D(T);
 
   // loop over time, print energy
   for (t = 0; t < NT; t++) {
@@ -1596,7 +1450,7 @@ void epi2D::vertexNVE(ofstream& enout, dpmMemFn forceCall, double T, double dt0,
     simclock += dt;
 
     // print to console and file
-    if (t % NPRINTSKIP == 0) {
+    if (NPRINTSKIP != 0 && t % NPRINTSKIP == 0) {
       // compute kinetic energy
       K = vertexKineticEnergy();
 
@@ -1610,6 +1464,7 @@ void epi2D::vertexNVE(ofstream& enout, dpmMemFn forceCall, double T, double dt0,
       cout << "===============================" << endl;
       cout << endl;
       cout << "	** t / NT	= " << t << " / " << NT << endl;
+      cout << " ** simclock = " << setprecision(12) << simclock << endl;
       cout << "	** U 		= " << setprecision(12) << U << endl;
       cout << "	** K 		= " << setprecision(12) << K << endl;
       cout << "	** E 		= " << setprecision(12) << U + K << endl;
