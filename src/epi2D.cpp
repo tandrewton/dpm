@@ -685,7 +685,6 @@ void epi2D::circuloLineAttractiveForces() {
 
         isSelfInteraction = false;
         // calculate self-penetration: if self penetrating, compute self-repulsion and move on
-        // self-repulsion will always be in the same window, so don't need to repeat
         if (ci == cj){
           isSelfInteraction = true;  
           dx = x[NDIM * gj] - x[NDIM * gi];
@@ -731,7 +730,6 @@ void epi2D::circuloLineAttractiveForces() {
           // contactType <= 0 means that p0 projection onto p1-p2 is behind p1, which is a potential v-v interaction
           // 0 < contactType < 1 means that p0 projection onto p1-p2 falls between p1 and p2, so it's a vertex-line-segment contact
           // contactType > 1 means p0 projection falls ahead of p2, so ignore
-
           calculateSmoothInteraction(rx, ry, sij, shellij, cutij, kint, kc, gi, gj, contactType, ci, cj);
         }
         // update pj
@@ -768,18 +766,53 @@ void epi2D::circuloLineAttractiveForces() {
           shellij = (1.0 + l2) * sij;
           cutij = (1.0 + l1) * sij;
 
+          isSelfInteraction = false;
+          // calculate self-penetration: if self penetrating, compute self-repulsion and move on
+          if (ci == cj){
+            isSelfInteraction = true;  
+            dx = x[NDIM * gj] - x[NDIM * gi];
+            if (pbc[0])
+              dx -= L[0] * round(dx / L[0]);
+            if (dx < shellij) {
+              dy = x[NDIM * gj + 1] - x[NDIM * gi + 1];
+              if (pbc[1])
+                dy -= L[1] * round(dy / L[1]);
+              if (dy < shellij) {
+                rij = sqrt(dx * dx + dy * dy);
+                if (rij < shellij) {
+                  // scaled distance
+                  xij = rij / sij;
+                  if (rij < sij) {
+                    ftmp = kc * (1 - (rij / sij)) * (1 / sij);
+                    cellU[ci] += 0.5 * kc * pow((1 - (rij / sij)), 2.0);
+                    U += 0.5 * kc * pow((1 - (rij / sij)), 2.0);
+                    // force elements
+                    fx = ftmp * (dx / rij);
+                    fy = ftmp * (dy / rij);
+
+                    // add to forces
+                    F[NDIM * gi] -= fx;
+                    F[NDIM * gi + 1] -= fy;
+
+                    F[NDIM * gj] += fx;
+                    F[NDIM * gj + 1] += fy;
+                  } 
+                }
+              }
+            }
+          }
+
           // calculate d, rx, ry, and contactType. 
           // d = distance from point [gi] to line segment (next[gj] to gj)
           // rx, ry = x,y components of d
           // contactType = parametrization value of the projection of gi onto the line segment. 
 
           d = linePointDistancesAndProjection(x[NDIM*im1[gj]],x[NDIM*im1[gj] + 1], x[NDIM*gj], x[NDIM*gj+1], x[NDIM*gi], x[NDIM*gi+1], rx, ry, contactType);
-          if (contactType < 1) { // check that the projection falls within the interacting portion of vertex i
+          if (contactType < 1 && !isSelfInteraction) { // check that the projection falls within the interacting portion of vertex i
             // each vertex i is really a circulo-line between i and i-1, and a single end cap around vertex i located at projection=0
             // contactType <= 0 means that p0 projection onto p1-p2 is behind p1, which is a potential v-v interaction
             // 0 < contactType < 1 means that p0 projection onto p1-p2 falls between p1 and p2, so it's a vertex-line-segment contact
             // contactType > 1 means p0 projection falls ahead of p2, so ignore
-
             calculateSmoothInteraction(rx, ry, sij, shellij, cutij, kint, kc, gi, gj, contactType, ci, cj);
           }
           // update pj
@@ -913,11 +946,13 @@ void epi2D::calculateSmoothInteraction(double &rx, double &ry, double &sij, doub
           cellU[cj] += energytmp/2;
           U += energytmp;
 
-          /*if (fabs(ftmp*prefix*y21) + fabs(ftmp*prefix*-x21) > 0){
+          if (fabs(ftmp*prefix*y21) + fabs(ftmp*prefix*-x21) > 0){
             cout << gi << '\t' << gj << " are interacting via vertex-line simclock = " << simclock << "\n";
+            cout << "energytmp = " << energytmp << '\n';
           } else {
             cout << gi << '\t' << gj << " are not interacting via vertex-line simclock = " << simclock << "\n";
-          }*/
+            cout << "energytmp = " << energytmp << " = zero " << '\n';
+          }
           
           // add to virial stress - not including this code now because I haven't worked out the stress of a 3-body interaction
         }
@@ -941,8 +976,8 @@ void epi2D::calculateSmoothInteraction(double &rx, double &ry, double &sij, doub
               if (dy < shellij) {
                 rij = sqrt(dx * dx + dy * dy);
                 if (rij < shellij) {
-                  //sign = -1;  // confirmed contact with negative potential vertex, so flip sign
-                  sign=0;
+                  sign = -1;  // confirmed contact with negative potential vertex, so flip sign
+                  //sign=0;
                   xij = rij / sij;
                   if (rij > cutij) {
                     ftmp = kint * (xij - 1.0 - l2) / sij;
@@ -969,11 +1004,13 @@ void epi2D::calculateSmoothInteraction(double &rx, double &ry, double &sij, doub
           F[NDIM * gj] += fx;
           F[NDIM * gj + 1] += fy;
 
-          /*if (fabs(fx) + fabs(fy) > 0){
+          if (fabs(fx) + fabs(fy) > 0){
             cout << gi << '\t' << gj << " are interacting via vertex-vertex simclock = " << simclock << "\n";
+            cout << "energytmp = " << energytmp << '\n';
           } else {
             cout << gi << '\t' << gj << " are not interacting via vertex-vertex simclock = " << simclock << "\n";
-          }*/
+            cout << "energytmp = " << energytmp << " = zero " << '\n';
+          }
 
           cellU[ci] += sign * energytmp/2;
           cellU[cj] += sign * energytmp/2;
@@ -1032,8 +1069,8 @@ void epi2D::attractiveForceUpdate_2() {
 void epi2D::attractiveForceUpdate_circulo() {
   resetForcesAndEnergy();
   shapeForces2D();
-  std::vector<double> shapeForce(NDIM*NVTOT,0.0);
-  shapeForce = F;
+  //std::vector<double> shapeForce(NDIM*NVTOT,0.0);
+  //shapeForce = F;
   circuloLineAttractiveForces();
   /*for (int i = 0; i < NVTOT; i++){
     if (fabs(shapeForce[NDIM*i] - F[NDIM*i]) > 1e-10 || fabs(shapeForce[NDIM*i+1] - F[NDIM*i+1]) > 1e-10) {

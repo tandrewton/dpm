@@ -39,11 +39,11 @@ no_plots = 0;
 makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
 plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
 set(0,'DefaultFigureWindowStyle','docked')
-showPeriodicImages = 1;
+showPeriodicImages = 0;
 showWoundAndShapeProperties = 0;
 
 
-showverts = 1;
+showverts = 0;
 showBoundaries = 0;
 showcirculoline = 1; % show line segments of circulo-lines
 att_range = 0.001;
