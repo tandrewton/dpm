@@ -37,7 +37,8 @@ startSeed = 1;
 max_seed = 1;
 no_plots = 0;
 makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
-plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
+%plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
+plotCells = 1;
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
 showWoundAndShapeProperties = 0;
@@ -46,7 +47,7 @@ showWoundAndShapeProperties = 0;
 showverts = 0;
 showBoundaries = 0;
 showcirculoline = 1; % show line segments of circulo-lines
-att_range = 0.001;
+att_range = 0;
 showArea = 0;
 showQuiver = 0;
 walls = 0;
@@ -58,7 +59,7 @@ viewBottom = 1.0;
 
 %disable showVoid if using printConfig on its own, outside of
 %dampedNVE/dampedNP0 routines
-showGlobalIndex = 0;
+showGlobalIndex = 1;
 showVoid = 0;
 showVoidBlack = 0; % print void in larger black circles to see easier
 showVoidLite = 1; % print void, but in a way that works with printConfiguration on its own
@@ -448,8 +449,8 @@ for seed = startSeed:max_seed
             if (showProtrusion)
                 plot(flagX(ff,:)./flag(ff,:), flagY(ff,:)./flag(ff,:), 'ro', 'linewidth', 2);
             end
-            plot([polyBoundary(1,1:2:end) polyBoundary(1,1)],...
-                [polyBoundary(1,2:2:end) polyBoundary(1,2)], 'k','linewidth', 4)
+            %plot([polyBoundary(1,1:2:end) polyBoundary(1,1)],...
+            %    [polyBoundary(1,2:2:end) polyBoundary(1,2)], 'k','linewidth', 4)
             ann = annotation('textbox', [.42 .05 .6 .05],'interpreter', 'latex',...
                 'String', etaStr, 'Edgecolor','none');
             ann.FontSize = 30;

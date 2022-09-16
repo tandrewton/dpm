@@ -297,7 +297,7 @@ int main(int argc, char const* argv[]) {
     else
       epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, B, dt0, relaxTime, printInterval);
     */
-    epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 1000, 10);
+    epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 100000, 100);
   }
 
   /*// LASER ABLATION SCHEME
