@@ -982,20 +982,17 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
           cellU[cj] += energytmp / 2;
           U += energytmp;
 
-          //if (fabs(simclock - 38.903) < 0.005) {
+          /*if (fabs(simclock - 65.8) < 0.4) {
           // Andrew - checked numerical stability of vertex-line and vertex-vertex in repulsive case. haven't checked repulsive concave, or attractive anything
-          if (fabs(ftmp * prefix * y21) + fabs(ftmp * prefix * -x21) > 0) {
-            cout << gi << '\t' << gj << " are interacting via vertex-line simclock = " << simclock << "\n";
-            cout << "energytmp = " << energytmp << '\n';
-          } else {
-            cout << gi << '\t' << gj << " are not interacting via vertex-line simclock = " << simclock << "\n";
-            cout << "energytmp = " << energytmp << " = zero " << '\n';
-          }
-          //}
+            if (fabs(ftmp * prefix * y21) + fabs(ftmp * prefix * -x21) > 0) {
+              cout << gi << '\t' << gj << " are interacting via vertex-line simclock = " << simclock << "\n";
+              cout << "energytmp = " << energytmp << '\n';
+            }
+          }*/
 
           // add to virial stress - not including this code now because I haven't worked out the stress of a 3-body interaction
         }
-        /*if (fabs(simclock - 38.903) < 0.005) {
+        /*if (fabs(simclock - 127.17) < 0.06) {
           cout << "simclock = " << simclock << ", contactType = " << contactType << ", isConvexInteraction = " << isConvexInteraction << '\n';
           cout << "endEndAngle = " << endEndAngle << '\t' << ", endCapAngle = " << endCapAngle << '\n';
         }*/
@@ -1003,7 +1000,6 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
         if (((contactType <= 0) && isConvexInteraction) || (contactType > 0 && isConcaveInteraction)) {
           // pure 2-body contact determined by angles and distances between contact points or by self interaction
           if (isConcaveInteraction) {
-            // cout << "is concave interaction!\n";
             //  if concave, compute interaction between vertex and inverse vertex. sign = -1 to compute negative potential
             //  have to reevaluate the distances because previous code uses vertex-line distance, whereas we need vertex-vertex distance
             //   for the special case of concave interactions
@@ -1019,8 +1015,8 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
               if (dy < shellij) {
                 rij = sqrt(dx * dx + dy * dy);
                 if (rij < shellij) {
-                  // sign = -1;  // confirmed contact with negative potential vertex, so flip sign
-                  sign = 0;
+                  sign = -1;  // confirmed contact with negative potential vertex, so flip sign
+                  //sign = 0;
                   xij = rij / sij;
                   if (rij > cutij) {
                     ftmp = kint * (xij - 1.0 - l2) / sij;
@@ -1036,7 +1032,6 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
             sign = 1;
           }
           // above, if concave, altered dx, dy, rij, xij, ftmp, energytmp.
-          // cout << vv_rx << " = " << -dx << '\n';
 
           // force elements
           fx = sign * ftmp * (dx / rij);  // dx/rij comes from the chain rule (dU/dx1 = dU/dr * dr/dx1)
@@ -1046,21 +1041,24 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
 
           F[NDIM * middle] += fx;
           F[NDIM * middle + 1] += fy;
-          // assert(fabs(dx + (x[NDIM*gi] - x[NDIM*middle])) < 1e-8);
 
-          //if (fabs(simclock - 38.903) < 0.005) {
-          if (fabs(fx) + fabs(fy) > 0) {
-            cout << gi << '\t' << middle << " are interacting via vertex-vertex simclock = " << simclock << "\n";
-            if (sign == -1) {
-              cout << "external field computed\n";
-              // assert(false);
+          /*if (sign == -1 && fabs(ftmp) > 0){
+            //assert(false);
+            cout << "concave interaction detected!\n";
+            cout << "concave : gi = " << gi << ", gj = " << gj << ", simclock = " << simclock << '\n';
+            cout << "concave : fx = " << fx << ", fy = " << fy << ", energytmp = " << sign*energytmp << '\n';
+          }*/
+
+          /*if (fabs(simclock - 65.8) < 0.4) {
+            if (fabs(fx) + fabs(fy) > 0) {
+              cout << gi << '\t' << middle << " are interacting via vertex-vertex simclock = " << simclock << "\n";
+              if (sign == -1) {
+                cout << "external field computed\n";
+                //assert(false);
+              }
+              cout << "energytmp = " << sign * energytmp << '\n';
             }
-            cout << "energytmp = " << sign * energytmp << '\n';
-          } else {
-            cout << gi << '\t' << gj << " are not interacting via vertex-vertex simclock = " << simclock << "\n";
-            cout << "energytmp = " << sign * energytmp << " = zero " << '\n';
-          }
-          //}
+          }*/
 
           cellU[ci] += sign * energytmp / 2;
           cellU[cj] += sign * energytmp / 2;
@@ -1540,7 +1538,7 @@ void epi2D::vertexNVE(ofstream& enout, dpmMemFn forceCall, double dt0, int NT, i
     // if ((NPRINTSKIP != 0 && t % NPRINTSKIP == 0) || (simclock < 169.083 && simclock > 167.303)) {
     // if ((simclock < 169.083 && simclock > 167.303 && t % 10 == 0)) {
     //if (simclock < 38.906 && simclock > 38.90) {
-    //if (fabs(simclock - 38.903) < 0.005) {
+    //if (fabs(simclock - 65.8) < 0.4) {
     if (NPRINTSKIP != 0 && t % NPRINTSKIP == 0) {
       //   compute kinetic energy
       K = vertexKineticEnergy();
