@@ -622,16 +622,16 @@ void epi2D::vertexAttractiveForces2D_2() {
 
 void epi2D::circuloLineAttractiveForces() {
   // altered from vertexAttractiveForces2D_2, here we use vertex-vertex and vertex-line segment distances to make a smooth interaction
-  // models sliding adhesion and repulsion. 
+  // models sliding adhesion and repulsion.
   int ci, cj, gi, gj, vi, vj, bi, bj, pi, pj;
   double sij, rij, rho0;
-  double d, rx, ry, dx, dy; // distance and components of separation between projection of point p onto line segment v-w
+  double d, rx, ry, dx, dy;                                               // distance and components of separation between projection of point p onto line segment v-w
   double d_arg, y21, x21, y20, x20, y10, x10, norm_P12, prefix, prefix2;  // for calculating 3-body forces for contactType 1 (vertex-line-segment)
-  double contactType; // parameterized projection value. if between [0,1] then it's circulo-line, if < 0 or > 1 then it is either nothing or end-end.
-  double endCapAngle, endEndAngle; // endCapAngle is PI minus interior angle of vertices, endEndAngle is between interaction centers and circulo-line endpoints
+  double contactType;                                                     // parameterized projection value. if between [0,1] then it's circulo-line, if < 0 or > 1 then it is either nothing or end-end.
+  double endCapAngle, endEndAngle;                                        // endCapAngle is PI minus interior angle of vertices, endEndAngle is between interaction centers and circulo-line endpoints
   double ftmp, fx, fy, energytmp;
   bool isConcaveInteraction, isConvexInteraction, isSelfInteraction = false;
-  int sign = 1; // used to flip the sign of force and energy in the concave interaction case for negative endCap vertex-vertex interactions
+  int sign = 1;  // used to flip the sign of force and energy in the concave interaction case for negative endCap vertex-vertex interactions
 
   // attraction shell parameters
   double shellij, cutij, xij, kint = (kc * l1) / (l2 - l1);
@@ -674,7 +674,7 @@ void epi2D::circuloLineAttractiveForces() {
           continue;
         }
 
-        //cout << "simclock = " << simclock << ", testing interaction between " << gi << '\t' << gj << '\n';
+        // cout << "simclock = " << simclock << ", testing interaction between " << gi << '\t' << gj << '\n';
 
         // contact distance
         sij = r[gi] + r[gj];
@@ -685,8 +685,8 @@ void epi2D::circuloLineAttractiveForces() {
 
         isSelfInteraction = false;
         // calculate self-penetration: if self penetrating, compute self-repulsion and move on
-        if (ci == cj){
-          isSelfInteraction = true;  
+        if (ci == cj) {
+          isSelfInteraction = true;
           dx = x[NDIM * gj] - x[NDIM * gi];
           if (pbc[0])
             dx -= L[0] * round(dx / L[0]);
@@ -713,29 +713,29 @@ void epi2D::circuloLineAttractiveForces() {
 
                   F[NDIM * gj] += fx;
                   F[NDIM * gj + 1] += fy;
-                } 
+                }
               }
             }
           }
         }
-        // calculate d, rx, ry, and contactType. 
+        // calculate d, rx, ry, and contactType.
         // d = distance from point [gi] to line segment (next[gj] to gj)
         // rx, ry = x,y components of d
-        // contactType = parametrization value of the projection of gi onto the line segment. 
+        // contactType = parametrization value of the projection of gi onto the line segment.
 
-        for (int swapii = 0; swapii < 2; swapii++){
-          d = linePointDistancesAndProjection(x[NDIM*im1[gj]],x[NDIM*im1[gj] + 1], x[NDIM*gj], x[NDIM*gj+1], x[NDIM*gi], x[NDIM*gi+1], rx, ry, contactType);
-          
-          if (fabs(simclock - 90.7716) < 0.01){
-            /*if (gi == 164 || gi == 157){
+        for (int swapii = 0; swapii < 2; swapii++) {
+          d = linePointDistancesAndProjection(x[NDIM * im1[gj]], x[NDIM * im1[gj] + 1], x[NDIM * gj], x[NDIM * gj + 1], x[NDIM * gi], x[NDIM * gi + 1], rx, ry, contactType);
+
+          if (fabs(simclock - 96.34) < 0.01) {
+            if (gi == 177) {
               cout << "same neighbor box \n";
-              double dist = sqrt(pow(x[NDIM*gi] - x[NDIM*im1[gj]],2) + pow(x[NDIM*gi+1] - x[NDIM*im1[gj]+1],2));
+              double dist = sqrt(pow(x[NDIM * gi] - x[NDIM * im1[gj]], 2) + pow(x[NDIM * gi + 1] - x[NDIM * im1[gj] + 1], 2));
               cout << "gi = " << gi << ", im1[gj] = " << im1[gj] << ", gj = " << gj << ", dist = " << dist << '\n';
               cout << "simclock = " << simclock << ", isSelfInteraction = " << isSelfInteraction << ", contactType = " << contactType << '\n';
-            }*/
+            }
           }
-          
-          if (contactType < 1 && !isSelfInteraction) { // check that the projection falls within the interacting portion of vertex i
+
+          if (contactType < 1 && !isSelfInteraction) {  // check that the projection falls within the interacting portion of vertex i
             // each vertex i is really a circulo-line between i and i-1, and a single end cap around vertex i located at projection=0
             // contactType <= 0 means that p0 projection onto p1-p2 is behind p1, which is a potential v-v interaction
             // 0 < contactType < 1 means that p0 projection onto p1-p2 falls between p1 and p2, so it's a vertex-line-segment contact
@@ -758,7 +758,7 @@ void epi2D::circuloLineAttractiveForces() {
         // get first particle in neighboring cell
         pj = head[nn[bi][bj]];
 
-         // loop down neighbors of pi in same cell
+        // loop down neighbors of pi in same cell
         while (pj > 0) {
           // real index of pj
           gj = pj - 1;
@@ -771,7 +771,7 @@ void epi2D::circuloLineAttractiveForces() {
             continue;
           }
 
-          //cout << "simclock = " << simclock << ", testing interaction between " << gi << '\t' << gj << '\n';
+          // cout << "simclock = " << simclock << ", testing interaction between " << gi << '\t' << gj << '\n';
 
           // contact distance
           sij = r[gi] + r[gj];
@@ -782,8 +782,8 @@ void epi2D::circuloLineAttractiveForces() {
 
           isSelfInteraction = false;
           // calculate self-penetration: if self penetrating, compute self-repulsion and move on
-          if (ci == cj){
-            isSelfInteraction = true;  
+          if (ci == cj) {
+            isSelfInteraction = true;
             dx = x[NDIM * gj] - x[NDIM * gi];
             if (pbc[0])
               dx -= L[0] * round(dx / L[0]);
@@ -810,30 +810,30 @@ void epi2D::circuloLineAttractiveForces() {
 
                     F[NDIM * gj] += fx;
                     F[NDIM * gj + 1] += fy;
-                  } 
+                  }
                 }
               }
             }
           }
 
-          // calculate d, rx, ry, and contactType. 
+          // calculate d, rx, ry, and contactType.
           // d = distance from point [gi] to line segment (next[gj] to gj)
           // rx, ry = x,y components of d
-          // contactType = parametrization value of the projection of gi onto the line segment. 
+          // contactType = parametrization value of the projection of gi onto the line segment.
 
-          for (int swapii = 0; swapii < 2; swapii++){
-            d = linePointDistancesAndProjection(x[NDIM*im1[gj]],x[NDIM*im1[gj] + 1], x[NDIM*gj], x[NDIM*gj+1], x[NDIM*gi], x[NDIM*gi+1], rx, ry, contactType);
-            
-            if (fabs(simclock - 90.7716) < 0.01){
-              /*if (gi == 164 || gi == 157){
+          for (int swapii = 0; swapii < 2; swapii++) {
+            d = linePointDistancesAndProjection(x[NDIM * im1[gj]], x[NDIM * im1[gj] + 1], x[NDIM * gj], x[NDIM * gj + 1], x[NDIM * gi], x[NDIM * gi + 1], rx, ry, contactType);
+
+            if (fabs(simclock - 96.34) < 0.01) {
+              if (gi == 177) {
                 cout << "forward neighbor box \n";
-                double dist = sqrt(pow(x[NDIM*gi] - x[NDIM*im1[gj]],2) + pow(x[NDIM*gi+1] - x[NDIM*im1[gj]+1],2));
+                double dist = sqrt(pow(x[NDIM * gi] - x[NDIM * im1[gj]], 2) + pow(x[NDIM * gi + 1] - x[NDIM * im1[gj] + 1], 2));
                 cout << "gi = " << gi << ", im1[gj] = " << im1[gj] << ", gj = " << gj << ", dist = " << dist << '\n';
                 cout << "simclock = " << simclock << ", isSelfInteraction = " << isSelfInteraction << ", contactType = " << contactType << '\n';
-              }*/
+              }
             }
-            
-            if (contactType < 1 && !isSelfInteraction) { // check that the projection falls within the interacting portion of vertex i
+
+            if (contactType < 1 && !isSelfInteraction) {  // check that the projection falls within the interacting portion of vertex i
               // each vertex i is really a circulo-line between i and i-1, and a single end cap around vertex i located at projection=0
               // contactType <= 0 means that p0 projection onto p1-p2 is behind p1, which is a potential v-v interaction
               // 0 < contactType < 1 means that p0 projection onto p1-p2 falls between p1 and p2, so it's a vertex-line-segment contact
@@ -872,8 +872,7 @@ void epi2D::circuloLineAttractiveForces() {
   }
 }
 
-void epi2D::calculateSmoothInteraction(double &rx, double &ry, double &sij, double &shellij, double &cutij, double &kint, 
-        double &kc, int &gi, int &gj, double &contactType, int &ci, int &cj){
+void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, double& shellij, double& cutij, double& kint, double& kc, int& gi, int& gj, double& contactType, int& ci, int& cj) {
   double rij, xij, ftmp, energytmp;
   double dx, dy, fx, fy;
   double endEndAngle, endCapAngle;
@@ -881,22 +880,22 @@ void epi2D::calculateSmoothInteraction(double &rx, double &ry, double &sij, doub
   double d_arg, y21, x21, y20, x20, y10, x10, norm_P12, prefix, prefix2;  // for calculating 3-body forces for contactType 1 (vertex-line-segment)
   int sign = 1;
 
-  //cout << "separation between " << gi << '\t' << gj << ", is = " << rx << '\t' << ry << ", with boxl = " << L[0] << '\t' << L[1] << '\n';
+  // cout << "separation between " << gi << '\t' << gj << ", is = " << rx << '\t' << ry << ", with boxl = " << L[0] << '\t' << L[1] << '\n';
 
-  if (fabs(simclock - 90.7716) < 0.01){
-    /*if (gi == 164 || gi == 157){
+  if (fabs(simclock - 96.34) < 0.01) {
+    if (gi == 177 || gi == 117 || gi == 178) {
       cout << "gi = " << gi << ", im1[gj] = " << im1[gj] << '\n';
-      cout << "simclock = " << simclock << ", dx = " << -rx << '\t' << ", dy = " << -ry << '\t' << ", shellij = " << shellij << "\t, rij = " << sqrt(rx*rx+ry*ry) << '\n';
-    }*/
+      cout << "simclock = " << simclock << ", dx = " << -rx << '\t' << ", dy = " << -ry << '\t' << ", shellij = " << shellij << "\t, rij = " << sqrt(rx * rx + ry * ry) << '\n';
+    }
   }
   dx = -rx;
   if (pbc[0])
-    dx -= L[0] * round(dx/L[0]);
-  if (dx < shellij) { // check that d is within the interaction shell
+    dx -= L[0] * round(dx / L[0]);
+  if (dx < shellij) {  // check that d is within the interaction shell
     dy = -ry;
     if (pbc[1])
-      dy -= L[1] * round(dy/L[1]);
-    if (dy < shellij) { 
+      dy -= L[1] * round(dy / L[1]);
+    if (dy < shellij) {
       rij = sqrt(dx * dx + dy * dy);
       if (rij < shellij) {
         // scaled distance
@@ -913,77 +912,77 @@ void epi2D::calculateSmoothInteraction(double &rx, double &ry, double &sij, doub
         }
         // endEndAngle is the angle between the separation between interacting vertices and the endcap edge closest to the circulo-line.
         // endCapAngle is the angle between the far edge of the endcap and the near edge of the endcap
-        int left = gj;  // i
-        int middle = im1[gj]; // i-1
-        int right = im1[im1[gj]]; // i-2
-        
-        double drx = x[left*NDIM] - x[middle*NDIM];
-        double dry = x[left*NDIM + 1] - x[middle*NDIM + 1];
-        double drx_prev = x[right*NDIM] - x[middle*NDIM];
-        double dry_prev = x[right*NDIM + 1] - x[middle*NDIM + 1];
-        double vv_rx = x[NDIM*gi] - x[NDIM*middle];
-        double vv_ry = x[NDIM*gi + 1] - x[NDIM*middle + 1];
+        int left = gj;             // i
+        int middle = im1[gj];      // i-1
+        int right = im1[im1[gj]];  // i-2
 
-        if (pbc[0]){
-          drx -= L[0] * round(drx/L[0]);
-          drx_prev -= L[0] * round(drx_prev/L[0]);
-          vv_rx -= L[0] * round(vv_rx/L[0]);
+        double drx = x[left * NDIM] - x[middle * NDIM];
+        double dry = x[left * NDIM + 1] - x[middle * NDIM + 1];
+        double drx_prev = x[right * NDIM] - x[middle * NDIM];
+        double dry_prev = x[right * NDIM + 1] - x[middle * NDIM + 1];
+        double vv_rx = x[NDIM * gi] - x[NDIM * middle];
+        double vv_ry = x[NDIM * gi + 1] - x[NDIM * middle + 1];
+
+        if (pbc[0]) {
+          drx -= L[0] * round(drx / L[0]);
+          drx_prev -= L[0] * round(drx_prev / L[0]);
+          vv_rx -= L[0] * round(vv_rx / L[0]);
         }
 
-        if (pbc[1]){
-          dry -= L[1] * round(dry/L[1]);
-          dry_prev -= L[1] * round(dry_prev/L[1]);
-          vv_ry -= L[1] * round(vv_ry/L[1]);
+        if (pbc[1]) {
+          dry -= L[1] * round(dry / L[1]);
+          dry_prev -= L[1] * round(dry_prev / L[1]);
+          vv_ry -= L[1] * round(vv_ry / L[1]);
         }
 
         // note that using r dot dr_prev only gives the correct endEndangle for the convex case
         //  because the vertex-line distance in the convex case will be measured from the end of the projection cutoff which is P = 0
         // When generalizing to the concave case, the measurement needs to explicitly be from vertex-vertex (vv) at P = 0
-        
-        endEndAngle = atan2(vv_rx*dry - drx * vv_ry, vv_rx*drx + vv_ry*dry);
-        endEndAngle = endEndAngle - PI/2; // theta' - pi/2 in the circulo-polygon diagram
 
-        endCapAngle = atan2(drx_prev*dry-drx*dry_prev,drx_prev*drx+dry_prev*dry);
-        if (endCapAngle < 0) 
-          endCapAngle += 2*PI;
-        endCapAngle = endCapAngle - PI; // phi in the circulo-polygon diagram
+        endEndAngle = atan2(vv_rx * dry - drx * vv_ry, vv_rx * drx + vv_ry * dry);
+        endEndAngle = endEndAngle - PI / 2;  // theta' - pi/2 in the circulo-polygon diagram
+
+        endCapAngle = atan2(drx_prev * dry - drx * dry_prev, drx_prev * drx + dry_prev * dry);
+        if (endCapAngle < 0)
+          endCapAngle += 2 * PI;
+        endCapAngle = endCapAngle - PI;  // phi in the circulo-polygon diagram
 
         isConvexInteraction = (endEndAngle >= 0 && endEndAngle <= endCapAngle);
         isConcaveInteraction = (endCapAngle < 0 && endEndAngle < 0 && endEndAngle >= endCapAngle);
-        if (contactType > 0) { // contactType less than 1 and greater than 0, so projection is on the main line segment
-          // Force on particle 0,1,2 is determined by F = - dU/dr = (partials) dU/dr * <dr/dxi , dr/dyi> 
+        if (contactType > 0) {  // contactType less than 1 and greater than 0, so projection is on the main line segment
+          // Force on particle 0,1,2 is determined by F = - dU/dr = (partials) dU/dr * <dr/dxi , dr/dyi>
           // 3-body contact, 6 forces (3 pairs of forces)
-          //y21, x21, y20, x20, y10, x10, norm_P12, d_arg
+          // y21, x21, y20, x20, y10, x10, norm_P12, d_arg
           int g2 = im1[gj];
-          int g2_ind = NDIM*g2;
-          int g1_ind = NDIM*gj;
+          int g2_ind = NDIM * g2;
+          int g1_ind = NDIM * gj;
           x21 = x[g2_ind] - x[g1_ind];
-          y21 = x[g2_ind+1] - x[g1_ind+1];
-          x20 = x[g2_ind] - x[NDIM*gi];
-          y20 = x[g2_ind+1] - x[NDIM*gi + 1];
-          x10 = x[g1_ind] - x[NDIM*gi];
-          y10 = x[g1_ind+1] - x[NDIM*gi + 1];
-          d_arg = x21*y10 - x10*y21;
-          norm_P12 = sqrt(pow(x21,2)+pow(y21,2));
-          prefix = d_arg/fabs(d_arg)/norm_P12; 
-          prefix2 = fabs(d_arg)/pow(norm_P12,3);
-          
+          y21 = x[g2_ind + 1] - x[g1_ind + 1];
+          x20 = x[g2_ind] - x[NDIM * gi];
+          y20 = x[g2_ind + 1] - x[NDIM * gi + 1];
+          x10 = x[g1_ind] - x[NDIM * gi];
+          y10 = x[g1_ind + 1] - x[NDIM * gi + 1];
+          d_arg = x21 * y10 - x10 * y21;
+          norm_P12 = sqrt(pow(x21, 2) + pow(y21, 2));
+          prefix = d_arg / fabs(d_arg) / norm_P12;
+          prefix2 = fabs(d_arg) / pow(norm_P12, 3);
+
           F[NDIM * gi] += ftmp * prefix * y21;
           F[NDIM * gi + 1] += ftmp * prefix * -x21;
 
-          F[NDIM * gj] += ftmp*(prefix*-y20 + x21*prefix2);
-          F[NDIM * gj + 1] += ftmp*(prefix*x20 + y21*prefix2);
+          F[NDIM * gj] += ftmp * (prefix * -y20 + x21 * prefix2);
+          F[NDIM * gj + 1] += ftmp * (prefix * x20 + y21 * prefix2);
 
-          F[NDIM * g2] += ftmp*(prefix*y10 - x21*prefix2);
-          F[NDIM * g2 + 1] += ftmp*(prefix*-x10 - y21*prefix2);
+          F[NDIM * g2] += ftmp * (prefix * y10 - x21 * prefix2);
+          F[NDIM * g2 + 1] += ftmp * (prefix * -x10 - y21 * prefix2);
 
-          cellU[ci] += energytmp/2;
-          cellU[cj] += energytmp/2;
+          cellU[ci] += energytmp / 2;
+          cellU[cj] += energytmp / 2;
           U += energytmp;
 
-          if (fabs(simclock - 90.7716) < 0.01){
+          if (fabs(simclock - 96.34) < 0.01) {
             // Andrew - checked numerical stability of vertex-line and vertex-vertex in repulsive case. haven't checked repulsive concave, or attractive anything
-            if (fabs(ftmp*prefix*y21) + fabs(ftmp*prefix*-x21) > 0){
+            if (fabs(ftmp * prefix * y21) + fabs(ftmp * prefix * -x21) > 0) {
               cout << gi << '\t' << gj << " are interacting via vertex-line simclock = " << simclock << "\n";
               cout << "energytmp = " << energytmp << '\n';
             } else {
@@ -991,21 +990,21 @@ void epi2D::calculateSmoothInteraction(double &rx, double &ry, double &sij, doub
               cout << "energytmp = " << energytmp << " = zero " << '\n';
             }
           }
-          
+
           // add to virial stress - not including this code now because I haven't worked out the stress of a 3-body interaction
         }
-        if (fabs(simclock - 90.7716) < 0.01){
+        if (fabs(simclock - 96.34) < 0.01) {
           cout << "simclock = " << simclock << ", contactType = " << contactType << ", isConvexInteraction = " << isConvexInteraction << '\n';
           cout << "endEndAngle = " << endEndAngle << '\t' << ", endCapAngle = " << endCapAngle << '\n';
         }
         // projection is either on the endpoint or outside the endpoint, i.e. not on the line segment
         if (((contactType <= 0) && isConvexInteraction) || (contactType > 0 && isConcaveInteraction)) {
           // pure 2-body contact determined by angles and distances between contact points or by self interaction
-          if (isConcaveInteraction){  
-            //cout << "is concave interaction!\n";
-            // if concave, compute interaction between vertex and inverse vertex. sign = -1 to compute negative potential 
-            // have to reevaluate the distances because previous code uses vertex-line distance, whereas we need vertex-vertex distance
-            //  for the special case of concave interactions  
+          if (isConcaveInteraction) {
+            // cout << "is concave interaction!\n";
+            //  if concave, compute interaction between vertex and inverse vertex. sign = -1 to compute negative potential
+            //  have to reevaluate the distances because previous code uses vertex-line distance, whereas we need vertex-vertex distance
+            //   for the special case of concave interactions
             sign = 0;
             // if (not close enough to interact) sign = 0;
             dx = -vv_rx;
@@ -1018,8 +1017,8 @@ void epi2D::calculateSmoothInteraction(double &rx, double &ry, double &sij, doub
               if (dy < shellij) {
                 rij = sqrt(dx * dx + dy * dy);
                 if (rij < shellij) {
-                  //sign = -1;  // confirmed contact with negative potential vertex, so flip sign
-                  sign=0;
+                  // sign = -1;  // confirmed contact with negative potential vertex, so flip sign
+                  sign = 0;
                   xij = rij / sij;
                   if (rij > cutij) {
                     ftmp = kint * (xij - 1.0 - l2) / sij;
@@ -1031,40 +1030,38 @@ void epi2D::calculateSmoothInteraction(double &rx, double &ry, double &sij, doub
                 }
               }
             }
-          } else if (isConvexInteraction){
+          } else if (isConvexInteraction) {
             sign = 1;
           }
-          // above, if concave, altered dx, dy, rij, xij, ftmp, energytmp. 
-          //cout << vv_rx << " = " << -dx << '\n';
+          // above, if concave, altered dx, dy, rij, xij, ftmp, energytmp.
+          // cout << vv_rx << " = " << -dx << '\n';
 
           // force elements
-          fx = sign * ftmp * (dx / rij); // dx/rij comes from the chain rule (dU/dx1 = dU/dr * dr/dx1)
+          fx = sign * ftmp * (dx / rij);  // dx/rij comes from the chain rule (dU/dx1 = dU/dr * dr/dx1)
           fy = sign * ftmp * (dy / rij);
           F[NDIM * gi] -= fx;
           F[NDIM * gi + 1] -= fy;
 
           F[NDIM * middle] += fx;
           F[NDIM * middle + 1] += fy;
-          //assert(fabs(dx + (x[NDIM*gi] - x[NDIM*middle])) < 1e-8);
+          // assert(fabs(dx + (x[NDIM*gi] - x[NDIM*middle])) < 1e-8);
 
-          if (fabs(simclock - 90.7716) < 0.01){
-            if (fabs(fx) + fabs(fy) > 0){
+          if (fabs(simclock - 96.34) < 0.01) {
+            if (fabs(fx) + fabs(fy) > 0) {
               cout << gi << '\t' << middle << " are interacting via vertex-vertex simclock = " << simclock << "\n";
-              cout << "dx = " << dx << '\t' << ", dy = " << dy << '\n';
-              cout << "rx = " << rx << '\t' << ", ry = " << ry << '\n';
-              if (sign == -1){
+              if (sign == -1) {
                 cout << "external field computed\n";
-                //assert(false);
+                // assert(false);
               }
-              cout << "energytmp = " << sign*energytmp << '\n';
+              cout << "energytmp = " << sign * energytmp << '\n';
             } else {
               cout << gi << '\t' << gj << " are not interacting via vertex-vertex simclock = " << simclock << "\n";
-              cout << "energytmp = " << sign*energytmp << " = zero " << '\n';
+              cout << "energytmp = " << sign * energytmp << " = zero " << '\n';
             }
           }
 
-          cellU[ci] += sign * energytmp/2;
-          cellU[cj] += sign * energytmp/2;
+          cellU[ci] += sign * energytmp / 2;
+          cellU[cj] += sign * energytmp / 2;
           U += sign * energytmp;
 
           // add to virial stress
@@ -1082,7 +1079,7 @@ void epi2D::calculateSmoothInteraction(double &rx, double &ry, double &sij, doub
           fieldStress[middle][0] += -dx / 2 * fx;
           fieldStress[middle][1] += -dy / 2 * fy;
           fieldStress[middle][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
-        } 
+        }
 
         // add to contacts
         for (int i = 0; i < vnn[gi].size(); i++) {
@@ -1121,8 +1118,8 @@ void epi2D::attractiveForceUpdate_2() {
 void epi2D::attractiveForceUpdate_circulo() {
   resetForcesAndEnergy();
   shapeForces2D();
-  //std::vector<double> shapeForce(NDIM*NVTOT,0.0);
-  //shapeForce = F;
+  // std::vector<double> shapeForce(NDIM*NVTOT,0.0);
+  // shapeForce = F;
   circuloLineAttractiveForces();
   /*for (int i = 0; i < NVTOT; i++){
     if (fabs(shapeForce[NDIM*i] - F[NDIM*i]) > 1e-10 || fabs(shapeForce[NDIM*i+1] - F[NDIM*i+1]) > 1e-10) {
@@ -1142,7 +1139,7 @@ void epi2D::substrateadhesionAttractiveForceUpdate(bool isCirculoLine) {
   // reset forces, then get shape and attractive forces.
   if (isCirculoLine)
     attractiveForceUpdate_circulo();
-  else 
+  else
     attractiveForceUpdate_2();
 
   resetActiveEnergy();
@@ -1208,14 +1205,13 @@ void epi2D::crawlingWithPurseStringCirculoWalls() {
   }
 }
 
-void epi2D::circuloLineAttractionWithCircularWalls(){
+void epi2D::circuloLineAttractionWithCircularWalls() {
   attractiveForceUpdate_circulo();
   bool attractionOn = true;
   for (int i = 0; i < poly_bd_x.size(); i++) {
     evaluatePolygonalWallForces(poly_bd_x[i], poly_bd_y[i], attractionOn);
   }
 }
-
 
 /******************************
 
@@ -1539,13 +1535,13 @@ void epi2D::vertexNVE(ofstream& enout, dpmMemFn forceCall, double dt0, int NT, i
     simclock += dt;
 
     // print to console and file
-    //if ((NPRINTSKIP != 0 && t % NPRINTSKIP == 0) || (simclock < 169.083 && simclock > 167.303)) {
-    //if ((simclock < 169.083 && simclock > 167.303 && t % 10 == 0)) {
-    //if (simclock < 169.083 && simclock > 167.303) {
-    //if ((simclock > 167.75 - 2*dt && simclock < 167.75) || (simclock > 168.225 - dt && simclock < 168.225 + dt)){
-    if (NPRINTSKIP != 0 && t % NPRINTSKIP == 0){
-    //if (fabs(simclock - 90.7716) < 0.01){
-      // compute kinetic energy
+    // if ((NPRINTSKIP != 0 && t % NPRINTSKIP == 0) || (simclock < 169.083 && simclock > 167.303)) {
+    // if ((simclock < 169.083 && simclock > 167.303 && t % 10 == 0)) {
+    // if (simclock < 169.083 && simclock > 167.303) {
+    // if ((simclock > 167.75 - 2*dt && simclock < 167.75) || (simclock > 168.225 - dt && simclock < 168.225 + dt)){
+    if (NPRINTSKIP != 0 && t % NPRINTSKIP == 0) {
+      // if (fabs(simclock - 96.34) < 0.01) {
+      //   compute kinetic energy
       K = vertexKineticEnergy();
 
       // print to console
@@ -1578,7 +1574,6 @@ void epi2D::vertexNVE(ofstream& enout, dpmMemFn forceCall, double dt0, int NT, i
     }
   }
 }
-
 
 void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval) {
   // make sure velocities exist or are already initialized before calling this
@@ -1849,7 +1844,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
     if (int(printInterval) != 0) {
       /*if (int((simclock - t0) / dt) % NPRINTSKIP == 0 &&
           (simclock - temp_simclock) > printInterval / 2) {*/
-      if (int((simclock - t0) / dt) % NPRINTSKIP == 0 ) {
+      if (int((simclock - t0) / dt) % NPRINTSKIP == 0) {
         temp_simclock = simclock;
         // compute kinetic energy
         K = vertexKineticEnergy();

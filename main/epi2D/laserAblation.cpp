@@ -30,8 +30,8 @@
 // ./main/epi2D/laserAblation.o 6 20 0 1.0 0.7 0.5 1.0 1.0 0.2 0.001  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   1  0  test
 // ./main/epi2D/laserAblation.o 6 20 0 1.0 0.85 0.95 1.0 1.0 0.0 0.001  0.0  4.0  4.0 1.0  0.0  1.0 0.5  0  1   1  0  test
 // ./main/epi2D/laserAblation.o 12 20 4 1.0 0.8 0.7 1.0 1.0 0.2 0.001  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   1  0  test
-// ./main/epi2D/laserAblation.o 6 20 0 1.0 0.85 0.7 1.0 1.0 0.2 0.001 0.0  4.0  4.0   1.0  0.0  0.0 0.5  0  1  1  0  test
-// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  B  Dr0 CIL bound  sd time file
+// ./main/epi2D/laserAblation.o 5 20 0  1.0  0.5  0.4  1.0 1.0 0.0 0.001 0.0  4.0  4.0  1.0  0.0  0.0 0.5  0   1     1  0  test
+// ........................... N  NV Nd A0  pMin  pMax  kl ka  att  om   dsq  kps  klp  tau dflag  B  Dr0 CIL bound  sd time file
 
 //
 // Parameter input list
@@ -70,7 +70,7 @@ using namespace std;
 const bool plotCompression = 0;  // whether or not to plot configuration during compression protocol
 const double dphi0 = 0.005;      // packing fraction increment
 // const double ka = 1.0;              // area force spring constant (should be unit)
-double kc = 1.0;              // interaction force spring constant (should be unit)
+double kc = 1.0;                    // interaction force spring constant (should be unit)
 const double boxLengthScale = 2.5;  // neighbor list box size in units of initial l0
 // const double phi0 = 0.5;            // initial packing fraction
 const double smallfrac = 0.5;  // fraction of small particles
@@ -243,7 +243,6 @@ int main(int argc, char const* argv[]) {
   dpmMemFn crawlingWithPSCirculoWalls = static_cast<void (dpm::*)()>(&epi2D::crawlingWithPurseStringCirculoWalls);
   dpmMemFn circuloLineAttractionWithCircularWalls = static_cast<void (dpm::*)()>(&epi2D::circuloLineAttractionWithCircularWalls);
 
-  
   epithelial.monodisperse2D(calA0, nsmall);
   epithelial.initializevnn();
 
@@ -255,8 +254,8 @@ int main(int argc, char const* argv[]) {
 
   epithelial.initializeNeighborLinkedList2D(boxLengthScale);
 
-  //epithelial.vertexCompress2Target2D(repulsiveForceUpdateWithWalls, Ftol, dt0, phiMax, dphi0);
-  // epithelial.vertexCompress2Target2D(repulsiveForceUpdateWithCircularAperture, Ftol, dt0, phiMax, dphi0);
+  // epithelial.vertexCompress2Target2D(repulsiveForceUpdateWithWalls, Ftol, dt0, phiMax, dphi0);
+  //  epithelial.vertexCompress2Target2D(repulsiveForceUpdateWithCircularAperture, Ftol, dt0, phiMax, dphi0);
   if (isPbcOn)
     epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdate, Ftol, dt0, phiMax, dphi0);
   else
@@ -266,29 +265,29 @@ int main(int argc, char const* argv[]) {
   // after compress, turn on damped NVE
   double T = 1e-10;
   double relaxTime = 10.0;
-  assert(relaxTime <= 10.0); // if relaxTime > 10.0, then dampedNP0 will run over the hardcoded limit. Could pass a parameter to dampedNP0 to tell it how long to wait, or just hardcode for now.
-  double printInterval = relaxTime/2.0;
+  assert(relaxTime <= 10.0);  // if relaxTime > 10.0, then dampedNP0 will run over the hardcoded limit. Could pass a parameter to dampedNP0 to tell it how long to wait, or just hardcode for now.
+  double printInterval = relaxTime / 2.0;
   double runTime = 25.0;
   epithelial.drawVelocities2D(T);
 
-  //dpmMemFn customForceUpdate_inactive = attractiveForceUpdate;
-  //dpmMemFn customForceUpdate_active = crawlingWithPSForceUpdate;
-  //dpmMemFn customForceUpdate_inactive_with_circular_walls = attractiveForceUpdateWithCircularWalls;
+  // dpmMemFn customForceUpdate_inactive = attractiveForceUpdate;
+  // dpmMemFn customForceUpdate_active = crawlingWithPSForceUpdate;
+  // dpmMemFn customForceUpdate_inactive_with_circular_walls = attractiveForceUpdateWithCircularWalls;
 
   dpmMemFn customForceUpdate_inactive = circuloLineAttraction;
   dpmMemFn customForceUpdate_active = crawlingWithPSAndCirculo;
   dpmMemFn customForceUpdate_inactive_with_circular_walls = circuloLineAttractionWithCircularWalls;
 
   if (isPbcOn)
-    epithelial.dampedNP0(customForceUpdate_inactive, B, dt0, relaxTime, printInterval);  
+    epithelial.dampedNP0(customForceUpdate_inactive, B, dt0, relaxTime, printInterval);
   else
-    epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, B, dt0, relaxTime, printInterval);  
-  
-  //epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, B, dt0, runTime, runTime/10.0);
+    epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, B, dt0, relaxTime, printInterval);
+
+  // epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, B, dt0, runTime, runTime/10.0);
 
   std::ofstream myenergy("energyNVETest.txt");
   int numIts = 1;
-  for (int i = 0; i < numIts; i++){  // try repeating this until relaxed
+  for (int i = 0; i < numIts; i++) {  // try repeating this until relaxed
     epithelial.setkc(1.0);
     // equilibrate
     epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 1000, 0);
@@ -297,7 +296,7 @@ int main(int argc, char const* argv[]) {
     else
       epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, B, dt0, relaxTime, printInterval);
     */
-    epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 100000, 100);
+    epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 10000, 100);
   }
 
   /*// LASER ABLATION SCHEME
@@ -318,7 +317,7 @@ int main(int argc, char const* argv[]) {
     epithelial.dampedNP0(crawlingWithPSForceUpdateWithCircularWalls, B, dt0, time_dbl, printInterval, purseStringOn);
   else
     epithelial.dampedNP0(customForceUpdate_active, B, dt0, time_dbl, printInterval, purseStringOn);
- 
+
   // epithelial.dampedNP0(attractiveForceUpdate, B, dt0, time_dbl, time_dbl / 100.0, wallsOff);*/
 
   cout << "\n** Finished laserAblation.cpp, ending. " << endl;

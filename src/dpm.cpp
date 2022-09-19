@@ -297,7 +297,7 @@ double dpm::vertexPreferredPackingFraction2D() {
 }
 
 // get configuration "preferred" packing fraction with respect to polygon boundaries poly_bd_x[i] and poly_bd_y[i], where we loop over i to get all boundaries
-double dpm::vertexPreferredPackingFraction2D_polygon(){
+double dpm::vertexPreferredPackingFraction2D_polygon() {
   if (poly_bd_x.size() == 0)
     return 0.0;
   int ci;
@@ -314,14 +314,14 @@ double dpm::vertexPreferredPackingFraction2D_polygon(){
     std::vector<double> poly_x = poly_bd_x[i];
     std::vector<double> poly_y = poly_bd_y[i];
     int j = poly_x.size() - 1;
-    for (int k = 0; k < poly_x.size(); k++){
+    for (int k = 0; k < poly_x.size(); k++) {
       boxV_temp += (poly_x[j] + poly_x[k]) * (poly_y[j] - poly_y[k]);
       j = k;
     }
-    boxV_temp = abs(boxV_temp/2.0);
+    boxV_temp = abs(boxV_temp / 2.0);
     boxV += boxV_temp;
   }
-  
+
   // return packing fraction
   val = areaSum / boxV;
   cout << "packing fraction = " << val << ", boxV = " << boxV << ", areaSum = " << areaSum << '\n';
@@ -696,7 +696,7 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
   for (d = 0; d < NDIM; d++) {
     L.at(d) = pow(areaSum / phi0, 1.0 / NDIM) * aspects[d];
     if (setUpCircularBoundary)
-      L.at(d) = pow(4 / PI * areaSum / phi0, 1.0/NDIM);
+      L.at(d) = pow(4 / PI * areaSum / phi0, 1.0 / NDIM);
   }
 
   // initialize cell centers randomly
@@ -707,31 +707,30 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
     for (ci = cellDOF - 1; ci > 0; ci -= 2) {
       dpos.at(ci) = L[ci % 2] * drand48();
     }
-  }
-  else {
+  } else {
     cout << "setUpCircularBoundary is enabled, so initializing cell centers randomly but rejecting if further than R = L/2 from the center (which is (L/2,L/2))\n";
-    double scale_radius = 1.1; // make the polygon radius slightly larger so that it encompasses the circle that points are initialized in
-    poly_bd_x.push_back(std::vector<double>()); // make new data for generateCircularBoundary to write a polygon
+    double scale_radius = 1.1;                   // make the polygon radius slightly larger so that it encompasses the circle that points are initialized in
+    poly_bd_x.push_back(std::vector<double>());  // make new data for generateCircularBoundary to write a polygon
     poly_bd_y.push_back(std::vector<double>());
-    double cx = L[0]/2, cy = L[1]/2, tissueRadius = L[0]/2;
-    ofstream boundaryStream("polyBoundary.txt"); // clear boundary text file, for visualizing or for debugging
+    double cx = L[0] / 2, cy = L[1] / 2, tissueRadius = L[0] / 2;
+    ofstream boundaryStream("polyBoundary.txt");  // clear boundary text file, for visualizing or for debugging
     generateCircularBoundary(numEdges, scale_radius * tissueRadius, cx, cy, poly_bd_x[0], poly_bd_y[0]);
 
-    for (i = 0; i < NCELLS; i++){
-      double dpos_x = tissueRadius * (2*drand48()-1) + cx, dpos_y = tissueRadius * (2*drand48()-1) + cy;
-      while (pow(dpos_x - cx,2) + pow(dpos_y - cy,2) > pow(tissueRadius, 2)){
-        dpos_x = tissueRadius * (2*drand48()-1) + cx;
-        dpos_y = tissueRadius * (2*drand48()-1) + cy;
+    for (i = 0; i < NCELLS; i++) {
+      double dpos_x = tissueRadius * (2 * drand48() - 1) + cx, dpos_y = tissueRadius * (2 * drand48() - 1) + cy;
+      while (pow(dpos_x - cx, 2) + pow(dpos_y - cy, 2) > pow(tissueRadius, 2)) {
+        dpos_x = tissueRadius * (2 * drand48() - 1) + cx;
+        dpos_y = tissueRadius * (2 * drand48() - 1) + cy;
       }
-      dpos.at(i*NDIM) = dpos_x;
-      dpos.at(i*NDIM+1) = dpos_y;
+      dpos.at(i * NDIM) = dpos_x;
+      dpos.at(i * NDIM + 1) = dpos_y;
     }
   }
 
   // set radii of SP disks
-  for (ci = 0; ci < NCELLS; ci++){
+  for (ci = 0; ci < NCELLS; ci++) {
     if (setUpCircularBoundary)
-      xtra = 1.1; // disks should have radius similar to the final particle radius, or could modify vrad[i] condition in wall calculation later
+      xtra = 1.1;  // disks should have radius similar to the final particle radius, or could modify vrad[i] condition in wall calculation later
     drad.at(ci) = xtra * sqrt((2.0 * a0.at(ci)) / (nv.at(ci) * sin(2.0 * PI / nv.at(ci))));
   }
 
@@ -888,12 +887,11 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
           dF[i] += 1 * (drad[i] - dpos[i]);
         }
       }
-    }
-    else if (setUpCircularBoundary) { // use a polygon as a boundary condition 
+    } else if (setUpCircularBoundary) {  // use a polygon as a boundary condition
       std::vector<double> poly_x = poly_bd_x[0];
       std::vector<double> poly_y = poly_bd_y[0];
       int n = poly_x.size();
-      double distanceParticleWall, Rx, Ry, dw, K=1;
+      double distanceParticleWall, Rx, Ry, dw, K = 1;
       double bound_x1, bound_x2, bound_y1, bound_y2;
       // loop over boundary bars
       // loop over particles
@@ -902,15 +900,15 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
       for (int bound_i = 0; bound_i < n; bound_i++) {
         // use distanceLineAndPoint to get R, Rx, and Ry
         bound_x1 = poly_x[bound_i];
-        bound_x2 = poly_x[(bound_i+1) % n];
+        bound_x2 = poly_x[(bound_i + 1) % n];
         bound_y1 = poly_y[bound_i];
-        bound_y2 = poly_y[(bound_i+1) % n];
-        for (i = 0; i < cellDOF/NDIM; i++) {
-          distanceParticleWall = distanceLinePointComponents(bound_x1, bound_y1, bound_x2, bound_y2, dpos[i*NDIM], dpos[i*NDIM+1], Rx, Ry);
+        bound_y2 = poly_y[(bound_i + 1) % n];
+        for (i = 0; i < cellDOF / NDIM; i++) {
+          distanceParticleWall = distanceLinePointComponents(bound_x1, bound_y1, bound_x2, bound_y2, dpos[i * NDIM], dpos[i * NDIM + 1], Rx, Ry);
           dw = drad[i] - distanceParticleWall;
           if (distanceParticleWall <= drad[i]) {
-            dF[i*NDIM] += K * dw * Rx/distanceParticleWall;
-            dF[i*NDIM+1] += K * dw * Ry/distanceParticleWall;
+            dF[i * NDIM] += K * dw * Rx / distanceParticleWall;
+            dF[i * NDIM + 1] += K * dw * Ry / distanceParticleWall;
           }
         }
       }
@@ -1189,109 +1187,107 @@ void dpm::initializeAllPositions(std::string vertexPositionFile, int nref) {
 
 // initialize neighbor linked list
 void dpm::initializeNeighborLinkedList2D(double boxLengthScale) {
-	// local variables
-	double llscale;
-	int i, d, nntmp, scx;
+  // local variables
+  double llscale;
+  int i, d, nntmp, scx;
 
-	// print to console
-	cout << "** initializing neighbor linked list, boxLengthScale = " << boxLengthScale << '\n';
+  // print to console
+  cout << "** initializing neighbor linked list, boxLengthScale = " << boxLengthScale << '\n';
 
-	// get largest diameter times attraction shell (let buffer be larger than attraction range would ever be) as llscale
+  // get largest diameter times attraction shell (let buffer be larger than attraction range would ever be) as llscale
   double buffer = 2.5;
-	llscale = buffer * 2 * (*max_element(r.begin(),r.end()));
+  llscale = buffer * 2 * (*max_element(r.begin(), r.end()));
   cout << "llscale = " << llscale << '\n';
 
-	// initialize box length vectors
-	NBX = 1;
-	sb.resize(NDIM);
-	lb.resize(NDIM);
-	for (d = 0; d < NDIM; d++) {
-		// determine number of cells along given dimension by rmax
-		sb[d] = round(L[d] / (boxLengthScale * llscale));
+  // initialize box length vectors
+  NBX = 1;
+  sb.resize(NDIM);
+  lb.resize(NDIM);
+  for (d = 0; d < NDIM; d++) {
+    // determine number of cells along given dimension by rmax
+    sb[d] = round(L[d] / (boxLengthScale * llscale));
 
-		// just in case, if < 3, change to 3 so box neighbor checking will work
-		if (sb[d] < 3)
-			sb[d] = 3;
+    // just in case, if < 3, change to 3 so box neighbor checking will work
+    if (sb[d] < 3)
+      sb[d] = 3;
 
-		// determine box length by number of cells
-		lb[d] = L[d] / sb[d];
+    // determine box length by number of cells
+    lb[d] = L[d] / sb[d];
 
-		// count total number of cells
-		NBX *= sb[d];
-	}
+    // count total number of cells
+    NBX *= sb[d];
+  }
 
-	// initialize list of box nearest neighbors
-	scx = sb[0];
-	nn.resize(NBX);
+  // initialize list of box nearest neighbors
+  scx = sb[0];
+  nn.resize(NBX);
 
-	// loop over cells, save forward neighbors for each box
-	for (i = 0; i < NBX; i++) {
-		// reshape entry
-		nn[i].resize(NNN);
+  // loop over cells, save forward neighbors for each box
+  for (i = 0; i < NBX; i++) {
+    // reshape entry
+    nn[i].resize(NNN);
 
-		// right neighbor (i+1)
-		nn[i][0] = (i + 1) % NBX; 
+    // right neighbor (i+1)
+    nn[i][0] = (i + 1) % NBX;
 
-		// top neighbors (i,j+1), (i+1,j+1)
-		if (pbc[1]){
-			// (i,j+1) w/ pbc
-			nn[i][1] = (i + scx) % NBX;
+    // top neighbors (i,j+1), (i+1,j+1)
+    if (pbc[1]) {
+      // (i,j+1) w/ pbc
+      nn[i][1] = (i + scx) % NBX;
 
-			// (i+1,j+1) w/ pbc
-			nn[i][2] = (nn[i][1] + 1) % NBX;
-		}
-		else {
-			// if on top row, both = -1
-			if (i >= NBX - scx){
-				nn[i][1] = -1;
-				nn[i][2] = -1;
-			}
-			// if not on top row, still add
-			else{
-				nn[i][1] = i + scx; 
-				nn[i][2] = nn[i][1] + 1;
-			}
-		}
+      // (i+1,j+1) w/ pbc
+      nn[i][2] = (nn[i][1] + 1) % NBX;
+    } else {
+      // if on top row, both = -1
+      if (i >= NBX - scx) {
+        nn[i][1] = -1;
+        nn[i][2] = -1;
+      }
+      // if not on top row, still add
+      else {
+        nn[i][1] = i + scx;
+        nn[i][2] = nn[i][1] + 1;
+      }
+    }
 
-		// bottom neighbor w/ pbc (j-1)
-		nntmp = (i + NBX - scx) % NBX;	
+    // bottom neighbor w/ pbc (j-1)
+    nntmp = (i + NBX - scx) % NBX;
 
-		// bottom-right neighbor (i+1, j-1)
-		if (pbc[1])
-			nn[i][3] = nntmp + 1;
-		else{
-			// if on bottom row, skip
-			if (i < scx)
-				nn[i][3] = -1;
-			// otherwise, set
-			else
-				nn[i][3] = nntmp + 1;
-		}
+    // bottom-right neighbor (i+1, j-1)
+    if (pbc[1])
+      nn[i][3] = nntmp + 1;
+    else {
+      // if on bottom row, skip
+      if (i < scx)
+        nn[i][3] = -1;
+      // otherwise, set
+      else
+        nn[i][3] = nntmp + 1;
+    }
 
-		// right-hand bc (periodic)
-		if ((i + 1) % scx == 0) {
-			if (pbc[0]) {
-				nn[i][0] = i - scx + 1;
-				if (pbc[1]){
-					nn[i][2] = nn[i][1] - scx + 1;
-					nn[i][3] = nntmp - scx + 1;
-				}
-			}
-			else {
-				nn[i][0] = -1;
-				nn[i][2] = -1;
-				nn[i][3] = -1;
-			}
-		}
-	}
+    // right-hand bc (periodic)
+    if ((i + 1) % scx == 0) {
+      if (pbc[0]) {
+        nn[i][0] = i - scx + 1;
+        if (pbc[1]) {
+          nn[i][2] = nn[i][1] - scx + 1;
+          nn[i][3] = nntmp - scx + 1;
+        }
+      } else {
+        nn[i][0] = -1;
+        nn[i][2] = -1;
+        nn[i][3] = -1;
+      }
+    }
+  }
 
-	// linked-list variables
-	head.resize(NBX);
-	last.resize(NBX);
-	list.resize(NVTOT + 1);
+  // linked-list variables
+  head.resize(NBX);
+  last.resize(NBX);
+  list.resize(NVTOT + 1);
 
-	// print box info to console
-	cout << ";  initially NBX = " << NBX << " ..." << endl;
+  // print box info to console
+  cout << ";  initially NBX = " << NBX << " ..." << endl;
 }
 
 /******************************
@@ -1305,7 +1301,8 @@ void dpm::initializeNeighborLinkedList2D(double boxLengthScale) {
 // sort vertices into neighbor linked list
 void dpm::sortNeighborLinkedList2D() {
   // local variables
-  int d, gi, boxid, sbtmp, xtmp;
+  int d, gi, boxid, sbtmp;
+  double xtmp;
 
   /*cout << "before neighborLinkedList\n";
   cout << "list = \n";
@@ -1329,24 +1326,23 @@ void dpm::sortNeighborLinkedList2D() {
     sbtmp = 1;
     for (d = 0; d < NDIM; d++) {
       // current location
-			xtmp = x[NDIM * gi + d];
+      xtmp = x[NDIM * gi + d];
 
-			// check out-of-bounds
-			if (xtmp < 0){
-				if (pbc[d])
-					xtmp -= L[d]*floor(xtmp/L[d]);
-				else
-					xtmp = 0.00001;
-			}
-			else if (xtmp > L[d]){
-				if (pbc[d])
-					xtmp -= L[d]*floor(xtmp/L[d]);
-				else
-					xtmp = 0.99999*L[d];
-			}
+      // check out-of-bounds
+      if (xtmp < 0) {
+        if (pbc[d])
+          xtmp -= L[d] * floor(xtmp / L[d]);
+        else
+          xtmp = 0.00001;
+      } else if (xtmp > L[d]) {
+        if (pbc[d])
+          xtmp -= L[d] * floor(xtmp / L[d]);
+        else
+          xtmp = 0.99999 * L[d];
+      }
 
-			// add d index to 1d list
-			boxid += floor(xtmp / lb[d]) * sbtmp;
+      // add d index to 1d list
+      boxid += floor(xtmp / lb[d]) * sbtmp;
 
       // increment dimensional factor
       sbtmp *= sb[d];
@@ -1528,18 +1524,18 @@ void dpm::drawVelocities2D(double T) {
 double dpm::distanceLineAndPoint(double x1, double y1, double x2, double y2, double x0, double y0) {
   // get the distance from a line segment going through (x1,y1), (x2,y2) and a
   // point located at (x0,y0)
-   double dx21 = x2-x1, dy21 = y2-y1, dx10 = x1-x0, dy10 = y1-y0;
-  if (pbc[0]){
-    dx21 -= L[0] * round(dx21/L[0]);
-    dx10 -= L[0] * round(dx10/L[0]);
+  double dx21 = x2 - x1, dy21 = y2 - y1, dx10 = x1 - x0, dy10 = y1 - y0;
+  if (pbc[0]) {
+    dx21 -= L[0] * round(dx21 / L[0]);
+    dx10 -= L[0] * round(dx10 / L[0]);
   }
-  if (pbc[1]){
-    dy21 -= L[1] * round(dy21/L[1]);
-    dy10 -= L[1] * round(dy10/L[1]);
+  if (pbc[1]) {
+    dy21 -= L[1] * round(dy21 / L[1]);
+    dy10 -= L[1] * round(dy10 / L[1]);
   }
 
   double l2 = pow(dx21, 2) + pow(dy21, 2);  // |(pt2 - pt1)|^2
-  if (l2 == 0.0)                                  // pt2 == pt1 case
+  if (l2 == 0.0)                            // pt2 == pt1 case
     return sqrt(pow(dx10, 2) + pow(dy10, 2));
 
   double dot = (-dx10) * (dx21) +
@@ -1555,18 +1551,18 @@ double dpm::distanceLineAndPoint(double x1, double y1, double x2, double y2, dou
 double dpm::distanceLinePointComponents(double x1, double y1, double x2, double y2, double x0, double y0, double& xcomp, double& ycomp) {
   // get the distance from a line segment going through (x1,y1), (x2,y2) and a
   // point located at (x0,y0), and extract x and y components of the distance
-  double dx21 = x2-x1, dy21 = y2-y1, dx10 = x1-x0, dy10 = y1-y0;
-  if (pbc[0]){
-    dx21 -= L[0] * round(dx21/L[0]);
-    dx10 -= L[0] * round(dx10/L[0]);
+  double dx21 = x2 - x1, dy21 = y2 - y1, dx10 = x1 - x0, dy10 = y1 - y0;
+  if (pbc[0]) {
+    dx21 -= L[0] * round(dx21 / L[0]);
+    dx10 -= L[0] * round(dx10 / L[0]);
   }
-  if (pbc[1]){
-    dy21 -= L[1] * round(dy21/L[1]);
-    dy10 -= L[1] * round(dy10/L[1]);
+  if (pbc[1]) {
+    dy21 -= L[1] * round(dy21 / L[1]);
+    dy10 -= L[1] * round(dy10 / L[1]);
   }
 
   double l2 = pow(dx21, 2) + pow(dy21, 2);  // |(pt2 - pt1)|^2
-  if (l2 == 0.0)                                  // pt2 == pt1 case
+  if (l2 == 0.0)                            // pt2 == pt1 case
     return sqrt(pow(dx10, 2) + pow(dy10, 2));
 
   double dot = (-dx10) * (dx21) +
@@ -1581,50 +1577,48 @@ double dpm::distanceLinePointComponents(double x1, double y1, double x2, double 
 }
 
 // old name: distLinePointComponentsAndContactType
-double dpm::linePointDistancesAndProjection(double x1, double y1, double x2, double y2, double x0, double y0,
-    double& xcomp, double& ycomp, double& contactType){
-    // get the distance from a line SEGMENT (ending at its endpoints) going through (x1,y1), (x2,y2) and a
-      // point located at (x0,y0), and extract x and y components of the distance
-      // and determine whether the projected contact is vertex-vertex between pt 0 and pt 1: (contactType < 0)
-      //  or vertex-line-segment betw 0 and 1-2 (contactType 0<x<1)
-      //  or vertex-vertex betw 0 and 2 (contactType >1)
-  double dx21 = x2-x1, dy21 = y2-y1, dx10 = x1-x0, dy10 = y1-y0;
-  if (pbc[0]){
-    dx21 -= L[0] * round(dx21/L[0]);
-    dx10 -= L[0] * round(dx10/L[0]);
+double dpm::linePointDistancesAndProjection(double x1, double y1, double x2, double y2, double x0, double y0, double& xcomp, double& ycomp, double& contactType) {
+  // get the distance from a line SEGMENT (ending at its endpoints) going through (x1,y1), (x2,y2) and a
+  // point located at (x0,y0), and extract x and y components of the distance
+  // and determine whether the projected contact is vertex-vertex between pt 0 and pt 1: (contactType < 0)
+  //  or vertex-line-segment betw 0 and 1-2 (contactType 0<x<1)
+  //  or vertex-vertex betw 0 and 2 (contactType >1)
+  double dx21 = x2 - x1, dy21 = y2 - y1, dx10 = x1 - x0, dy10 = y1 - y0;
+  if (pbc[0]) {
+    dx21 -= L[0] * round(dx21 / L[0]);
+    dx10 -= L[0] * round(dx10 / L[0]);
   }
-  if (pbc[1]){
-    dy21 -= L[1] * round(dy21/L[1]);
-    dy10 -= L[1] * round(dy10/L[1]);
+  if (pbc[1]) {
+    dy21 -= L[1] * round(dy21 / L[1]);
+    dy10 -= L[1] * round(dy10 / L[1]);
   }
 
   double l2 = pow(dx21, 2) + pow(dy21, 2);  // |(pt2 - pt1)|^2
-  if (l2 == 0.0){                                  // pt2 == pt1 case
+  if (l2 == 0.0) {                          // pt2 == pt1 case
     xcomp = dx10;
     ycomp = dy10;
     return sqrt(pow(dx10, 2) + pow(dy10, 2));
   }
 
   double dot = (-dx10) * (dx21) +
-               (-dy10) * (dy21);  // (pt0 - pt1) dot (pt2 - pt1)
+               (-dy10) * (dy21);                  // (pt0 - pt1) dot (pt2 - pt1)
   const double t = max(0.0, min(1.0, dot / l2));  // t is restricted to [0,1], which parametrizes the line segment (v + t (w - v))
   const double projectionx = x1 + t * (dx21);
   const double projectiony = y1 + t * (dy21);
-  
+
   xcomp = x0 - projectionx;
-  if (pbc[0]){
-    xcomp -= L[0] * round(xcomp/L[0]);
+  if (pbc[0]) {
+    xcomp -= L[0] * round(xcomp / L[0]);
   }
   ycomp = y0 - projectiony;
-  if (pbc[1]){
-    ycomp -= L[1] * round(ycomp/L[1]);
+  if (pbc[1]) {
+    ycomp -= L[1] * round(ycomp / L[1]);
   }
 
   contactType = dot / l2;
   const double distance = sqrt(pow(xcomp, 2) + pow(ycomp, 2));
   return distance;
 }
-
 
 void dpm::generateCircularBoundary(int numEdges, double radius, double cx, double cy, std::vector<double>& poly_x, std::vector<double>& poly_y) {
   // place a circular boundary, then fix L[0] and L[1] just outside the circle for plotting purposes.
@@ -1633,15 +1627,15 @@ void dpm::generateCircularBoundary(int numEdges, double radius, double cx, doubl
   cout << "in generateCircularBoundary\n";
   cout << L[0] << '\t' << L[1] << '\n';
   generateCircle(numEdges, cx, cy, radius, poly_x, poly_y);
-  
+
   cout << "after generating the polygon boundary, set L[0] and L[1] to be outside this boundary\n";
   L[0] = 1.0 * *max_element(std::begin(poly_x), std::end(poly_x));
   L[1] = 1.0 * *max_element(std::begin(poly_y), std::end(poly_y));
   cout << L[0] << '\t' << L[1] << '\n';
 
-    // plot final polygonal boundary, make sure to clear the file when running a new simulation (should be run with ofstream polyBoundary.txt without app before generateCircularBoundary is called)
+  // plot final polygonal boundary, make sure to clear the file when running a new simulation (should be run with ofstream polyBoundary.txt without app before generateCircularBoundary is called)
   ofstream boundaryStream("polyBoundary.txt", std::ios_base::app);
-  for (int i = 0; i < poly_x.size(); i++){
+  for (int i = 0; i < poly_x.size(); i++) {
     boundaryStream << poly_x[i] << '\t' << poly_y[i] << '\t';
   }
   boundaryStream << '\n';
@@ -1652,10 +1646,10 @@ void dpm::generateCircle(int numEdges, double cx, double cy, double r, std::vect
   double theta;
   std::vector<double> poly_x_temp, poly_y_temp;
   for (int i = 0; i < numEdges; i++) {
-    theta = i*2*PI/numEdges;
-    poly_x_temp.push_back(r*cos(theta)+cx);
-    poly_y_temp.push_back(r*sin(theta)+cy);
-    cout << "px,py = " << r*cos(theta)+cx << '\t' << r*sin(theta)+cy << '\n';
+    theta = i * 2 * PI / numEdges;
+    poly_x_temp.push_back(r * cos(theta) + cx);
+    poly_y_temp.push_back(r * sin(theta) + cy);
+    cout << "px,py = " << r * cos(theta) + cx << '\t' << r * sin(theta) + cy << '\n';
   }
   px = poly_x_temp;
   py = poly_y_temp;
@@ -1663,16 +1657,16 @@ void dpm::generateCircle(int numEdges, double cx, double cy, double r, std::vect
 
 std::vector<double> dpm::resample_polygon(std::vector<double> px, std::vector<double> py, double perimeter, int numPoints) {
   cout << "resample_polygon with perimeter " << perimeter << "\t, numPoints = " << numPoints << "\t, px.size() = " << px.size() << '\n';
-  double arc_length = perimeter/numPoints, t = 0.0, d_t = 0.0;
+  double arc_length = perimeter / numPoints, t = 0.0, d_t = 0.0;
   double newx, newy, lerp;
   vector<double> result = {px[0], py[0]};
 
-  for (int vi = 0; vi < px.size(); vi++) { 
-    d_t = sqrt(pow(px[vi] - px[(vi+1)%px.size()],2)+pow(py[vi] - py[(vi+1)%py.size()],2)) / arc_length;
+  for (int vi = 0; vi < px.size(); vi++) {
+    d_t = sqrt(pow(px[vi] - px[(vi + 1) % px.size()], 2) + pow(py[vi] - py[(vi + 1) % py.size()], 2)) / arc_length;
     while (t + d_t >= result.size() / 2 && result.size() / 2 < numPoints) {
       lerp = (result.size() / 2 - t) / d_t;
-      newx = (1 - lerp) * px[vi] + lerp * px[(vi+1) % px.size()];
-      newy = (1 - lerp) * py[vi] + lerp * py[(vi+1) % py.size()];
+      newx = (1 - lerp) * px[vi] + lerp * px[(vi + 1) % px.size()];
+      newy = (1 - lerp) * py[vi] + lerp * py[(vi + 1) % py.size()];
       result.push_back(newx);
       result.push_back(newy);
       cout << "newx newy = " << newx << '\t' << newy << '\n';
@@ -2377,7 +2371,7 @@ void dpm::vertexAttractiveForces2D() {
 void dpm::evaluatePolygonalWallForces(const std::vector<double>& poly_x, const std::vector<double>& poly_y, bool attractionOn) {
   // evaluates particle-wall forces for a polygonal boundary specified by poly_x,poly_y. Does not compute stress yet.
   int n = poly_x.size();
-  double distanceParticleWall, scaledDistParticleWall, Rx, Ry, dw, K=10;
+  double distanceParticleWall, scaledDistParticleWall, Rx, Ry, dw, K = 10;
   double bound_x1, bound_x2, bound_y1, bound_y2;
   double shellij, cutij, ftmp;
   // loop over boundary bars
@@ -2387,32 +2381,30 @@ void dpm::evaluatePolygonalWallForces(const std::vector<double>& poly_x, const s
   for (int bound_i = 0; bound_i < n; bound_i++) {
     // use distanceLineAndPoint to get R, Rx, and Ry
     bound_x1 = poly_x[bound_i];
-    bound_x2 = poly_x[(bound_i+1) % n];
+    bound_x2 = poly_x[(bound_i + 1) % n];
     bound_y1 = poly_y[bound_i];
-    bound_y2 = poly_y[(bound_i+1) % n];
+    bound_y2 = poly_y[(bound_i + 1) % n];
     for (int i = 0; i < NVTOT; i++) {
-      distanceParticleWall = distanceLinePointComponents(bound_x1, bound_y1, bound_x2, bound_y2, x[i*NDIM], x[i*NDIM+1], Rx, Ry);
+      distanceParticleWall = distanceLinePointComponents(bound_x1, bound_y1, bound_x2, bound_y2, x[i * NDIM], x[i * NDIM + 1], Rx, Ry);
       dw = r[i] - distanceParticleWall;
-      if (attractionOn){
+      if (attractionOn) {
         scaledDistParticleWall = distanceParticleWall / r[i];
-        K = 1; 
+        K = 1;
         shellij = (1.0 + l2) * r[i];
         cutij = (1.0 + l1) * r[i];
         if (distanceParticleWall <= shellij) {  // within attracting shell 2
           if (distanceParticleWall > cutij) {
             ftmp = K * (scaledDistParticleWall - 1.0 - l2) / r[i];
-          }
-          else {  // within attracting shell 1, potentially within repulsion distance
+          } else {  // within attracting shell 1, potentially within repulsion distance
             ftmp = K * (1 - scaledDistParticleWall) / r[i];
           }
-          F[i*NDIM] += ftmp * Rx / distanceParticleWall;
-          F[i*NDIM + 1] += ftmp * Ry / distanceParticleWall;
+          F[i * NDIM] += ftmp * Rx / distanceParticleWall;
+          F[i * NDIM + 1] += ftmp * Ry / distanceParticleWall;
         }
-      }
-      else if (distanceParticleWall <= r[i]) {
-        F[i*NDIM] += K * dw * Rx/distanceParticleWall;
-        F[i*NDIM+1] += K * dw * Ry/distanceParticleWall;
-        U += K/2 * pow(dw,2);
+      } else if (distanceParticleWall <= r[i]) {
+        F[i * NDIM] += K * dw * Rx / distanceParticleWall;
+        F[i * NDIM + 1] += K * dw * Ry / distanceParticleWall;
+        U += K / 2 * pow(dw, 2);
       }
     }
   }
@@ -2774,7 +2766,7 @@ void dpm::vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, d
     // print to console
     if (it % 50 == 0) {
       cout << endl
-          << endl;
+           << endl;
       cout << "===============================" << endl;
       cout << "								" << endl;
       cout << " 	C O M P R E S S I O N 		" << endl;
@@ -2792,7 +2784,7 @@ void dpm::vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, d
       cout << "	** U 			= " << U << endl;
       // printConfiguration2D();
       cout << endl
-          << endl;
+           << endl;
 
       // update iterate
       it++;
@@ -2801,7 +2793,7 @@ void dpm::vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, d
 }
 
 void dpm::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0) {
-  // same as vertexCompress2Target2D, but with polygonal boundaries (affects packing fraction calculation, and expects forceCall to 
+  // same as vertexCompress2Target2D, but with polygonal boundaries (affects packing fraction calculation, and expects forceCall to
   //  account for polygonal boundary forces
   // local variables
   int it = 0, itmax = 1e4;
@@ -2836,7 +2828,7 @@ void dpm::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, doubl
       cout << "	** P 			= " << P << endl;
       cout << "	** Sxy 			= " << Sxy << endl;
       cout << "	** U 			= " << U << endl;
-      //printConfiguration2D();
+      // printConfiguration2D();
       cout << endl
            << endl;
     }
@@ -3049,13 +3041,13 @@ void dpm::vertexJamming2D(dpmMemFn forceCall, double Ftol, double Ptol, double d
   }
 }
 
-void dpm::saveConfiguration(std::vector<double> &positionVector){
+void dpm::saveConfiguration(std::vector<double>& positionVector) {
   // save configuration data (for now, just vertex positions x)
   // if anything else changes like r, l0, NCELLS, etc. then this will be bugged.
   positionVector = x;
 }
 
-void dpm::loadConfiguration(std::vector<double> &positionVector){
+void dpm::loadConfiguration(std::vector<double>& positionVector) {
   // load position vector, with some checks to make sure crucial data hasn't been edited that will blow up the simulation
   // assumes we have a force balanced state with v = F = 0
   assert(positionVector.size() == x.size());
