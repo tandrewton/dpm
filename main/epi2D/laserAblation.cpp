@@ -79,7 +79,7 @@ const double dt0 = 0.01;       // initial magnitude of time step in units of MD 
 const double Ptol = 1e-8;
 const double Ftol = 1e-12;
 const double att_range = 0.3;
-bool isPbcOn = false;
+bool isPbcOn = true;
 
 int main(int argc, char const* argv[]) {
   // local variables to be read in
@@ -296,7 +296,7 @@ int main(int argc, char const* argv[]) {
     else
       epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, B, dt0, relaxTime, printInterval);
     */
-    epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 25000, 1000);
+    epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 100000, 1000);
   }
 
   /*// LASER ABLATION SCHEME

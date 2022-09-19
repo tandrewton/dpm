@@ -726,14 +726,14 @@ void epi2D::circuloLineAttractiveForces() {
         for (int swapii = 0; swapii < 2; swapii++) {
           d = linePointDistancesAndProjection(x[NDIM * im1[gj]], x[NDIM * im1[gj] + 1], x[NDIM * gj], x[NDIM * gj + 1], x[NDIM * gi], x[NDIM * gi + 1], rx, ry, contactType);
 
-          if (fabs(simclock - 38.903) < 0.005) {
+          /*if (fabs(simclock - 38.903) < 0.005) {
               if (gi == 294 || gi == 19) {
               cout << "same neighbor box \n";
               double dist = sqrt(pow(x[NDIM * gi] - x[NDIM * im1[gj]], 2) + pow(x[NDIM * gi + 1] - x[NDIM * im1[gj] + 1], 2));
               cout << "gi = " << gi << ", im1[gj] = " << im1[gj] << ", gj = " << gj << ", dist = " << dist << '\n';
               cout << "simclock = " << simclock << ", isSelfInteraction = " << isSelfInteraction << ", contactType = " << contactType << '\n';
             }
-          }
+          }*/
 
           if (contactType < 1 && !isSelfInteraction) {  // check that the projection falls within the interacting portion of vertex i
             // each vertex i is really a circulo-line between i and i-1, and a single end cap around vertex i located at projection=0
@@ -824,14 +824,14 @@ void epi2D::circuloLineAttractiveForces() {
           for (int swapii = 0; swapii < 2; swapii++) {
             d = linePointDistancesAndProjection(x[NDIM * im1[gj]], x[NDIM * im1[gj] + 1], x[NDIM * gj], x[NDIM * gj + 1], x[NDIM * gi], x[NDIM * gi + 1], rx, ry, contactType);
 
-              if (fabs(simclock - 38.903) < 0.005) {              
+              /*if (fabs(simclock - 38.903) < 0.005) {              
                 if (gi == 294 || gi == 19) {
                 cout << "forward neighbor box \n";
                 double dist = sqrt(pow(x[NDIM * gi] - x[NDIM * im1[gj]], 2) + pow(x[NDIM * gi + 1] - x[NDIM * im1[gj] + 1], 2));
                 cout << "gi = " << gi << ", im1[gj] = " << im1[gj] << ", gj = " << gj << ", dist = " << dist << '\n';
                 cout << "simclock = " << simclock << ", isSelfInteraction = " << isSelfInteraction << ", contactType = " << contactType << '\n';
               }
-            }
+            }*/
 
             if (contactType < 1 && !isSelfInteraction) {  // check that the projection falls within the interacting portion of vertex i
               // each vertex i is really a circulo-line between i and i-1, and a single end cap around vertex i located at projection=0
@@ -882,12 +882,12 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
 
   // cout << "separation between " << gi << '\t' << gj << ", is = " << rx << '\t' << ry << ", with boxl = " << L[0] << '\t' << L[1] << '\n';
 
-    if (fabs(simclock - 38.903) < 0.005) {    
-      if (gi == 294 || gi == 19) {
+  /*if (fabs(simclock - 38.903) < 0.005) {    
+    if (gi == 294 || gi == 19) {
       cout << "gi = " << gi << ", im1[gj] = " << im1[gj] << '\n';
       cout << "simclock = " << simclock << ", dx = " << -rx << '\t' << ", dy = " << -ry << '\t' << ", shellij = " << shellij << "\t, rij = " << sqrt(rx * rx + ry * ry) << '\n';
     }
-  }
+  }*/
   dx = -rx;
   if (pbc[0])
     dx -= L[0] * round(dx / L[0]);
@@ -982,23 +982,23 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
           cellU[cj] += energytmp / 2;
           U += energytmp;
 
-          if (fabs(simclock - 38.903) < 0.005) {
-            // Andrew - checked numerical stability of vertex-line and vertex-vertex in repulsive case. haven't checked repulsive concave, or attractive anything
-            if (fabs(ftmp * prefix * y21) + fabs(ftmp * prefix * -x21) > 0) {
-              cout << gi << '\t' << gj << " are interacting via vertex-line simclock = " << simclock << "\n";
-              cout << "energytmp = " << energytmp << '\n';
-            } else {
-              cout << gi << '\t' << gj << " are not interacting via vertex-line simclock = " << simclock << "\n";
-              cout << "energytmp = " << energytmp << " = zero " << '\n';
-            }
+          //if (fabs(simclock - 38.903) < 0.005) {
+          // Andrew - checked numerical stability of vertex-line and vertex-vertex in repulsive case. haven't checked repulsive concave, or attractive anything
+          if (fabs(ftmp * prefix * y21) + fabs(ftmp * prefix * -x21) > 0) {
+            cout << gi << '\t' << gj << " are interacting via vertex-line simclock = " << simclock << "\n";
+            cout << "energytmp = " << energytmp << '\n';
+          } else {
+            cout << gi << '\t' << gj << " are not interacting via vertex-line simclock = " << simclock << "\n";
+            cout << "energytmp = " << energytmp << " = zero " << '\n';
           }
+          //}
 
           // add to virial stress - not including this code now because I haven't worked out the stress of a 3-body interaction
         }
-        if (fabs(simclock - 38.903) < 0.005) {
+        /*if (fabs(simclock - 38.903) < 0.005) {
           cout << "simclock = " << simclock << ", contactType = " << contactType << ", isConvexInteraction = " << isConvexInteraction << '\n';
           cout << "endEndAngle = " << endEndAngle << '\t' << ", endCapAngle = " << endCapAngle << '\n';
-        }
+        }*/
         // projection is either on the endpoint or outside the endpoint, i.e. not on the line segment
         if (((contactType <= 0) && isConvexInteraction) || (contactType > 0 && isConcaveInteraction)) {
           // pure 2-body contact determined by angles and distances between contact points or by self interaction
@@ -1048,19 +1048,19 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
           F[NDIM * middle + 1] += fy;
           // assert(fabs(dx + (x[NDIM*gi] - x[NDIM*middle])) < 1e-8);
 
-          if (fabs(simclock - 38.903) < 0.005) {
-            if (fabs(fx) + fabs(fy) > 0) {
-              cout << gi << '\t' << middle << " are interacting via vertex-vertex simclock = " << simclock << "\n";
-              if (sign == -1) {
-                cout << "external field computed\n";
-                // assert(false);
-              }
-              cout << "energytmp = " << sign * energytmp << '\n';
-            } else {
-              cout << gi << '\t' << gj << " are not interacting via vertex-vertex simclock = " << simclock << "\n";
-              cout << "energytmp = " << sign * energytmp << " = zero " << '\n';
+          //if (fabs(simclock - 38.903) < 0.005) {
+          if (fabs(fx) + fabs(fy) > 0) {
+            cout << gi << '\t' << middle << " are interacting via vertex-vertex simclock = " << simclock << "\n";
+            if (sign == -1) {
+              cout << "external field computed\n";
+              // assert(false);
             }
+            cout << "energytmp = " << sign * energytmp << '\n';
+          } else {
+            cout << gi << '\t' << gj << " are not interacting via vertex-vertex simclock = " << simclock << "\n";
+            cout << "energytmp = " << sign * energytmp << " = zero " << '\n';
           }
+          //}
 
           cellU[ci] += sign * energytmp / 2;
           cellU[cj] += sign * energytmp / 2;
