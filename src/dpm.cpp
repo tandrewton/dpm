@@ -1603,8 +1603,8 @@ double dpm::linePointDistancesAndProjection(double x1, double y1, double x2, dou
   double dot = (-dx10) * (dx21) +
                (-dy10) * (dy21);                  // (pt0 - pt1) dot (pt2 - pt1)
   const double t = max(0.0, min(1.0, dot / l2));  // t is restricted to [0,1], which parametrizes the line segment (v + t (w - v))
-  const double projectionx = x1 + t * (dx21);
-  const double projectiony = y1 + t * (dy21);
+  double projectionx = x1 + t * (dx21);
+  double projectiony = y1 + t * (dy21);
 
   xcomp = x0 - projectionx;
   if (pbc[0]) {
