@@ -30,7 +30,7 @@
 // ./main/epi2D/laserAblation.o 6 20 0 1.0 0.7 0.5 1.0 1.0 0.2 0.001  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   1  0  test
 // ./main/epi2D/laserAblation.o 6 20 0 1.0 0.85 0.95 1.0 1.0 0.0 0.001  0.0  4.0  4.0 1.0  0.0  1.0 0.5  0  1   1  0  test
 // ./main/epi2D/laserAblation.o 12 20 4 1.0 0.8 0.7 1.0 1.0 0.2 0.001  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   1  0  test
-// ./main/epi2D/laserAblation.o 5 20 0  1.0  0.5  0.4  1.0 1.0 0.0 0.001 0.0  4.0  4.0  1.0  0.0  0.0 0.5  0   1     1  0  test
+// ./main/epi2D/laserAblation.o 4 20 0  1.0  0.5  0.4  1.0 1.0 0.2 0.01 0.0  4.0  4.0  1.0  0.0  0.0 0.5  0   1     1  0  test
 // ........................... N  NV Nd A0  pMin  pMax  kl ka  att  om   dsq  kps  klp  tau dflag  B  Dr0 CIL bound  sd time file
 
 //
@@ -78,7 +78,7 @@ const double sizeratio = 1.4;  // size ratio between small and large particles
 const double dt0 = 0.01;       // initial magnitude of time step in units of MD time
 const double Ptol = 1e-8;
 const double Ftol = 1e-12;
-const double att_range = 0.1;
+const double att_range = 0.3;
 bool isPbcOn = true;
 
 int main(int argc, char const* argv[]) {

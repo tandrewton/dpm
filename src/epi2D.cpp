@@ -1549,9 +1549,9 @@ void epi2D::vertexNVE(ofstream& enout, dpmMemFn forceCall, double dt0, int NT, i
     simclock += dt;
 
     // print to console and file
-    // if (fabs(simclock - 189.536) < 0.005) {
-    if (NPRINTSKIP != 0 && t % NPRINTSKIP == 0) {
-      //       compute kinetic energy
+    if (fabs(simclock - 189.536) < 0.005) {
+      // if (NPRINTSKIP != 0 && t % NPRINTSKIP == 0) {
+      //        compute kinetic energy
       K = vertexKineticEnergy();
 
       // print to console
