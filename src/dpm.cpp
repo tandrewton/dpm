@@ -1577,7 +1577,7 @@ double dpm::distanceLinePointComponents(double x1, double y1, double x2, double 
 }
 
 // old name: distLinePointComponentsAndContactType
-double dpm::linePointDistancesAndProjection(double x1, double y1, double x2, double y2, double x0, double y0, double& xcomp, double& ycomp, double& contactType) {
+double dpm::linePointDistancesAndProjection(double x1, double y1, double x2, double y2, double x0, double y0, double& xcomp, double& ycomp, double& contactType, double& x10, double& y10) {
   // get the distance from a line SEGMENT (ending at its endpoints) going through (x1,y1), (x2,y2) and a
   // point located at (x0,y0), and extract x and y components of the distance
   // and determine whether the projected contact is vertex-vertex between pt 0 and pt 1: (contactType < 0)

@@ -78,7 +78,7 @@ const double sizeratio = 1.4;  // size ratio between small and large particles
 const double dt0 = 0.01;       // initial magnitude of time step in units of MD time
 const double Ptol = 1e-8;
 const double Ftol = 1e-12;
-const double att_range = 0.3;
+const double att_range = 0.1;
 bool isPbcOn = true;
 
 int main(int argc, char const* argv[]) {
@@ -296,7 +296,7 @@ int main(int argc, char const* argv[]) {
     else
       epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, B, dt0, relaxTime, printInterval);
     */
-    epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 50000, 1000);
+    epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 110000, 1000);
   }
 
   /*// LASER ABLATION SCHEME

@@ -85,8 +85,8 @@ class dpm {
   std::vector<bool> pbc;
 
   // alternative boundary parameters: non-rectangular boundaries
-  std::vector<std::vector<double>> poly_bd_x; // x coordinates of polygonal boundary condition (could be a triangle, square, n-0gon, star, etc.)
-  std::vector<std::vector<double>> poly_bd_y; // set poly_x and poly_y by writing a function like generateCircularBoundary
+  std::vector<std::vector<double>> poly_bd_x;  // x coordinates of polygonal boundary condition (could be a triangle, square, n-0gon, star, etc.)
+  std::vector<std::vector<double>> poly_bd_y;  // set poly_x and poly_y by writing a function like generateCircularBoundary
 
   // particle shape parameters
   std::vector<double> a0;
@@ -195,7 +195,7 @@ class dpm {
   void setkc(double val) { kc = val; };
   void setl1(double val) { l1 = val; };
   void setl2(double val) { l2 = val; };
-  void scaleL(int d, double val) {L.at(d) *= val;};
+  void scaleL(int d, double val) { L.at(d) *= val; };
 
   // File openers
   void openPosObject(std::string& str) {
@@ -227,7 +227,7 @@ class dpm {
   void drawVelocities2D(double T);
   double distanceLineAndPoint(double x1, double y1, double x2, double y2, double x0, double y0);
   double distanceLinePointComponents(double x1, double y1, double x2, double y2, double x0, double y0, double& xcomp, double& ycomp);
-  double linePointDistancesAndProjection(double x1, double y1, double x2, double y2, double x0, double y0, double& xcomp, double& ycomp, double& contactType);
+  double linePointDistancesAndProjection(double x1, double y1, double x2, double y2, double x0, double y0, double& xcomp, double& ycomp, double& contactType, double& x10, double& y10);
   void generateCircularBoundary(int numEdges, double radius, double cx, double cy, std::vector<double>& poly_x, std::vector<double>& poly_y);
   void generateCircle(int numEdges, double cx, double cy, double r, std::vector<double>& poly_x, std::vector<double>& poly_y);
   std::vector<double> resample_polygon(std::vector<double> px, std::vector<double> py, double perimeter, int numPoints);
@@ -251,8 +251,8 @@ class dpm {
   void vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0);
   void vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0);
   void vertexJamming2D(dpmMemFn forceCall, double Ftol, double Ptol, double dt0, double dphi0, bool plotCompression);
-  void saveConfiguration(std::vector<double> &positionVector);
-  void loadConfiguration(std::vector<double> &positionVector);
+  void saveConfiguration(std::vector<double>& positionVector);
+  void loadConfiguration(std::vector<double>& positionVector);
 
   // hessian methods
   // note: dynamical matrix contribution is always M = H - S
