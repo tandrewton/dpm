@@ -969,6 +969,8 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
           if (gi == 64 && gj == 13) {
             cout << "isConvexInteraction = " << isConvexInteraction << ", isConcaveInteraction = " << isConcaveInteraction << '\n';
             cout << "endEndAngle, endCapAngle = " << endEndAngle << '\t' << endCapAngle << '\n';
+            cout << "before modification, endCapAngle = " << atan2(drx_prev * dry - drx * dry_prev, drx_prev * drx + dry_prev * dry) << '\n';
+            cout << "endCapAngle is computed from " << left << '\t' << middle << ", to " << right << '\t' << middle << '\n';
           }
         }
 
