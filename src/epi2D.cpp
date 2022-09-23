@@ -723,7 +723,7 @@ void epi2D::circuloLineAttractiveForces() {
 
         for (int swapii = 0; swapii < 2; swapii++) {
           d = linePointDistancesAndProjection(x[NDIM * im1[gj]], x[NDIM * im1[gj] + 1], x[NDIM * gj], x[NDIM * gj + 1], x[NDIM * gi], x[NDIM * gi + 1], rx, ry, contactType, x10, y10);
-          if (fabs(simclock - 36.46) < 0.005) {
+          if (fabs(simclock - 22.89) < 0.005) {
             if (gi == 8 && gj == 20) {
               cout << "same box neighbor\n\n isSelfInteraction = " << isSelfInteraction << ", contactType = " << contactType << '\n';
               cout << "gi = " << gi << ", gj = " << gj << '\n';
@@ -831,7 +831,7 @@ void epi2D::circuloLineAttractiveForces() {
           for (int swapii = 0; swapii < 2; swapii++) {
             d = linePointDistancesAndProjection(x[NDIM * im1[gj]], x[NDIM * im1[gj] + 1], x[NDIM * gj], x[NDIM * gj + 1], x[NDIM * gi], x[NDIM * gi + 1], rx, ry, contactType, x10, y10);
 
-            if (fabs(simclock - 36.46) < 0.005) {
+            if (fabs(simclock - 22.89) < 0.005) {
               if (gi == 8 && gj == 20) {
                 cout << "forward box neighbor\n\n isSelfInteraction = " << isSelfInteraction << ", contactType = " << contactType << '\n';
                 cout << "gi = " << gi << ", gj = " << gj << '\n';
@@ -895,7 +895,7 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
   double d_arg, y21, x21, y20, x20, y10, x10, norm_P12, prefix, prefix2;  // for calculating 3-body forces for contactType 1 (vertex-line-segment)
   int sign = 1;
 
-  if (fabs(simclock - 36.46) < 0.005) {
+  if (fabs(simclock - 22.89) < 0.005) {
     if (gi == 8 && gj == 20) {
       cout << "gi = " << gi << ", gj = " << gj << ", simclock = " << simclock << '\n';
       cout << "dx, dy, rij = " << -rx << '\t' << -ry << '\t' << sqrt(rx * rx + ry * ry) << '\n';
@@ -973,7 +973,7 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
         // unstable concave overlap is present, or unstable convex overlap is present, so compute a correction energy for numerical stability
         isInverseInteraction = (isConcaveInteraction || (endCapAngle > 0 && (endEndAngle2 < endCapAngle)));
 
-        /*if (fabs(simclock - 36.46) < 0.005) {
+        /*if (fabs(simclock - 22.89) < 0.005) {
           cout << "isConvexInteraction = " << isConvexInteraction << ", isConcaveInteraction = " << isConcaveInteraction << '\n';
           cout << "endEndAngle, endCapAngle = " << endEndAngle << '\t' << endCapAngle << '\n';
           cout << "before modification, endCapAngle = " << atan2(drx_prev * dry - drx * dry_prev, drx_prev * drx + dry_prev * dry) << '\n';
@@ -1019,7 +1019,7 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
           F[NDIM * g2] += ftmp * (prefix * y10 - x21 * prefix2);
           F[NDIM * g2 + 1] += ftmp * (prefix * -x10 - y21 * prefix2);
 
-          if (fabs(simclock - 36.46) < 0.005) {
+          if (fabs(simclock - 22.89) < 0.005) {
             if (fabs(ftmp * prefix * y21) + fabs(ftmp * prefix * -x21) > 0) {
               cout << "\nvertex-line interaction between " << gi << '\t' << gj << '\t' << g2 << '\n';
               cout << "with energy = " << energytmp << '\n';
@@ -1087,7 +1087,7 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
           cellU[cj] += sign * energytmp / 2;
           U += sign * energytmp;
 
-          if (fabs(simclock - 36.46) < 0.005) {
+          if (fabs(simclock - 22.89) < 0.005) {
             if (fabs(fx) + fabs(fy) > 0) {
               cout << "\nvertex-vertex interaction between " << gi << '\t' << middle << ", with sign = " << sign << '\n';
               cout << "with energy = " << sign * energytmp << '\n';
@@ -1570,9 +1570,10 @@ void epi2D::vertexNVE(ofstream& enout, dpmMemFn forceCall, double dt0, int NT, i
     simclock += dt;
 
     // print to console and file
-    // if (fabs(simclock - 36.46) < 0.005) {
-    if (NPRINTSKIP != 0 && t % NPRINTSKIP == 0) {
-      //           compute kinetic energy
+    // if (fabs(simclock - 22.89) < 0.005) {
+    if (fabs(simclock - 22.89) < 0.005) {
+      // if (NPRINTSKIP != 0 && t % NPRINTSKIP == 0) {
+      //            compute kinetic energy
       K = vertexKineticEnergy();
 
       // print to console
