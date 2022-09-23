@@ -36,7 +36,7 @@ etaStr = " ";
 startSeed = 1;
 max_seed = 1;
 no_plots = 1;
-makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
+makeAMovie = 0; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
 %plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
 plotCells = 1;
 set(0,'DefaultFigureWindowStyle','docked')
@@ -44,7 +44,7 @@ showPeriodicImages = 1;
 showWoundAndShapeProperties = 0;
 
 
-showverts = 0;
+showverts = 1;
 showBoundaries = 0;
 showcirculoline = 1; % show line segments of circulo-lines
 att_range = 0.3;
@@ -69,8 +69,8 @@ showProtrusion = 1;
 showShapeHistogram = 0;
  
 %PC directory
-%pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
-pc_dir="C:\Users\atata\projects\dpm\";
+pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
+%pc_dir="C:\Users\atata\projects\dpm\";
 %pipeline is the location of data generated during simulations
 subdir_pipeline = pc_dir + "pipeline/cells/"+runType+"/";
 
