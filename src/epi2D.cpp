@@ -1037,7 +1037,8 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
           // add to virial stress - not including this code now because I haven't worked out the stress of a 3-body interaction
         }
         // projection is either on the endpoint or outside the endpoint, i.e. not on the line segment
-        if ((contactType <= 0 && isConvexInteraction) || (contactType > 0 && isConcaveInteraction) || (!isConcaveInteraction && isInverseInteraction)) {
+        if ((contactType <= 0 && isConvexInteraction) || (contactType > 0 && isInverseInteraction)) {
+          //|| (!isConcaveInteraction && isInverseInteraction)) {
           // pure 2-body contact determined by angles and distances between contact points or by self interaction
           if (isInverseInteraction) {
             //  if concave, compute interaction between vertex and inverse vertex. sign = -1 to explicitly demonstrate that the only difference between vertex and inverse vertex is a minus sign
