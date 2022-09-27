@@ -75,7 +75,7 @@ const double boxLengthScale = 2.5;  // neighbor list box size in units of initia
 // const double phi0 = 0.5;            // initial packing fraction
 const double smallfrac = 0.5;  // fraction of small particles
 const double sizeratio = 1.4;  // size ratio between small and large particles
-const double dt0 = 0.01;       // initial magnitude of time step in units of MD time
+const double dt0 = 0.005;      // initial magnitude of time step in units of MD time
 const double Ptol = 1e-8;
 const double Ftol = 1e-12;
 const double att_range = 0.3;
@@ -271,8 +271,8 @@ int main(int argc, char const* argv[]) {
   epithelial.drawVelocities2D(T);
 
   // dpmMemFn customForceUpdate_inactive = attractiveForceUpdate;
-  // dpmMemFn customForceUpdate_active = crawlingWithPSForceUpdate;
-  // dpmMemFn customForceUpdate_inactive_with_circular_walls = attractiveForceUpdateWithCircularWalls;
+  //   dpmMemFn customForceUpdate_active = crawlingWithPSForceUpdate;
+  //   dpmMemFn customForceUpdate_inactive_with_circular_walls = attractiveForceUpdateWithCircularWalls;
 
   dpmMemFn customForceUpdate_inactive = circuloLineAttraction;
   dpmMemFn customForceUpdate_active = crawlingWithPSAndCirculo;
@@ -290,13 +290,13 @@ int main(int argc, char const* argv[]) {
   for (int i = 0; i < numIts; i++) {  // try repeating this until relaxed
     epithelial.setkc(1.0);
     // equilibrate
-    epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 1000, 0);
+    epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 10000, 0);
     /*if (!boolBound)
       epithelial.dampedNP0(customForceUpdate_inactive, B, dt0, relaxTime, printInterval);
     else
       epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, B, dt0, relaxTime, printInterval);
     */
-    epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 100000, 1000);
+    epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 10000, 10);
   }
 
   /*// LASER ABLATION SCHEME
