@@ -75,7 +75,7 @@ const double boxLengthScale = 2.5;  // neighbor list box size in units of initia
 // const double phi0 = 0.5;            // initial packing fraction
 const double smallfrac = 0.5;  // fraction of small particles
 const double sizeratio = 1.4;  // size ratio between small and large particles
-const double dt0 = 0.005;      // initial magnitude of time step in units of MD time
+const double dt0 = 0.01;       // initial magnitude of time step in units of MD time
 const double Ptol = 1e-8;
 const double Ftol = 1e-12;
 const double att_range = 0.3;
@@ -182,7 +182,6 @@ int main(int argc, char const* argv[]) {
   // lp timescale (10% chance of decaying per tau_LP)
   // squared max distance for wound-ps vertex spring (units of vdiam)
   // max length of lp (units of vdiam)
-  // instantiate object
 
   if (strainRate_ps < 1e-20) {  // auto set deltasq to 0 if pursestring is disabled, so that all ps springs break off
     cout << "strain rate for pursestring is zero, setting deltaSq yield length to also be zero\n";
@@ -296,7 +295,7 @@ int main(int argc, char const* argv[]) {
     else
       epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, B, dt0, relaxTime, printInterval);
     */
-    epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 10000, 10);
+    epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 12000, 10);
   }
 
   /*// LASER ABLATION SCHEME

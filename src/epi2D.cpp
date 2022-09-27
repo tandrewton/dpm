@@ -723,8 +723,8 @@ void epi2D::circuloLineAttractiveForces() {
 
         for (int swapii = 0; swapii < 2; swapii++) {
           d = linePointDistancesAndProjection(x[NDIM * im1[gj]], x[NDIM * im1[gj] + 1], x[NDIM * gj], x[NDIM * gj + 1], x[NDIM * gi], x[NDIM * gi + 1], rx, ry, contactType, x10, y10);
-          if (fabs(simclock - 11.1069) < 0.005) {
-            if (gi == 10 && (gj == 18 || gj == 19)) {
+          if (fabs(simclock - 6.085) < 0.005) {
+            if (gi == 13 && (gj == 24 || gj == 25)) {
               cout << "same box neighbor\n\n isSelfInteraction = " << isSelfInteraction << ", contactType = " << contactType << '\n';
               cout << "gi = " << gi << ", gj = " << gj << '\n';
               cout << "dx, dy, rij = " << -rx << '\t' << -ry << '\t' << sqrt(rx * rx + ry * ry) << '\n';
@@ -832,8 +832,8 @@ void epi2D::circuloLineAttractiveForces() {
           for (int swapii = 0; swapii < 2; swapii++) {
             d = linePointDistancesAndProjection(x[NDIM * im1[gj]], x[NDIM * im1[gj] + 1], x[NDIM * gj], x[NDIM * gj + 1], x[NDIM * gi], x[NDIM * gi + 1], rx, ry, contactType, x10, y10);
 
-            if (fabs(simclock - 11.1069) < 0.005) {
-              if (gi == 10 && (gj == 18 || gj == 19)) {
+            if (fabs(simclock - 6.085) < 0.005) {
+              if (gi == 13 && (gj == 24 || gj == 25)) {
                 cout << "forward box neighbor\n\n isSelfInteraction = " << isSelfInteraction << ", contactType = " << contactType << '\n';
                 cout << "gi = " << gi << ", gj = " << gj << '\n';
                 cout << "dx, dy, rij = " << -rx << '\t' << -ry << '\t' << sqrt(rx * rx + ry * ry) << '\n';
@@ -894,12 +894,13 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
   double rij, xij, ftmp, energytmp;
   double dx, dy, fx, fy;
   double endEndAngle, endCapAngle, endEndAngle2;
-  bool isConvexInteraction, isConcaveInteraction, isInverseInteraction;
+  bool isConvexInteractionWithCap, isConcaveInteractionWithCap, isCapInteraction;
+  bool isConcaveInteraction, isInverseInteraction;
   double d_arg, y21, x21, y20, x20, y10, x10, norm_P12, prefix, prefix2;  // for calculating 3-body forces for contactType 1 (vertex-line-segment)
   int sign = 1;
 
-  if (fabs(simclock - 11.1069) < 0.005) {
-    if (gi == 10 && (gj == 18 || gj == 19)) {
+  if (fabs(simclock - 6.085) < 0.005) {
+    if (gi == 13 && (gj == 24 || gj == 25)) {
       cout << "gi = " << gi << ", gj = " << gj << ", simclock = " << simclock << '\n';
       cout << "dx, dy, rij = " << -rx << '\t' << -ry << '\t' << sqrt(rx * rx + ry * ry) << '\n';
       cout << "xi, xj, contactType = " << x[NDIM * gi] << '\t' << x[NDIM * gi + 1] << '\t' << x[NDIM * gj] << '\t' << x[NDIM * gj + 1] << '\t' << contactType << '\n';
@@ -956,43 +957,52 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
         //  because the vertex-line distance in the convex case will be measured from the end of the projection cutoff which is P = 0
         // When generalizing to the concave case, the measurement needs to explicitly be from vertex-vertex (vv) at P = 0
 
-        endEndAngle = atan2(vv_rx * dry - drx * vv_ry, vv_rx * drx + vv_ry * dry);
+        // r is the separation from vertex to vertex
+        // A is the vector from middle vertex to the outer (when convex) corner of middle-left's circulo line segment
+        // B is the vector from middle vertex to the outer (when convex) corner of middle-right's circulo line segment
 
+        endEndAngle = atan2(vv_rx * dry - drx * vv_ry, vv_rx * drx + vv_ry * dry);
         if (endEndAngle < 0) {
           endEndAngle += 2 * PI;
         }
-        // endEndAngle2 = endEndAngle + PI / 2;  // theta'' in the diagram, measures angle from v-v ccw to -A
-        endEndAngle = endEndAngle - PI / 2;  // theta' - pi/2, measures angle from v-v ccw to A
+        endEndAngle = endEndAngle - PI / 2;  // theta', measures angle from r ccw to A
 
         endCapAngle = atan2(drx_prev * dry - drx * dry_prev, drx_prev * drx + dry_prev * dry);
         if (endCapAngle < 0)
           endCapAngle += 2 * PI;
-        endCapAngle = endCapAngle - PI;                       // phi in the circulo-polygon diagram, measures angle from B to A
-        endEndAngle2 = PI - endEndAngle + fabs(endCapAngle);  // theta'', measures angle from -B to r
-        endEndAngle2 -= 2 * PI * (endEndAngle2 > 2 * PI);     // roll over [0,2pi]
+        endCapAngle = endCapAngle - PI;  // phi, measures angle from B to A
 
-        // theta' - pi/2 is within the vertex end-cap region, so compute a bumpy interaction
-        isConvexInteraction = (endEndAngle >= 0 && endEndAngle <= endCapAngle);
-        // end-cap region is on the inside of the particle, and theta' - pi/2 indicates a vertex might be in the concave overlap region
+        endEndAngle2 = PI - endEndAngle + fabs(endCapAngle);  // theta'', measures angle from -B to r
+        // endEndAngle2 = PI - endEndAngle + (endCapAngle + 2 * PI * (endCapAngle < 0));
+        //  note: i think I should use 2*PI*endCapAngle<0, but it hasn't affected results relative to the commented out line above yet. to test later.
+
+        endEndAngle2 -= 2 * PI * (endEndAngle2 > 2 * PI);
+        endEndAngle2 += 2 * PI * (endEndAngle2 < 0);  // roll over [0,2pi]
+
+        // if convex: theta' is within the vertex end-cap region, so compute a bumpy interaction
+        // if concave: theta' is within the interior vertex end-cap region, so compute a bumpy interaction (only happens with attraction and severe concavity)
+        isConvexInteractionWithCap = (endEndAngle >= 0 && endEndAngle <= endCapAngle);
+        isConcaveInteractionWithCap = (endCapAngle < 0 && endEndAngle > PI - fabs(endCapAngle) && endEndAngle < PI);
+        // isConcaveInteractionWithCap = false;
+        isCapInteraction = (isConvexInteractionWithCap || isConcaveInteractionWithCap);
+
+        // end-cap region is on the inside of the particle, and theta' indicates a vertex might be in the concave overlap region
         isConcaveInteraction = (endCapAngle < 0 && endEndAngle < 0 && endEndAngle >= endCapAngle);
+
         // unstable concave overlap is present, or unstable convex overlap is present, so compute a correction energy for numerical stability
         isInverseInteraction = (isConcaveInteraction || (endCapAngle > 0 && (endEndAngle2 < endCapAngle)));
 
-        if (fabs(simclock - 11.1069) < 0.005) {
-          if (gi == 10 && (gj == 18 || gj == 19)) {
+        if (fabs(simclock - 6.085) < 0.005) {
+          if (gi == 13 && (gj == 24 || gj == 25)) {
             cout << "testing specific interaction: gi = " << gi << ", gj = " << gj << '\n';
             cout << "contactType = " << contactType << '\n';
-            cout << "isConcaveInteraction = " << isConcaveInteraction << ", isInverseInteraction = " << isInverseInteraction << '\n';
+            cout << "isCapInteraction = " << isCapInteraction << ", isConcaveInteraction = " << isConcaveInteraction << ", isInverseInteraction = " << isInverseInteraction << '\n';
+            cout << "isConcaveInteractionWithCap = " << (endCapAngle < 0 && endEndAngle > PI - fabs(endCapAngle) && endEndAngle < PI) << '\n';
+            cout << "PI - fabs(phi) = " << PI - fabs(endCapAngle) << '\n';
             cout << "endEndAngle, endCapAngle, endEndAngle2 = " << endEndAngle << '\t' << endCapAngle << '\t' << endEndAngle2 << '\n';
-            /*cout << "endEndAngle2 (old) = " << PI - endEndAngle + fabs(endCapAngle) << '\n';
-            cout << "endEndAngle2 (new) = " << PI - (endEndAngle + 2 * PI * (endEndAngle < 0)) + fabs(endCapAngle) << '\n';
-            cout << "endEndAngle2 (better) = " << endEndAngle2 - 2 * PI * (endEndAngle2 > 2 * PI) << '\n';*/
             cout << "rx, ry, shellij = " << rx << '\t' << ry << '\t' << shellij << '\n';
             cout << "rij = " << rij << ", d(gi, middle) = " << sqrt(pow(x[NDIM * gi] - x[NDIM * middle], 2) + pow(x[NDIM * gi + 1] - x[NDIM * middle + 1], 2)) << '\n';
             cout << "d(gi, middle) < shellij =  " << (sqrt(pow(x[NDIM * gi] - x[NDIM * middle], 2) + pow(x[NDIM * gi + 1] - x[NDIM * middle + 1], 2)) < shellij) << '\n';
-            if ((!isConcaveInteraction && isInverseInteraction && (sqrt(pow(x[NDIM * gi] - x[NDIM * middle], 2) + pow(x[NDIM * gi + 1] - x[NDIM * middle + 1], 2)) < shellij))) {
-              cout << "\n\t\t\tnot concave, yes inverse, yes d(gi,middle) < shellij\n endEndAngle, endCapAngle, endEndAngle2 = " << endEndAngle << '\t' << endCapAngle << '\t' << endEndAngle2 << '\n';
-            }
           }
         }
 
@@ -1033,7 +1043,7 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
           F[NDIM * g2] += ftmp * (prefix * y10 - x21 * prefix2);
           F[NDIM * g2 + 1] += ftmp * (prefix * -x10 - y21 * prefix2);
 
-          if (fabs(simclock - 11.1069) < 0.005) {
+          if (fabs(simclock - 6.085) < 0.005) {
             if (fabs(ftmp * prefix * y21) + fabs(ftmp * prefix * -x21) > 0) {
               cout << "\nvertex-line interaction between " << gi << '\t' << gj << '\t' << g2 << '\n';
               cout << "with energy = " << energytmp << '\n';
@@ -1051,7 +1061,7 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
           // add to virial stress - not including this code now because I haven't worked out the stress of a 3-body interaction
         }
         // projection is either on the endpoint or outside the endpoint, i.e. not on the line segment
-        if ((contactType <= 0 && isConvexInteraction) || (contactType > 0 && isInverseInteraction)) {
+        if ((contactType <= 0 && isCapInteraction) || (contactType > 0 && isInverseInteraction)) {
           //|| (!isConcaveInteraction && isInverseInteraction)) {
           // pure 2-body contact determined by angles and distances between contact points or by self interaction
           if (isInverseInteraction) {
@@ -1082,7 +1092,7 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
                 }
               }
             }
-          } else if (isConvexInteraction) {
+          } else {  // if (isCapInteraction) {
             sign = 1;
           }
           // above, if concave, altered dx, dy, rij, xij, ftmp, energytmp.
@@ -1100,7 +1110,7 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
           cellU[cj] += sign * energytmp / 2;
           U += sign * energytmp;
 
-          if (fabs(simclock - 11.1069) < 0.005) {
+          if (fabs(simclock - 6.085) < 0.005) {
             if (fabs(fx) + fabs(fy) > 0) {
               cout << "\nvertex-vertex interaction between " << gi << '\t' << middle << ", with sign = " << sign << '\n';
               cout << "with energy = " << sign * energytmp << '\n';
@@ -1582,10 +1592,13 @@ void epi2D::vertexNVE(ofstream& enout, dpmMemFn forceCall, double dt0, int NT, i
     // update sim clock
     simclock += dt;
 
+    if (NPRINTSKIP == 0)
+      return;
+
     // print to console and file
-    // if (fabs(simclock - 11.1069) < 0.005) {
-    if (NPRINTSKIP != 0 && t % NPRINTSKIP == 0) {
-      //              compute kinetic energy
+    // if (fabs(simclock - 6.085) < 0.005) {
+    if (t % NPRINTSKIP == 0) {
+      //                   compute kinetic energy
       K = vertexKineticEnergy();
 
       // print to console
