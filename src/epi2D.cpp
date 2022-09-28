@@ -626,7 +626,7 @@ void epi2D::circuloLineAttractiveForces() {
   int ci, cj, gi, gj, vi, vj, bi, bj, pi, pj;
   double sij, rij, rho0;
   double d, rx, ry, dx, dy;         // distance and components of separation between projection of point p onto line segment v-w
-  double d_arg, y10, x10;           // for calculating 3-body forces for contactType 1 (vertex-line-segment)
+  double d_arg, y10, x10, d21;      // for calculating 3-body forces for contactType 1 (vertex-line-segment)
   double contactType;               // parameterized projection value. if between [0,1] then it's circulo-line, if < 0 or > 1 then it is either nothing or end-end.
   double endCapAngle, endEndAngle;  // endCapAngle is PI minus interior angle of vertices, endEndAngle is between interaction centers and circulo-line endpoints
   double ftmp, fx, fy, energytmp;
@@ -723,8 +723,8 @@ void epi2D::circuloLineAttractiveForces() {
 
         for (int swapii = 0; swapii < 2; swapii++) {
           d = linePointDistancesAndProjection(x[NDIM * im1[gj]], x[NDIM * im1[gj] + 1], x[NDIM * gj], x[NDIM * gj + 1], x[NDIM * gi], x[NDIM * gi + 1], rx, ry, contactType, x10, y10);
-          if (fabs(simclock - 8.305) < 0.005) {
-            if (gi == 9 && (gj == 87 || gj == 88)) {
+          if (fabs(simclock - 50.57) < 0.005) {
+            if (gi == 86 && (gj == 5 || gj == 6)) {
               cout << "same box neighbor\n\n isSelfInteraction = " << isSelfInteraction << ", contactType = " << contactType << '\n';
               cout << "gi = " << gi << ", gj = " << gj << '\n';
               cout << "dx, dy, rij = " << -rx << '\t' << -ry << '\t' << sqrt(rx * rx + ry * ry) << '\n';
@@ -742,7 +742,8 @@ void epi2D::circuloLineAttractiveForces() {
               // contactType > 1 means p0 projection falls ahead of p2, so ignore
               calculateSmoothInteraction(rx, ry, sij, shellij, cutij, kint, kc, gi, gj, contactType, ci, cj);
               //} else if (contactType < 1 + l2 && x10 * x10 + y10 * y10 < shellij * shellij) {
-            } else if (contactType < 1 + (1 + l2) * r[gi] / l0[gi] && d < shellij) {
+              // (1 + l2) * r is the contact distance between a circulo line segment (P = 0 to P = 1) and a nearby vertex
+            } else if (d < shellij) {
               // contactType > 1, but d(gi, im1[gj]) < attraction distance
               // which means that we have to consider a concave interaction correction
               // cout << "computing a purely concave correction!\n, gi = " << gi << ", gj = " << gj << '\n';
@@ -831,9 +832,8 @@ void epi2D::circuloLineAttractiveForces() {
 
           for (int swapii = 0; swapii < 2; swapii++) {
             d = linePointDistancesAndProjection(x[NDIM * im1[gj]], x[NDIM * im1[gj] + 1], x[NDIM * gj], x[NDIM * gj + 1], x[NDIM * gi], x[NDIM * gi + 1], rx, ry, contactType, x10, y10);
-
-            if (fabs(simclock - 8.305) < 0.005) {
-              if (gi == 9 && (gj == 87 || gj == 88)) {
+            if (fabs(simclock - 50.57) < 0.005) {
+              if (gi == 86 && (gj == 5 || gj == 6)) {
                 cout << "forward box neighbor\n\n isSelfInteraction = " << isSelfInteraction << ", contactType = " << contactType << '\n';
                 cout << "gi = " << gi << ", gj = " << gj << '\n';
                 cout << "dx, dy, rij = " << -rx << '\t' << -ry << '\t' << sqrt(rx * rx + ry * ry) << '\n';
@@ -850,8 +850,7 @@ void epi2D::circuloLineAttractiveForces() {
                 // 0 < contactType < 1 means that p0 projection onto p1-p2 falls between p1 and p2, so it's a vertex-line-segment contact
                 // contactType > 1 means p0 projection falls ahead of p2, so ignore
                 calculateSmoothInteraction(rx, ry, sij, shellij, cutij, kint, kc, gi, gj, contactType, ci, cj);
-                //} else if (contactType < 1 + l2 && x10 * x10 + y10 * y10 < shellij * shellij) {
-              } else if (contactType < 1 + (1 + l2) * r[gi] / l0[gi] && d < shellij) {
+              } else if (d < shellij) {
                 // contactType > 1, but d(gi, im1[gj]) < attraction distance
                 // which means that we have to consider a concave interaction correction
                 // cout << "computing a purely concave correction!\n, gi = " << gi << ", gj = " << gj << '\n';
@@ -899,8 +898,8 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
   double d_arg, y21, x21, y20, x20, y10, x10, norm_P12, prefix, prefix2;  // for calculating 3-body forces for contactType 1 (vertex-line-segment)
   int sign = 1;
 
-  if (fabs(simclock - 8.305) < 0.005) {
-    if (gi == 9 && (gj == 87 || gj == 88)) {
+  if (fabs(simclock - 50.57) < 0.005) {
+    if (gi == 86 && (gj == 5 || gj == 6)) {
       cout << "gi = " << gi << ", gj = " << gj << ", simclock = " << simclock << '\n';
       cout << "dx, dy, rij = " << -rx << '\t' << -ry << '\t' << sqrt(rx * rx + ry * ry) << '\n';
       cout << "xi, xj, contactType = " << x[NDIM * gi] << '\t' << x[NDIM * gi + 1] << '\t' << x[NDIM * gj] << '\t' << x[NDIM * gj + 1] << '\t' << contactType << '\n';
@@ -987,17 +986,19 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
         isCapInteraction = (isConvexInteractionWithCap || isConcaveInteractionWithCap);
 
         // end-cap region is on the inside of the particle, and theta' indicates a vertex might be in the concave overlap region
-        isConcaveInteraction = (endCapAngle < 0 && endEndAngle < 0 && endEndAngle >= endCapAngle);
+        double endEndAngleNewRange = (endEndAngle - 2 * PI * (endEndAngle > PI));  // roll over to [-pi, pi]
+        isConcaveInteraction = (endCapAngle < 0 && endEndAngleNewRange < 0 && endEndAngleNewRange >= endCapAngle);
 
         // unstable concave overlap is present, or unstable convex overlap is present, so compute a correction energy for numerical stability
         isInverseInteraction = (isConcaveInteraction || (endCapAngle > 0 && (endEndAngle2 < endCapAngle)));
 
-        if (fabs(simclock - 8.305) < 0.005) {
-          if (gi == 9 && (gj == 87 || gj == 88)) {
+        if (fabs(simclock - 50.57) < 0.005) {
+          if (gi == 86 && (gj == 5 || gj == 6)) {
             cout << "testing specific interaction: gi = " << gi << ", gj = " << gj << '\n';
             cout << "contactType = " << contactType << '\n';
             cout << "isCapInteraction = " << isCapInteraction << ", isConcaveInteraction = " << isConcaveInteraction << ", isInverseInteraction = " << isInverseInteraction << '\n';
             cout << "isConcaveInteractionWithCap = " << (endCapAngle < 0 && endEndAngle > PI - fabs(endCapAngle) && endEndAngle < PI) << '\n';
+            cout << "isConcaveInteraction (new) = " << (endCapAngle < 0 && (endEndAngle - 2 * PI * (endEndAngle > PI)) < 0 && endEndAngle >= endCapAngle) << '\n';
             cout << "PI - fabs(phi) = " << PI - fabs(endCapAngle) << '\n';
             cout << "endEndAngle, endCapAngle, endEndAngle2 = " << endEndAngle << '\t' << endCapAngle << '\t' << endEndAngle2 << '\n';
             cout << "rx, ry, shellij = " << rx << '\t' << ry << '\t' << shellij << '\n';
@@ -1043,7 +1044,7 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
           F[NDIM * g2] += ftmp * (prefix * y10 - x21 * prefix2);
           F[NDIM * g2 + 1] += ftmp * (prefix * -x10 - y21 * prefix2);
 
-          if (fabs(simclock - 8.305) < 0.005) {
+          if (fabs(simclock - 50.57) < 0.005) {
             if (fabs(ftmp * prefix * y21) + fabs(ftmp * prefix * -x21) > 0) {
               cout << "\nvertex-line interaction between " << gi << '\t' << gj << '\t' << g2 << '\n';
               cout << "with energy = " << energytmp << '\n';
@@ -1110,7 +1111,7 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
           cellU[cj] += sign * energytmp / 2;
           U += sign * energytmp;
 
-          if (fabs(simclock - 8.305) < 0.005) {
+          if (fabs(simclock - 50.57) < 0.005) {
             if (fabs(fx) + fabs(fy) > 0) {
               cout << "\nvertex-vertex interaction between " << gi << '\t' << middle << ", with sign = " << sign << '\n';
               cout << "with energy = " << sign * energytmp << '\n';
@@ -1596,9 +1597,9 @@ void epi2D::vertexNVE(ofstream& enout, dpmMemFn forceCall, double dt0, int NT, i
       return;
 
     // print to console and file
-    // if (fabs(simclock - 8.305) < 0.005) {
+    // if (fabs(simclock - 50.57) < 0.005) {
     if (t % NPRINTSKIP == 0) {
-      //                    compute kinetic energy
+      //                        compute kinetic energy
       K = vertexKineticEnergy();
 
       // print to console

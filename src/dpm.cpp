@@ -1596,16 +1596,16 @@ double dpm::linePointDistancesAndProjection(double x1, double y1, double x2, dou
     dy10 -= L[1] * round(dy10 / L[1]);
   }
 
-  double l2 = pow(dx21, 2) + pow(dy21, 2);  // |(pt2 - pt1)|^2
-  if (l2 == 0.0) {                          // pt2 == pt1 case
+  double l2_sq = pow(dx21, 2) + pow(dy21, 2);  // |(pt2 - pt1)|^2
+  if (l2_sq == 0.0) {                          // pt2 == pt1 case
     xcomp = dx10;
     ycomp = dy10;
     return sqrt(pow(dx10, 2) + pow(dy10, 2));
   }
 
   double dot = (-dx10) * (dx21) +
-               (-dy10) * (dy21);                  // (pt0 - pt1) dot (pt2 - pt1)
-  const double t = max(0.0, min(1.0, dot / l2));  // t is restricted to [0,1], which parametrizes the line segment (v + t (w - v))
+               (-dy10) * (dy21);                     // (pt0 - pt1) dot (pt2 - pt1)
+  const double t = max(0.0, min(1.0, dot / l2_sq));  // t is restricted to [0,1], which parametrizes the line segment (v + t (w - v))
   double projectionx = x1 + t * (dx21);
   double projectiony = y1 + t * (dy21);
 
@@ -1618,7 +1618,7 @@ double dpm::linePointDistancesAndProjection(double x1, double y1, double x2, dou
     ycomp -= L[1] * round(ycomp / L[1]);
   }
 
-  contactType = dot / l2;
+  contactType = dot / l2_sq;
   const double distance = sqrt(pow(xcomp, 2) + pow(ycomp, 2));
   return distance;
 }
