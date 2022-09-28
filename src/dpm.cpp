@@ -1577,12 +1577,12 @@ double dpm::distanceLinePointComponents(double x1, double y1, double x2, double 
 }
 
 // old name: distLinePointComponentsAndContactType
-double dpm::linePointDistancesAndProjection(double x1, double y1, double x2, double y2, double x0, double y0, double& xcomp, double& ycomp, double& contactType, double& dx10, double& dy10) {
+double dpm::linePointDistancesAndProjection(double x1, double y1, double x2, double y2, double x0, double y0, double& xcomp, double& ycomp, double& projection, double& dx10, double& dy10) {
   // get the distance from a line SEGMENT (ending at its endpoints) going through (x1,y1), (x2,y2) and a
   // point located at (x0,y0), and extract x and y components of the distance
-  // and determine whether the projected contact is vertex-vertex between pt 0 and pt 1: (contactType < 0)
-  //  or vertex-line-segment betw 0 and 1-2 (contactType 0<x<1)
-  //  or vertex-vertex betw 0 and 2 (contactType >1)
+  // and determine whether the projected contact is vertex-vertex between pt 0 and pt 1: (projection < 0)
+  //  or vertex-line-segment betw 0 and 1-2 (projection 0<x<1)
+  //  or vertex-vertex betw 0 and 2 (projection >1)
   double dx21 = x2 - x1, dy21 = y2 - y1;
 
   dx10 = x1 - x0;
@@ -1618,7 +1618,7 @@ double dpm::linePointDistancesAndProjection(double x1, double y1, double x2, dou
     ycomp -= L[1] * round(ycomp / L[1]);
   }
 
-  contactType = dot / l2_sq;
+  projection = dot / l2_sq;
   const double distance = sqrt(pow(xcomp, 2) + pow(ycomp, 2));
   return distance;
 }
