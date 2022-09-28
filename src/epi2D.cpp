@@ -326,7 +326,6 @@ void epi2D::vertexAttractiveForces2D_2() {
 
   // attraction shell parameters
   double shellij, cutij, xij, kint = (kc * l1) / (l2 - l1);
-  // cout << "kc / kint = " << kc / kint << '\t' << kc << '\t' << kint << '\n';
 
   // sort particles
   sortNeighborLinkedList2D();
@@ -723,7 +722,7 @@ void epi2D::circuloLineAttractiveForces() {
 
         for (int swapii = 0; swapii < 2; swapii++) {
           d = linePointDistancesAndProjection(x[NDIM * im1[gj]], x[NDIM * im1[gj] + 1], x[NDIM * gj], x[NDIM * gj + 1], x[NDIM * gi], x[NDIM * gi + 1], rx, ry, projection, x10, y10);
-          if (fabs(simclock - 29.860) < 0) {
+          /*if (fabs(simclock - 29.860) < 0) {
             if (gi == 86 && (gj == 5 || gj == 6)) {
               cout << "same box neighbor\n\n isSelfInteraction = " << isSelfInteraction << ", projection = " << projection << '\n';
               cout << "gi = " << gi << ", gj = " << gj << '\n';
@@ -731,7 +730,7 @@ void epi2D::circuloLineAttractiveForces() {
               cout << "x10 * x10 + y10 * y10 = " << x10 * x10 + y10 * y10 << ", shellij * shellij = " << shellij * shellij << '\n';
               cout << "d = " << d << ", shellij = " << shellij << '\n';
             }
-          }
+          }*/
 
           if (!isSelfInteraction) {
             if (projection < 1 || d < shellij) {
@@ -824,7 +823,7 @@ void epi2D::circuloLineAttractiveForces() {
 
           for (int swapii = 0; swapii < 2; swapii++) {
             d = linePointDistancesAndProjection(x[NDIM * im1[gj]], x[NDIM * im1[gj] + 1], x[NDIM * gj], x[NDIM * gj + 1], x[NDIM * gi], x[NDIM * gi + 1], rx, ry, projection, x10, y10);
-            if (fabs(simclock - 29.860) < 0) {
+            /*if (fabs(simclock - 29.860) < 0) {
               if (gi == 86 && (gj == 5 || gj == 6)) {
                 cout << "forward box neighbor\n\n isSelfInteraction = " << isSelfInteraction << ", projection = " << projection << '\n';
                 cout << "gi = " << gi << ", gj = " << gj << '\n';
@@ -832,7 +831,7 @@ void epi2D::circuloLineAttractiveForces() {
                 cout << "x10 * x10 + y10 * y10 = " << x10 * x10 + y10 * y10 << ", shellij * shellij = " << shellij * shellij << '\n';
                 cout << "d = " << d << ", shellij = " << shellij << '\n';
               }
-            }
+            }*/
 
             if (!isSelfInteraction) {
               if (projection < 1 || d < shellij) {
@@ -886,13 +885,6 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
   double d_arg, y21, x21, y20, x20, y10, x10, norm_P12, prefix, prefix2;  // for calculating 3-body forces for projection 1 (vertex-line-segment)
   int sign = 1;
 
-  if (fabs(simclock - 29.860) < 0) {
-    if (gi == 86 && (gj == 5 || gj == 6)) {
-      cout << "gi = " << gi << ", gj = " << gj << ", simclock = " << simclock << '\n';
-      cout << "dx, dy, rij = " << -rx << '\t' << -ry << '\t' << sqrt(rx * rx + ry * ry) << '\n';
-      cout << "xi, xj, projection = " << x[NDIM * gi] << '\t' << x[NDIM * gi + 1] << '\t' << x[NDIM * gj] << '\t' << x[NDIM * gj + 1] << '\t' << projection << '\n';
-    }
-  }
   dx = -rx;
   if (pbc[0])
     dx -= L[0] * round(dx / L[0]);
@@ -960,8 +952,6 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
         endCapAngle = endCapAngle - PI;  // phi, measures angle from B to A
 
         endEndAngle2 = PI - endEndAngle + fabs(endCapAngle);  // theta'', measures angle from -B to r
-        // endEndAngle2 = PI - endEndAngle + (endCapAngle + 2 * PI * (endCapAngle < 0));
-        //  note: i think I should use 2*PI*endCapAngle<0, but it hasn't affected results relative to the commented out line above yet. to test later.
 
         endEndAngle2 -= 2 * PI * (endEndAngle2 > 2 * PI);
         endEndAngle2 += 2 * PI * (endEndAngle2 < 0);  // roll over [0,2pi]
@@ -980,7 +970,7 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
         // unstable concave overlap is present, or unstable convex overlap is present, so compute a correction energy for numerical stability
         isInverseInteraction = (isConcaveInteraction || (endCapAngle > 0 && (endEndAngle2 < endCapAngle)));
 
-        if (fabs(simclock - 29.860) < 0) {
+        /*if (fabs(simclock - 29.860) < 0) {
           if (gi == 86 && (gj == 5 || gj == 6)) {
             cout << "testing specific interaction: gi = " << gi << ", gj = " << gj << '\n';
             cout << "projection = " << projection << '\n';
@@ -993,7 +983,7 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
             cout << "rij = " << rij << ", d(gi, middle) = " << sqrt(pow(x[NDIM * gi] - x[NDIM * middle], 2) + pow(x[NDIM * gi + 1] - x[NDIM * middle + 1], 2)) << '\n';
             cout << "d(gi, middle) < shellij =  " << (sqrt(pow(x[NDIM * gi] - x[NDIM * middle], 2) + pow(x[NDIM * gi + 1] - x[NDIM * middle + 1], 2)) < shellij) << '\n';
           }
-        }
+        }*/
 
         if (projection > 0 && projection < 1) {  // projection less than 1 and greater than 0, so projection is on the main line segment
           // Force on particle 0,1,2 is determined by F = - dU/dr = (partials) dU/dr * <dr/dxi , dr/dyi>
@@ -1032,17 +1022,12 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
           F[NDIM * g2] += ftmp * (prefix * y10 - x21 * prefix2);
           F[NDIM * g2 + 1] += ftmp * (prefix * -x10 - y21 * prefix2);
 
-          if (fabs(simclock - 29.860) < 0) {
+          /*if (fabs(simclock - 29.860) < 0) {
             if (fabs(ftmp * prefix * y21) + fabs(ftmp * prefix * -x21) > 0) {
               cout << "\nvertex-line interaction between " << gi << '\t' << gj << '\t' << g2 << '\n';
               cout << "with energy = " << energytmp << '\n';
-              /*cout << "isConcaveInteraction = " << isConcaveInteraction << ", isInverseInteraction = " << isInverseInteraction << '\n';
-              cout << "d(gi, middle) < shellij =  " << (sqrt(pow(x[NDIM * gi] - x[NDIM * middle], 2) + pow(x[NDIM * gi + 1] - x[NDIM * middle + 1], 2)) < shellij) << '\n';
-              if ((!isConcaveInteraction && isInverseInteraction && (sqrt(pow(x[NDIM * gi] - x[NDIM * middle], 2) + pow(x[NDIM * gi + 1] - x[NDIM * middle + 1], 2)) < shellij))) {
-                cout << "\n\t\t\tnot concave, yes inverse, yes d(gi,middle) < shellij\n endEndAngle, endCapAngle, endEndAngle2 = " << endEndAngle << '\t' << endCapAngle << '\t' << endEndAngle2 << '\n';
-              }*/
             }
-          }
+          }*/
           cellU[ci] += energytmp / 2;
           cellU[cj] += energytmp / 2;
           U += energytmp;
@@ -1099,17 +1084,12 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
           cellU[cj] += sign * energytmp / 2;
           U += sign * energytmp;
 
-          if (fabs(simclock - 29.860) < 0) {
+          /*if (fabs(simclock - 29.860) < 0) {
             if (fabs(fx) + fabs(fy) > 0) {
               cout << "\nvertex-vertex interaction between " << gi << '\t' << middle << ", with sign = " << sign << '\n';
               cout << "with energy = " << sign * energytmp << '\n';
-              /*cout << "isConcaveInteraction = " << isConcaveInteraction << ", isInverseInteraction = " << isInverseInteraction << '\n';
-              cout << "d(gi, middle) = " << sqrt(pow(x[NDIM * gi] - x[NDIM * middle], 2) + pow(x[NDIM * gi + 1] - x[NDIM * middle + 1], 2)) << '\n';
-              if ((!isConcaveInteraction && isInverseInteraction && (sqrt(pow(x[NDIM * gi] - x[NDIM * middle], 2) + pow(x[NDIM * gi + 1] - x[NDIM * middle + 1], 2)) < shellij))) {
-                cout << "\n\t\t\tnot concave, yes inverse, yes d(gi,middle) < shellij\n endEndAngle, endCapAngle, endEndAngle2 = " << endEndAngle << '\t' << endCapAngle << '\t' << endEndAngle2 << '\n';
-              }*/
             }
-          }
+          }*/
 
           // add to virial stress
           // note: 4/7/22 I'm using -dx/2 instead of dx and same for dy for stress calculation, since

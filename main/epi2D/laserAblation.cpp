@@ -238,7 +238,7 @@ int main(int argc, char const* argv[]) {
   dpmMemFn attractiveForceUpdateWithCircularWalls = static_cast<void (dpm::*)()>(&epi2D::attractiveForceUpdateWithPolyWall);
   dpmMemFn crawlingWithPSForceUpdateWithCircularWalls = static_cast<void (dpm::*)()>(&epi2D::crawlingWithPurseStringAndCircularWalls);
   dpmMemFn circuloLineAttraction = static_cast<void (dpm::*)()>(&epi2D::attractiveForceUpdate_circulo);
-  dpmMemFn crawlingWithPSAndCirculo = static_cast<void (dpm::*)()>(&epi2D::crawlingWithPurseStringCirculo);
+  dpmMemFn crawlingWithPSSmooth = static_cast<void (dpm::*)()>(&epi2D::crawlingWithPurseStringCirculo);
   dpmMemFn crawlingWithPSCirculoWalls = static_cast<void (dpm::*)()>(&epi2D::crawlingWithPurseStringCirculoWalls);
   dpmMemFn circuloLineAttractionWithCircularWalls = static_cast<void (dpm::*)()>(&epi2D::circuloLineAttractionWithCircularWalls);
 
@@ -269,12 +269,12 @@ int main(int argc, char const* argv[]) {
   double runTime = 25.0;
   epithelial.drawVelocities2D(T);
 
-  dpmMemFn customForceUpdate_inactive = attractiveForceUpdate;
-  //   dpmMemFn customForceUpdate_active = crawlingWithPSForceUpdate;
-  //   dpmMemFn customForceUpdate_inactive_with_circular_walls = attractiveForceUpdateWithCircularWalls;
+  // dpmMemFn customForceUpdate_inactive = attractiveForceUpdate;
+  // dpmMemFn customForceUpdate_active = crawlingWithPSForceUpdate;
+  // dpmMemFn customForceUpdate_inactive_with_circular_walls = attractiveForceUpdateWithCircularWalls;
 
-  // dpmMemFn customForceUpdate_inactive = circuloLineAttraction;
-  dpmMemFn customForceUpdate_active = crawlingWithPSAndCirculo;
+  dpmMemFn customForceUpdate_inactive = circuloLineAttraction;
+  dpmMemFn customForceUpdate_active = crawlingWithPSSmooth;
   dpmMemFn customForceUpdate_inactive_with_circular_walls = circuloLineAttractionWithCircularWalls;
 
   if (isPbcOn)
@@ -284,40 +284,36 @@ int main(int argc, char const* argv[]) {
 
   // epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, B, dt0, runTime, runTime/10.0);
 
-  std::ofstream myenergy("energyNVETest.txt");
+  /*std::ofstream myenergy("energyNVETest.txt"); // testing numerical stability using NVE integration
   int numIts = 1;
   for (int i = 0; i < numIts; i++) {  // try repeating this until relaxed
     epithelial.setkc(1.0);
     // equilibrate
     epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 10000, 0);
-    /*if (!boolBound)
-      epithelial.dampedNP0(customForceUpdate_inactive, B, dt0, relaxTime, printInterval);
-    else
-      epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, B, dt0, relaxTime, printInterval);
-    */
     epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 100000, 1000);
-  }
+  }*/
 
-  /*// LASER ABLATION SCHEME
+  // LASER ABLATION SCHEME
   double xLoc = 0.0, yLoc = 0.0;
   int numCellsToAblate = ndelete;
   epithelial.laserAblate(numCellsToAblate, sizeratio, nsmall, xLoc, yLoc);
   epithelial.zeroMomentum();
 
-  //epithelial.dampedNVE2D(attractiveForceUpdate, B, dt0, relaxTime, relaxTime/10);
-  //epithelial.dampedNVETest(attractiveForceUpdate, 1.0, dt0, 150.0, 150.0/10.0);
+  // epithelial.dampedNVE2D(attractiveForceUpdate, B, dt0, relaxTime, relaxTime/10);
+  // epithelial.dampedNVETest(attractiveForceUpdate, 1.0, dt0, 150.0, 150.0/10.0);
   for (int i = 0; i < 2; i++)
     epithelial.dampedNP0(customForceUpdate_inactive, B, dt0, relaxTime, printInterval);
 
   //  dampedNP0 runs simulation with purse-string integration and crawling
 
   cout << "boolBound = " << boolBound << '\n';
+  // why am I using boolBound here?
   if (boolBound)
     epithelial.dampedNP0(crawlingWithPSForceUpdateWithCircularWalls, B, dt0, time_dbl, printInterval, purseStringOn);
   else
     epithelial.dampedNP0(customForceUpdate_active, B, dt0, time_dbl, printInterval, purseStringOn);
 
-  // epithelial.dampedNP0(attractiveForceUpdate, B, dt0, time_dbl, time_dbl / 100.0, wallsOff);*/
+  // epithelial.dampedNP0(attractiveForceUpdate, B, dt0, time_dbl, time_dbl / 100.0, wallsOff);
 
   cout << "\n** Finished laserAblation.cpp, ending. " << endl;
   return 0;
