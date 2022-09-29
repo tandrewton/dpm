@@ -635,13 +635,6 @@ void epi2D::circuloLineAttractiveForces() {
   // attraction shell parameters
   double shellij, cutij, xij, kint = (kc * l1) / (l2 - l1);
 
-  /*if (simclock > 60.049) {
-    for (int k = 0; k < NVTOT; k++) {
-      cout << "vertex k : " << x[NDIM * k] << ", " << x[NDIM * k + 1] << '\n';
-    }
-    cout << "printing!\n";
-    printConfiguration2D();
-  }*/
   // sort particles
   sortNeighborLinkedList2D();
 
@@ -1154,21 +1147,8 @@ void epi2D::attractiveForceUpdate_circulo() {
   shapeForces2D();
   // std::vector<double> shapeForce(NDIM*NVTOT,0.0);
   // shapeForce = F;
+
   circuloLineAttractiveForces();
-  if (simclock > 60) {
-    cout << "simclock = " << simclock << '\n';
-    if (simclock > 60.049) {
-      for (int k = 0; k < NVTOT; k++) {
-        cout << "vert " << k << ": " << x[NDIM * k] << ", " << x[NDIM * k + 1] << '\n';
-      }
-    }
-  }
-  /*for (int i = 0; i < NVTOT; i++){
-    if (fabs(shapeForce[NDIM*i] - F[NDIM*i]) > 1e-10 || fabs(shapeForce[NDIM*i+1] - F[NDIM*i+1]) > 1e-10) {
-      cout << "shapeForce is different from F for gi = " << i << '\n';
-      cout << ", in simclock = " << simclock << '\n';
-    }
-  }*/
 }
 
 void epi2D::substrateadhesionAttractiveForceUpdate(bool isCirculoLine) {
@@ -1797,7 +1777,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
     CALL_MEMBER_FN(*this, forceCall)
     ();  // calls main force routine
 
-    if (simclock - t0 > 10 && purseStringOn == 1) {
+    if (simclock - t0 > 10 && purseStringOn == 1) {  // purseStringOn refers to whether it's been initialized, not its parameters. so dsq = 0 has a nonfunctional pursestring, but still has purseStringOn = 1
       if (psContacts.size() == 0 && woundArea == 1e10) {
         cout << "inside psContacts.size() == 0 and woundArea == 1e10 case, which should only occur once!\n";
         getWoundVertices(nthLargestCluster);
@@ -1829,7 +1809,9 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
           max_ps = x_ps[psi];
       }
 
-      if (max_ps - min_ps > min_allowed_ps_length) {
+      if (deltaSq == 0.0) {
+        // do nothing - ignore pursestring
+      } else if (max_ps - min_ps > min_allowed_ps_length) {
         purseStringContraction(B);
       } else {  // purse-string can't shrink anymore
         // cout << "purse-string is too small, disassemble it\n";
