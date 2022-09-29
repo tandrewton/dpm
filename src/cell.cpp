@@ -4,27 +4,27 @@
 using namespace Eigen;
 using namespace std;
 
-void cell::moveVertex(int gi, double xpos, double ypos){
-  x[gi*NDIM] = xpos;
-  x[gi*NDIM+1] = ypos; 
+void cell::moveVertex(int gi, double xpos, double ypos) {
+  x[gi * NDIM] = xpos;
+  x[gi * NDIM + 1] = ypos;
 }
 
-void cell::removeCellIDFromInteractionMatrix(int cellID){
+void cell::removeCellIDFromInteractionMatrix(int cellID) {
   cellTypeIntMat.erase(cellTypeIntMat.begin() + cellID);  // remove ci row
   // remove ci column
-  for (int i = 0; i < cellTypeIntMat.size(); i++){
+  for (int i = 0; i < cellTypeIntMat.size(); i++) {
     if (cellTypeIntMat[i].size() > cellID) {
       cellTypeIntMat[i].erase(cellTypeIntMat[i].begin() + cellID);
     }
   }
 }
 
-void cell::addCellIDToInteractionMatrix(int cellID){
+void cell::addCellIDToInteractionMatrix(int cellID) {
   assert(cellTypeIntMat.size() >= cellID);
   assert(cellTypeIntMat[0].size() >= cellID);
   // add column
   cout << "adding column of zeros to Interaction Matrix\n";
-  for (auto& row: cellTypeIntMat){
+  for (auto& row : cellTypeIntMat) {
     row.insert(row.begin() + cellID, 0);
   }
   // add row
@@ -38,7 +38,7 @@ void cell::printInteractionMatrix() {
   for (auto i : cellTypeIntMat) {
     for (auto j : i)
       cout << j << '\t';
-  cout << '\n';
+    cout << '\n';
   }
 }
 
@@ -100,7 +100,7 @@ void cell::repulsiveForceUpdateWithPolyWall() {
   resetForcesAndEnergy();
   shapeForces2D();
   vertexRepulsiveForces2D();
-  for (int i = 0; i < poly_bd_x.size(); i++){
+  for (int i = 0; i < poly_bd_x.size(); i++) {
     evaluatePolygonalWallForces(poly_bd_x[i], poly_bd_y[i]);
   }
 }
@@ -109,7 +109,7 @@ void cell::attractiveForceUpdateWithPolyWall() {
   resetForcesAndEnergy();
   shapeForces2D();
   vertexAttractiveForces2D_2();
-  for (int i = 0; i < poly_bd_x.size(); i++){
+  for (int i = 0; i < poly_bd_x.size(); i++) {
     evaluatePolygonalWallForces(poly_bd_x[i], poly_bd_y[i]);
   }
 }
@@ -120,37 +120,37 @@ void cell::attractiveForceUpdate() {
   vertexAttractiveForces2D_2();
 }
 
-void cell::attractiveForceUpdatePrint(double &forceX, double &forceY, double &energy) {
+void cell::attractiveForceUpdatePrint(double& forceX, double& forceY, double& energy) {
   resetForcesAndEnergy();
-  //shapeForces2D();
+  // shapeForces2D();
   energy = 0.0;
   vertexAttractiveForces2D_test(energy);
   forceX = F[0];
   forceY = F[1];
 }
 
-void cell::attractiveForceUpdateSmoothPrint(double &forceX, double &forceY, double &energy) {
+void cell::attractiveForceUpdateSmoothPrint(double& forceX, double& forceY, double& energy) {
   resetForcesAndEnergy();
-  //shapeForces2D();
+  // shapeForces2D();
   energy = 0.0;
   smoothAttractiveForces2D_test(energy);
   forceX = F[0];
   forceY = F[1];
 }
 
-void cell::smoothAttractiveForces2D_test(double &energy) {
+void cell::smoothAttractiveForces2D_test(double& energy) {
   // note: this code is from cell.cpp, and I've commented out vnn stuff which belongs to epi2D.h
   // altered from vertexAttractiveForces2D_2, where we use vertex-vertex and vertex-line segment distances to make a smooth interaction
-  // models sliding adhesion and repulsion. 
+  // models sliding adhesion and repulsion.
   int ci, cj, gi, gj, vi, vj, bi, bj, pi, pj;
   double sij, rij, rho0;
-  double d, rx, ry, dx, dy; // distance and components of separation between projection of point p onto line segment v-w
+  double d, rx, ry, dx, dy;                                               // distance and components of separation between projection of point p onto line segment v-w
   double d_arg, y21, x21, y20, x20, y10, x10, norm_P12, prefix, prefix2;  // for calculating 3-body forces for contactType 1 (vertex-line-segment)
-  double contactType; // parameterized projection value. if between [0,1] then it's circulo-line, if < 0 or > 1 then it is either nothing or end-end.
-  double endCapAngle, endEndAngle; // endCapAngle is PI minus interior angle of vertices, endEndAngle is between interaction centers and circulo-line endpoints
+  double contactType;                                                     // parameterized projection value. if between [0,1] then it's circulo-line, if < 0 or > 1 then it is either nothing or end-end.
+  double endCapAngle, endEndAngle;                                        // endCapAngle is PI minus interior angle of vertices, endEndAngle is between interaction centers and circulo-line endpoints
   double ftmp, fx, fy, energytmp;
   bool isConcaveInteraction, isConvexInteraction;
-  int sign = 1; // used to flip the sign of force and energy in the concave interaction case for negative endCap vertex-vertex interactions
+  int sign = 1;  // used to flip the sign of force and energy in the concave interaction case for negative endCap vertex-vertex interactions
   energy = 0;
 
   // attraction shell parameters
@@ -202,16 +202,16 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
         cutij = (1.0 + l1) * sij;
 
         // need to calculate d, d1, d2, which are distances from gi to im1[gj]-gj, to im1[gj], and to gj respectively
-        d = linePointDistancesAndProjection(x[NDIM*im1[gj]],x[NDIM*im1[gj] + 1], x[NDIM*gj], x[NDIM*gj+1], x[NDIM*gi], x[NDIM*gi+1], rx, ry, contactType);
-        if (contactType < 1) { // check that the projection falls within the interacting portion of vertex i
+        d = linePointDistancesAndProjection(x[NDIM * im1[gj]], x[NDIM * im1[gj] + 1], x[NDIM * gj], x[NDIM * gj + 1], x[NDIM * gi], x[NDIM * gi + 1], rx, ry, contactType);
+        if (contactType < 1) {  // check that the projection falls within the interacting portion of vertex i
           // each vertex i is really a circulo-line between i and i-1, and a single end cap around vertex i located at projection=0
           // contactType <= 0 means that p0 projection onto p1-p2 is behind p1, potential v-v interaction
           // 0 < contactType < 1 means that p0 projection onto p1-p2 falls between p1 and p2, so it's a vertex-line-segment contact
           // contactType > 1 means p0 projection falls ahead of p2, so ignore
           dx = -rx;
-          if (dx < shellij) { // check that d is within the interaction shell
+          if (dx < shellij) {  // check that d is within the interaction shell
             dy = -ry;
-            if (dy < shellij) { 
+            if (dy < shellij) {
               rij = sqrt(dx * dx + dy * dy);
               if (rij < shellij) {
                 // scaled distance
@@ -221,7 +221,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                   // if vertices (not neighbors) are in same cell, compute repulsions
                   if (rij < sij) {
                     ftmp = kc * (1 - (rij / sij)) * (rho0 / sij);
-                    energytmp =  0.5 * kc * pow((1 - (rij / sij)), 2.0);
+                    energytmp = 0.5 * kc * pow((1 - (rij / sij)), 2.0);
                   } else
                     ftmp = 0;
                 } else if (rij > cutij) {
@@ -235,82 +235,82 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                 }
                 // endEndAngle is the angle between the separation between interacting vertices and the endcap edge closest to the circulo-line.
                 // endCapAngle is the angle between the far edge of the endcap and the near edge of the endcap
-                int left = gj;  // i
-                int middle = im1[gj]; // i-1
-                int right = im1[im1[gj]]; // i-2
-                
-                double drx = x[left*NDIM] - x[middle*NDIM];
-                double dry = x[left*NDIM + 1] - x[middle*NDIM + 1];
-                double drx_prev = x[right*NDIM] - x[middle*NDIM];
-                double dry_prev = x[right*NDIM + 1] - x[middle*NDIM + 1];
+                int left = gj;             // i
+                int middle = im1[gj];      // i-1
+                int right = im1[im1[gj]];  // i-2
+
+                double drx = x[left * NDIM] - x[middle * NDIM];
+                double dry = x[left * NDIM + 1] - x[middle * NDIM + 1];
+                double drx_prev = x[right * NDIM] - x[middle * NDIM];
+                double dry_prev = x[right * NDIM + 1] - x[middle * NDIM + 1];
                 // note that using r dot dr_prev only gives the correct endEndangle for the convex case
                 //  because the vertex-line distance in the convex case will be measured from the end of the projection cutoff which is P = 0
                 // When generalizing to the concave case, the measurement needs to explicitly be from vertex-vertex (vv) at P = 0
-                
-                double vv_rx = x[NDIM*gi] - x[NDIM*middle]; // if this works, reduce redundancy and set dx = vv_rx inside the concave evaluation segment
-                double vv_ry = x[NDIM*gi + 1] - x[NDIM*middle + 1];
-                endEndAngle = atan2(vv_rx*dry - drx * vv_ry, vv_rx*drx + vv_ry*dry);
-                endEndAngle = endEndAngle - PI/2; // theta' - pi/2 in the circulo-polygon diagram
 
-                endCapAngle = atan2(drx_prev*dry-drx*dry_prev,drx_prev*drx+dry_prev*dry);
-                if (endCapAngle < 0) 
-                  endCapAngle += 2*PI;
-                endCapAngle = endCapAngle - PI; // phi in the circulo-polygon diagram
+                double vv_rx = x[NDIM * gi] - x[NDIM * middle];  // if this works, reduce redundancy and set dx = vv_rx inside the concave evaluation segment
+                double vv_ry = x[NDIM * gi + 1] - x[NDIM * middle + 1];
+                endEndAngle = atan2(vv_rx * dry - drx * vv_ry, vv_rx * drx + vv_ry * dry);
+                endEndAngle = endEndAngle - PI / 2;  // theta' - pi/2 in the circulo-polygon diagram
+
+                endCapAngle = atan2(drx_prev * dry - drx * dry_prev, drx_prev * drx + dry_prev * dry);
+                if (endCapAngle < 0)
+                  endCapAngle += 2 * PI;
+                endCapAngle = endCapAngle - PI;  // phi in the circulo-polygon diagram
 
                 isConvexInteraction = (endEndAngle >= 0 && endEndAngle <= endCapAngle);
                 isConcaveInteraction = (endCapAngle < 0 && endEndAngle < 0 && endEndAngle >= endCapAngle);
-                if (gi == 0){
+                if (gi == 0) {
                   cout << "endCapAngle, endEndAngle, isConcaveInteraction = " << endCapAngle << '\t' << endEndAngle << '\t' << isConcaveInteraction << '\n';
                   cout << gi << '\t' << left << '\t' << middle << '\t' << right << '\n';
 
-                  if (contactType > 0 && isConcaveInteraction){
+                  if (contactType > 0 && isConcaveInteraction) {
                     cout << "\nconcave interaction!\n";
                     cout << "endCapAngle, endEndAngle = " << endCapAngle << '\t' << endEndAngle << '\n';
                     cout << "contactType = " << contactType << '\n';
                     cout << "between gi = " << gi << ", and " << left << '\t' << middle << '\t' << right << '\n';
                   }
                 }
-                if (contactType > 0) { // contactType less than 1 and greater than 0, so we're on main line segment
-                  // Force on particle 0,1,2 is determined by F = - dU/dr = (partials) dU/dr * <dr/dxi , dr/dyi> 
+                if (contactType > 0) {  // contactType less than 1 and greater than 0, so we're on main line segment
+                  // Force on particle 0,1,2 is determined by F = - dU/dr = (partials) dU/dr * <dr/dxi , dr/dyi>
                   // 3-body contact, 6 forces (3 pairs of forces)
-                  //y21, x21, y20, x20, y10, x10, norm_P12, d_arg
+                  // y21, x21, y20, x20, y10, x10, norm_P12, d_arg
                   int g2 = im1[gj];
-                  int g2_ind = NDIM*g2;
-                  int g1_ind = NDIM*gj;
+                  int g2_ind = NDIM * g2;
+                  int g1_ind = NDIM * gj;
                   x21 = x[g2_ind] - x[g1_ind];
-                  y21 = x[g2_ind+1] - x[g1_ind+1];
-                  x20 = x[g2_ind] - x[NDIM*gi];
-                  y20 = x[g2_ind+1] - x[NDIM*gi + 1];
-                  x10 = x[g1_ind] - x[NDIM*gi];
-                  y10 = x[g1_ind+1] - x[NDIM*gi + 1];
-                  d_arg = x21*y10 - x10*y21;
-                  norm_P12 = sqrt(pow(x21,2)+pow(y21,2));
-                  prefix = d_arg/fabs(d_arg)/norm_P12; 
-                  prefix2 = fabs(d_arg)/pow(norm_P12,3);
-                  
+                  y21 = x[g2_ind + 1] - x[g1_ind + 1];
+                  x20 = x[g2_ind] - x[NDIM * gi];
+                  y20 = x[g2_ind + 1] - x[NDIM * gi + 1];
+                  x10 = x[g1_ind] - x[NDIM * gi];
+                  y10 = x[g1_ind + 1] - x[NDIM * gi + 1];
+                  d_arg = x21 * y10 - x10 * y21;
+                  norm_P12 = sqrt(pow(x21, 2) + pow(y21, 2));
+                  prefix = d_arg / fabs(d_arg) / norm_P12;
+                  prefix2 = fabs(d_arg) / pow(norm_P12, 3);
+
                   F[NDIM * gi] += ftmp * prefix * y21;
                   F[NDIM * gi + 1] += ftmp * prefix * -x21;
 
-                  F[NDIM * gj] += ftmp*(prefix*-y20 + x21*prefix2);
-                  F[NDIM * gj + 1] += ftmp*(prefix*x20 + y21*prefix2);
+                  F[NDIM * gj] += ftmp * (prefix * -y20 + x21 * prefix2);
+                  F[NDIM * gj + 1] += ftmp * (prefix * x20 + y21 * prefix2);
 
-                  F[NDIM * g2] += ftmp*(prefix*y10 - x21*prefix2);
-                  F[NDIM * g2 + 1] += ftmp*(prefix*-x10 - y21*prefix2);
+                  F[NDIM * g2] += ftmp * (prefix * y10 - x21 * prefix2);
+                  F[NDIM * g2 + 1] += ftmp * (prefix * -x10 - y21 * prefix2);
 
-                  if (fabs(ftmp * prefix * y21)+fabs(ftmp * prefix * -x21) > 0) {
+                  if (fabs(ftmp * prefix * y21) + fabs(ftmp * prefix * -x21) > 0) {
                     cout << "found a line interaction between " << gi << '\t' << left << '\t' << middle << '\t' << right << '\n';
                     cout << "line xij = " << xij << '\n';
                   }
 
-                  cellU[ci] += energytmp/2;
-                  cellU[cj] += energytmp/2;
+                  cellU[ci] += energytmp / 2;
+                  cellU[cj] += energytmp / 2;
                   U += energytmp;
-                  
-                  if (gi == 0){
+
+                  if (gi == 0) {
                     energy += energytmp;
                     cout << "energytmp for gi 0 = " << energytmp << '\n';
                   }
-                  
+
                   // add to virial stress
                   // note: 4/7/22 I'm using -dx/2 instead of dx and same for dy for stress calculation, since
                   //  I want to calculate force times separation from geometric center of interaction
@@ -329,21 +329,21 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                 }
 
                 // projection is either on the endpoint or outside the endpoint, i.e. not on the line segment
-                if ((contactType <= 0 && isConvexInteraction) || (contactType > 0 && isConcaveInteraction)){
-                  // pure 2-body contact determined by angles and distances between contact points or by self interaction, 
+                if ((contactType <= 0 && isConvexInteraction) || (contactType > 0 && isConcaveInteraction)) {
+                  // pure 2-body contact determined by angles and distances between contact points or by self interaction,
                   // so compute and accumulate forces
 
-                  if (isConcaveInteraction){  // if concave, compute interaction between vertex and inverse vertex. sign = -1 to compute negative of usual force. 
-                    // have to reevaluate the distances because the previous code uses vertex-line distance, whereas we need vertex-vertex distance 
+                  if (isConcaveInteraction) {  // if concave, compute interaction between vertex and inverse vertex. sign = -1 to compute negative of usual force.
+                    // have to reevaluate the distances because the previous code uses vertex-line distance, whereas we need vertex-vertex distance
                     sign = 0;
                     if (gi == 0)
                       cout << "testing concave interaction between " << gi << '\t' << left << '\t' << middle << '\t' << right << "\n\n";
                     // if (not close enough to interact) sign = 0;
-                    dx = x[NDIM*middle] - x[NDIM*gi];
+                    dx = x[NDIM * middle] - x[NDIM * gi];
                     if (pbc[0])
                       dx -= L[0] * round(dx / L[0]);
                     if (dx < shellij && gi == 0) {
-                      dy = x[NDIM *middle+1] - x[NDIM * gi + 1];
+                      dy = x[NDIM * middle + 1] - x[NDIM * gi + 1];
                       if (pbc[1])
                         dy -= L[1] * round(dy / L[1]);
                       if (dy < shellij) {
@@ -364,14 +364,14 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                         }
                       }
                     }
-                  } else if (isConvexInteraction){
+                  } else if (isConvexInteraction) {
                     sign = 1;
                     cout << "convex xij = " << xij << '\n';
                   }
-                  // above, if concave, altered dx, dy, rij, xij, ftmp, energytmp. 
+                  // above, if concave, altered dx, dy, rij, xij, ftmp, energytmp.
 
                   // force elements
-                  fx = sign * ftmp * (dx / rij); // dx/rij comes from the chain rule (dU/dx1 = dU/dr * dr/dx1)
+                  fx = sign * ftmp * (dx / rij);  // dx/rij comes from the chain rule (dU/dx1 = dU/dr * dr/dx1)
                   fy = sign * ftmp * (dy / rij);
                   F[NDIM * gi] -= fx;
                   F[NDIM * gi + 1] -= fy;
@@ -379,17 +379,17 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                   F[NDIM * gj] += fx;
                   F[NDIM * gj + 1] += fy;
 
-                  if (fabs(fx)+fabs(fy) > 0) {
+                  if (fabs(fx) + fabs(fy) > 0) {
                     cout << "found a v-v interaction between " << gi << '\t' << left << '\t' << middle << '\t' << right << '\n';
                   }
 
-                  cellU[ci] += sign * energytmp/2;
-                  cellU[cj] += sign * energytmp/2;
+                  cellU[ci] += sign * energytmp / 2;
+                  cellU[cj] += sign * energytmp / 2;
                   U += sign * energytmp;
-                  
-                  if (gi == 0){
+
+                  if (gi == 0) {
                     energy += sign * energytmp;
-                    cout << "sign*energytmp for gi 0 = " << sign*energytmp << '\n';
+                    cout << "sign*energytmp for gi 0 = " << sign * energytmp << '\n';
                   }
 
                   // add to virial stress
@@ -407,7 +407,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                   fieldStress[gj][0] += -dx / 2 * fx;
                   fieldStress[gj][1] += -dy / 2 * fy;
                   fieldStress[gj][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
-                } 
+                }
 
                 // add to contacts
                 /*for (int i = 0; i < vnn[gi].size(); i++) {
@@ -447,7 +447,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
         // get first particle in neighboring cell
         pj = head[nn[bi][bj]];
 
-         // loop down neighbors of pi in same cell
+        // loop down neighbors of pi in same cell
         while (pj > 0) {
           // real index of pj
           gj = pj - 1;
@@ -468,16 +468,16 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
           cutij = (1.0 + l1) * sij;
 
           // need to calculate d, d1, d2, which are distances from gi to im1[gj]-gj, to im1[gj], and to gj respectively
-          d = linePointDistancesAndProjection(x[NDIM*im1[gj]],x[NDIM*im1[gj] + 1], x[NDIM*gj], x[NDIM*gj+1], x[NDIM*gi], x[NDIM*gi+1], rx, ry, contactType);
-          if (contactType < 1) { // check that the projection falls within the interacting portion of vertex i
+          d = linePointDistancesAndProjection(x[NDIM * im1[gj]], x[NDIM * im1[gj] + 1], x[NDIM * gj], x[NDIM * gj + 1], x[NDIM * gi], x[NDIM * gi + 1], rx, ry, contactType);
+          if (contactType < 1) {  // check that the projection falls within the interacting portion of vertex i
             // each vertex i is really a circulo-line between i and i-1, and a single end cap around vertex i located at projection=0
             // contactType <= 0 means that p0 projection onto p1-p2 is behind p1, potential v-v interaction
             // 0 < contactType < 1 means that p0 projection onto p1-p2 falls between p1 and p2, so it's a vertex-line-segment contact
             // contactType > 1 means p0 projection falls ahead of p2, so ignore
             dx = -rx;
-            if (dx < shellij) { // check that d is within the interaction shell
+            if (dx < shellij) {  // check that d is within the interaction shell
               dy = -ry;
-              if (dy < shellij) { 
+              if (dy < shellij) {
                 rij = sqrt(dx * dx + dy * dy);
                 if (rij < shellij) {
                   // scaled distance
@@ -487,7 +487,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                     // if vertices (not neighbors) are in same cell, compute repulsions
                     if (rij < sij) {
                       ftmp = kc * (1 - (rij / sij)) * (rho0 / sij);
-                      energytmp =  0.5 * kc * pow((1 - (rij / sij)), 2.0);
+                      energytmp = 0.5 * kc * pow((1 - (rij / sij)), 2.0);
                     } else
                       ftmp = 0;
                   } else if (rij > cutij) {
@@ -501,82 +501,82 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                   }
                   // endEndAngle is the angle between the separation between interacting vertices and the endcap edge closest to the circulo-line.
                   // endCapAngle is the angle between the far edge of the endcap and the near edge of the endcap
-                  int left = gj;  // i
-                  int middle = im1[gj]; // i-1
-                  int right = im1[im1[gj]]; // i-2
-                  
-                  double drx = x[left*NDIM] - x[middle*NDIM];
-                  double dry = x[left*NDIM + 1] - x[middle*NDIM + 1];
-                  double drx_prev = x[right*NDIM] - x[middle*NDIM];
-                  double dry_prev = x[right*NDIM + 1] - x[middle*NDIM + 1];
+                  int left = gj;             // i
+                  int middle = im1[gj];      // i-1
+                  int right = im1[im1[gj]];  // i-2
+
+                  double drx = x[left * NDIM] - x[middle * NDIM];
+                  double dry = x[left * NDIM + 1] - x[middle * NDIM + 1];
+                  double drx_prev = x[right * NDIM] - x[middle * NDIM];
+                  double dry_prev = x[right * NDIM + 1] - x[middle * NDIM + 1];
                   // note that using r dot dr_prev only gives the correct endEndangle for the convex case
                   //  because the vertex-line distance in the convex case will be measured from the end of the projection cutoff which is P = 0
                   // When generalizing to the concave case, the measurement needs to explicitly be from vertex-vertex (vv) at P = 0
-                  
-                  double vv_rx = x[NDIM*gi] - x[NDIM*middle]; // if this works, reduce redundancy and set dx = vv_rx inside the concave evaluation segment
-                  double vv_ry = x[NDIM*gi + 1] - x[NDIM*middle + 1];
-                  endEndAngle = atan2(vv_rx*dry - drx * vv_ry, vv_rx*drx + vv_ry*dry);
-                  endEndAngle = endEndAngle - PI/2; // theta' - pi/2 in the circulo-polygon diagram
 
-                  endCapAngle = atan2(drx_prev*dry-drx*dry_prev,drx_prev*drx+dry_prev*dry);
-                  if (endCapAngle < 0) 
-                    endCapAngle += 2*PI;
-                  endCapAngle = endCapAngle - PI; // phi in the circulo-polygon diagram
+                  double vv_rx = x[NDIM * gi] - x[NDIM * middle];  // if this works, reduce redundancy and set dx = vv_rx inside the concave evaluation segment
+                  double vv_ry = x[NDIM * gi + 1] - x[NDIM * middle + 1];
+                  endEndAngle = atan2(vv_rx * dry - drx * vv_ry, vv_rx * drx + vv_ry * dry);
+                  endEndAngle = endEndAngle - PI / 2;  // theta' - pi/2 in the circulo-polygon diagram
+
+                  endCapAngle = atan2(drx_prev * dry - drx * dry_prev, drx_prev * drx + dry_prev * dry);
+                  if (endCapAngle < 0)
+                    endCapAngle += 2 * PI;
+                  endCapAngle = endCapAngle - PI;  // phi in the circulo-polygon diagram
 
                   isConvexInteraction = (endEndAngle >= 0 && endEndAngle <= endCapAngle);
                   isConcaveInteraction = (endCapAngle < 0 && endEndAngle < 0 && endEndAngle >= endCapAngle);
-                  if (gi == 0){
+                  if (gi == 0) {
                     cout << "endCapAngle, endEndAngle, isConcaveInteraction = " << endCapAngle << '\t' << endEndAngle << '\t' << isConcaveInteraction << '\n';
                     cout << gi << '\t' << left << '\t' << middle << '\t' << right << '\n';
 
-                    if (contactType > 0 && isConcaveInteraction){
+                    if (contactType > 0 && isConcaveInteraction) {
                       cout << "\nconcave interaction!\n";
                       cout << "endCapAngle, endEndAngle = " << endCapAngle << '\t' << endEndAngle << '\n';
                       cout << "contactType = " << contactType << '\n';
                       cout << "between gi = " << gi << ", and " << left << '\t' << middle << '\t' << right << '\n';
                     }
                   }
-                  if (contactType > 0) { // contactType less than 1 and greater than 0, so we're on main line segment
-                    // Force on particle 0,1,2 is determined by F = - dU/dr = (partials) dU/dr * <dr/dxi , dr/dyi> 
+                  if (contactType > 0) {  // contactType less than 1 and greater than 0, so we're on main line segment
+                    // Force on particle 0,1,2 is determined by F = - dU/dr = (partials) dU/dr * <dr/dxi , dr/dyi>
                     // 3-body contact, 6 forces (3 pairs of forces)
-                    //y21, x21, y20, x20, y10, x10, norm_P12, d_arg
+                    // y21, x21, y20, x20, y10, x10, norm_P12, d_arg
                     int g2 = im1[gj];
-                    int g2_ind = NDIM*g2;
-                    int g1_ind = NDIM*gj;
+                    int g2_ind = NDIM * g2;
+                    int g1_ind = NDIM * gj;
                     x21 = x[g2_ind] - x[g1_ind];
-                    y21 = x[g2_ind+1] - x[g1_ind+1];
-                    x20 = x[g2_ind] - x[NDIM*gi];
-                    y20 = x[g2_ind+1] - x[NDIM*gi + 1];
-                    x10 = x[g1_ind] - x[NDIM*gi];
-                    y10 = x[g1_ind+1] - x[NDIM*gi + 1];
-                    d_arg = x21*y10 - x10*y21;
-                    norm_P12 = sqrt(pow(x21,2)+pow(y21,2));
-                    prefix = d_arg/fabs(d_arg)/norm_P12; 
-                    prefix2 = fabs(d_arg)/pow(norm_P12,3);
-                    
+                    y21 = x[g2_ind + 1] - x[g1_ind + 1];
+                    x20 = x[g2_ind] - x[NDIM * gi];
+                    y20 = x[g2_ind + 1] - x[NDIM * gi + 1];
+                    x10 = x[g1_ind] - x[NDIM * gi];
+                    y10 = x[g1_ind + 1] - x[NDIM * gi + 1];
+                    d_arg = x21 * y10 - x10 * y21;
+                    norm_P12 = sqrt(pow(x21, 2) + pow(y21, 2));
+                    prefix = d_arg / fabs(d_arg) / norm_P12;
+                    prefix2 = fabs(d_arg) / pow(norm_P12, 3);
+
                     F[NDIM * gi] += ftmp * prefix * y21;
                     F[NDIM * gi + 1] += ftmp * prefix * -x21;
 
-                    F[NDIM * gj] += ftmp*(prefix*-y20 + x21*prefix2);
-                    F[NDIM * gj + 1] += ftmp*(prefix*x20 + y21*prefix2);
+                    F[NDIM * gj] += ftmp * (prefix * -y20 + x21 * prefix2);
+                    F[NDIM * gj + 1] += ftmp * (prefix * x20 + y21 * prefix2);
 
-                    F[NDIM * g2] += ftmp*(prefix*y10 - x21*prefix2);
-                    F[NDIM * g2 + 1] += ftmp*(prefix*-x10 - y21*prefix2);
+                    F[NDIM * g2] += ftmp * (prefix * y10 - x21 * prefix2);
+                    F[NDIM * g2 + 1] += ftmp * (prefix * -x10 - y21 * prefix2);
 
-                    if (fabs(ftmp * prefix * y21)+fabs(ftmp * prefix * -x21) > 0) {
+                    if (fabs(ftmp * prefix * y21) + fabs(ftmp * prefix * -x21) > 0) {
                       cout << "found a line interaction between " << gi << '\t' << left << '\t' << middle << '\t' << right << '\n';
                       cout << "line xij = " << xij << '\n';
                     }
 
-                    cellU[ci] += energytmp/2;
-                    cellU[cj] += energytmp/2;
+                    cellU[ci] += energytmp / 2;
+                    cellU[cj] += energytmp / 2;
                     U += energytmp;
-                    
-                    if (gi == 0){
+
+                    if (gi == 0) {
                       energy += energytmp;
                       cout << "energytmp for gi 0 = " << energytmp << '\n';
                     }
-                    
+
                     // add to virial stress
                     // note: 4/7/22 I'm using -dx/2 instead of dx and same for dy for stress calculation, since
                     //  I want to calculate force times separation from geometric center of interaction
@@ -595,21 +595,21 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                   }
 
                   // projection is either on the endpoint or outside the endpoint, i.e. not on the line segment
-                  if ((contactType <= 0 && isConvexInteraction) || (contactType > 0 && isConcaveInteraction)){
-                    // pure 2-body contact determined by angles and distances between contact points or by self interaction, 
+                  if ((contactType <= 0 && isConvexInteraction) || (contactType > 0 && isConcaveInteraction)) {
+                    // pure 2-body contact determined by angles and distances between contact points or by self interaction,
                     // so compute and accumulate forces
 
-                    if (isConcaveInteraction){  // if concave, compute interaction between vertex and inverse vertex. sign = -1 to compute negative of usual force. 
-                      // have to reevaluate the distances because the previous code uses vertex-line distance, whereas we need vertex-vertex distance 
+                    if (isConcaveInteraction) {  // if concave, compute interaction between vertex and inverse vertex. sign = -1 to compute negative of usual force.
+                      // have to reevaluate the distances because the previous code uses vertex-line distance, whereas we need vertex-vertex distance
                       sign = 0;
                       if (gi == 0)
                         cout << "testing concave interaction between " << gi << '\t' << left << '\t' << middle << '\t' << right << "\n\n";
                       // if (not close enough to interact) sign = 0;
-                      dx = x[NDIM*middle] - x[NDIM*gi];
+                      dx = x[NDIM * middle] - x[NDIM * gi];
                       if (pbc[0])
                         dx -= L[0] * round(dx / L[0]);
                       if (dx < shellij && gi == 0) {
-                        dy = x[NDIM *middle+1] - x[NDIM * gi + 1];
+                        dy = x[NDIM * middle + 1] - x[NDIM * gi + 1];
                         if (pbc[1])
                           dy -= L[1] * round(dy / L[1]);
                         if (dy < shellij) {
@@ -630,14 +630,14 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                           }
                         }
                       }
-                    } else if (isConvexInteraction){
+                    } else if (isConvexInteraction) {
                       sign = 1;
                       cout << "convex xij = " << xij << '\n';
                     }
-                    // above, if concave, altered dx, dy, rij, xij, ftmp, energytmp. 
+                    // above, if concave, altered dx, dy, rij, xij, ftmp, energytmp.
 
                     // force elements
-                    fx = sign * ftmp * (dx / rij); // dx/rij comes from the chain rule (dU/dx1 = dU/dr * dr/dx1)
+                    fx = sign * ftmp * (dx / rij);  // dx/rij comes from the chain rule (dU/dx1 = dU/dr * dr/dx1)
                     fy = sign * ftmp * (dy / rij);
                     F[NDIM * gi] -= fx;
                     F[NDIM * gi + 1] -= fy;
@@ -645,17 +645,17 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                     F[NDIM * gj] += fx;
                     F[NDIM * gj + 1] += fy;
 
-                    if (fabs(fx)+fabs(fy) > 0) {
+                    if (fabs(fx) + fabs(fy) > 0) {
                       cout << "found a v-v interaction between " << gi << '\t' << left << '\t' << middle << '\t' << right << '\n';
                     }
 
-                    cellU[ci] += sign * energytmp/2;
-                    cellU[cj] += sign * energytmp/2;
+                    cellU[ci] += sign * energytmp / 2;
+                    cellU[cj] += sign * energytmp / 2;
                     U += sign * energytmp;
-                    
-                    if (gi == 0){
+
+                    if (gi == 0) {
                       energy += sign * energytmp;
-                      cout << "sign*energytmp for gi 0 = " << sign*energytmp << '\n';
+                      cout << "sign*energytmp for gi 0 = " << sign * energytmp << '\n';
                     }
 
                     // add to virial stress
@@ -673,7 +673,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
                     fieldStress[gj][0] += -dx / 2 * fx;
                     fieldStress[gj][1] += -dy / 2 * fy;
                     fieldStress[gj][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
-                  }                   
+                  }
                   /*for (int i = 0; i < vnn[gi].size(); i++) {
                     if (ci == cj)
                       break;
@@ -727,7 +727,7 @@ void cell::smoothAttractiveForces2D_test(double &energy) {
   }
 }
 
-void cell::vertexAttractiveForces2D_test(double &energy) {
+void cell::vertexAttractiveForces2D_test(double& energy) {
   // attractive forces calculation, focuses on forces and energy involving vertex gi = 0
   energy = 0.0;
 
@@ -821,7 +821,7 @@ void cell::vertexAttractiveForces2D_test(double &energy) {
                 U += -0.5 * cellTypeIntModifier * kint * pow(1.0 + l2 - xij, 2.0);
                 cellU[ci] += -0.5 * cellTypeIntModifier * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
                 cellU[cj] += -0.5 * cellTypeIntModifier * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
-                if (gi == 0 || gj == 0){
+                if (gi == 0 || gj == 0) {
                   cout << "rij > cut interaction between " << gi << '\t' << gj << '\n';
                   energy += -0.5 * cellTypeIntModifier * kint * pow(1.0 + l2 - xij, 2.0);
                 }
@@ -833,7 +833,7 @@ void cell::vertexAttractiveForces2D_test(double &energy) {
                 U += 0.5 * cellTypeIntModifier * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
                 cellU[ci] += 0.5 * cellTypeIntModifier * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
                 cellU[cj] += 0.5 * cellTypeIntModifier * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
-                if (gi == 0 || gj == 0){
+                if (gi == 0 || gj == 0) {
                   cout << "rij < cut interaction between " << gi << '\t' << gj << '\n';
                   energy += 0.5 * cellTypeIntModifier * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
                 }
@@ -934,7 +934,7 @@ void cell::vertexAttractiveForces2D_test(double &energy) {
                     cellU[ci] += 0.5 * cellTypeIntModifier_repulsion * kc * pow((1 - (rij / sij)), 2.0);
                   } else
                     ftmp = 0;
-                  } else if (rij > cutij) {
+                } else if (rij > cutij) {
                   // force scale
                   ftmp = kint * cellTypeIntModifier * (xij - 1.0 - l2) / sij;
 
@@ -942,7 +942,7 @@ void cell::vertexAttractiveForces2D_test(double &energy) {
                   U += -0.5 * cellTypeIntModifier * kint * pow(1.0 + l2 - xij, 2.0);
                   cellU[ci] += -0.5 * cellTypeIntModifier * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
                   cellU[cj] += -0.5 * cellTypeIntModifier * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
-                  if (gi == 0 || gj == 0){
+                  if (gi == 0 || gj == 0) {
                     cout << "rij > cut interaction between " << gi << '\t' << gj << '\n';
                     energy += -0.5 * cellTypeIntModifier * kint * pow(1.0 + l2 - xij, 2.0);
                   }
@@ -954,7 +954,7 @@ void cell::vertexAttractiveForces2D_test(double &energy) {
                   U += 0.5 * cellTypeIntModifier * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
                   cellU[ci] += 0.5 * cellTypeIntModifier * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
                   cellU[cj] += 0.5 * cellTypeIntModifier * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
-                  if (gi == 0 || gj == 0){
+                  if (gi == 0 || gj == 0) {
                     cout << "rij < cut interaction between " << gi << '\t' << gj << '\n';
                     energy += 0.5 * cellTypeIntModifier * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
                   }
@@ -964,7 +964,7 @@ void cell::vertexAttractiveForces2D_test(double &energy) {
                 fx = ftmp * (dx / rij);
                 fy = ftmp * (dy / rij);
 
-                if (gi == 0 || gj == 0){
+                if (gi == 0 || gj == 0) {
                   cout << "fx, fy = " << fx << '\t' << fy << '\n';
                 }
 
@@ -1317,7 +1317,7 @@ void cell::wallForces(bool left, bool bottom, bool right, bool top, double& forc
   double cx = 0, cy = 0;
   double boxL, force_multiplier = 10, fmag = 0;
   if (fabs(appliedUniaxialPressure) < 1e-10)
-    force_multiplier = 1; // if no applied pressure, then don't modify wall forces
+    force_multiplier = 1;  // if no applied pressure, then don't modify wall forces
   double kc_temp = kc * force_multiplier;
   double shell, cut, s, distLower, distUpper, scaledDist, ftmp, f;
   double kint = (kc_temp * l1) / (l2 - l1);
@@ -1326,20 +1326,20 @@ void cell::wallForces(bool left, bool bottom, bool right, bool top, double& forc
   forceLeft = 0;
   forceRight = 0;
 
-  std::fill(cellTouchesWallsLeft.begin(), cellTouchesWallsLeft.end(), false); // reset cellTouchesWallsLeft and Right
+  std::fill(cellTouchesWallsLeft.begin(), cellTouchesWallsLeft.end(), false);  // reset cellTouchesWallsLeft and Right
   cellTouchesWallsRight = cellTouchesWallsLeft;
 
   // if any cells have their centers outside of the box, force them towards the
   // center
   for (int ci = 0; ci < NCELLS; ci++) {
     com2D(ci, cx, cy);
-    if (cx < 0 + XL[0]|| cx > L[0]) { // 0 + XL[0] is the left boundary, L[0] = L[0] + XL[3] is the right boundary. XL lets the boundaries be movable
+    if (cx < 0 + XL[0] || cx > L[0]) {  // 0 + XL[0] is the left boundary, L[0] = L[0] + XL[3] is the right boundary. XL lets the boundaries be movable
       for (int vi = 0; vi < nv[ci]; vi++) {
         gi = gindex(ci, vi);
         F[gi * NDIM] += -0.5 * (x[gi * NDIM] - L[0] / 2);
       }
     }
-    if (cy < 0 + XL[1]|| cy > L[1]) {
+    if (cy < 0 + XL[1] || cy > L[1]) {
       for (int vi = 0; vi < nv[ci]; vi++) {
         gi = gindex(ci, vi);
         F[gi * NDIM + 1] += -0.5 * (x[gi * NDIM + 1] - L[1] / 2);
@@ -1350,7 +1350,7 @@ void cell::wallForces(bool left, bool bottom, bool right, bool top, double& forc
   for (int i = 0; i < vertDOF; i++) {
     // XL is positive if original left/bottom boundaries have moved right/up, negative if they've moved left/down, respectively
     vi = i / 2;
-    boxL = L[i % NDIM]; 
+    boxL = L[i % NDIM];
 
     s = 2 * r[vi];
     cut = (1.0 + l1) * s;
@@ -1360,7 +1360,7 @@ void cell::wallForces(bool left, bool bottom, bool right, bool top, double& forc
 
     // check if vertex is within attracting distance
     if (distLower < shell) {
-      if (i % 2 == 0) { // only care about touching left or right walls at this stage
+      if (i % 2 == 0) {  // only care about touching left or right walls at this stage
         cindices(ci_temp, vi_temp, vi);
         cellTouchesWallsLeft[ci_temp] = true;
       }
@@ -1417,47 +1417,45 @@ void cell::wallForces(bool left, bool bottom, bool right, bool top, double& forc
   forceLeft += appliedUniaxialPressure * L[1];
   forceRight += -appliedUniaxialPressure * L[1];
 
-
-  if (L[0] < r[0]){
+  if (L[0] < r[0]) {
     cout << "forceLeft = " << forceLeft << ", added force = " << appliedUniaxialPressure * L[1] << '\n';
     cout << "L[0] = " << L[0] << " < r[0] = " << r[0] << ", there is no room left to compress or simclock < 410\n";
     cout << "XL[0] = " << XL[0] << '\n';
-    //assert(false);
-  } 
+    // assert(false);
+  }
 }
 
-void cell::wallCrawlingForces(){
+void cell::wallCrawlingForces() {
   // compute crawling forces for cells that are touching either the left or right walls, on their polarized end away from the wall.
-  double kint = 10*(kc * l1) / (l2 - l1);
-  for (int ci = 0; ci < NCELLS; ci++){
+  double kint = 10 * (kc * l1) / (l2 - l1);
+  for (int ci = 0; ci < NCELLS; ci++) {
     double nearestXValueToCenter = 0.0;
     int nearestGiToCenter = -1;
-    if (cellTouchesWallsLeft[ci]){
+    if (cellTouchesWallsLeft[ci]) {
       nearestXValueToCenter = XL[0];
-      for (int vi = 0; vi < nv[ci]; vi++){
+      for (int vi = 0; vi < nv[ci]; vi++) {
         int gi = gindex(ci, vi);
-        if (x[gi*NDIM] > nearestXValueToCenter){
-          nearestXValueToCenter = x[gi*NDIM];
+        if (x[gi * NDIM] > nearestXValueToCenter) {
+          nearestXValueToCenter = x[gi * NDIM];
           nearestGiToCenter = gi;
         }
       }
-    }
-    else if (cellTouchesWallsRight[ci]){
+    } else if (cellTouchesWallsRight[ci]) {
       nearestXValueToCenter = L[0];
-      for (int vi = 0; vi < nv[ci]; vi++){
+      for (int vi = 0; vi < nv[ci]; vi++) {
         int gi = gindex(ci, vi);
-        if (x[gi*NDIM] < nearestXValueToCenter){
-          nearestXValueToCenter = x[gi*NDIM];
+        if (x[gi * NDIM] < nearestXValueToCenter) {
+          nearestXValueToCenter = x[gi * NDIM];
           nearestGiToCenter = gi;
         }
       }
     }
     bool nearestVertexToCenterFound = (nearestGiToCenter != -1);
     if (nearestVertexToCenterFound) {
-      //cout << "adding force to vertex gi = " << nearestGiToCenter << ", at XValue " << nearestXValueToCenter << ", simclock = " << simclock << '\n';
-      //cout << "force is equal to " << kint * ((XL[0] + L[0])/2.0 - nearestXValueToCenter) << '\n'; 
-      F[nearestGiToCenter*NDIM] += kint * ((XL[0] + L[0])/2.0 - nearestXValueToCenter); 
-      //cout << "total force is equal to " << F[nearestGiToCenter*NDIM] << '\n';
+      // cout << "adding force to vertex gi = " << nearestGiToCenter << ", at XValue " << nearestXValueToCenter << ", simclock = " << simclock << '\n';
+      // cout << "force is equal to " << kint * ((XL[0] + L[0])/2.0 - nearestXValueToCenter) << '\n';
+      F[nearestGiToCenter * NDIM] += kint * ((XL[0] + L[0]) / 2.0 - nearestXValueToCenter);
+      // cout << "total force is equal to " << F[nearestGiToCenter*NDIM] << '\n';
     }
   }
 }
@@ -1502,27 +1500,27 @@ void cell::cellPolarityForces(int ci, double k_polarity, std::string direction) 
   }
 }
 
-//boundary routines
+// boundary routines
 void cell::replacePolyWallWithDP(int numCellTypes) {
   // take a polyWall in poly_bd_x and poly_bd_y, create data to replace the polywall with a DP of the same size and shape, then delete the polywall.
   // must account for and modify all vectors with size dependent on NCELLS and NVTOT, such as szList
   double polyPerimeter = 0.0;
   vector<double> dp_x, dp_y;
 
-  for (int tissueIt = 0; tissueIt < poly_bd_x.size(); tissueIt++){
+  for (int tissueIt = 0; tissueIt < poly_bd_x.size(); tissueIt++) {
     vector<double> poly_x = poly_bd_x[tissueIt];
     vector<double> poly_y = poly_bd_y[tissueIt];
     for (int i = 0; i < poly_x.size(); i++) {
-      polyPerimeter += sqrt(pow(poly_x[i]-poly_x[(i+1) % poly_x.size()],2) + pow(poly_y[i]-poly_y[(i+1) % poly_y.size()],2));
-      //cout << "polyPerimeter += " << sqrt(pow(poly_x[i]-poly_x[(i+1) % poly_x.size()],2) + pow(poly_y[i]-poly_y[(i+1) % poly_y.size()],2)) << '\n';
+      polyPerimeter += sqrt(pow(poly_x[i] - poly_x[(i + 1) % poly_x.size()], 2) + pow(poly_y[i] - poly_y[(i + 1) % poly_y.size()], 2));
+      // cout << "polyPerimeter += " << sqrt(pow(poly_x[i]-poly_x[(i+1) % poly_x.size()],2) + pow(poly_y[i]-poly_y[(i+1) % poly_y.size()],2)) << '\n';
     }
-    int numVerts = polyPerimeter/l0[0];
+    int numVerts = polyPerimeter / l0[0];
     int cellTypeIndex = numCellTypes - 1;
-    // interpolate poly_bd_x,poly_bd_y into dp_x,dp_y 
+    // interpolate poly_bd_x,poly_bd_y into dp_x,dp_y
     vector<double> dp_coords = resample_polygon(poly_x, poly_y, polyPerimeter, numVerts);
-    for (int i = 0; i < dp_coords.size(); i+=2) {
+    for (int i = 0; i < dp_coords.size(); i += 2) {
       dp_x.push_back(dp_coords[i]);
-      dp_y.push_back(dp_coords[i+1]);
+      dp_y.push_back(dp_coords[i + 1]);
     }
     addDP(numVerts, dp_x, dp_y, cellTypeIndex, numCellTypes);
 
@@ -1532,24 +1530,24 @@ void cell::replacePolyWallWithDP(int numCellTypes) {
   }
 }
 
-void cell::addDP(int numVerts, vector<double> &dp_x, vector<double> &dp_y, int cellTypeIndex, int numCellTypes) {
+void cell::addDP(int numVerts, vector<double>& dp_x, vector<double>& dp_y, int cellTypeIndex, int numCellTypes) {
   // add a DP with cell type = cellID, with numVerts vertices, each of which are located according to (dp_x,dp_y)
   // must account for and modify all vectors with size dependent on NCELLS and NVTOT, such as szList
   int gi, vim1, vip1;
   double dist, polyArea = 0.0;
-  
+
   NCELLS += 1;
   NVTOT += numVerts;
   vertDOF += NDIM * numVerts;
   szList.push_back(szList.back() + nv.back());
   nv.push_back(numVerts);
   // next: a0, l0, t0, r; im1, ip1, x, v, f in initializeVertexShapeParameters and initializeVertexIndexing
-  gi = szList[NCELLS-1];
-  cout << "gi = " << gi << '\t' << ", which should = szList[NCELLS] = " << szList[NCELLS-1] << "\t, with NCELLS = " << NCELLS << '\n';
-  
+  gi = szList[NCELLS - 1];
+  cout << "gi = " << gi << '\t' << ", which should = szList[NCELLS] = " << szList[NCELLS - 1] << "\t, with NCELLS = " << NCELLS << '\n';
+
   int j = dp_x.size() - 1;
   for (int vi = 0; vi < dp_x.size(); vi++) {
-    dist = sqrt(pow(dp_x[vi] - dp_x[(vi+1)%dp_x.size()],2) + pow(dp_y[vi] - dp_y[(vi+1)%dp_y.size()],2));
+    dist = sqrt(pow(dp_x[vi] - dp_x[(vi + 1) % dp_x.size()], 2) + pow(dp_y[vi] - dp_y[(vi + 1) % dp_y.size()], 2));
     l0.push_back(dist);
     t0.push_back(0.0);
     r.push_back(0.5 * dist);
@@ -1557,7 +1555,7 @@ void cell::addDP(int numVerts, vector<double> &dp_x, vector<double> &dp_y, int c
     // assign vertex degrees of freedom
     x.push_back(dp_x[vi]);
     x.push_back(dp_y[vi]);
-    for (int d = 0; d < NDIM; d++){
+    for (int d = 0; d < NDIM; d++) {
       v.push_back(0.0);
       F.push_back(0.0);
     }
@@ -1566,7 +1564,7 @@ void cell::addDP(int numVerts, vector<double> &dp_x, vector<double> &dp_y, int c
     polyArea += (dp_x[j] + dp_x[vi]) * (dp_y[j] - dp_y[vi]);
     j = vi;
   }
-  polyArea = abs(polyArea/2.0);
+  polyArea = abs(polyArea / 2.0);
   a0.push_back(polyArea);
 
   // save list of adjacent vertices
@@ -1590,7 +1588,7 @@ void cell::addDP(int numVerts, vector<double> &dp_x, vector<double> &dp_y, int c
   //  list should have size NVTOT + 1
   list.resize(NVTOT + 1);
 
-  // other variables 
+  // other variables
   // cellU, stresses, cij in main DPM class need to be resized
   cellU.resize(NCELLS);
   fieldStress.resize(NVTOT, vector<double>(3));
@@ -1609,7 +1607,7 @@ void cell::addDP(int numVerts, vector<double> &dp_x, vector<double> &dp_y, int c
   cellTouchesWallsRight.push_back(false);
 }
 
-//routines
+// routines
 
 void cell::initializeTransverseTissue(double phi0, double Ftol) {
   cout << "entered initializeTransverseTissue\n";
@@ -1636,19 +1634,19 @@ void cell::initializeTransverseTissue(double phi0, double Ftol) {
   int numTissues = 4, totalNumCellsCheck = 0;
   double totalArea = 0.0;
   // double offset = 1/8.0/2.0
-  double offset = -1/8.0;
-  double yoffset = offset*2;
-  vector<double> cx = {1/2.0, 5/4.0 + offset, 2.0 + 2*offset, 5/4.0 + offset}, cy = {1/2.0, 3/8.0, 1/2.0, 5/4.0+yoffset};
-  vector<double> tissueRadii = {1/2.0, 1/4.0, 1/2.0, 1/2.0}, cellFractionPerTissue, numCellsInTissue;
+  double offset = -1 / 8.0;
+  double yoffset = offset * 2;
+  vector<double> cx = {1 / 2.0, 5 / 4.0 + offset, 2.0 + 2 * offset, 5 / 4.0 + offset}, cy = {1 / 2.0, 3 / 8.0, 1 / 2.0, 5 / 4.0 + yoffset};
+  vector<double> tissueRadii = {1 / 2.0, 1 / 4.0, 1 / 2.0, 1 / 2.0}, cellFractionPerTissue, numCellsInTissue;
   for (int i = 0; i < tissueRadii.size(); i++) {
-    totalArea += tissueRadii[i]*tissueRadii[i];
+    totalArea += tissueRadii[i] * tissueRadii[i];
     cout << totalArea << '\t' << tissueRadii[i] << '\n';
   }
 
-  for (int i = 0; i < tissueRadii.size(); i++) { 
-    cellFractionPerTissue.push_back(tissueRadii[i]*tissueRadii[i]/totalArea);
+  for (int i = 0; i < tissueRadii.size(); i++) {
+    cellFractionPerTissue.push_back(tissueRadii[i] * tissueRadii[i] / totalArea);
     numCellsInTissue.push_back(round(cellFractionPerTissue[i] * NCELLS));
-    cout << "cellFraction = " << tissueRadii[i]*tissueRadii[i]/totalArea << '\n';
+    cout << "cellFraction = " << tissueRadii[i] * tissueRadii[i] / totalArea << '\n';
     cout << "initializing " << NCELLS << " cells, with tissue " << i << " having cell fraction = " << cellFractionPerTissue[i] << '\n';
     cout << "NCELLS * cellFraction = " << NCELLS * cellFractionPerTissue[i] << ", which is " << round(NCELLS * cellFractionPerTissue[i]) << " when rounded\n";
     totalNumCellsCheck += round(NCELLS * cellFractionPerTissue[i]);
@@ -1663,37 +1661,37 @@ void cell::initializeTransverseTissue(double phi0, double Ftol) {
 
   // set box size : phi_0 = areaSum / A => A = areaSum/phi_0 which gives us the following formulas for L
   for (d = 0; d < NDIM; d++) {
-    L.at(d) = pow(4 / PI * areaSum * cellFractionPerTissue[0] / phi0, 1.0/NDIM);
+    L.at(d) = pow(4 / PI * areaSum * cellFractionPerTissue[0] / phi0, 1.0 / NDIM);
   }
 
   // multiply lengths by lengthscale
-  for (int i = 0; i < numTissues; i++){
+  for (int i = 0; i < numTissues; i++) {
     double tissueLengthscale = L[0];
     cx[i] *= tissueLengthscale;
     cy[i] *= tissueLengthscale;
     tissueRadii[i] *= tissueLengthscale;
   }
 
-  ofstream boundaryStream("polyBoundary.txt"); // clear boundary text file, for visualizing or for debugging
-  ofstream ipStream("initPosSP.txt"); // clear initialPos text file, for visualizing or for debugging
-  ofstream ip2Stream("initPosSP2.txt"); // clear initialPos text file, for visualizing or for debugging
-  for (int n = 0; n < numTissues; n++){
-    cout << "initializing cell centers randomly but rejecting if further than R from the center for tissue " << n << "out of " << numTissues-1 << "\n";
-    double scale_radius = 1.1; // make the polygon radius slightly larger so that it encompasses the circle that points are initialized in
-    poly_bd_x.push_back(std::vector<double>()); // make new data for generateCircularBoundary to write a polygon
+  ofstream boundaryStream("polyBoundary.txt");  // clear boundary text file, for visualizing or for debugging
+  ofstream ipStream("initPosSP.txt");           // clear initialPos text file, for visualizing or for debugging
+  ofstream ip2Stream("initPosSP2.txt");         // clear initialPos text file, for visualizing or for debugging
+  for (int n = 0; n < numTissues; n++) {
+    cout << "initializing cell centers randomly but rejecting if further than R from the center for tissue " << n << "out of " << numTissues - 1 << "\n";
+    double scale_radius = 1.1;                   // make the polygon radius slightly larger so that it encompasses the circle that points are initialized in
+    poly_bd_x.push_back(std::vector<double>());  // make new data for generateCircularBoundary to write a polygon
     poly_bd_y.push_back(std::vector<double>());
     generateCircularBoundary(numEdges, scale_radius * tissueRadii[n], cx[n], cy[n], poly_bd_x[n], poly_bd_y[n]);
 
-    for (i = cumNumCells; i < cumNumCells + numCellsInTissue[n]; i++){
+    for (i = cumNumCells; i < cumNumCells + numCellsInTissue[n]; i++) {
       cout << "i = " << i << "\t, dpos.size() = " << dpos.size() << "cumNumCells = " << cumNumCells << "\t, numCellsInTissue[n] = " << numCellsInTissue[n] << '\n';
-      double dpos_x = tissueRadii[n] * (2*drand48()-1) + cx[n], dpos_y = tissueRadii[n] *  (2*drand48()-1) + cy[n];
-      while (pow(dpos_x - cx[n],2) + pow(dpos_y - cy[n],2) > pow(tissueRadii[n], 2)){
-        dpos_x = tissueRadii[n] * (2*drand48()-1) + cx[n];
-        dpos_y = tissueRadii[n] * (2*drand48()-1) + cy[n];
+      double dpos_x = tissueRadii[n] * (2 * drand48() - 1) + cx[n], dpos_y = tissueRadii[n] * (2 * drand48() - 1) + cy[n];
+      while (pow(dpos_x - cx[n], 2) + pow(dpos_y - cy[n], 2) > pow(tissueRadii[n], 2)) {
+        dpos_x = tissueRadii[n] * (2 * drand48() - 1) + cx[n];
+        dpos_y = tissueRadii[n] * (2 * drand48() - 1) + cy[n];
       }
-      dpos.at(i*NDIM) = dpos_x;
-      dpos.at(i*NDIM+1) = dpos_y;
-      ipStream << dpos[i*NDIM] << '\t' << dpos[i*NDIM + 1] << '\n';
+      dpos.at(i * NDIM) = dpos_x;
+      dpos.at(i * NDIM + 1) = dpos_y;
+      ipStream << dpos[i * NDIM] << '\t' << dpos[i * NDIM + 1] << '\n';
       cellID[i] = n;
       cout << "cell " << i << " is in tissue number " << n << "with cell type = " << cellID[i] << '\n';
     }
@@ -1704,8 +1702,8 @@ void cell::initializeTransverseTissue(double phi0, double Ftol) {
 
   cout << "setting radii of SP disks\n";
   // set radii of SP disks
-  for (ci = 0; ci < NCELLS; ci++){
-    xtra = 1.1; // disks should have radius similar to the final particle radius, or could modify vrad[i] condition in wall calculation later
+  for (ci = 0; ci < NCELLS; ci++) {
+    xtra = 1.1;  // disks should have radius similar to the final particle radius, or could modify vrad[i] condition in wall calculation later
     drad.at(ci) = xtra * sqrt((2.0 * a0.at(ci)) / (nv.at(ci) * sin(2.0 * PI / nv.at(ci))));
     cout << "drad = " << drad[ci] << '\n';
   }
@@ -1855,7 +1853,7 @@ void cell::initializeTransverseTissue(double phi0, double Ftol) {
       std::vector<double> poly_x = poly_bd_x[k];
       std::vector<double> poly_y = poly_bd_y[k];
       int n = poly_x.size();
-      double distanceParticleWall, Rx, Ry, dw, K=1;
+      double distanceParticleWall, Rx, Ry, dw, K = 1;
       double bound_x1, bound_x2, bound_y1, bound_y2;
       // loop over boundary bars
       // loop over particles
@@ -1864,15 +1862,15 @@ void cell::initializeTransverseTissue(double phi0, double Ftol) {
       for (int bound_i = 0; bound_i < n; bound_i++) {
         // use distanceLineAndPoint to get R, Rx, and Ry
         bound_x1 = poly_x[bound_i];
-        bound_x2 = poly_x[(bound_i+1) % n];
+        bound_x2 = poly_x[(bound_i + 1) % n];
         bound_y1 = poly_y[bound_i];
-        bound_y2 = poly_y[(bound_i+1) % n];
-        for (i = 0; i < cellDOF/NDIM; i++) {
-          distanceParticleWall = distanceLinePointComponents(bound_x1, bound_y1, bound_x2, bound_y2, dpos[i*NDIM], dpos[i*NDIM+1], Rx, Ry);
+        bound_y2 = poly_y[(bound_i + 1) % n];
+        for (i = 0; i < cellDOF / NDIM; i++) {
+          distanceParticleWall = distanceLinePointComponents(bound_x1, bound_y1, bound_x2, bound_y2, dpos[i * NDIM], dpos[i * NDIM + 1], Rx, Ry);
           dw = drad[i] - distanceParticleWall;
           if (distanceParticleWall <= drad[i]) {
-            dF[i*NDIM] += K * dw * Rx/distanceParticleWall;
-            dF[i*NDIM+1] += K * dw * Ry/distanceParticleWall;
+            dF[i * NDIM] += K * dw * Rx / distanceParticleWall;
+            dF[i * NDIM + 1] += K * dw * Ry / distanceParticleWall;
           }
         }
       }
@@ -1938,13 +1936,13 @@ void cell::initializeTransverseTissue(double phi0, double Ftol) {
 
   // initialize vertex positions based on cell centers
   for (ci = 0; ci < NCELLS; ci++) {
-    ip2Stream << dpos[ci*NDIM] << '\t' << dpos[ci*NDIM + 1] << '\n';
+    ip2Stream << dpos[ci * NDIM] << '\t' << dpos[ci * NDIM + 1] << '\n';
     for (vi = 0; vi < nv.at(ci); vi++) {
       // get global vertex index
       gi = gindex(ci, vi);
 
       // length from center to vertex minus 1/2 the vertex radius to prevent overlaps
-      dtmp = sqrt((2.0 * a0.at(ci)) / (nv.at(ci) * sin((2.0 * PI) / nv.at(ci)))) - r[gi]/2.0;
+      dtmp = sqrt((2.0 * a0.at(ci)) / (nv.at(ci) * sin((2.0 * PI) / nv.at(ci)))) - r[gi] / 2.0;
 
       // set positions
       x.at(NDIM * gi) = dtmp * cos((2.0 * PI * vi) / nv.at(ci)) + dpos.at(NDIM * ci) + 1e-2 * l0[gi] * drand48();
@@ -2012,7 +2010,7 @@ void cell::vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, 
 
 void cell::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0) {
   // TEMPORARY JUST TO USE OVERLOADED PRINTCONFIGURATION2D
- // same as vertexCompress2Target2D, but with polygonal boundaries (affects packing fraction calculation, and expects forceCall to 
+  // same as vertexCompress2Target2D, but with polygonal boundaries (affects packing fraction calculation, and expects forceCall to
   //  account for polygonal boundary forces
   // local variables
   int it = 0, itmax = 1e4;
@@ -2064,7 +2062,7 @@ void cell::simulateDampedWithWalls(dpmMemFn forceCall, double B, double dt0, dou
   // make sure velocities exist or are already initialized before calling this
   // assuming zero temperature - ignore thermostat (not implemented)
   // allow box lengths to move as a dynamical variable - rudimentary barostat,
-  // doesn't matter for non-equilibrium anyway. 
+  // doesn't matter for non-equilibrium anyway.
   // NOTE: this part of the code begins to modify all 4 boundary lengths of the simulation through the variables XL. boundaries will no longer be based on the old convention bottom left = (0,0)
 
   // open bools indicate whether a wall is static (closed) or dynamic (open)
@@ -2121,12 +2119,12 @@ void cell::simulateDampedWithWalls(dpmMemFn forceCall, double B, double dt0, dou
       boundaryDisplacement[1] = XL[3] * (1 - exp(-trueStrainRateY * dt));
 
       // VV position update (4 walls)
-      XL[0] += dt * VL[0] + 0.5 * dt * dt * FL - boundaryDisplacement[0]/2;
-      XL[1] += dt * VL[1] + 0.5 * dt * dt * FB - boundaryDisplacement[1]/2;
-      XL[2] += dt * VL[2] + 0.5 * dt * dt * FR + boundaryDisplacement[0]/2;
-      XL[3] += dt * VL[3] + 0.5 * dt * dt * FT + boundaryDisplacement[1]/2;
+      XL[0] += dt * VL[0] + 0.5 * dt * dt * FL - boundaryDisplacement[0] / 2;
+      XL[1] += dt * VL[1] + 0.5 * dt * dt * FB - boundaryDisplacement[1] / 2;
+      XL[2] += dt * VL[2] + 0.5 * dt * dt * FR + boundaryDisplacement[0] / 2;
+      XL[3] += dt * VL[3] + 0.5 * dt * dt * FT + boundaryDisplacement[1] / 2;
 
-      L[0] = XL[2]; 
+      L[0] = XL[2];
       L[1] = XL[3];
 
       /*cout << "(velocity\tforce): left vs right\n";
@@ -2250,8 +2248,8 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double B, double dt0, double dura
     for (i = 0; i < vertDOF; i++) {
       // update position
       x[i] += dt * v[i] + 0.5 * dt * dt * F[i];
-      //if (NCELLS == 20)
-      //  cout << "simclock = " << simclock << '\t' << "x[i] = " << x[i] << '\n';
+      // if (NCELLS == 20)
+      //   cout << "simclock = " << simclock << '\t' << "x[i] = " << x[i] << '\n';
 
       // recenter in box
       if (x[i] > L[i % NDIM] && pbc[i % NDIM])
@@ -2344,7 +2342,6 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double B, double dt0, double dura
   }
 }
 
-
 void cell::printConfiguration2D() {
   // overloaded to print out specific quantities of interest
   // local variables
@@ -2367,7 +2364,7 @@ void cell::printConfiguration2D() {
   double L_right = L[0];
   double L_bottom = XL[1];
   double L_top = L[1];
-  //cout << L_left << '\t' << L_right << '\t' << L_bottom << '\t' << L_top << '\n';
+  // cout << L_left << '\t' << L_right << '\t' << L_bottom << '\t' << L_top << '\n';
 
   // print information starting information
   posout << setw(w) << left << "NEWFR"
@@ -2420,7 +2417,7 @@ void cell::printConfiguration2D() {
     posout << setw(w) << left << "CINFO";
     if (cellID.size() > 0)
       posout << setw(wnum) << left << cellID[ci];
-    else 
+    else
       posout << setw(wnum) << left << 1;
     posout << setw(w) << left << nv[ci];
     posout << setw(w) << left << zc;

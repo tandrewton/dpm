@@ -92,8 +92,8 @@ echo duration = "$duration" >> $configFile
 
 # run compiler
 rm -f $binf
-g++ --std=c++11 -O3 -I "$srcdir" "$mainf" "$srcdir"/*.cpp -o $binf
-echo compiling with : g++ --std=c++11 -O3 -I "$srcdir" "$mainf" "$srcdir"/*.cpp -o $binf
+g++ --std=c++11 -O3 -I "$srcdir" "$mainf" "$srcdir"/dpm.cpp "$srcdir"/epi2D.cpp -o $binf
+echo compiling with : g++ --std=c++11 -O3 -I "$srcdir" "$mainf"  "$srcdir"/dpm.cpp "$srcdir"/epi2D.cpp -o $binf
 
 # check compilation
 if [[ ! -f $binf ]]
