@@ -79,7 +79,7 @@ const double dt0 = 0.005;      // initial magnitude of time step in units of MD 
 const double Ptol = 1e-8;
 const double Ftol = 1e-12;
 const double att_range = 0.3;
-bool isPbcOn = true;
+bool isPbcOn = false;
 
 int main(int argc, char const* argv[]) {
   // local variables to be read in

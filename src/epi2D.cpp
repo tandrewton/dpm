@@ -635,6 +635,13 @@ void epi2D::circuloLineAttractiveForces() {
   // attraction shell parameters
   double shellij, cutij, xij, kint = (kc * l1) / (l2 - l1);
 
+  /*if (simclock > 60.049) {
+    for (int k = 0; k < NVTOT; k++) {
+      cout << "vertex k : " << x[NDIM * k] << ", " << x[NDIM * k + 1] << '\n';
+    }
+    cout << "printing!\n";
+    printConfiguration2D();
+  }*/
   // sort particles
   sortNeighborLinkedList2D();
 
@@ -1148,6 +1155,14 @@ void epi2D::attractiveForceUpdate_circulo() {
   // std::vector<double> shapeForce(NDIM*NVTOT,0.0);
   // shapeForce = F;
   circuloLineAttractiveForces();
+  if (simclock > 60) {
+    cout << "simclock = " << simclock << '\n';
+    if (simclock > 60.049) {
+      for (int k = 0; k < NVTOT; k++) {
+        cout << "vert " << k << ": " << x[NDIM * k] << ", " << x[NDIM * k + 1] << '\n';
+      }
+    }
+  }
   /*for (int i = 0; i < NVTOT; i++){
     if (fabs(shapeForce[NDIM*i] - F[NDIM*i]) > 1e-10 || fabs(shapeForce[NDIM*i+1] - F[NDIM*i+1]) > 1e-10) {
       cout << "shapeForce is different from F for gi = " << i << '\n';

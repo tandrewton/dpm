@@ -1327,7 +1327,6 @@ void dpm::sortNeighborLinkedList2D() {
     for (d = 0; d < NDIM; d++) {
       // current location
       xtmp = x[NDIM * gi + d];
-
       // check out-of-bounds
       if (xtmp < 0) {
         if (pbc[d])
@@ -1343,6 +1342,14 @@ void dpm::sortNeighborLinkedList2D() {
 
       // add d index to 1d list
       boxid += floor(xtmp / lb[d]) * sbtmp;
+      if (boxid < -2147483600) {
+        cout << "boxid = " << boxid << ", xtmp = " << xtmp << ", lb[d] = " << lb[d] << ", d = " << d << ", gi = " << gi << ", floor(xtmp / lb[d] = " << floor(xtmp / lb[d]) << ", list.size = " << list.size() << '\n';
+        cout << "pbc[d] = " << pbc[d] << ", L[d] = " << L[d] << '\n';
+
+        for (int k = 0; k < NVTOT; k++) {
+          cout << "vert " << k << ": " << x[NDIM * k] << ", " << x[NDIM * k + 1] << '\n';
+        }
+      }
 
       // increment dimensional factor
       sbtmp *= sb[d];
