@@ -25,6 +25,8 @@
 
 // ./main/epi2D/laserAblation.o 40 20 4 1.0 0.92 0.925 1.0 0.5 0.2 0.013  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   1  200  test
 
+// bash bash/epi2D/submit_laserAblation.sh 40 20 6 1.10 0.92 0.925 1.0 1.0 0.2 0.01 0.0 4.0 4.0 1.0 3.0 1.0 0.5 0 0 400 pi_ohern,day,scavenge 0-24:00:00 1 1
+
 // test suite for sliding adhesion
 // ./main/epi2D/laserAblation.o 2 20 0 1.0 0.7 0.5 1.0 1.0 0.2 0.001  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   1  0  test
 // ./main/epi2D/laserAblation.o 6 20 0 1.0 0.7 0.5 1.0 1.0 0.2 0.001  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   1  0  test
