@@ -3,10 +3,10 @@
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
 
-%function drawWoundSims(N, strainRate_ps, calA0, tau_lp, deltaSq, d_flag, att, k_ps) %uncomment if using function call to pipeline data
-%isTestData = false; %uncomment if using function call to pipeline data
+function drawWoundSims(N, strainRate_ps, calA0, tau_lp, deltaSq, d_flag, att, k_ps) %uncomment if using function call to pipeline data
+isTestData = false; %uncomment if using function call to pipeline data
 
-isTestData = true; %uncomment if using test data
+%isTestData = true; %uncomment if using test data
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('C:\Users\atata\projects\dpm\bash')
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
@@ -47,7 +47,7 @@ showWoundAndShapeProperties = 0;
 showverts = 0;
 showBoundaries = 0;
 showcirculoline = 0; % show line segments of circulo-lines
-att_range = 0.3;
+att_range = 0.0;
 showArea = 0;
 showQuiver = 0;
 walls = 0;
@@ -106,16 +106,16 @@ for seed = startSeed:max_seed
         woundPropertiesStr = pc_dir+ 'test.woundProperties';
         innerAndBulkCellIDStr = pc_dir+'test.cellID';
     else
-        run_name =runType+"_calA0"+calA0+"_k_a"+k_a+"_strainRate_ps"+strainRate_ps+ ...
-            "_deltaSq"+deltaSq+"_k_ps"+k_ps+"_k_lp"+k_lp+...
-            "_tau_lp"+tau_lp+"_d_flag"+d_flag+"_bound"+boundaryType;
-        pipeline_dir =  subdir_pipeline + run_name + "/";
-        output_dir = subdir_output + run_name + "/";
+        run_name =runType+"_A0"+calA0+"_k_a"+k_a+"_w_ps"+strainRate_ps+ ...
+            "_dsq"+deltaSq+"_k_ps"+k_ps+"_k_lp"+k_lp+...
+            "_t_lp"+tau_lp+"_d_flag"+d_flag+"_bd"+boundaryType;
+        pipeline_dir =  subdir_pipeline;
+        output_dir = subdir_output;
         mkdir(pipeline_dir)
         mkdir(output_dir)
-        fileheader=run_name +"_NCELLS"+N+"_Duration"+Duration+"_att"+att+"_startseed"+ ...
-            startSeed+"_endseed"+max_seed+"_seed"+seed;
-        fileheader_short = "_NCELLS"+N+"_Duration"+Duration+"_att"+att+"_seed"+seed;
+        fileheader=run_name +"_N"+N+"_Dur"+Duration+"_att"+att+"_sd"+ ...
+            startSeed+"_sd"+max_seed+"_sd"+seed;
+        fileheader_short = "_N"+N+"_Dur"+Duration+"_att"+att+"_sd"+seed;
         nvestr = pipeline_dir+fileheader+'.pos';
         energystr = pipeline_dir+fileheader+'.energy';
         stressstr = pipeline_dir+fileheader+'.stress';
@@ -227,6 +227,7 @@ for seed = startSeed:max_seed
         end
     end
 
+    nvestr
     % read in position data
     [trajectoryData, cell_count] = readDPMClassPosOutput(nvestr);
 

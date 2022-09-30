@@ -53,15 +53,15 @@ let numSeeds=$numSeedsPerRun*$numRuns
 let endSeed=$startSeed+$numSeeds-1
 
 # name strings
-basestr=ablate_calA0"$calA0"_k_a"$ka"_strainRate_ps"$strainRate_ps"_deltaSq"$deltaSq"_k_ps"$k_ps"_k_lp"$k_lp"_tau_lp"$tau_lp"_d_flag"$d_flag"_bound"$bound"
-runstr="$basestr"_NCELLS"$NCELLS"_Duration"$duration"_att"$att"_startseed"$startSeed"_endseed"$endSeed"
+basestr=ablate_A0"$calA0"_k_a"$ka"_w_ps"$strainRate_ps"_dsq"$deltaSq"_k_ps"$k_ps"_k_lp"$k_lp"_t_lp"$tau_lp"_d_flag"$d_flag"_bd"$bound"
+runstr="$basestr"_N"$NCELLS"_Dur"$duration"_att"$att"_sd"$startSeed"_sd"$endSeed"
 
 # make directory specific for this simulation
-simdatadir=$simtypedir/$basestr
+simdatadir=$simtypedir
 mkdir -p $simdatadir
 
 # write input parameters to a configuration file for organization
-configFile=$simdatadir/config.txt
+configFile=$simdatadir/"$basestr"_config.txt
 
 # compile into binary
 binf=bin/"$runstr".o
