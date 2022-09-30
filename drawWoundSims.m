@@ -24,7 +24,7 @@ k_a = "1.0";
 k_lp = "4.0"; %lamellipodia spring constant
 %tau_lp = "1.0"; %lamellipodia lifetime
 %d_flag = "0.0"; %lamellipodia max length
-boundaryType = "1"; %perimeter relaxation rate
+boundaryType = "0"; 
 %att="0.2";
 B="1.0";
 Dr0="0.5";
@@ -109,8 +109,8 @@ for seed = startSeed:max_seed
         run_name =runType+"_A0"+calA0+"_k_a"+k_a+"_w_ps"+strainRate_ps+ ...
             "_dsq"+deltaSq+"_k_ps"+k_ps+"_k_lp"+k_lp+...
             "_t_lp"+tau_lp+"_d_flag"+d_flag+"_bd"+boundaryType;
-        pipeline_dir =  subdir_pipeline;
-        output_dir = subdir_output;
+        pipeline_dir =  subdir_pipeline + run_name + "/";
+        output_dir = subdir_output + run_name + "/";
         mkdir(pipeline_dir)
         mkdir(output_dir)
         fileheader=run_name +"_N"+N+"_Dur"+Duration+"_att"+att+"_sd"+ ...

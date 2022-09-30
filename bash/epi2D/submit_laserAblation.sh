@@ -57,11 +57,11 @@ basestr=ablate_A0"$calA0"_k_a"$ka"_w_ps"$strainRate_ps"_dsq"$deltaSq"_k_ps"$k_ps
 runstr="$basestr"_N"$NCELLS"_Dur"$duration"_att"$att"_sd"$startSeed"_sd"$endSeed"
 
 # make directory specific for this simulation
-simdatadir=$simtypedir
+simdatadir=$simtypedir/$basestr
 mkdir -p $simdatadir
 
 # write input parameters to a configuration file for organization
-configFile=$simdatadir/"$basestr"_config.txt
+configFile=$simdatadir/"$runstr"_config.txt
 
 # compile into binary
 binf=bin/"$runstr".o
