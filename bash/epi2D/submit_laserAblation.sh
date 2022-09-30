@@ -1,7 +1,7 @@
 #!/bin/bash
 # directories with code
 
-#example call: bash bash/epi2D/submit_laserAblation.sh 20 20 4 1.10 0.92 0.925 1.0 1.0 0.1 0.01 0.0 1.0 2.0 1.0 3.0 1.0 0.5 0 1 200 pi_ohern,day,scavenge 0-12:00:00 1 1
+#example call: bash bash/epi2D/submit_laserAblation.sh 20 20 4 1.10 0.92 0.925 1.0 1.0 0.1 0.01 0.0 1.0 2.0 1.0 3.0 1.0 0.5 0 0 1 200 pi_ohern,day,scavenge 0-12:00:00 1 1
 #weird bug with configFile
 cellsdir=~/dpm
 srcdir=$cellsdir/src
@@ -42,18 +42,19 @@ B="${16}"
 Dr0="${17}"
 boolCIL="${18}"
 bound="${19}"
-duration="${20}"
-partition="${21}"
-time="${22}"
-numRuns="${23}"
-startSeed="${24}"
+smooth="${20}"
+duration="${21}"
+partition="${22}"
+time="${23}"
+numRuns="${24}"
+startSeed="${25}"
 
 numSeedsPerRun=1
 let numSeeds=$numSeedsPerRun*$numRuns
 let endSeed=$startSeed+$numSeeds-1
 
 # name strings
-basestr=ablate_A0"$calA0"_k_a"$ka"_w_ps"$strainRate_ps"_dsq"$deltaSq"_k_ps"$k_ps"_k_lp"$k_lp"_t_lp"$tau_lp"_d_flag"$d_flag"_bd"$bound"
+basestr=ablate_A0"$calA0"_k_a"$ka"_w_ps"$strainRate_ps"_dsq"$deltaSq"_k_ps"$k_ps"_k_lp"$k_lp"_t_lp"$tau_lp"_d_flag"$d_flag"_bd"$bound"_sm"$smooth"
 runstr="$basestr"_N"$NCELLS"_Dur"$duration"_att"$att"_sd"$startSeed"_sd"$endSeed"
 
 # make directory specific for this simulation
@@ -85,6 +86,7 @@ echo tau_lp = $tau_lp >> $configFile
 echo d_flag = $d_flag >> $configFile
 echo B = "$B" >> $configFile
 echo bound = "$bound" >> $configFile
+echo smooth = "$smooth" >> $configFile
 echo Dr0 = "$Dr0" >> $configFile
 echo boolCIL = "$boolCIL" >> $configFile
 echo duration = "$duration" >> $configFile
@@ -134,7 +136,7 @@ for seed in `seq $startSeed $numSeedsPerRun $endSeed`; do
         outFileStem=$simdatadir/$filestr
 
         # append to runString
-        runString="$runString ; ./$binf $NCELLS $NV $ndelete $calA0 $phiMin $phiMax $kl $ka $att $strainRate_ps $deltaSq $k_ps $k_lp $tau_lp $d_flag $B $Dr0 $boolCIL $bound $seed $duration $outFileStem"
+        runString="$runString ; ./$binf $NCELLS $NV $ndelete $calA0 $phiMin $phiMax $kl $ka $att $strainRate_ps $deltaSq $k_ps $k_lp $tau_lp $d_flag $B $Dr0 $boolCIL $bound $smooth $seed $duration $outFileStem"
     done
 
     # finish off run string

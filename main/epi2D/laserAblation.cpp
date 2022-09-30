@@ -11,29 +11,29 @@
 //  note: if using circular boundaries via polyWall, try pmin = 0.9 and pmax = 0.85 because pmin is soft disk density and pmax is DP preferred density
 //
 // below: no purse-string, no crawling (inactive simulation)
-//./main/epi2D/laserAblation.o 20 20 0 1.10 0.92 0.925 1.0 0.5 0.0 0.01  0.0  4.0  4.0 1.0  0.0  1.0 0.5  0  0   1  100  test
-// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  B  Dr0 CIL bound  sd time file
+//./main/epi2D/laserAblation.o 20 20 0 1.10 0.92 0.925 1.0 0.5 0.0 0.01  0.0  4.0  4.0 1.0  0.0  1.0 0.5  0  0   0 1  100  test
+// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  B  Dr0 CIL bound sm sd time file
 // below: no purse-string, only crawling
-//./main/epi2D/laserAblation.o 20 20 6 1.15 0.92 0.85 1.0 0.5 0.2 0.01  0.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   1  600  test
-// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  B  Dr0 CIL bound  sd time file
+//./main/epi2D/laserAblation.o 20 20 6 1.15 0.92 0.85 1.0 0.5 0.2 0.01  0.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   0 1 600  test
+// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  B  Dr0 CIL bound sm sd time file
 // below: purse-string, no crawling
-//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.85 1.0 1.0 0.2 0.001  2.0  4.0  4.0 1.0  0.0  1.0 0.5  0   0     1  200  test
-// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  B  Dr0 CIL bound  sd time file
+//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.85 1.0 1.0 0.2 0.001  2.0  4.0  4.0 1.0  0.0  1.0 0.5  0   0  0 1 200  test
+// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  B  Dr0 CIL bound sm sd time file
 // below: purse-string, and crawling
-//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.925 1.0 0.5 0.2 0.01  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   1  200  test
-// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  B  Dr0 CIL bound  sd time file
+//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.925 1.0 0.5 0.2 0.01  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   0 1  200  test
+// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  B  Dr0 CIL bound sm sd time file
 
-// ./main/epi2D/laserAblation.o 40 20 4 1.0 0.92 0.925 1.0 0.5 0.2 0.013  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   1  200  test
+// ./main/epi2D/laserAblation.o 40 20 4 1.0 0.92 0.925 1.0 0.5 0.2 0.013  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   0 1  200  test
 
 // bash bash/epi2D/submit_laserAblation.sh 40 20 6 1.10 0.92 0.925 1.0 1.0 0.2 0.01 0.0 4.0 4.0 1.0 3.0 1.0 0.5 0 0 400 pi_ohern,day,scavenge 0-24:00:00 1 1
 
 // test suite for sliding adhesion
-// ./main/epi2D/laserAblation.o 2 20 0 1.0 0.7 0.5 1.0 1.0 0.2 0.001  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   1  0  test
-// ./main/epi2D/laserAblation.o 6 20 0 1.0 0.7 0.5 1.0 1.0 0.2 0.001  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   1  0  test
-// ./main/epi2D/laserAblation.o 6 20 0 1.0 0.85 0.95 1.0 1.0 0.0 0.001  0.0  4.0  4.0 1.0  0.0  1.0 0.5  0  1   1  0  test
-// ./main/epi2D/laserAblation.o 12 20 4 1.0 0.8 0.7 1.0 1.0 0.2 0.001  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   1  0  test
-// ./main/epi2D/laserAblation.o 4 20 0  1.0  0.5  0.4  1.0 1.0 0.2 0.01 0.0  4.0  4.0  1.0  0.0  0.0 0.5  0   1     1  0  test
-// ........................... N  NV Nd A0  pMin  pMax  kl ka  att  om   dsq  kps  klp  tau dflag  B  Dr0 CIL bound  sd time file
+// ./main/epi2D/laserAblation.o 2 20 0 1.0 0.7 0.5 1.0 1.0 0.2 0.001  2.0  4.0  4.0 1.0  3.0  1.0 0.5    0  0   0  1  test
+// ./main/epi2D/laserAblation.o 6 20 0 1.0 0.7 0.5 1.0 1.0 0.2 0.001  2.0  4.0  4.0 1.0  3.0  1.0 0.5    0  0   0  1  test
+// ./main/epi2D/laserAblation.o 6 20 0 1.0 0.85 0.95 1.0 1.0 0.0 0.001  0.0  4.0  4.0 1.0  0.0  1.0 0.5  0  1   0  1  test
+// ./main/epi2D/laserAblation.o 12 20 4 1.0 0.8 0.7 1.0 1.0 0.2 0.001  2.0  4.0  4.0 1.0  3.0  1.0 0.5   0  0   0  1  test
+// ./main/epi2D/laserAblation.o 4 20 0  1.0  0.5  0.4  1.0 1.0 0.2 0.01 0.0  4.0  4.0  1.0  0.0  1.0 0.5  0   1  0  1  test
+// ........................... N  NV Nd A0  pMin  pMax  kl ka  att  om   dsq  kps  klp  tau dflag  B  Dr0 CIL bound sm sd time file
 
 //
 // Parameter input list
@@ -55,9 +55,10 @@
 // 16. Dr0:         rotational diffusion constant for protrusion activity
 // 17. boolCIL:     bool for whether cells conduct contact inhibition of locomotion
 // 18. boundary     choice of boundary condition (0 = free, 1 = sticky circular boundaries)
-// 19. seed: 			  seed for random number generator
-// 20. time:        amount of time (tau) to simulate
-// 21. outFileStem  stem of output file names, i.e. for "test", energy.test, position.test, etc.
+// 19. smooth       choice of smooth or bumpy forces (0 = bumpy, 1 = smooth)
+// 20. seed: 			  seed for random number generator
+// 21. time:        amount of time (tau) to simulate
+// 22. outFileStem  stem of output file names, i.e. for "test", energy.test, position.test, etc.
 
 // header files
 #include <sstream>
@@ -87,7 +88,7 @@ int main(int argc, char const* argv[]) {
   // local variables to be read in
   int NCELLS, nsmall, seed, gi, ndelete;
   double calA0, kl, ka = 1.0, kb = 0.0, phiMin, phiMax, att, B, Dr0, time_dbl;
-  bool boolCIL, boolBound, purseStringOn = true;
+  bool boolCIL, boolBound, boolSmooth, purseStringOn = true;
   double strainRate_ps, k_ps, k_LP, tau_LP, deltaSq, maxProtrusionLength, shapeRelaxationRate;
 
   // read in parameters from command line input
@@ -110,9 +111,10 @@ int main(int argc, char const* argv[]) {
   string Dr0_str = argv[17];
   string boolCIL_str = argv[18];
   string bound_str = argv[19];
-  string seed_str = argv[20];
-  string time_str = argv[21];
-  string outFileStem = argv[22];
+  string smooth_str = argv[20];
+  string seed_str = argv[21];
+  string time_str = argv[22];
+  string outFileStem = argv[23];
 
   string positionFile = outFileStem + ".pos";
   string energyFile = outFileStem + ".energy";
@@ -146,6 +148,7 @@ int main(int argc, char const* argv[]) {
   stringstream Dr0ss(Dr0_str);
   stringstream boolCILss(boolCIL_str);
   stringstream boundss(bound_str);
+  stringstream smoothss(smooth_str);
   stringstream seedss(seed_str);
   stringstream timess(time_str);
 
@@ -169,6 +172,7 @@ int main(int argc, char const* argv[]) {
   Dr0ss >> Dr0;
   boolCILss >> boolCIL;
   boundss >> boolBound;
+  smoothss >> boolSmooth;
   seedss >> seed;
   timess >> time_dbl;
 
@@ -271,13 +275,18 @@ int main(int argc, char const* argv[]) {
   double runTime = 25.0;
   epithelial.drawVelocities2D(T);
 
-  // dpmMemFn customForceUpdate_inactive = attractiveForceUpdate;
-  // dpmMemFn customForceUpdate_active = crawlingWithPSForceUpdate;
-  // dpmMemFn customForceUpdate_inactive_with_circular_walls = attractiveForceUpdateWithCircularWalls;
-
-  dpmMemFn customForceUpdate_inactive = circuloLineAttraction;
-  dpmMemFn customForceUpdate_active = crawlingWithPSSmooth;
-  dpmMemFn customForceUpdate_inactive_with_circular_walls = circuloLineAttractionWithCircularWalls;
+  dpmMemFn customForceUpdate_inactive;
+  dpmMemFn customForceUpdate_active;
+  dpmMemFn customForceUpdate_inactive_with_circular_walls;
+  if (!boolSmooth) {
+    customForceUpdate_inactive = attractiveForceUpdate;
+    customForceUpdate_active = crawlingWithPSForceUpdate;
+    customForceUpdate_inactive_with_circular_walls = attractiveForceUpdateWithCircularWalls;
+  } else {
+    customForceUpdate_inactive = circuloLineAttraction;
+    customForceUpdate_active = crawlingWithPSSmooth;
+    customForceUpdate_inactive_with_circular_walls = circuloLineAttractionWithCircularWalls;
+  }
 
   if (isPbcOn)
     epithelial.dampedNP0(customForceUpdate_inactive, B, dt0, relaxTime, printInterval);
