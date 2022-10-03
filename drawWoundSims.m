@@ -3,7 +3,7 @@
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
 
-function drawWoundSims(N, strainRate_ps, calA0, tau_lp, deltaSq, d_flag, att, k_ps) %uncomment if using function call to pipeline data
+function drawWoundSims(N, strainRate_ps, calA0, smooth, deltaSq, d_flag, att, k_ps) %uncomment if using function call to pipeline data
 isTestData = false; %uncomment if using function call to pipeline data
 
 %isTestData = true; %uncomment if using test data
@@ -22,7 +22,8 @@ ndelete="10";
 k_a = "1.0";
 %k_ps = "4.0"; %purse-string spring constant
 k_lp = "4.0"; %lamellipodia spring constant
-%tau_lp = "1.0"; %lamellipodia lifetime
+%smooth = "1";
+tau_lp = "1.0"; %lamellipodia lifetime
 %d_flag = "0.0"; %lamellipodia max length
 boundaryType = "0"; 
 %att="0.2";
@@ -35,7 +36,7 @@ FSKIP = 1;
 etaStr = " ";
 startSeed = 1;
 max_seed = 1;
-no_plots = 1;
+no_plots = 0;
 makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
 %plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
 plotCells = 1;
@@ -48,7 +49,7 @@ showverts = 0;
 showBoundaries = 0;
 showcirculoline = 0; % show line segments of circulo-lines
 att_range = 0.0;
-showArea = 0;
+showArea = 1;
 showQuiver = 0;
 walls = 0;
 showCustomView = 0; % specific choice of coordinates to zoom in on for movie
@@ -108,7 +109,7 @@ for seed = startSeed:max_seed
     else
         run_name =runType+"_A0"+calA0+"_k_a"+k_a+"_w_ps"+strainRate_ps+ ...
             "_dsq"+deltaSq+"_k_ps"+k_ps+"_k_lp"+k_lp+...
-            "_t_lp"+tau_lp+"_d_flag"+d_flag+"_bd"+boundaryType;
+            "_t_lp"+tau_lp+"_d_flag"+d_flag+"_bd"+boundaryType+"_sm"+smooth;
         pipeline_dir =  subdir_pipeline + run_name + "/";
         output_dir = subdir_output + run_name + "/";
         mkdir(pipeline_dir)
