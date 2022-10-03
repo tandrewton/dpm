@@ -1556,42 +1556,41 @@ void epi2D::vertexNVE(ofstream& enout, dpmMemFn forceCall, double dt0, int NT, i
     // update sim clock
     simclock += dt;
 
-    if (NPRINTSKIP == 0)
-      return;
-
     // print to console and file
     // if (fabs(simclock - 29.860) < 0) {
-    if (t % NPRINTSKIP == 0) {
-      //                         compute kinetic energy
-      K = vertexKineticEnergy();
+    if (NPRINTSKIP != 0) {
+      if (t % NPRINTSKIP == 0) {
+        //                         compute kinetic energy
+        K = vertexKineticEnergy();
 
-      // print to console
-      cout << endl
-           << endl;
-      cout << "===============================" << endl;
-      cout << "	D P M  						" << endl;
-      cout << " 			 					" << endl;
-      cout << "		N V E 					" << endl;
-      cout << "===============================" << endl;
-      cout << endl;
-      cout << "	** t / NT	= " << t << " / " << NT << endl;
-      cout << " ** simclock = " << setprecision(12) << simclock << endl;
-      cout << "	** U 		= " << setprecision(12) << U << endl;
-      cout << "	** K 		= " << setprecision(12) << K << endl;
-      cout << "	** E 		= " << setprecision(12) << U + K << endl;
+        // print to console
+        cout << endl
+             << endl;
+        cout << "===============================" << endl;
+        cout << "	D P M  						" << endl;
+        cout << " 			 					" << endl;
+        cout << "		N V E 					" << endl;
+        cout << "===============================" << endl;
+        cout << endl;
+        cout << "	** t / NT	= " << t << " / " << NT << endl;
+        cout << " ** simclock = " << setprecision(12) << simclock << endl;
+        cout << "	** U 		= " << setprecision(12) << U << endl;
+        cout << "	** K 		= " << setprecision(12) << K << endl;
+        cout << "	** E 		= " << setprecision(12) << U + K << endl;
 
-      // print to energy file
-      cout << "** printing energy" << endl;
-      enout << setw(w) << left << t;
-      enout << setw(wnum) << left << simclock;
-      enout << setw(wnum) << setprecision(12) << U;
-      enout << setw(wnum) << setprecision(12) << K;
-      enout << setw(wnum) << setprecision(12) << U + K;
-      enout << endl;
+        // print to energy file
+        cout << "** printing energy" << endl;
+        enout << setw(w) << left << t;
+        enout << setw(wnum) << left << simclock;
+        enout << setw(wnum) << setprecision(12) << U;
+        enout << setw(wnum) << setprecision(12) << K;
+        enout << setw(wnum) << setprecision(12) << U + K;
+        enout << endl;
 
-      // print to configuration only if position file is open
-      if (posout.is_open())
-        printConfiguration2D();
+        // print to configuration only if position file is open
+        if (posout.is_open())
+          printConfiguration2D();
+      }
     }
   }
 }

@@ -196,6 +196,10 @@ class dpm {
   void setl1(double val) { l1 = val; };
   void setl2(double val) { l2 = val; };
   void scaleL(int d, double val) { L.at(d) *= val; };
+  void scaleVelocities(double scalefactor) {
+    for (int i = 0; i < vertDOF; i++)
+      v[i] *= scalefactor;
+  }
 
   // File openers
   void openPosObject(std::string& str) {
