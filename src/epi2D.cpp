@@ -1939,8 +1939,8 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
              << '\n';
       }
     }
-    // do things after all the simulation steps have been taken, or if the wound is closed
-    if (duration > 100 && (simclock - t0 > duration - dt || woundArea == 0.0) && !alreadyRecordedFinalCells) {  // if this is a production run
+    // do things after all the simulation steps have been taken, or if the wound is closed (area=0 or area=2.5% initial area)
+    if (duration > 100 && (simclock - t0 > duration - dt || woundArea == 0.0 || woundArea < 0.025 * initialWoundArea) && !alreadyRecordedFinalCells) {  // if this is a production run
       cout << "healingTime = " << healingTime << '\n';
       cout << "wound center = " << woundCenterX << '\t' << woundCenterY << '\n';
       int ci, vi;

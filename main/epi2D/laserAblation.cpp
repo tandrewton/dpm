@@ -27,14 +27,6 @@
 
 // bash bash/epi2D/submit_laserAblation.sh 40 20 6 1.10 0.92 0.925 1.0 1.0 0.2 0.01 0.0 4.0 4.0 1.0 3.0 1.0 0.5 0 0 400 pi_ohern,day,scavenge 0-24:00:00 1 1
 
-// test suite for sliding adhesion
-// ./main/epi2D/laserAblation.o 2 20 0 1.0 0.7 0.5 1.0 1.0 0.2 0.001  2.0  4.0  4.0 1.0  3.0  1.0 0.5    0  0   0  1  test
-// ./main/epi2D/laserAblation.o 6 20 0 1.0 0.7 0.5 1.0 1.0 0.2 0.001  2.0  4.0  4.0 1.0  3.0  1.0 0.5    0  0   0  1  test
-// ./main/epi2D/laserAblation.o 6 20 0 1.0 0.85 0.95 1.0 1.0 0.0 0.001  0.0  4.0  4.0 1.0  0.0  1.0 0.5  0  1   0  1  test
-// ./main/epi2D/laserAblation.o 12 20 4 1.0 0.8 0.7 1.0 1.0 0.2 0.001  2.0  4.0  4.0 1.0  3.0  1.0 0.5   0  0   0  1  test
-// ./main/epi2D/laserAblation.o 4 18 0  1.0  0.8  0.6  1.0 1.0 0.2 0.001 0.0  4.0  4.0  1.0  0.0  1.0 0.5  0   0  0  1  400 test
-// ........................... N  NV Nd A0  pMin  pMax  kl ka  att  om   dsq  kps  klp  tau dflag  B  Dr0 CIL bound sm sd time file
-
 //
 // Parameter input list
 // 1. NCELLS: 			number of particles
@@ -67,7 +59,6 @@
 // preprocessor macros
 #define NDIM 2
 
-// namspace
 using namespace std;
 
 const bool plotCompression = 0;  // whether or not to plot configuration during compression protocol
@@ -78,7 +69,7 @@ const double boxLengthScale = 2.5;  // neighbor list box size in units of initia
 // const double phi0 = 0.5;            // initial packing fraction
 const double smallfrac = 0.5;  // fraction of small particles
 const double sizeratio = 1.4;  // size ratio between small and large particles
-const double dt0 = 0.005;      // initial magnitude of time step in units of MD time
+const double dt0 = 0.01;       // initial magnitude of time step in units of MD time
 const double Ptol = 1e-8;
 const double Ftol = 1e-12;
 const double att_range = 0.3;
@@ -297,33 +288,7 @@ int main(int argc, char const* argv[]) {
 
   // epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, B, dt0, runTime, runTime/10.0);
 
-  /*// testing numerical stability using NVE integration, vary temperature
-  int numTemperatures = 5, numCoolingCycles = 100;
-  epithelial.drawVelocities2D(1e-2);
-  for (int i = 0; i < numTemperatures; i++) {
-    std::ofstream myenergy("energyNVETest" + to_string(i) + ".txt");
-    if (i == 0)
-      epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 10000, 0);  // equilibrate, don't record
-    for (int j = 0; j < numCoolingCycles; j++) {                                  // repeat cool+relax
-      epithelial.scaleVelocities(0.995);
-      epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 100, 0);
-    }
-    epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 100000, 0);     // equilibrate, don't record
-    epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 100000, 1000);  // record
-  }*/
-
-  // testing numerical stability using NVE integration, vary timestep
-  int num_dts = 5;
-  epithelial.drawVelocities2D(1e-2);
-  for (int i = 0; i < num_dts; i++) {
-    cout << "dt0 = " << dt0 << ", dt0 / pow(2.0,i) = " << dt0 / pow(2.0, i) << '\n';
-    std::ofstream myenergy("energyNVETest" + to_string(i) + ".txt");
-    if (i == 0)
-      epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 100000, 0);  // equilibrate, don't record
-    epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0 / pow(2.0, i), 50000 * pow(2.0, i), 1000);
-  }
-
-  /*// LASER ABLATION SCHEME
+  // LASER ABLATION SCHEME
   double xLoc = 0.0, yLoc = 0.0;
   int numCellsToAblate = ndelete;
   epithelial.laserAblate(numCellsToAblate, sizeratio, nsmall, xLoc, yLoc);
@@ -337,13 +302,13 @@ int main(int argc, char const* argv[]) {
   //  dampedNP0 runs simulation with purse-string integration and crawling
 
   cout << "boolBound = " << boolBound << '\n';
-  // why am I using boolBound here?
+  // boolBound is used here to do wound healing simulations with walls, simulating a static bulk medium
   if (boolBound)
     epithelial.dampedNP0(crawlingWithPSForceUpdateWithCircularWalls, B, dt0, time_dbl, printInterval, purseStringOn);
   else
     epithelial.dampedNP0(customForceUpdate_active, B, dt0, time_dbl, printInterval, purseStringOn);
 
-  // epithelial.dampedNP0(attractiveForceUpdate, B, dt0, time_dbl, time_dbl / 100.0, wallsOff);*/
+  // epithelial.dampedNP0(attractiveForceUpdate, B, dt0, time_dbl, time_dbl / 100.0, wallsOff);
 
   cout << "\n** Finished laserAblation.cpp, ending. " << endl;
   return 0;
