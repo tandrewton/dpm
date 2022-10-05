@@ -130,4 +130,4 @@ bash bash/epi2D/submit_laserAblation.sh 20 16 4 1.10 0.94 0.85 1.0 1.0 0.2  0.00
 
 rsync -r at965@transfer-grace.hpc.yale.edu:/gpfs/gibbs/project/fas/ohern/at965/dpm/ablate /Users/AndrewTon/Documents/YalePhD/projects/dpm/pipeline/cells/.
 rsync -r at965@transfer-grace.hpc.yale.edu:/gpfs/gibbs/project/fas/ohern/at965/dpm/cell /mnt/c/Users/atata/projects/dpm/pipeline/cells/.
-rsync -r at965@transfer-grace.hpc.yale.edu:/gpfs/gibbs/project/fas/ohern/at965/dpm/ablate /mnt/c/Users/atata/projects/dpm/pipeline/cells/.
+rsync -r --inplace at965@transfer-grace.hpc.yale.edu:/gpfs/gibbs/project/fas/ohern/at965/dpm/ablate /mnt/c/Users/atata/projects/dpm/pipeline/cells/.
