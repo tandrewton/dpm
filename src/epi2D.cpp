@@ -215,12 +215,6 @@ std::vector<int> epi2D::regridSegment(int wVertIndex, double vrad) {
       }
       T += d_T;
     }
-    if (simclock > 320 && simclock < 360) {
-      if (orderedWVerts.size() < 3) {
-        cout << "orderedWVerts.size = " << orderedWVerts.size() << " for cell " << ci << '\n';
-        cout << "result.size() = " << result.size() << '\n';
-      }
-    }
     if (numVertsToDelete >= 1) {
       // int(orderedWVerts.size()) - 1 : don't delete the last vertex, it's not accounted for
       int maxIt = int(orderedWVerts.size()) - 1;
@@ -1792,7 +1786,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
 
         woundArea = calculateWoundArea(woundCenterX, woundCenterY);
         vout << simclock - t0 << '\t' << woundArea << '\n';
-        cout << simclock - t0 << '\t' << woundArea << '\n';
+        // cout << simclock - t0 << '\t' << woundArea << '\n';
         initialWoundArea = woundArea;
         initializePurseStringVariables();
       }
@@ -1829,7 +1823,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
         // cout << "woundCenterX, Y before calculating area = " << woundCenterX << '\t' << woundCenterY << '\n';
         woundArea = calculateWoundArea(woundCenterX, woundCenterY);
         vout << simclock - t0 << '\t' << woundArea << '\n';
-        cout << "simclock - t0 = " << simclock - t0 << ", woundArea = " << woundArea << '\n';
+        // cout << "simclock - t0 = " << simclock - t0 << ", woundArea = " << woundArea << '\n';
 
         // write shape information to files
         innerout << simclock - t0 << '\t';
@@ -2731,6 +2725,7 @@ void epi2D::printBoundaries(int nthLargestCluster) {
   // in order, print out the unwrapped locations of all main cluster vertices,
   // starting with a vertex in the big cluster
   cerr << "before ordering vertices\n";
+  cout << "woundArea = " << woundArea << '\n';
   int it = 0, middleit = 1000, maxit = 2000;
   int current_vertex = -2;
   bool stopSignal = false;
@@ -3203,19 +3198,6 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
       }
     }
   }
-
-  /*if (simclock > 100)
-    for (int i = 0; i < xResolution; i++) {
-      cout << "[ ";
-      for (int j = 0; j < yResolution; j++) {
-        if (i == woundPointXIndex && j == woundPointYIndex)
-          cout << "x" << '\n';
-        else
-          cout << labels[i][j];
-      }
-      cout << "]" << '\n';
-    }
-  */
 
   double sum = 0.0;
   for (int i = 0; i < labels.size(); i++) {
