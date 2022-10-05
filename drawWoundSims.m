@@ -216,9 +216,18 @@ for seed = startSeed:max_seed
             woundProperties = load(woundPropertiesStr)
             cellID = load(innerAndBulkCellIDStr);
             figure(16); clf; hold on;
-            plot(innerCellShape(:,1), mean(innerCellShape(:,2:end),2),  ...
+            %plot(innerCellShape(:,1), mean(innerCellShape(:,2:end),2),  ...
+            %    'linewidth', 4, 'DisplayName', "inner shapes")
+            %plot(bulkCellShape(:,1),mean(bulkCellShape(:,2:end),2), ...
+            %    'linewidth', 4, 'DisplayName', "bulk shapes")
+            % cellID row = [ci inInitialWoundNeighbors inFinalWoundNeighbors]
+            % we want to access inFinalWoundNeighbors of bulkCellShape
+            % bulkCellShape row = [time shape(0) shape(1) ... shape(NCELLS)]
+            timeAndInnerShapes = bulkCellShape(:,[1; cellID(:,3)]==1);
+            timeAndOuterShapes = bulkCellShape(:,[1; ~cellID(:,3)]==1);
+            plot(timeAndInnerShapes(:,1), mean(timeAndInnerShapes(:,2:end),2),  ...
                 'linewidth', 4, 'DisplayName', "inner shapes")
-            plot(bulkCellShape(:,1),mean(bulkCellShape(:,2:end),2), ...
+            plot(timeAndOuterShapes(:,1),mean(timeAndOuterShapes(:,2:end),2), ...
                 'linewidth', 4, 'DisplayName', "bulk shapes")
             xlabel('$t/\tau$','Interpreter','latex','fontsize', 24);
             ylabel('Shape','Interpreter','latex','fontsize', 24);
