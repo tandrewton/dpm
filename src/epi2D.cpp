@@ -1829,6 +1829,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
         // cout << "woundCenterX, Y before calculating area = " << woundCenterX << '\t' << woundCenterY << '\n';
         woundArea = calculateWoundArea(woundCenterX, woundCenterY);
         vout << simclock - t0 << '\t' << woundArea << '\n';
+        cout << "simclock - t0 = " << simclock - t0 << ", woundArea = " << woundArea << '\n';
 
         // write shape information to files
         innerout << simclock - t0 << '\t';
