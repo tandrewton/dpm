@@ -1962,6 +1962,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
       cout << "for 5% wound area of radius " << sqrt(fivePercentWoundArea_radius_sq) << '\n';
       woundPropertiesout << healingTime << '\t' << finalCellsInCenterOfWound.size() << '\n';
       alreadyRecordedFinalCells = true;
+      return;
     }
   }
 }
