@@ -1937,7 +1937,9 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
       }
     }
     // do things after all the simulation steps have been taken, or if the wound is closed (area=0 or area=2.5% initial area)
-    if (duration > 100 && (simclock - t0 > duration - dt || woundArea == 0.0 || woundArea < 0.025 * initialWoundArea) && healingTime < 1e9 && !alreadyRecordedFinalCells) {  // if this is a production run
+    // choice of woundArea cutoff is 5 vertex areas. no particular reason
+    double woundAreaCutoffEndSimulation = 5.0 * PI * r[0] * r[0];
+    if (duration > 100 && (simclock - t0 > duration - dt || woundArea == 0.0 || woundArea < woundAreaCutoffEndSimulation) && healingTime < 1e9 && !alreadyRecordedFinalCells) {  // if this is a production run
       cout << "healingTime = " << healingTime << '\n';
       cout << "wound center = " << woundCenterX << '\t' << woundCenterY << '\n';
 
