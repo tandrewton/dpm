@@ -236,7 +236,7 @@ int main(int argc, char const* argv[]) {
   dpmMemFn crawlingWithPSForceUpdateWithCircularWalls = static_cast<void (dpm::*)()>(&epi2D::crawlingWithPurseStringAndCircularWalls);
   dpmMemFn circuloLineAttraction = static_cast<void (dpm::*)()>(&epi2D::attractiveForceUpdate_circulo);
   dpmMemFn crawlingWithPSSmooth = static_cast<void (dpm::*)()>(&epi2D::crawlingWithPurseStringCirculo);
-  dpmMemFn crawlingWithPSCirculoWalls = static_cast<void (dpm::*)()>(&epi2D::crawlingWithPurseStringCirculoWalls);
+  dpmMemFn crawlingWithPSSmooth_Walls = static_cast<void (dpm::*)()>(&epi2D::crawlingWithPurseStringCirculoWalls);
   dpmMemFn circuloLineAttractionWithCircularWalls = static_cast<void (dpm::*)()>(&epi2D::circuloLineAttractionWithCircularWalls);
 
   epithelial.monodisperse2D(calA0, nsmall);
@@ -269,16 +269,19 @@ int main(int argc, char const* argv[]) {
   dpmMemFn customForceUpdate_inactive;
   dpmMemFn customForceUpdate_active;
   dpmMemFn customForceUpdate_inactive_with_circular_walls;
+  dpmMemFn customForceUpdate_active_with_circular_walls;
   if (!boolSmooth) {
     cout << "bumpy forces\n";
     customForceUpdate_inactive = attractiveForceUpdate;
     customForceUpdate_active = crawlingWithPSForceUpdate;
     customForceUpdate_inactive_with_circular_walls = attractiveForceUpdateWithCircularWalls;
+    customForceUpdate_active_with_circular_walls = crawlingWithPSForceUpdateWithCircularWalls;
   } else {
     cout << "smooth forces\n";
     customForceUpdate_inactive = circuloLineAttraction;
     customForceUpdate_active = crawlingWithPSSmooth;
     customForceUpdate_inactive_with_circular_walls = circuloLineAttractionWithCircularWalls;
+    customForceUpdate_active_with_circular_walls = crawlingWithPSSmooth_Walls;
   }
 
   if (isPbcOn)
@@ -294,22 +297,21 @@ int main(int argc, char const* argv[]) {
   epithelial.laserAblate(numCellsToAblate, sizeratio, nsmall, xLoc, yLoc);
   epithelial.zeroMomentum();
 
-  // epithelial.dampedNVE2D(attractiveForceUpdate, B, dt0, relaxTime, relaxTime/10);
-  // epithelial.dampedNVETest(attractiveForceUpdate, 1.0, dt0, 150.0, 150.0/10.0);
-  for (int i = 0; i < 2; i++)
-    epithelial.dampedNP0(customForceUpdate_inactive, B, dt0, relaxTime, printInterval);
-
   //  dampedNP0 runs simulation with purse-string integration and crawling
 
   cout << "boolBound = " << boolBound << '\n';
   // boolBound is used here to do wound healing simulations with walls, simulating a static bulk medium
-  if (boolBound)
-    epithelial.dampedNP0(crawlingWithPSForceUpdateWithCircularWalls, B, dt0, time_dbl, printInterval, purseStringOn);
-  else
+  if (boolBound) {
+    for (int i = 0; i < 2; i++)
+      epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, B, dt0, relaxTime, printInterval);
+
+    epithelial.dampedNP0(customForceUpdate_active_with_circular_walls, B, dt0, time_dbl, printInterval, purseStringOn);
+  } else {
+    for (int i = 0; i < 2; i++)
+      epithelial.dampedNP0(customForceUpdate_inactive, B, dt0, relaxTime, printInterval);
+
     epithelial.dampedNP0(customForceUpdate_active, B, dt0, time_dbl, printInterval, purseStringOn);
-
-  // epithelial.dampedNP0(attractiveForceUpdate, B, dt0, time_dbl, time_dbl / 100.0, wallsOff);
-
+  }
   cout << "\n** Finished laserAblation.cpp, ending. " << endl;
   return 0;
 }

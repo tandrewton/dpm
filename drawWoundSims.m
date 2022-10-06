@@ -498,8 +498,8 @@ for seed = startSeed:max_seed
             
             annotationStr = "$$t/\tau$$ = "+time(ff);
             %annotationStr = "frame = "+ff;
-            annotation('textbox',[0.48, 0.5, 0, 0],...
-                'interpreter', 'latex', 'String', annotationStr, 'Edgecolor','none', 'FitBoxToText','on');
+            %annotation('textbox',[0.48, 0.5, 0, 0],...
+            %    'interpreter', 'latex', 'String', annotationStr, 'Edgecolor','none', 'FitBoxToText','on');
             if showVoid
                 if showVoidBlack 
                     scatter(voidLocations{ff}(:,1), voidLocations{ff}(:,2),...
