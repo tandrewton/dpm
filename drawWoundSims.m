@@ -3,10 +3,10 @@
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
 
-%function drawWoundSims(N, strainRate_ps, calA0, smooth, deltaSq, d_flag, att, k_ps) %uncomment if using function call to pipeline data
-%isTestData = false; %uncomment if using function call to pipeline data
+function drawWoundSims(N, strainRate_ps, calA0, smooth, deltaSq, d_flag, att, k_ps) %uncomment if using function call to pipeline data
+isTestData = false; %uncomment if using function call to pipeline data
 
-isTestData = true; %uncomment if using test data
+%isTestData = true; %uncomment if using test data
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('C:\Users\atata\projects\dpm\bash')
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
@@ -43,10 +43,10 @@ makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately and dont s
 plotCells = 1;
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
-showWoundAndShapeProperties = 0;
+showWoundAndShapeProperties = 1;
 
 
-showverts = 0;
+showverts = 1;
 showBoundaries = 0;
 showcirculoline = 0; % show line segments of circulo-lines
 att_range = 0.0;
@@ -401,6 +401,7 @@ for seed = startSeed:max_seed
 
                     for vv = 1:nv(ff,nn)
                         xplot = xtmp(vv) - vradtmp(vv);
+                        vradtmp(vv)
                         yplot = ytmp(vv) - vradtmp(vv);
                         if showcirculoline == 1% calculate coordinates of a rectangle representing the line segment between successive vertices in a DP
                             vnext = mod(vv, nv(ff,nn))+1;
