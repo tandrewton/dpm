@@ -1551,7 +1551,7 @@ void epi2D::vertexNVE(ofstream& enout, dpmMemFn forceCall, double dt0, int NT, i
     simclock += dt;
 
     // print to console and file
-    // if (fabs(simclock - 29.860) < 0) {
+
     if (NPRINTSKIP != 0) {
       if (t % NPRINTSKIP == 0) {
         //                         compute kinetic energy
@@ -1766,7 +1766,6 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
     // FORCE UPDATE
     boundaries();  // build vnn for void detection, only intracellularly. The rest (due to adhesion) is done in forceCall.
     std::vector<double> F_old = F;
-
     CALL_MEMBER_FN(*this, forceCall)
     ();  // calls main force routine
 
@@ -1850,11 +1849,35 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
       }
     }
 
+    if (simclock > 228) {
+      for (int gi = 0; gi < NVTOT; gi++) {
+        // cout << x[NDIM * gi] << '\t' << x[NDIM * gi + 1] << '\t' << simclock << '\n';
+        if (isnan(x[NDIM * gi]) || isnan(x[NDIM * gi + 1])) {
+          cout << "before VV velocity update #2 vertex " << gi << "has nan coordinates at simclock = " << simclock << "\n";
+        }
+        if (isnan(F[NDIM * gi]) || isnan(F[NDIM * gi + 1])) {
+          cout << "before VV velocity update #2 vertex " << gi << "has nan forces at simclock = " << simclock << "\n";
+        }
+      }
+    }
+
     // VV VELOCITY UPDATE #2
     for (i = 0; i < vertDOF; i++) {
       F[i] -= (B * v[i] + B * F_old[i] * dt / 2);
       F[i] /= (1 + B * dt / 2);
       v[i] += 0.5 * (F[i] + F_old[i]) * dt;
+    }
+
+    if (simclock > 228) {
+      for (int gi = 0; gi < NVTOT; gi++) {
+        // cout << x[NDIM * gi] << '\t' << x[NDIM * gi + 1] << '\t' << simclock << '\n';
+        if (isnan(x[NDIM * gi]) || isnan(x[NDIM * gi + 1])) {
+          cout << "after VV velocity update #2 vertex " << gi << "has nan coordinates at simclock = " << simclock << "\n";
+        }
+        if (isnan(F[NDIM * gi]) || isnan(F[NDIM * gi + 1])) {
+          cout << "after VV velocity update #2 vertex " << gi << "has nan forces at simclock = " << simclock << "\n";
+        }
+      }
     }
 
     // update sim clock
@@ -3600,13 +3623,19 @@ void epi2D::evaluatePurseStringForces(double B) {
     dy = yp - yw;
     cutoff = ((dx * dx + dy * dy) < deltaSq * pow(r[0] * 2, 2));
     isSpringBroken[psi] = !cutoff;  // record broken springs for printouts
-    fx = k_ps * dx * cutoff;
-    fy = k_ps * dy * cutoff;
+    if (cutoff) {
+      fx = k_ps * dx;
+      fy = k_ps * dy;
+    } else {  // fx, dx could be nan. in which case this will protect from nans rolling over into my actual vertices
+      fx = 0;
+      fy = 0;
+      dx = 0;
+      dy = 0;
+    }
     F[gi * NDIM] += fx;
     F[gi * NDIM + 1] += fy;
     F_ps[psi * NDIM] -= fx;
     F_ps[psi * NDIM + 1] -= fy;
-    // cout << "k_ps = " << k_ps << ", F_ps_x due to spring = " << fx << '\n';
 
     // stress on gj should be the same as on gi, since it's the opposite separation and also opposite force
     fieldStress[gi][0] += -dx / 2 * fx;
@@ -3869,6 +3898,8 @@ void epi2D::printConfiguration2D() {
       if (!isSpringBroken[j] && deltaSq + k_ps > 1e-10) {
         purseout << xp << '\t' << yp << '\n';
         purseout << xw << '\t' << yw << '\n';
+        if (simclock > 228)
+          cout << "bond is unbroken between ps vertex " << j << ", and real vertex " << psContacts[j] << '\n';
       }
     }
   }
