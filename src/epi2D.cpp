@@ -1933,57 +1933,69 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
       }
     }
     // do things after all the simulation steps have been taken, or if the wound is closed (area=0 or area=2.5% initial area)
-    // choice of woundArea cutoff is 5 vertex areas. no particular reason
-    double woundAreaCutoffEndSimulation = 5.0 * PI * r[0] * r[0];
-    if (duration > 100 && (simclock - t0 > duration - dt || woundArea == 0.0 || woundArea < woundAreaCutoffEndSimulation) && healingTime < 1e9 && !alreadyRecordedFinalCells) {  // if this is a production run
+    // choice of woundArea cutoff is 2.5 vertex areas. no particular reason
+    double woundAreaCutoffEndSimulation = 2.5 * PI * r[0] * r[0];
+    if (duration > 100 && (simclock - t0 > duration - dt || woundArea == 0.0 || woundArea < woundAreaCutoffEndSimulation) && healingTime < 1e9 && !alreadyRecordedFinalCells) {
+      // exit conditions
+      break;
+    }
+  }
+
+  if (duration > 100) {  // production run, not equilibration run
+    // to get here, simulation must have (time > duration) or (wound is detected to be closed)
+    cout << "breaking from wound healing integration, recording final quantities.\n";
+
+    int ci, vi;
+    double fivePercentWoundArea_radius_sq = 0.05 * initialWoundArea / PI;
+    double distance;
+    std::vector<int> finalCellsInCenterOfWound;
+
+    for (int gi = 0; gi < NVTOT; gi++) {
+      distance = pow(x[gi * NDIM] - woundCenterX, 2) + pow(x[gi * NDIM + 1] - woundCenterY, 2);
+      if (distance < fivePercentWoundArea_radius_sq) {  // if vertex is within radius set by 5% of wound area, record the cell
+        cindices(ci, vi, gi);
+        finalCellsInCenterOfWound.push_back(ci);
+      }
+    }
+    // store the final cells in the center of the wound
+    std::sort(finalCellsInCenterOfWound.begin(), finalCellsInCenterOfWound.end());
+    finalCellsInCenterOfWound.erase(std::unique(finalCellsInCenterOfWound.begin(), finalCellsInCenterOfWound.end()), finalCellsInCenterOfWound.end());
+
+    for (auto i : finalCellsInCenterOfWound)
+      cout << "final cell : " << i << '\n';
+
+    // if ci is an initial wound cell, record it as in the first row. if not, record it as in the second row.
+    std::vector<int> firstRow, secondRow;
+    for (int ci = 0; ci < NCELLS; ci++) {
+      if (std::find(initialWoundCellIndices.begin(), initialWoundCellIndices.end(), ci) != initialWoundCellIndices.end())
+        firstRow.push_back(ci);
+      else
+        secondRow.push_back(ci);
+    }
+
+    // record each cellID, whether it's initially wound adjacent (firstRow) or not, and whether its finally wound adjacent (finalCellsInCenterOfWound) or not.
+    for (int ci = 0; ci < NCELLS; ci++) {
+      bool isInInitialWound = 0, isInFinalWound = 0;
+
+      isInInitialWound = std::find(initialWoundCellIndices.begin(), initialWoundCellIndices.end(), ci) != initialWoundCellIndices.end();
+
+      isInFinalWound = std::find(finalCellsInCenterOfWound.begin(), finalCellsInCenterOfWound.end(), ci) != finalCellsInCenterOfWound.end();
+
+      cellIDout << ci << '\t' << isInInitialWound << '\t' << isInFinalWound << '\n';
+    }
+
+    cout << "number of cells in center = " << finalCellsInCenterOfWound.size() << '\n';
+    cout << "for 5% wound area of radius " << sqrt(fivePercentWoundArea_radius_sq) << '\n';
+    if (healingTime < 1e9) {
       cout << "healingTime = " << healingTime << '\n';
       cout << "wound center = " << woundCenterX << '\t' << woundCenterY << '\n';
-
-      int ci, vi;
-      double fivePercentWoundArea_radius_sq = 0.05 * initialWoundArea / PI;
-      double distance;
-      std::vector<int> finalCellsInCenterOfWound;
-
-      for (int gi = 0; gi < NVTOT; gi++) {
-        distance = pow(x[gi * NDIM] - woundCenterX, 2) + pow(x[gi * NDIM + 1] - woundCenterY, 2);
-        if (distance < fivePercentWoundArea_radius_sq) {  // if vertex is within radius set by 5% of wound area, record the cell
-          cindices(ci, vi, gi);
-          finalCellsInCenterOfWound.push_back(ci);
-        }
-      }
-      // store the final cells in the center of the wound
-      std::sort(finalCellsInCenterOfWound.begin(), finalCellsInCenterOfWound.end());
-      finalCellsInCenterOfWound.erase(std::unique(finalCellsInCenterOfWound.begin(), finalCellsInCenterOfWound.end()), finalCellsInCenterOfWound.end());
-
-      for (auto i : finalCellsInCenterOfWound)
-        cout << "final cell : " << i << '\n';
-
-      // if ci is an initial wound cell, record it as in the first row. if not, record it as in the second row.
-      std::vector<int> firstRow, secondRow;
-      for (int ci = 0; ci < NCELLS; ci++) {
-        if (std::find(initialWoundCellIndices.begin(), initialWoundCellIndices.end(), ci) != initialWoundCellIndices.end())
-          firstRow.push_back(ci);
-        else
-          secondRow.push_back(ci);
-      }
-
-      // record each cellID, whether it's initially wound adjacent (firstRow) or not, and whether its finally wound adjacent (finalCellsInCenterOfWound) or not.
-      for (int ci = 0; ci < NCELLS; ci++) {
-        bool isInInitialWound = 0, isInFinalWound = 0;
-
-        isInInitialWound = std::find(initialWoundCellIndices.begin(), initialWoundCellIndices.end(), ci) != initialWoundCellIndices.end();
-
-        isInFinalWound = std::find(finalCellsInCenterOfWound.begin(), finalCellsInCenterOfWound.end(), ci) != finalCellsInCenterOfWound.end();
-
-        cellIDout << ci << '\t' << isInInitialWound << '\t' << isInFinalWound << '\n';
-      }
-
-      cout << "number of cells in center = " << finalCellsInCenterOfWound.size() << '\n';
-      cout << "for 5% wound area of radius " << sqrt(fivePercentWoundArea_radius_sq) << '\n';
-      woundPropertiesout << healingTime << '\t' << finalCellsInCenterOfWound.size() << '\n';
-      alreadyRecordedFinalCells = true;
-      return;
+    } else {
+      cout << "wound did not close.\n";
+      healingTime = duration;
     }
+
+    woundPropertiesout << healingTime << '\t' << finalCellsInCenterOfWound.size() << '\n';
+    alreadyRecordedFinalCells = true;
   }
 }
 

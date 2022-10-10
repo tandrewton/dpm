@@ -3,7 +3,7 @@
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
 
-%function drawWoundSims(N, strainRate_ps, calA0, smooth, deltaSq, d_flag, att, k_ps) %uncomment if using function call to pipeline data
+%function drawWoundSims(N, strainRate_ps, calA0, smooth, deltaSq, d_flag, att, boundaryType) %uncomment if using function call to pipeline data
 %isTestData = false; %uncomment if using function call to pipeline data
 
 isTestData = true; %uncomment if using test data
@@ -21,12 +21,12 @@ ndelete="10";
 %strainRate_ps="0.01";
 %deltaSq = "2.0";
 k_a = "1.0";
-%k_ps = "4.0"; %purse-string spring constant
+k_ps = "4.0"; %purse-string spring constant
 k_lp = "4.0"; %lamellipodia spring constant
 %smooth = "1";
 tau_lp = "1.0"; %lamellipodia lifetime
 %d_flag = "0.0"; %lamellipodia max length
-boundaryType = "0"; 
+%boundaryType = "0"; 
 %att="0.2";
 B="1.0";
 Dr0="0.5";
@@ -37,7 +37,7 @@ FSKIP = 1;
 etaStr = " ";
 startSeed = 1;
 max_seed = 1;
-no_plots = 1;
+no_plots = 0;
 makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
 %plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
 plotCells = 1;
@@ -401,7 +401,6 @@ for seed = startSeed:max_seed
 
                     for vv = 1:nv(ff,nn)
                         xplot = xtmp(vv) - vradtmp(vv);
-                        vradtmp(vv)
                         yplot = ytmp(vv) - vradtmp(vv);
                         if showcirculoline == 1% calculate coordinates of a rectangle representing the line segment between successive vertices in a DP
                             vnext = mod(vv, nv(ff,nn))+1;
