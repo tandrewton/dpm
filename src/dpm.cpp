@@ -2382,6 +2382,7 @@ void dpm::evaluatePolygonalWallForces(const std::vector<double>& poly_x, const s
   // evaluates particle-wall forces for a polygonal boundary specified by poly_x,poly_y. Does not compute stress yet.
   int n = poly_x.size();
   double distanceParticleWall, scaledDistParticleWall, Rx, Ry, dw, K = 10;
+  double kint = (kc * l1) / (l2 - l1);
   double bound_x1, bound_x2, bound_y1, bound_y2;
   double shellij, cutij, ftmp;
   // loop over boundary bars
@@ -2397,21 +2398,21 @@ void dpm::evaluatePolygonalWallForces(const std::vector<double>& poly_x, const s
     for (int i = 0; i < NVTOT; i++) {
       distanceParticleWall = distanceLinePointComponents(bound_x1, bound_y1, bound_x2, bound_y2, x[i * NDIM], x[i * NDIM + 1], Rx, Ry);
       dw = r[i] - distanceParticleWall;
-      if (attractionOn) {
+      if (attractionOn) {  // attractive, so choose a weaker K and check for attractive shell interaction
         scaledDistParticleWall = distanceParticleWall / r[i];
-        K = 1;
+        // K = 1;
         shellij = (1.0 + l2) * r[i];
         cutij = (1.0 + l1) * r[i];
         if (distanceParticleWall <= shellij) {  // within attracting shell 2
           if (distanceParticleWall > cutij) {
-            ftmp = K * (scaledDistParticleWall - 1.0 - l2) / r[i];
+            ftmp = kint * (scaledDistParticleWall - 1.0 - l2) / r[i];
           } else {  // within attracting shell 1, potentially within repulsion distance
-            ftmp = K * (1 - scaledDistParticleWall) / r[i];
+            ftmp = kc * (1 - scaledDistParticleWall) / r[i];
           }
           F[i * NDIM] += ftmp * Rx / distanceParticleWall;
           F[i * NDIM + 1] += ftmp * Ry / distanceParticleWall;
         }
-      } else if (distanceParticleWall <= r[i]) {
+      } else if (distanceParticleWall <= r[i]) {  // purely repulsive, only look for particle-wall overlap
         F[i * NDIM] += K * dw * Rx / distanceParticleWall;
         F[i * NDIM + 1] += K * dw * Ry / distanceParticleWall;
         U += K / 2 * pow(dw, 2);
