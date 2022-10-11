@@ -1711,7 +1711,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
   int i;
   double K, t0 = simclock, shape_ci;
   double temp_simclock = simclock;
-  double initialWoundArea = 1e10, healingTime = 1e10;
+  double initialWoundArea = 1e10, healingTime = NAN;
   bool alreadyRecordedFinalCells = false;
 
   // set time step magnitude
@@ -1767,8 +1767,8 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
     ();  // calls main force routine
 
     if (simclock - t0 > 10 && purseStringOn == 1) {  // purseStringOn refers to whether it's been initialized, not its parameters. so dsq = 0 has a nonfunctional pursestring, but still has purseStringOn = 1
-      if (psContacts.size() == 0 && woundArea == 1e10) {
-        cout << "inside psContacts.size() == 0 and woundArea == 1e10 case, which should only occur once!\n";
+      if (psContacts.size() == 0 && isnan(woundArea)) {
+        cout << "inside psContacts.size() == 0 and woundArea == NAN case, which should only occur once!\n";
         getWoundVertices(nthLargestCluster);
         woundCenterX = 0;
         woundCenterY = 0;
@@ -1784,6 +1784,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
         vout << simclock - t0 << '\t' << woundArea << '\n';
         // cout << simclock - t0 << '\t' << woundArea << '\n';
         initialWoundArea = woundArea;
+        assert(!isnan(initialWoundArea));
         initializePurseStringVariables();
       }
 
@@ -1838,7 +1839,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
         innerout << '\n';
         bulkout << '\n';
 
-        if (woundArea < 0.05 * initialWoundArea && healingTime == 1e10) {
+        if (woundArea < 0.05 * initialWoundArea && isnan(healingTime)) {
           cout << "wound area is less than 5 percent of initial!\n";
           cout << simclock - t0 << '\t' << woundArea << '\n';
           healingTime = simclock - t0;
@@ -1935,7 +1936,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
     // do things after all the simulation steps have been taken, or if the wound is closed (area=0 or area=2.5% initial area)
     // choice of woundArea cutoff is 2.5 vertex areas. no particular reason
     double woundAreaCutoffEndSimulation = 2.5 * PI * r[0] * r[0];
-    if (duration > 100 && (simclock - t0 > duration - dt || woundArea == 0.0 || woundArea < woundAreaCutoffEndSimulation) && healingTime < 1e9 && !alreadyRecordedFinalCells) {
+    if (duration > 100 && (simclock - t0 > duration - dt || woundArea == 0.0 || woundArea < woundAreaCutoffEndSimulation) && !isnan(healingTime) && !alreadyRecordedFinalCells) {
       // exit conditions
       break;
     }
@@ -1986,7 +1987,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
 
     cout << "number of cells in center = " << finalCellsInCenterOfWound.size() << '\n';
     cout << "for 5% wound area of radius " << sqrt(fivePercentWoundArea_radius_sq) << '\n';
-    if (healingTime < 1e9) {
+    if (!isnan(healingTime)) {
       cout << "healingTime = " << healingTime << '\n';
       cout << "wound center = " << woundCenterX << '\t' << woundCenterY << '\n';
     } else {
@@ -3108,6 +3109,8 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
   // then take woundPoint and calculate the largest continuous blob of 0 values in occupancyMatrix.
   //  multiply by grid point area to get the total wound area.
 
+  // note: NAN will be ignored in plots, so I use it here for plotting purposes. Make sure that woundArea does not collide with important things (i.e. get multiplied into meaningful simulation quantities)
+
   // note: running this every 100 or 1000 timesteps should be fine.
   std::vector<double> posX(NVTOT / 2), posY(NVTOT / 2);
   for (int i = 0; i < NVTOT; i++) {
@@ -3126,8 +3129,8 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
   double yLow = *std::min_element(posY.begin(), posY.end());
   double yHigh = *std::max_element(posY.begin(), posY.end());
   if (fabs(woundPointX) > xHigh) {
-    cout << "woundPoint does not lie within the bounds of the simulation box, probably failed to find the center of a wound\n returning 0 area, skipping.\n";
-    return 0.0;
+    cout << "woundPoint does not lie within the bounds of the simulation box, probably failed to find the center of a wound\n returning NAN area, skipping.\n";
+    return NAN;
   }
 
   int xResolution = (xHigh - xLow) / resolution;
@@ -3189,8 +3192,8 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
       }
     }
     if (offset > searchRange) {
-      // cout << "failed to find a nearby point identifiable as a wound, returning 1e10 for area\n";
-      return 1e10;
+      cout << "failed to find a nearby point identifiable as a wound, returning NAN for area\n";
+      return NAN;
     }
     // set wound point to the newly identified point
     woundPointX = newXIndex * resolution;

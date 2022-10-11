@@ -31,8 +31,9 @@ Dr0="0.5";
 boolCIL="0";
 Duration="400";
 
+numSeeds = 4;
 startSeed = 1;
-max_seed = 1;
+max_seed = numSeeds;
 set(0,'DefaultFigureWindowStyle','docked')
 
 %PC directory
@@ -46,7 +47,6 @@ subdir_output = pc_dir + "output/cells/"+runType+"/";
 % set up plotting windows
 numPlots = 2; % area, shape
 numPlotTypes = 4; % 
-numSeeds = 4;
 for i=1:numPlots
     for j=1:numPlotTypes
         figure(j+numPlotTypes*(i-1)); clf; hold on;    
@@ -57,8 +57,8 @@ for i=1:numPlots
     end
 end
 
-figure(998); clf; hold on; % for debugging
-figure(999); clf; hold on; % for debugging
+%figure(998); clf; hold on; % for debugging
+%figure(999); clf; hold on; % for debugging
 
 sm_arr = ["0" "1"];
 att_arr = [0.1 0.2];
@@ -94,6 +94,7 @@ for i=1:length(boundary_array)
                     bd = boundary_array(i);
                     att = att_arr(j);
                     sm = sm_arr(k);
+                    seed = m;
                     run_name =runType+"_A0"+calA0+"_k_a"+k_a+"_w_ps"+strainRate_ps+ ...
                         "_dsq"+deltaSq+"_k_ps"+k_ps+"_k_lp"+k_lp+...
                         "_t_lp"+tau_lp+"_d_flag"+d_flag+"_bd"+boundaryType+"_sm"+smooth;
@@ -127,7 +128,7 @@ for i=1:length(boundary_array)
                     woundProperties_sd = load(woundPropertiesStr);
                     cellID = load(innerAndBulkCellIDStr);
                     innerShapes_sd = bulkCellShape_sd(:,[1; cellID(:,3)]==1);
-                    meanInnerShapes_sd = mean(innerShapes_sd(:,2:end),2);
+                    meanInnerShapes_sd = nanmean(innerShapes_sd(:,2:end),2);
                     timeInnerShapes_sd = innerShapes_sd(:,1);
 
                     % pad shorter voidArea with zeros to add them together
@@ -186,10 +187,10 @@ for i=1:length(boundary_array)
                 % bulkCellShape row = [time shape(0) shape(1) ... shape(NCELLS)]
                 %innerShapes = bulkCellShape(:,[1; cellID(:,3)]==1);
                 %outerShapes = bulkCellShape(:,[1; ~cellID(:,3)]==1);
-                %plot(innerShapes(:,1), mean(innerShapes(:,2:end),2),  ...
+                %plot(innerShapes(:,1), nanmean(innerShapes(:,2:end),2),  ...
                 %    'linewidth', 4, 'DisplayName', "inner shapes",...
                 %     'Color', color_array(l),'LineStyle', style_array(j))
-                %plot(timeAndOuterShapes(:,1),mean(timeAndOuterShapes(:,2:end),2), ...
+                %plot(timeAndOuterShapes(:,1),nanmean(timeAndOuterShapes(:,2:end),2), ...
                 %    'linewidth', 4, 'DisplayName', "bulk shapes")
                 plot(timeInnerShapes, meanInnerShapes, 'linewidth', 4, ...
                     'DisplayName', "inner shapes", 'Color', ...
