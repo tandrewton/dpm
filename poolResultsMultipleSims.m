@@ -124,6 +124,7 @@ for i=1:length(boundary_array)
                     innerAndBulkCellIDStr = pipeline_dir+fileheader+ '.cellID';
     
                     voidArea_sd = load(voidAreaStr);
+                    voidArea_sd(voidArea_sd == 1e10) = NaN;
                     bulkCellShape_sd = load(bulkStr);
                     woundProperties_sd = load(woundPropertiesStr);
                     cellID = load(innerAndBulkCellIDStr);
