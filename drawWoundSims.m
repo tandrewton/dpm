@@ -18,9 +18,10 @@ runType = "ablate";
 %N="40";
 ndelete="10";
 %calA0="1.10";
-%strainRate_ps="0.01";
+%strainRate_ps="0.001";
 %deltaSq = "2.0";
-k_a = "1.0";
+%k_a = "1.0";
+k_l = "1.0";
 k_ps = "4.0"; %purse-string spring constant
 k_lp = "4.0"; %lamellipodia spring constant
 %smooth = "1";
@@ -109,7 +110,7 @@ for seed = startSeed:max_seed
         woundPropertiesStr = pc_dir+ 'test.woundProperties';
         innerAndBulkCellIDStr = pc_dir+'test.cellID';
     else
-        run_name =runType+"_A0"+calA0+"_k_a"+k_a+"_w_ps"+strainRate_ps+ ...
+        run_name =runType+"_A0"+calA0+"_k_l"+k_l+"_w_ps"+strainRate_ps+ ...
             "_dsq"+deltaSq+"_k_ps"+k_ps+"_k_lp"+k_lp+...
             "_t_lp"+tau_lp+"_d_flag"+d_flag+"_bd"+boundaryType+"_sm"+smooth;
         pipeline_dir =  subdir_pipeline + run_name + "/";

@@ -18,7 +18,8 @@ N="60";
 calA0="1.10";
 strainRate_ps="0.001";
 %deltaSq = "2.0";
-k_a = "1.0";
+%k_a = "1.0";
+k_l = "1.0";
 k_ps = "4.0"; %purse-string spring constant
 k_lp = "4.0"; %lamellipodia spring constant
 %smooth = "1";
@@ -45,7 +46,7 @@ subdir_pipeline = pc_dir + "pipeline/cells/"+runType+"/";
 subdir_output = pc_dir + "output/cells/"+runType+"/";
 
 % set up plotting windows
-numPlots = 2; % area, shape
+numPlots = 5; % area, shape, t_heal vs n_rose, heatmap 1, heatmap 2
 numPlotTypes = 4; % 
 for i=1:numPlots
     for j=1:numPlotTypes
@@ -95,7 +96,7 @@ for i=1:length(boundary_array)
                     att = att_arr(j);
                     sm = sm_arr(k);
                     seed = m;
-                    run_name =runType+"_A0"+calA0+"_k_a"+k_a+"_w_ps"+strainRate_ps+ ...
+                    run_name =runType+"_A0"+calA0+"_k_l"+k_l+"_w_ps"+strainRate_ps+ ...
                         "_dsq"+deltaSq+"_k_ps"+k_ps+"_k_lp"+k_lp+...
                         "_t_lp"+tau_lp+"_d_flag"+d_flag+"_bd"+boundaryType+"_sm"+smooth;
                     pipeline_dir =  subdir_pipeline + run_name + "/";
@@ -199,6 +200,19 @@ for i=1:length(boundary_array)
                 xlabel('$t/\tau$','Interpreter','latex','fontsize', 24);
                 ylabel('Shape','Interpreter','latex','fontsize', 24);
                 %legend('location','northwest','fontsize', 14)
+
+                if (boundaryType == "0" && smooth == "0")
+                    figure(9)
+                elseif (boundaryType == "1" && smooth == "0")
+                    figure(10)
+                elseif (boundaryType == "0" && smooth == "1")
+                    figure(11)
+                elseif (boundaryType == "1" && smooth == "1")
+                    figure(12)
+                end
+
+                scatter(woundProperties_sd(1), woundProperties_sd(2), j*25, ...
+                    color_array(l), 'x')
             end
         end
     end

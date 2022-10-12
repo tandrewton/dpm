@@ -158,6 +158,9 @@ bash bash/epi2D/submit_laserAblation.sh 60 20 6 1.10 0.94 0.85 1.0 1.0 0.2  0.00
 bash bash/epi2D/submit_laserAblation.sh 60 20 6 1.10 0.94 0.85 1.0 1.0 0.2  0.001 2.0 4.0 4.0 1.0 0.0 1.0 0.5 0 1 0 400 pi_ohern,day,scavenge 0-12:00:00 4 1
 bash bash/epi2D/submit_laserAblation.sh 60 20 6 1.10 0.94 0.85 1.0 1.0 0.2  0.001 2.0 4.0 4.0 1.0 3.0 1.0 0.5 0 1 0 400 pi_ohern,day,scavenge 0-12:00:00 4 1
 
+# 12 models: bd (0 1), sm (0 1), activity (C P CP)
+# 12 parameters: att (0.1 0.2), calA0 (0.9 1.1), kl (0.1, 1, 10)
+
 
 bash bash/cells/submit_neuralTube.sh 10 20 1.0 0.01 0.002 0.002 3000 pi_ohern,day,scavenge 0-12:00:00 1 1
 
