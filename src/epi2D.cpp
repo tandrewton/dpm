@@ -1767,7 +1767,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
     ();  // calls main force routine
 
     if (simclock - t0 > 10 && purseStringOn == 1) {  // purseStringOn refers to whether it's been initialized, not its parameters. so dsq = 0 has a nonfunctional pursestring, but still has purseStringOn = 1
-      if (psContacts.size() == 0 && isnan(woundArea)) {
+      if (psContacts.size() == 0 && std::isnan(woundArea)) {
         cout << "inside psContacts.size() == 0 and woundArea == NAN case, which should only occur once!\n";
         getWoundVertices(nthLargestCluster);
         woundCenterX = 0;
@@ -1784,7 +1784,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
         vout << simclock - t0 << '\t' << woundArea << '\n';
         // cout << simclock - t0 << '\t' << woundArea << '\n';
         initialWoundArea = woundArea;
-        assert(!isnan(initialWoundArea));
+        assert(!std::isnan(initialWoundArea));
         initializePurseStringVariables();
       }
 
@@ -1839,7 +1839,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
         innerout << '\n';
         bulkout << '\n';
 
-        if (woundArea < 0.05 * initialWoundArea && isnan(healingTime)) {
+        if (woundArea < 0.05 * initialWoundArea && std::isnan(healingTime)) {
           cout << "wound area is less than 5 percent of initial!\n";
           cout << simclock - t0 << '\t' << woundArea << '\n';
           healingTime = simclock - t0;
@@ -1936,7 +1936,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
     // do things after all the simulation steps have been taken, or if the wound is closed (area=0 or area=2.5% initial area)
     // choice of woundArea cutoff is 2.5 vertex areas. no particular reason
     double woundAreaCutoffEndSimulation = 2.5 * PI * r[0] * r[0];
-    if (duration > 100 && (simclock - t0 > duration - dt || woundArea == 0.0 || woundArea < woundAreaCutoffEndSimulation) && !isnan(healingTime) && !alreadyRecordedFinalCells) {
+    if (duration > 100 && (simclock - t0 > duration - dt || woundArea == 0.0 || woundArea < woundAreaCutoffEndSimulation) && !std::isnan(healingTime) && !alreadyRecordedFinalCells) {
       // exit conditions
       break;
     }
@@ -1987,7 +1987,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
 
     cout << "number of cells in center = " << finalCellsInCenterOfWound.size() << '\n';
     cout << "for 5% wound area of radius " << sqrt(fivePercentWoundArea_radius_sq) << '\n';
-    if (!isnan(healingTime)) {
+    if (!std::isnan(healingTime)) {
       cout << "healingTime = " << healingTime << '\n';
       cout << "wound center = " << woundCenterX << '\t' << woundCenterY << '\n';
     } else {
