@@ -63,7 +63,7 @@ class epi2D : public dpm {
   // otherwise.
   double initialLx;
 
-  std::vector<double> VL; // velocity of box lengths L (there are 4 box lengths)
+  std::vector<double> VL;  // velocity of box lengths L (there are 4 box lengths)
 
   // stores nearest neighbors indices of each vertex according to adjacency
   // (intracell) and adhesion (intercell)
@@ -97,7 +97,7 @@ class epi2D : public dpm {
   std::vector<int> initialWoundCellIndices;
   double woundCenterX;
   double woundCenterY;
-  double woundArea = 1e10;
+  double woundArea = NAN;
 
   // flag for vertex repulsion (if a cell has only 1 wound vertex, then turn off repulsion so that it gets sucked into the bulk)
   std::vector<int> sortedWoundIndices;
@@ -274,7 +274,6 @@ class epi2D : public dpm {
       std::cout << "** Opening file " << str << " ..." << std::endl;
   }
 
-
   // setters
   void setkbi(double val) { fill(kbi.begin(), kbi.end(), val); };
   void setShapeRelaxationRate(double val) { shapeRelaxationRate = val; }
@@ -309,8 +308,7 @@ class epi2D : public dpm {
   void repulsiveForceUpdateWithWalls();
   void vertexAttractiveForces2D_2();
   void circuloLineAttractiveForces();
-  void calculateSmoothInteraction(double &rx, double &ry, double &sij, double &shellij, double &cutij, double &kint, 
-        double &kc, int &gi, int &gj, double &contactType, int &ci, int &cj);
+  void calculateSmoothInteraction(double& rx, double& ry, double& sij, double& shellij, double& cutij, double& kint, double& kc, int& gi, int& gj, double& contactType, int& ci, int& cj);
   void attractiveForceUpdate_circulo();
   void attractiveForceUpdate_2();
   void activeAttractiveForceUpdate();
@@ -369,7 +367,7 @@ class epi2D : public dpm {
   void orientDirector(int ci, double xLoc, double yLoc);
   void deflectOverlappingDirectors();
   double getDistanceToVertexAtAnglePsi(int ci, double psi_ci, double cx, double cy, int& gi);
-  double getDistanceToRandomUnadheredVertex(int ci, double cx, double cy, int&gi);
+  double getDistanceToRandomUnadheredVertex(int ci, double cx, double cy, int& gi);
   double rotateAndCalculateArcLength(int ci, std::vector<int>& woundIndicesBelongingToCi);
   void purseStringContraction(double B);
   void initializePurseStringVariables();
