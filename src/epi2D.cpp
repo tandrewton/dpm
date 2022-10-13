@@ -3239,13 +3239,19 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
     }
   }
 
+  // now we've assigned 0 to all non-main-cluster boxes, so just sum over the number of 1s to get the number of boxes in main cluster
   double sum = 0.0;
+  double xLocs = 0.0, yLocs = 0.0;
   for (int i = 0; i < labels.size(); i++) {
     for (int j = 0; j < labels[i].size(); j++) {
       sum += labels[i][j];
+      xLocs += i * resolution * labels[i][j];
+      yLocs += j * resolution * labels[i][j];
     }
   }
-
+  // wound center can be found as the geometric center of all the boxes with label 1, which is as accurate as the resolution
+  woundPointX = xLocs / sum;
+  woundPointY = yLocs / sum;
   //   area should be the number of boxes times the box area
   //   alternatively, I could get the exact area by locating vertices on the edge of my newly segmented void area, but that's more computational work
   return sum * pow(resolution, 2);
