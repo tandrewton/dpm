@@ -75,15 +75,19 @@ drawWoundSims(60, 0.001, "1.10", "0", "2.0", "3.0", 0.1, "0")
 drawWoundSims(60, 0.001, "1.10", "0", "2.0", "0.0", 0.1, "0")
 drawWoundSims(60, 0.001, "1.10", "0", "0.0", "3.0", 0.1, "0")
 
-sm_arr = ["0" "1"];
+%sm_arr = ["0" "1"];
+sm_arr = ["0"];
 att_arr = [0.1 0.2];
 boundary_array = ["0" "1"];
+calA0_arr = ["1.0" "1.10"];
 for i=1:length(boundary_array)
   for j=1:length(att_arr)
     for k=1:length(sm_arr)
-      drawWoundSims(60, 0.001, "1.10", sm_arr(k), "2.0", "3.0", att_arr(j), boundary_array(i))
-      drawWoundSims(60, 0.001, "1.10", sm_arr(k), "2.0", "0.0", att_arr(j), boundary_array(i))
-      drawWoundSims(60, 0.001, "1.10", sm_arr(k), "0.0", "3.0", att_arr(j), boundary_array(i))
+      for l=1:length(calA0_arr)
+        drawWoundSims(60, 0.001, calA0_arr(l), sm_arr(k), "2.0", "3.0", att_arr(j), boundary_array(i))
+        drawWoundSims(60, 0.001, calA0_arr(l), sm_arr(k), "2.0", "0.0", att_arr(j), boundary_array(i))
+        drawWoundSims(60, 0.001, calA0_arr(l), sm_arr(k), "0.0", "3.0", att_arr(j), boundary_array(i))
+      end
     end
   end
 end

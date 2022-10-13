@@ -32,7 +32,7 @@ Dr0="0.5";
 boolCIL="0";
 Duration="400";
 
-numSeeds = 4;
+numSeeds = 10;
 startSeed = 1;
 max_seed = numSeeds;
 set(0,'DefaultFigureWindowStyle','docked')
@@ -47,7 +47,7 @@ subdir_output = pc_dir + "output/cells/"+runType+"/";
 
 % set up plotting windows
 numPlots = 5; % area, shape, t_heal vs n_rose, heatmap 1, heatmap 2
-numPlotTypes = 4; % 
+numPlotTypes = 2; % 
 for i=1:numPlots
     for j=1:numPlotTypes
         figure(j+numPlotTypes*(i-1)); clf; hold on;    
@@ -61,7 +61,8 @@ end
 %figure(998); clf; hold on; % for debugging
 %figure(999); clf; hold on; % for debugging
 
-sm_arr = ["0" "1"];
+%sm_arr = ["0" "1"];
+sm_arr = ["0"];
 att_arr = [0.1 0.2];
 boundary_array = ["0" "1"];
 color_array = ["red" "blue" "black"];
@@ -87,9 +88,10 @@ for i=1:length(boundary_array)
                 end
                 % might also be looping over m=numSeeds to accumulate some results
                 voidArea = zeros(0,2);
-                meanInnerShapes = zeros(0,1);
+                meanInnerShapes = NaN(0,1);
                 timeInnerShapes = zeros(0,1);
                 timestep = 0; % determine on the fly to pad with zeros
+                innerShapeArr = []; % fill with meanInnerShape and dynamically pad rows with nans
                 for m=1:numSeeds
                     % construct filenames to find the right simulation
                     bd = boundary_array(i);
@@ -134,25 +136,35 @@ for i=1:length(boundary_array)
                     timeInnerShapes_sd = innerShapes_sd(:,1);
 
                     % pad shorter voidArea with zeros to add them together
+                    % pad meanInnerShapes end+1:length with NaNs to nanmean them later 
                     if (length(voidArea) < length(voidArea_sd))
                         voidArea(length(voidArea_sd),:) = 0;
-                        meanInnerShapes(length(meanInnerShapes_sd),:) = 0;
+                        meanInnerShapes(end+1:length(meanInnerShapes_sd),:) = nan;
                         voidArea(:,1) = voidArea_sd(:,1); %extend time column
                         timeInnerShapes = timeInnerShapes_sd; %extend time column
                     elseif (length(voidArea_sd) < length(voidArea))
                         voidArea_sd(length(voidArea),:) = 0;
-                        meanInnerShapes_sd(length(meanInnerShapes),:) = 0;
+                        meanInnerShapes_sd(end+1:length(meanInnerShapes),:) = nan;
                         voidArea_sd(:,1) = voidArea(:,1); %extend time column
                     end
                     % otherwise they have exactly the same length, so don't
                     % adjust lengths
 
                     voidArea(:,2) = voidArea(:,2) + voidArea_sd(:,2);
-                    meanInnerShapes = meanInnerShapes + meanInnerShapes_sd;
+                    %meanInnerShapes = meanInnerShapes + meanInnerShapes_sd;
+                    sizeInnerShapeArr = size(innerShapeArr);
+                    differenceSize = sizeInnerShapeArr(2) - length(meanInnerShapes_sd);
+                    if (differenceSize < 0)
+                        innerShapeArr = padarray(innerShapeArr, [0 -differenceSize], nan, 'post');
+                    elseif (differenceSize > 0)
+                        meanInnerShapes_sd = padarray(meanInnerShapes_sd, [0 differenecSize], nan, 'post');
+                    end
+                    innerShapeArr(end+1, :) = meanInnerShapes_sd;
                 end
 
                 voidArea = voidArea / numSeeds;
-                meanInnerShapes = meanInnerShapes / numSeeds;
+                %meanInnerShapes = meanInnerShapes / numSeeds;
+                meanInnerShapes = nanmean(innerShapeArr, 1);
 
                 % plot area vs time
                 if (boundaryType == "0" && smooth == "0")
