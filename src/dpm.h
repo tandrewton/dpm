@@ -200,6 +200,20 @@ class dpm {
     for (int i = 0; i < vertDOF; i++)
       v[i] *= scalefactor;
   }
+  void displaceCell(int ci, double displaceX, double displaceY) {
+    int firstIndex = szList[ci];
+    for (int gi = firstIndex; gi < firstIndex + nv[ci]; gi++) {
+      x[NDIM * gi] += displaceX;
+      x[NDIM * gi + 1] += displaceY;
+    }
+  }
+  void setCellVelocity(int ci, double velocityX, double velocityY) {
+    int firstIndex = szList[ci];
+    for (int gi = firstIndex; gi < firstIndex + nv[ci]; gi++) {
+      v[NDIM * gi] = velocityX;
+      v[NDIM * gi + 1] = velocityY;
+    }
+  }
 
   // File openers
   void openPosObject(std::string& str) {
