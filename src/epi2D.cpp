@@ -1374,8 +1374,8 @@ void epi2D::updateSubstrateSprings() {
 
         if (minFlagDistance < 0 && woundArea > woundAreaCutOff)  // failed to find a valid vertex to throw a flag from
           continue;
-        else if (minFlagDistance < 0 && woundArea <= woundAreaCutOff)  // wound is small, let every cell crawl towards its last known polarity to close the wound
-          minFlagDistance = getDistanceToVertexAtAnglePsi(ci, psi[ci], center[ci][0], center[ci][1], gi);
+        /*else if (minFlagDistance < 0 && woundArea <= woundAreaCutOff)  // wound is small, let every cell crawl towards its last known polarity to close the wound
+          minFlagDistance = getDistanceToVertexAtAnglePsi(ci, psi[ci], center[ci][0], center[ci][1], gi);*/
 
         // flagDistance += 3 * 2 * r[gi];
         double fractionOfDiameter = 4.0;  // try protruding in increments of diameter / fractionOfDiameter

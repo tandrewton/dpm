@@ -120,7 +120,7 @@ for seed = startSeed:max_seed
         fileheader=run_name +"_N"+N+"_Dur"+Duration+"_att"+att+"_sd"+ ...
             startSeed+"_sd"+max_seed+"_sd"+seed;
         fileheader_short = "_N"+N+"_Dur"+Duration+"_att"+att+"_sd"+seed;
-        nvestr = pipeline_dir+fileheader+'.pos';
+        nvestr = pipeline_dir+fileheader+'.pos'
         energystr = pipeline_dir+fileheader+'.energy';
         stressstr = pipeline_dir+fileheader+'.stress';
         boundaryStr = pipeline_dir+fileheader+ ".void";

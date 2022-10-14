@@ -93,10 +93,11 @@ for i=1:length(boundary_array)
 end
 
 att_arr = ["0.05" "0.1" "0.15" "0.2" "0.25"];
-calA0_arr = ["1.0" "1.05" "1.10" "1.15" "1.20"];
+%calA0_arr = ["1.0" "1.05" "1.10" "1.15" "1.20"];
+calA0_arr = ["1.05" "1.10" "1.15" "1.20"];
 for i=1:length(att_arr)
   for j=1:length(calA0_arr)
-    drawWoundSims(60, 0.001, calA0_arr(j), "0", "0.0", "3.0", att_arr(i), "0")
+    drawWoundSims(60, 0.001, calA0_arr(j), "1", "0.0", "3.0", att_arr(i), "0")
   end
 end
 
