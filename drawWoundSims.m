@@ -47,7 +47,7 @@ showPeriodicImages = 0;
 showWoundAndShapeProperties = 1;
 
 
-showverts = 0;
+showverts = 1;
 showBoundaries = 0;
 showcirculoline = 0; % show line segments of circulo-lines
 isReadAndPlotTrajectoryQualities = 1; % read nvestr and plot associated quantities
