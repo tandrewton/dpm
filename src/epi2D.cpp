@@ -1822,6 +1822,11 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
         vout << simclock - t0 << '\t' << woundArea << '\n';
         // cout << "simclock - t0 = " << simclock - t0 << ", woundArea = " << woundArea << '\n';
 
+        if (std::isnan(woundArea)) {
+          cout << "woundArea is nan, exiting!\n";
+          assert(!std::isnan(woundArea));
+        }
+
         // write shape information to files
         innerout << simclock - t0 << '\t';
         bulkout << simclock - t0 << '\t';
@@ -3168,27 +3173,27 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
   int woundPointYIndex = woundPointY / resolution;
 
   // check if the given point is not within the wound
-  if (occupancyMatrix[woundPointXIndex][woundPointYIndex] == 1) {
-    // given point is not in the wound, so we need to look for a nearby point that's hopefully in the wound (searching diagonally for now)
+  if (occupancyMatrix[woundPointXIndex][woundPointYIndex] == 1) {  // 1 is not in wound, 0 is in wound
+    // given point is not in the wound, so we need to look for a nearby point that's hopefully in the wound
     int searchRange = 5, offset = 0;
+    // look up to searchRange boxes away.
     int newXIndex = woundPointXIndex, newYIndex = woundPointYIndex;
     while (occupancyMatrix[newXIndex][newYIndex] == 1 && offset <= searchRange) {
       offset++;
-      if (occupancyMatrix[woundPointXIndex + offset][woundPointYIndex + offset] == 0) {
-        newXIndex = woundPointXIndex + offset;
-        newYIndex = woundPointYIndex + offset;
-      }
-      if (occupancyMatrix[woundPointXIndex - offset][woundPointYIndex - offset] == 0) {
-        newXIndex = woundPointXIndex - offset;
-        newYIndex = woundPointYIndex - offset;
-      }
-      if (occupancyMatrix[woundPointXIndex - offset][woundPointYIndex + offset] == 0) {
-        newXIndex = woundPointXIndex - offset;
-        newYIndex = woundPointYIndex + offset;
-      }
-      if (occupancyMatrix[woundPointXIndex + offset][woundPointYIndex - offset] == 0) {
-        newXIndex = woundPointXIndex + offset;
-        newYIndex = woundPointYIndex - offset;
+      int rightIndex = woundPointXIndex + offset;
+      int leftIndex = woundPointXIndex - offset;
+      int aboveIndex = woundPointYIndex + offset;
+      int belowIndex = woundPointYIndex - offset;
+      std::vector<int> xIndex = {leftIndex, 0, rightIndex};
+      std::vector<int> yIndex = {belowIndex, 0, aboveIndex};
+      // using all combinations of xIndex and yIndex, e.g. could search diagonally (4 directions) or in all 8 directions
+      for (int xii = 0; xii < 3; xii++) {
+        for (int yii = 0; yii < 3; yii++) {
+          if (occupancyMatrix[xIndex[xii]][yIndex[yii]] == 0) {
+            newXIndex = xIndex[xii];
+            newYIndex = yIndex[yii];
+          }
+        }
       }
     }
     if (offset > searchRange) {
