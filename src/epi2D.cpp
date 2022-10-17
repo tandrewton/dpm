@@ -713,16 +713,6 @@ void epi2D::circuloLineAttractiveForces() {
 
         for (int swapii = 0; swapii < 2; swapii++) {
           d = linePointDistancesAndProjection(x[NDIM * im1[gj]], x[NDIM * im1[gj] + 1], x[NDIM * gj], x[NDIM * gj + 1], x[NDIM * gi], x[NDIM * gi + 1], rx, ry, projection, x10, y10);
-          /*if (fabs(simclock - 29.860) < 0) {
-            if (gi == 86 && (gj == 5 || gj == 6)) {
-              cout << "same box neighbor\n\n isSelfInteraction = " << isSelfInteraction << ", projection = " << projection << '\n';
-              cout << "gi = " << gi << ", gj = " << gj << '\n';
-              cout << "dx, dy, rij = " << -rx << '\t' << -ry << '\t' << sqrt(rx * rx + ry * ry) << '\n';
-              cout << "x10 * x10 + y10 * y10 = " << x10 * x10 + y10 * y10 << ", shellij * shellij = " << shellij * shellij << '\n';
-              cout << "d = " << d << ", shellij = " << shellij << '\n';
-            }
-          }*/
-
           if (!isSelfInteraction) {
             if (projection < 1 || d < shellij) {
               // check that the projection falls within the interacting portion of vertex i
@@ -814,16 +804,6 @@ void epi2D::circuloLineAttractiveForces() {
 
           for (int swapii = 0; swapii < 2; swapii++) {
             d = linePointDistancesAndProjection(x[NDIM * im1[gj]], x[NDIM * im1[gj] + 1], x[NDIM * gj], x[NDIM * gj + 1], x[NDIM * gi], x[NDIM * gi + 1], rx, ry, projection, x10, y10);
-            /*if (fabs(simclock - 29.860) < 0) {
-              if (gi == 86 && (gj == 5 || gj == 6)) {
-                cout << "forward box neighbor\n\n isSelfInteraction = " << isSelfInteraction << ", projection = " << projection << '\n';
-                cout << "gi = " << gi << ", gj = " << gj << '\n';
-                cout << "dx, dy, rij = " << -rx << '\t' << -ry << '\t' << sqrt(rx * rx + ry * ry) << '\n';
-                cout << "x10 * x10 + y10 * y10 = " << x10 * x10 + y10 * y10 << ", shellij * shellij = " << shellij * shellij << '\n';
-                cout << "d = " << d << ", shellij = " << shellij << '\n';
-              }
-            }*/
-
             if (!isSelfInteraction) {
               if (projection < 1 || d < shellij) {
                 // check that the projection falls within the interacting portion of vertex i
@@ -961,21 +941,6 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
         // unstable concave overlap is present, or unstable convex overlap is present, so compute a correction energy for numerical stability
         isInverseInteraction = (isConcaveInteraction || (endCapAngle > 0 && (endEndAngle2 < endCapAngle)));
 
-        /*if (fabs(simclock - 29.860) < 0) {
-          if (gi == 86 && (gj == 5 || gj == 6)) {
-            cout << "testing specific interaction: gi = " << gi << ", gj = " << gj << '\n';
-            cout << "projection = " << projection << '\n';
-            cout << "isCapInteraction = " << isCapInteraction << ", isConcaveInteraction = " << isConcaveInteraction << ", isInverseInteraction = " << isInverseInteraction << '\n';
-            cout << "isConcaveInteractionWithCap = " << (endCapAngle < 0 && endEndAngle > PI - fabs(endCapAngle) && endEndAngle < PI) << '\n';
-            cout << "isConcaveInteraction (new) = " << (endCapAngle < 0 && (endEndAngle - 2 * PI * (endEndAngle > PI)) < 0 && endEndAngle >= endCapAngle) << '\n';
-            cout << "PI - fabs(phi) = " << PI - fabs(endCapAngle) << '\n';
-            cout << "endEndAngle, endCapAngle, endEndAngle2 = " << endEndAngle << '\t' << endCapAngle << '\t' << endEndAngle2 << '\n';
-            cout << "rx, ry, shellij = " << rx << '\t' << ry << '\t' << shellij << '\n';
-            cout << "rij = " << rij << ", d(gi, middle) = " << sqrt(pow(x[NDIM * gi] - x[NDIM * middle], 2) + pow(x[NDIM * gi + 1] - x[NDIM * middle + 1], 2)) << '\n';
-            cout << "d(gi, middle) < shellij =  " << (sqrt(pow(x[NDIM * gi] - x[NDIM * middle], 2) + pow(x[NDIM * gi + 1] - x[NDIM * middle + 1], 2)) < shellij) << '\n';
-          }
-        }*/
-
         if (projection > 0 && projection < 1) {  // projection less than 1 and greater than 0, so projection is on the main line segment
           // Force on particle 0,1,2 is determined by F = - dU/dr = (partials) dU/dr * <dr/dxi , dr/dyi>
           // 3-body contact, 6 forces (3 pairs of forces)
@@ -1013,12 +978,6 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
           F[NDIM * g2] += ftmp * (prefix * y10 - x21 * prefix2);
           F[NDIM * g2 + 1] += ftmp * (prefix * -x10 - y21 * prefix2);
 
-          /*if (fabs(simclock - 29.860) < 0) {
-            if (fabs(ftmp * prefix * y21) + fabs(ftmp * prefix * -x21) > 0) {
-              cout << "\nvertex-line interaction between " << gi << '\t' << gj << '\t' << g2 << '\n';
-              cout << "with energy = " << energytmp << '\n';
-            }
-          }*/
           cellU[ci] += energytmp / 2;
           cellU[cj] += energytmp / 2;
           U += energytmp;
@@ -1074,13 +1033,6 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
           cellU[ci] += sign * energytmp / 2;
           cellU[cj] += sign * energytmp / 2;
           U += sign * energytmp;
-
-          /*if (fabs(simclock - 29.860) < 0) {
-            if (fabs(fx) + fabs(fy) > 0) {
-              cout << "\nvertex-vertex interaction between " << gi << '\t' << middle << ", with sign = " << sign << '\n';
-              cout << "with energy = " << sign * energytmp << '\n';
-            }
-          }*/
 
           // add to virial stress
           // note: 4/7/22 I'm using -dx/2 instead of dx and same for dy for stress calculation, since
@@ -3172,6 +3124,10 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
   int woundPointXIndex = woundPointX / resolution;
   int woundPointYIndex = woundPointY / resolution;
 
+  /*
+  cout << "occupancyMatrix size = " << occupancyMatrix.size() << '\t' << occupancyMatrix[0].size() << '\n';
+  cout << "xResolution, yResolution = " << xResolution << '\t' << yResolution << '\n';*/
+
   // check if the given point is not within the wound
   if (occupancyMatrix[woundPointXIndex][woundPointYIndex] == 1) {  // 1 is not in wound, 0 is in wound
     // given point is not in the wound, so we need to look for a nearby point that's hopefully in the wound
@@ -3216,6 +3172,17 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
 
   // choose initial pixel
   int i = woundPointXIndex, j = woundPointYIndex, nni, nnj;
+
+  /*if (fabs(simclock - 101.62) < 0.1) {
+    cout << "woundPointXIndex, woundPointYIndex = " << i << '\t' << j << '\n';
+    cout << "in real coordinates: " << i * resolution << '\t' << j * resolution << '\n';
+    cout << "occupancymatrix[i][j] = " << occupancyMatrix[i][j] << ", labels[i][j] = " << labels[i][j] << '\n';
+    if (occupancyMatrix[i][j] == 1) {
+      cout << "occupancyMatrix of seeded pixel [i][j] has value 1, this should not happen!\n";
+    }
+    cout << "occupancyMatrix[j][i] - transpose of earlier line - = " << occupancyMatrix[j][i] << '\n';
+  }*/
+
   // if pixel has value 0 and is unlabeled, give it current label and add it to queue.
   if (occupancyMatrix[i][j] == 0 && labels[i][j] == 0) {
     emptyGridIndices.push_back(i * yResolution + j);
@@ -3232,6 +3199,7 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
       for (int k = 0; k < 4; k++) {
         nni = nnx[k];
         nnj = nny[k];
+        // make sure row and column value is valid
         if (nni < 0 || nni >= occupancyMatrix.size())
           continue;
         if (nnj < 0 || nnj >= occupancyMatrix[nni].size())
@@ -3254,9 +3222,24 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
       yLocs += j * resolution * labels[i][j];
     }
   }
+
+  /*if (fabs(simclock - 101.62) < 0.1) {
+    cout << "sum = " << sum << '\n';
+    cout << "labels size = " << labels.size() << '\t' << labels[i].size() << '\n';
+    cout << "xLocs, yLocs = " << xLocs << '\t' << yLocs << '\n';
+  }*/
+
   // wound center can be found as the geometric center of all the boxes with label 1, which is as accurate as the resolution
-  woundPointX = xLocs / sum;
-  woundPointY = yLocs / sum;
+  /*double geometricCenterX = xLocs / sum;
+  double geometricCenterY = yLocs / sum;
+  if (occupancyMatrix[geometricCenterX / resolution][geometricCenterY / resolution] == 0) {
+    woundPointX = xLocs / sum;
+    woundPointY = yLocs / sum;
+    cout << "geometric center is a valid wound point here\n";
+  } else {
+    cout << "geometric center was not a valid wound point. try using the old wound point's near neighbor: \n";
+    cout << "occupancyMatrix[oldx][oldy] = " << occupancyMatrix[woundPointX / resolution][woundPointY / resolution] << '\n';
+  }*/
   //   area should be the number of boxes times the box area
   //   alternatively, I could get the exact area by locating vertices on the edge of my newly segmented void area, but that's more computational work
   return sum * pow(resolution, 2);

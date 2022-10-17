@@ -38,16 +38,16 @@ FSKIP = 1;
 etaStr = " ";
 startSeed = 1;
 max_seed = 1;
-no_plots = 1;
+no_plots = 0;
 makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
 %plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
 plotCells = 1;
 set(0,'DefaultFigureWindowStyle','docked')
-showPeriodicImages = 1;
+showPeriodicImages = 0;
 showWoundAndShapeProperties = 1;
 
 
-showverts = 1;
+showverts = 0;
 showBoundaries = 0;
 showcirculoline = 0; % show line segments of circulo-lines
 isReadAndPlotTrajectoryQualities = 1; % read nvestr and plot associated quantities
@@ -73,8 +73,8 @@ showProtrusion = 1;
 showShapeHistogram = 0;
  
 %PC directory
-pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
-%pc_dir="C:\Users\atata\projects\dpm\";
+%pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
+pc_dir="C:\Users\atata\projects\dpm\";
 %pipeline is the location of data generated during simulations
 subdir_pipeline = pc_dir + "pipeline/cells/"+runType+"/";
 
@@ -500,8 +500,8 @@ for seed = startSeed:max_seed
                 
                 annotationStr = "$$t/\tau$$ = "+time(ff);
                 %annotationStr = "frame = "+ff;
-                %annotation('textbox',[0.48, 0.5, 0, 0],...
-                %    'interpreter', 'latex', 'String', annotationStr, 'Edgecolor','none', 'FitBoxToText','on');
+                annotation('textbox',[0.48, 0.5, 0, 0],...
+                    'interpreter', 'latex', 'String', annotationStr, 'Edgecolor','none', 'FitBoxToText','on');
                 if showVoid
                     if showVoidBlack 
                         scatter(voidLocations{ff}(:,1), voidLocations{ff}(:,2),...
