@@ -68,7 +68,7 @@ showVoid = 0;
 showVoidBlack = 0; % print void in larger black circles to see easier
 showVoidLite = 1; % print void, but in a way that works with printConfiguration on its own
 showCornersOrEdges = 0;
-showPurseString = 0;
+showPurseString = 1;
 showProtrusion = 1;
 showShapeHistogram = 0;
  
@@ -500,8 +500,8 @@ for seed = startSeed:max_seed
                 
                 annotationStr = "$$t/\tau$$ = "+time(ff);
                 %annotationStr = "frame = "+ff;
-                annotation('textbox',[0.48, 0.5, 0, 0],...
-                    'interpreter', 'latex', 'String', annotationStr, 'Edgecolor','none', 'FitBoxToText','on');
+                %annotation('textbox',[0.48, 0.5, 0, 0],...
+                %    'interpreter', 'latex', 'String', annotationStr, 'Edgecolor','none', 'FitBoxToText','on');
                 if showVoid
                     if showVoidBlack 
                         scatter(voidLocations{ff}(:,1), voidLocations{ff}(:,2),...

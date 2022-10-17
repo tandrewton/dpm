@@ -3510,7 +3510,7 @@ void epi2D::purseStringContraction(double B) {
   integratePurseString(B);  // evaluate forces on and due to purse-string, and integrate its position
   for (int psi = 0; psi < psContacts.size(); psi++) {
     // l0_ps[psi] *= exp(-strainRate_ps * dt); // constant strain rate
-    l0_ps[psi] -= strainRate_ps * dt;  // constantly increasing tension
+    l0_ps[psi] -= strainRate_ps * dt * (l0_ps[psi] > 0);  // constantly increasing tension, until 0 length
     // if (psi == 0) cout << "purse string length = " << l0_ps[psi] << '\n';
   }
 }

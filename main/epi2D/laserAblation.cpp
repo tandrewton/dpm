@@ -17,7 +17,7 @@
 //./main/epi2D/laserAblation.o 40 16 6 0.9 0.94 0.85 1.0 1.0 0.2 0.001  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   0 1 200  test
 // ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  B  Dr0 CIL bound sm sd time file
 // below: purse-string, no crawling
-//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.865 1.0 1.0 0.29 0.01  2.0  4.0  4.0 1.0  0.0  1.0 0.5  0  1   1 1  110  test
+//./main/epi2D/laserAblation.o 40 20 4 1.10 0.94 0.85 1.0 1.0 0.2 0.001  2.0  1.0  4.0 1.0  0.0  1.0 0.5  0  0   0 1  200  test
 // ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  B  Dr0 CIL bound sm sd time file
 // below: purse-string, and crawling
 //./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.865 1.0 1.0 0.1 0.01  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  1   1 1  110  test
