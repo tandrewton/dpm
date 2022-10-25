@@ -36,21 +36,22 @@
 // 5. phiMin: 			p
 // 6. phiMax: 			p
 // 7. kl: 				  perimeter spring constant
-// 8. att:          attraction strength parameter
-// 9. omega:        true strain rate for shrinking pursestring segments
-// 10. deltaSq:     yield length squared for purse-string springs (in units of vertex diameter squared). auto set to 0 if omega is also 0
-// 11. k_ps:        spring constant for purse string virtual particle to wound vertex
-// 12. k_lp:        spring constant for flag to nearest vertex on wound edge for crawling
-// 13. tau_lp:      protrusion time constant (controls stochastic lifetime of a protrusion)
-// 14. d_flag:      protrusion distance from cell edge in units of vertex diameter
-// 15. B:           (over)damping coefficient gamma
-// 16. Dr0:         rotational diffusion constant for protrusion activity
-// 17. boolCIL:     bool for whether cells conduct contact inhibition of locomotion
-// 18. boundary     choice of boundary condition (0 = free, 1 = sticky circular boundaries)
-// 19. smooth       choice of smooth or bumpy forces (0 = bumpy, 1 = smooth)
-// 20. seed: 			  seed for random number generator
-// 21. time:        amount of time (tau) to simulate
-// 22. outFileStem  stem of output file names, i.e. for "test", energy.test, position.test, etc.
+// 8. ka:           area spring constant
+// 9. att:          attraction strength parameter
+// 10. omega:        true strain rate for shrinking pursestring segments
+// 11. deltaSq:     yield length squared for purse-string springs (in units of vertex diameter squared). auto set to 0 if omega is also 0
+// 12. k_ps:        spring constant for purse string virtual particle to wound vertex
+// 13. k_lp:        spring constant for flag to nearest vertex on wound edge for crawling
+// 14. tau_lp:      protrusion time constant (controls stochastic lifetime of a protrusion)
+// 15. d_flag:      protrusion distance from cell edge in units of vertex diameter
+// 16. B:           (over)damping coefficient gamma
+// 17. Dr0:         rotational diffusion constant for protrusion activity
+// 18. boolCIL:     bool for whether cells conduct contact inhibition of locomotion
+// 19. boundary     choice of boundary condition (0 = free, 1 = sticky circular boundaries)
+// 20. smooth       choice of smooth or bumpy forces (0 = bumpy, 1 = smooth)
+// 21. seed: 			  seed for random number generator
+// 22. time:        amount of time (tau) to simulate
+// 23. outFileStem  stem of output file names, i.e. for "test", energy.test, position.test, etc.
 
 // header files
 #include <sstream>

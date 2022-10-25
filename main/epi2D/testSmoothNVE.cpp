@@ -8,7 +8,7 @@
 // Compilation command:
 // g++ -O3 --std=c++11 -g -I src main/epi2D/testSmoothNVE.cpp src/dpm.cpp src/epi2D.cpp -o main/epi2D/testSmoothNVE.o
 
-// ./main/epi2D/testSmoothNVE.o 2 20 4 1.0 0.2 0.0 1.0 0.5 0.2 0.013  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   0 1  200  test
+// ./main/epi2D/testSmoothNVE.o 2 20 4 1.0 0.2 0.0 1.0 1.0 0.2 0.013  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   0 1  200  test
 
 //
 // Parameter input list
@@ -19,21 +19,22 @@
 // 5. phiMin: 			p
 // 6. phiMax: 			p
 // 7. kl: 				  perimeter spring constant
-// 8. att:          attraction strength parameter
-// 9. omega:        true strain rate for shrinking pursestring segments
-// 10. deltaSq:     yield length squared for purse-string springs (in units of vertex diameter squared). auto set to 0 if omega is also 0
-// 11. k_ps:        spring constant for purse string virtual particle to wound vertex
-// 12. k_lp:        spring constant for flag to nearest vertex on wound edge for crawling
-// 13. tau_lp:      protrusion time constant (controls stochastic lifetime of a protrusion)
-// 14. d_flag:      protrusion distance from cell edge in units of vertex diameter
-// 15. B:           (over)damping coefficient gamma
-// 16. Dr0:         rotational diffusion constant for protrusion activity
-// 17. boolCIL:     bool for whether cells conduct contact inhibition of locomotion
-// 18. boundary     choice of boundary condition (0 = free, 1 = sticky circular boundaries)
-// 19. smooth       choice of smooth or bumpy forces (0 = bumpy, 1 = smooth)
-// 20. seed: 			  seed for random number generator
-// 21. time:        amount of time (tau) to simulate
-// 22. outFileStem  stem of output file names, i.e. for "test", energy.test, position.test, etc.
+// 8. ka:           area spring constant
+// 9. att:          attraction strength parameter
+// 10. omega:        true strain rate for shrinking pursestring segments
+// 11. deltaSq:     yield length squared for purse-string springs (in units of vertex diameter squared). auto set to 0 if omega is also 0
+// 12. k_ps:        spring constant for purse string virtual particle to wound vertex
+// 13. k_lp:        spring constant for flag to nearest vertex on wound edge for crawling
+// 14. tau_lp:      protrusion time constant (controls stochastic lifetime of a protrusion)
+// 15. d_flag:      protrusion distance from cell edge in units of vertex diameter
+// 16. B:           (over)damping coefficient gamma
+// 17. Dr0:         rotational diffusion constant for protrusion activity
+// 18. boolCIL:     bool for whether cells conduct contact inhibition of locomotion
+// 19. boundary     choice of boundary condition (0 = free, 1 = sticky circular boundaries)
+// 20. smooth       choice of smooth or bumpy forces (0 = bumpy, 1 = smooth)
+// 21. seed: 			  seed for random number generator
+// 22. time:        amount of time (tau) to simulate
+// 23. outFileStem  stem of output file names, i.e. for "test", energy.test, position.test, etc.
 
 // header files
 #include <sstream>
@@ -52,7 +53,7 @@ const double boxLengthScale = 2.5;  // neighbor list box size in units of initia
 // const double phi0 = 0.5;            // initial packing fraction
 const double smallfrac = 0.5;  // fraction of small particles
 const double sizeratio = 1.4;  // size ratio between small and large particles
-const double dt0 = 0.04;       // initial magnitude of time step in units of MD time
+const double dt0 = 0.01;       // initial magnitude of time step in units of MD time
 const double Ptol = 1e-8;
 const double Ftol = 1e-12;
 const double att_range = 0.3;
@@ -229,7 +230,7 @@ int main(int argc, char const* argv[]) {
   bool setUpCircularBoundary = true;
   // initialize positions and setup polygonal boundary condition if setUpCircularBoundary is enabled
   epithelial.initializePositions2D(phi0, Ftol, false, boxAspectRatio, setUpCircularBoundary);
-  epithelial.printConfiguration2D();
+  // epithelial.printConfiguration2D();
 
   epithelial.initializeNeighborLinkedList2D(boxLengthScale);
 
@@ -239,7 +240,7 @@ int main(int argc, char const* argv[]) {
     epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdate, Ftol, dt0, phiMax, dphi0);
   else
     epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithCircularWalls, Ftol, dt0, phiMax, dphi0);
-  epithelial.printConfiguration2D();
+  // epithelial.printConfiguration2D();
 
   // after compress, turn on damped NVE
   double T = 1e-10;
@@ -267,11 +268,21 @@ int main(int argc, char const* argv[]) {
   for (int i = 0; i < numIts; i++) {  // try repeating this until relaxed
     epithelial.setkc(1.0);
     // equilibrate
-    epithelial.scaleVelocities(0);
-    if (numIts == 0)
-      epithelial.displaceCell(0, 0.0, 0.5);
-    epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 10000, 0);
-    epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 10000, 1000);
+
+    if (i == 0) {
+      cout << "displacing cells!\n";
+      cout << "zeroing velocity!\n";
+      epithelial.scaleVelocities(0);
+      // epithelial.displaceCell(0, 1.0, 1.8); // cell 0 is above cell 1 and will not make contact
+      epithelial.displaceCell(0, 1.0, 1.74);  // cell 0 is above cell 1 and will not make contact in repulsive case. will make contact in sticky case
+      epithelial.displaceCell(1, 0, 0);
+      epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 10000, 1000);
+    }
+    if (i == 1) {
+      cout << "launching cells!\n";
+      epithelial.setCellVelocity(0, 0.05, 0.0);
+      epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 50000, 1000);
+    }
   }
   cout << "\n** Finished laserAblation.cpp, ending. " << endl;
   return 0;
