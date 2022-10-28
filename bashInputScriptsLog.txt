@@ -279,14 +279,15 @@ do
   done
 done
 
-repulsive friction
-./main/epi2D/testSmoothNVE.o 8 20 4 1.0 0.9 0.65 1.0 1.0 0.0 0.013  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   0 1  200  test
+
+#scattering
+./main/epi2D/testSmoothNVE.o 2 20 4 1.0 0.2 0.0 1.0 1.0 0.2 0.013  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   0 1  200  test
+
+#fracture
 sticky friction
-./main/epi2D/testSmoothNVE.o 8 20 4 1.0 0.2 0.0 1.0 1.0 0.2 0.013  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   0 1  200  test
-repulsive smooth
-./main/epi2D/testSmoothNVE.o 8 20 4 1.0 0.2 0.0 1.0 1.0 0.0 0.013  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   1 1  200  test
+./main/epi2D/testSmoothNVE.o 16 20 4 1.0 0.9 0.65 1.0 1.0 0.2 0.013  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   0 1  200  test
 sticky smooth
-./main/epi2D/testSmoothNVE.o 8 20 4 1.0 0.2 0.0 1.0 1.0 0.2 0.013  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   1 1  200  test
+./main/epi2D/testSmoothNVE.o 8 20 4 1.0 0.9 0.65 1.0 1.0 0.2 0.013  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   1 1  200  test
 
 
 bash bash/cells/submit_neuralTube.sh 10 20 1.0 0.01 0.002 0.002 3000 pi_ohern,day,scavenge 0-12:00:00 1 1

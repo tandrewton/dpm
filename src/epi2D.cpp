@@ -1579,9 +1579,13 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duratio
     simclock += dt;
 
     // print to console and file
-    if (int(printInterval) != 0) {
+    /*cout << "in dampedNVE2D : simclock - t0 / dt = " << (simclock - t0) / dt << '\n';
+    cout << "simclock - temp_simclock = " << simclock - temp_simclock << '\n';
+    cout << "NPRINTSKIP = " << NPRINTSKIP << ", dt = " << dt << '\n';
+    cout << "printInterval/2.0 = " << printInterval / 2.0 << '\n';*/
+    if (printInterval > dt) {
       if (int((simclock - t0) / dt) % NPRINTSKIP == 0 &&
-          (simclock - temp_simclock) > printInterval / 2) {
+          (simclock - temp_simclock) > printInterval / 2.0) {
         temp_simclock = simclock;
         // compute kinetic energy
         K = vertexKineticEnergy();
@@ -1682,7 +1686,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
   }
 
   /*for (int ci = 0; ci < NCELLS; ci++) {
-    // if ci is an initial wound cell, record it in the first row. if not, record it in the second row.
+    // if ci is an initial wound cell, record it in the first row. if, record it in the second row.
     std::vector<int> firstRow, secondRow;
     if (std::find(initialWoundCellIndices.begin(), initialWoundCellIndices.end(), ci) != initialWoundCellIndices.end())
       firstRow.push_back(ci);
@@ -3341,17 +3345,19 @@ void epi2D::notchTest(int numCellsToDelete, double strain, double strainRate, do
     xLoc = 0.0;
     yLoc = 0.0;
     laserAblate(numCellsToDelete, sizeRatio, nsmall, xLoc, yLoc);
+    initialLx = L[0];
 
-    if (loadingType == "uniaxial") {
+    if (loadingType == "uniaxial" && pbc[0]) {
       while (L[0] / initialLx - 1 < strain) {
         cout << "current strain = " << L[0] / initialLx - 1 << '\n';
         scaleBoxSize(boxLengthScale, 1 + strainRate * tauRelax, 1);
         cout << "scaling box\n";
+        cout << "tauRelax = " << tauRelax << ", printInterval = " << printInterval << '\n';
         dampedNVE2D(forceCall, B, dt0, tauRelax, printInterval);
         cout << "finished relaxing\n";
       }
     } else
-      std::cout << "Issue: loadingType not understood\n";
+      std::cout << "Issue: loadingType not understood or pbc is disabled\n";
   }
 }
 

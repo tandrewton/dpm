@@ -53,7 +53,7 @@ const double boxLengthScale = 2.5;  // neighbor list box size in units of initia
 // const double phi0 = 0.5;            // initial packing fraction
 const double smallfrac = 0.5;  // fraction of small particles
 const double sizeratio = 1.4;  // size ratio between small and large particles
-const double dt0 = 0.01;       // initial magnitude of time step in units of MD time
+const double dt0 = 0.04;       // initial magnitude of time step in units of MD time
 const double Ptol = 1e-8;
 const double Ftol = 1e-12;
 const double att_range = 0.3;
@@ -254,9 +254,27 @@ int main(int argc, char const* argv[]) {
   //   dpmMemFn customForceUpdate_active = crawlingWithPSForceUpdate;
   //   dpmMemFn customForceUpdate_inactive_with_circular_walls = attractiveForceUpdateWithCircularWalls;
 
-  dpmMemFn customForceUpdate_inactive = circuloLineAttraction;
+  /*dpmMemFn customForceUpdate_inactive = circuloLineAttraction;
   dpmMemFn customForceUpdate_active = crawlingWithPSSmooth;
-  dpmMemFn customForceUpdate_inactive_with_circular_walls = circuloLineAttractionWithCircularWalls;
+  dpmMemFn customForceUpdate_inactive_with_circular_walls = circuloLineAttractionWithCircularWalls;*/
+
+  dpmMemFn customForceUpdate_inactive;
+  dpmMemFn customForceUpdate_active;
+  dpmMemFn customForceUpdate_inactive_with_circular_walls;
+  dpmMemFn customForceUpdate_active_with_circular_walls;
+  if (!boolSmooth) {
+    cout << "bumpy forces\n";
+    customForceUpdate_inactive = attractiveForceUpdate;
+    customForceUpdate_active = crawlingWithPSForceUpdate;
+    customForceUpdate_inactive_with_circular_walls = attractiveForceUpdateWithCircularWalls;
+    customForceUpdate_active_with_circular_walls = crawlingWithPSForceUpdateWithCircularWalls;
+  } else {
+    cout << "smooth forces\n";
+    customForceUpdate_inactive = circuloLineAttraction;
+    customForceUpdate_active = crawlingWithPSSmooth;
+    customForceUpdate_inactive_with_circular_walls = circuloLineAttractionWithCircularWalls;
+    customForceUpdate_active_with_circular_walls = crawlingWithPSSmooth_Walls;
+  }
 
   if (isPbcOn)
     epithelial.dampedNP0(customForceUpdate_inactive, B, dt0, relaxTime, printInterval);
@@ -270,20 +288,36 @@ int main(int argc, char const* argv[]) {
     // equilibrate
 
     if (i == 0) {
-      cout << "displacing cells!\n";
-      cout << "zeroing velocity!\n";
-      epithelial.scaleVelocities(0);
+      /*cout << "zeroing velocity!\n";
+      epithelial.scaleVelocities(0);*/
+      cout << "multiplying velocity!\n";
+      epithelial.scaleVelocities(10.0);
+      // cout << "displacing cells!\n";
       // epithelial.displaceCell(0, 1.0, 1.8); // cell 0 is above cell 1 and will not make contact
-      epithelial.displaceCell(0, 1.0, 1.74);  // cell 0 is above cell 1 and will not make contact in repulsive case. will make contact in sticky case
-      epithelial.displaceCell(1, 0, 0);
+      // epithelial.displaceCell(0, 1.0, 1.76);  // cell 0 is above cell 1 and will not make contact in repulsive case.will make contact in sticky case
+      // epithelial.displaceCell(0, 1.0, 1.6); // cells just barely make repulsive contact here, good for repulsive testing.
+      // epithelial.displaceCell(1, 0, 0);
       epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 10000, 1000);
     }
     if (i == 1) {
-      cout << "launching cells!\n";
-      epithelial.setCellVelocity(0, 0.05, 0.0);
+      /*cout << "launching a cell!\n";
+      epithelial.setCellVelocity(0, 0.05, 0.0);*/
       epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 50000, 1000);
     }
   }
+
+  /*int loadingType = 0;
+  if (loadingType == 0 && att > 0.0) {
+    int numCellsToDelete = 0;
+    double strain = 0.8;
+    double strainRate = 0.01;
+    epithelial.notchTest(numCellsToDelete, strain, strainRate, boxLengthScale, sizeratio,
+                         nsmall, customForceUpdate_inactive, B, dt0, 0.99, "uniaxial");
+  } else {
+    cout << "loadingType not found. Closing.\n";
+    return 1;
+  }*/
+
   cout << "\n** Finished laserAblation.cpp, ending. " << endl;
   return 0;
 }
