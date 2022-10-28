@@ -3144,8 +3144,8 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
       int leftIndex = woundPointXIndex - offset;
       int aboveIndex = woundPointYIndex + offset;
       int belowIndex = woundPointYIndex - offset;
-      std::vector<int> xIndex = {leftIndex, 0, rightIndex};
-      std::vector<int> yIndex = {belowIndex, 0, aboveIndex};
+      std::vector<int> xIndex = {leftIndex, woundPointXIndex, rightIndex};
+      std::vector<int> yIndex = {belowIndex, woundPointYIndex, aboveIndex};
       // using all combinations of xIndex and yIndex, e.g. could search diagonally (4 directions) or in all 8 directions
       for (int xii = 0; xii < 3; xii++) {
         for (int yii = 0; yii < 3; yii++) {
