@@ -3566,7 +3566,8 @@ void epi2D::evaluatePurseStringForces(double B) {
   // B is the damping constant
   int gi, ipi, imi;
   double xp, yp, xw, yw;  // purse-string and wound coordinates
-  bool cutoff;            // cutoff distance
+  bool isCutoff;          // cutoff distance
+  double M = 2.0 * r[0];  // M is max distance at which the spring force saturates, M < cutoff
   double dx, dy, fx, fy, l0i, l0im1;
 
   double fli, flim1, cx, cy, xi, yi, gip1, xip1, yip1;
@@ -3609,11 +3610,17 @@ void epi2D::evaluatePurseStringForces(double B) {
     yw = x[gi * NDIM + 1];
     dx = xp - xw;
     dy = yp - yw;
-    cutoff = ((dx * dx + dy * dy) < deltaSq * pow(r[0] * 2, 2));
-    isSpringBroken[psi] = !cutoff;  // record broken springs for printouts
-    if (cutoff) {
+    isCutoff = ((dx * dx + dy * dy) >= deltaSq * pow(r[0] * 2, 2));
+    isSpringBroken[psi] = isCutoff;  // record broken springs for printouts
+    if (!isCutoff) {
+      // spring force saturates at a max distance of M, M < cutoff distance
+      if (dx > M)
+        dx = M;
+      if (dy > M)
+        dy = M;
       fx = k_ps * dx;
       fy = k_ps * dy;
+
     } else {  // fx, dx could be nan. in which case this will protect from nans rolling over into my actual vertices
       fx = 0;
       fy = 0;
@@ -3624,6 +3631,8 @@ void epi2D::evaluatePurseStringForces(double B) {
     F[gi * NDIM + 1] += fy;
     F_ps[psi * NDIM] -= fx;
     F_ps[psi * NDIM + 1] -= fy;
+    // cout << "force on pursestring due to virtual-real bonds = " << -fx << '\t' << -fy << '\n';
+    debugout << -fx << '\t' << -fy << '\n';
 
     // stress on gj should be the same as on gi, since it's the opposite separation and also opposite force
     fieldStress[gi][0] += -dx / 2 * fx;
@@ -3682,7 +3691,8 @@ void epi2D::evaluatePurseStringForces(double B) {
     fy = (fli * dli * liy / li) - (flim1 * dlim1 * lim1y / lim1);
     F_ps[NDIM * psi] += fx;
     F_ps[NDIM * psi + 1] += fy;
-    // cout << "F_ps_x due to segments = " << fx << '\n';
+    // cout << "F_ps_x due to segment length = " << fx << '\t' << fy << '\n';
+    debugout << -fx << '\t' << -fy << '\n';
 
     // choosing not to update potential energy of the purse-string itself
     // U += 0.5 * kl * (dli * dli);

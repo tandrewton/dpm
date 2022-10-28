@@ -82,6 +82,7 @@ class epi2D : public dpm {
   std::ofstream innerout;
   std::ofstream woundPropertiesout;
   std::ofstream cellIDout;
+  std::ofstream debugout;  // for whatever debugging purposes I need.
 
   // simulation time keeper (accumulates elapsed simulation time during MD
   // routines)
@@ -266,7 +267,17 @@ class epi2D : public dpm {
 
   void openCellIDObject(std::string& str) {
     cellIDout.open(str.c_str());
-    if (!woundPropertiesout.is_open()) {
+    if (!cellIDout.is_open()) {
+      std::cerr << "	ERROR: file could not open " << str << "..."
+                << std::endl;
+      exit(1);
+    } else
+      std::cout << "** Opening file " << str << " ..." << std::endl;
+  }
+
+  void openDebugObject(std::string& str) {
+    debugout.open(str.c_str());
+    if (!debugout.is_open()) {
       std::cerr << "	ERROR: file could not open " << str << "..."
                 << std::endl;
       exit(1);
