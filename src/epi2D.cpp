@@ -1775,13 +1775,20 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
       if (int(simclock / dt) % 50 == 0) {
         // cout << "woundCenterX, Y before calculating area = " << woundCenterX << '\t' << woundCenterY << '\n';
         woundArea = calculateWoundArea(woundCenterX, woundCenterY);
+        // check wound area is valid or not
+        if (std::isnan(woundArea)) {
+          cout << "woundArea is nan\n";
+          if (woundArea < PI * r[0] * r[0] * 5) {
+            cout << " previous area was small, so area might be zero. returning zero for area!\n";
+            woundArea = 0;
+          } else {
+            cout << " previous area was large, so this must be an error. exiting!\n";
+            assert(!std::isnan(woundArea));
+          }
+        }
+
         vout << simclock - t0 << '\t' << woundArea << '\n';
         // cout << "simclock - t0 = " << simclock - t0 << ", woundArea = " << woundArea << '\n';
-
-        if (std::isnan(woundArea)) {
-          cout << "woundArea is nan, exiting!\n";
-          assert(!std::isnan(woundArea));
-        }
 
         // write shape information to files
         innerout << simclock - t0 << '\t';
@@ -3516,7 +3523,9 @@ void epi2D::purseStringContraction(double B) {
   integratePurseString(B);  // evaluate forces on and due to purse-string, and integrate its position
   for (int psi = 0; psi < psContacts.size(); psi++) {
     // l0_ps[psi] *= exp(-strainRate_ps * dt); // constant strain rate
-    l0_ps[psi] -= strainRate_ps * dt * (l0_ps[psi] > 0);  // constantly increasing tension, until 0 length
+    l0_ps[psi] -= strainRate_ps * dt;  // constantly increasing tension, until 0 length
+    if (l0_ps[psi] < 0)
+      l0_ps[psi] = 0;
     // if (psi == 0) cout << "purse string length = " << l0_ps[psi] << '\n';
   }
 }
@@ -3567,7 +3576,8 @@ void epi2D::evaluatePurseStringForces(double B) {
   int gi, ipi, imi;
   double xp, yp, xw, yw;  // purse-string and wound coordinates
   bool isCutoff;          // cutoff distance
-  double M = 2.0 * r[0];  // M is max distance at which the spring force saturates, M < cutoff
+  double yieldLengthSquared = deltaSq * pow(r[0] * 2, 2);
+  double M = sqrt(yieldLengthSquared) / 2.0;  // M is max distance at which the spring force saturates, sqrt(M) < yieldLengthSquared
   double dx, dy, fx, fy, l0i, l0im1;
 
   double fli, flim1, cx, cy, xi, yi, gip1, xip1, yip1;
@@ -3610,7 +3620,7 @@ void epi2D::evaluatePurseStringForces(double B) {
     yw = x[gi * NDIM + 1];
     dx = xp - xw;
     dy = yp - yw;
-    isCutoff = ((dx * dx + dy * dy) >= deltaSq * pow(r[0] * 2, 2));
+    isCutoff = ((dx * dx + dy * dy) >= yieldLengthSquared);
     isSpringBroken[psi] = isCutoff;  // record broken springs for printouts
     if (!isCutoff) {
       // spring force saturates at a max distance of M, M < cutoff distance
@@ -3632,7 +3642,8 @@ void epi2D::evaluatePurseStringForces(double B) {
     F_ps[psi * NDIM] -= fx;
     F_ps[psi * NDIM + 1] -= fy;
     // cout << "force on pursestring due to virtual-real bonds = " << -fx << '\t' << -fy << '\n';
-    debugout << -fx << '\t' << -fy << '\n';
+    if (psi == 5)
+      debugout << -fx << '\t' << -fy << '\n';
 
     // stress on gj should be the same as on gi, since it's the opposite separation and also opposite force
     fieldStress[gi][0] += -dx / 2 * fx;
@@ -3692,7 +3703,8 @@ void epi2D::evaluatePurseStringForces(double B) {
     F_ps[NDIM * psi] += fx;
     F_ps[NDIM * psi + 1] += fy;
     // cout << "F_ps_x due to segment length = " << fx << '\t' << fy << '\n';
-    debugout << -fx << '\t' << -fy << '\n';
+    if (psi == 5)
+      debugout << fx << '\t' << fy << '\n';
 
     // choosing not to update potential energy of the purse-string itself
     // U += 0.5 * kl * (dli * dli);
