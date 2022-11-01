@@ -1343,7 +1343,7 @@ void dpm::sortNeighborLinkedList2D() {
       // add d index to 1d list
       boxid += floor(xtmp / lb[d]) * sbtmp;
       if (boxid < -2147483600) {
-        cout << "boxid = " << boxid << ", xtmp = " << xtmp << ", lb[d] = " << lb[d] << ", d = " << d << ", gi = " << gi << ", floor(xtmp / lb[d] = " << floor(xtmp / lb[d]) << ", list.size = " << list.size() << '\n';
+        cout << "boxid = " << boxid << ", xtmp = " << xtmp << ", lb[d] = " << lb[d] << ", d = " << d << ", gi = " << gi << ", floor(xtmp / lb[d]) = " << floor(xtmp / lb[d]) << ", list.size = " << list.size() << '\n';
         cout << "pbc[d] = " << pbc[d] << ", L[d] = " << L[d] << '\n';
 
         for (int k = 0; k < NVTOT; k++) {

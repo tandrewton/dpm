@@ -3591,6 +3591,7 @@ void epi2D::evaluatePurseStringForces(double B) {
   // compute center of mass for wound segment interaction
   xi = x_ps[0];
   yi = x_ps[1];
+  cout << "x_ps[0] = " << x_ps[0] << ", l0_ps[0] = " << l0_ps[0] << '\n';
   cx = xi;
   cy = yi;
   for (int psi = 0; psi < psContacts.size() - 1; psi++) {
@@ -3636,6 +3637,9 @@ void epi2D::evaluatePurseStringForces(double B) {
       fy = 0;
       dx = 0;
       dy = 0;
+    }
+    if (std::isnan(fx)) {
+      cout << "from purse-string interaction, fx from psi = " << psi << " is NaN! this affects vertex " << gi << '\n';
     }
     F[gi * NDIM] += fx;
     F[gi * NDIM + 1] += fy;
@@ -3700,6 +3704,20 @@ void epi2D::evaluatePurseStringForces(double B) {
     // add to forces
     fx = (fli * dli * lix / li) - (flim1 * dlim1 * lim1x / lim1);
     fy = (fli * dli * liy / li) - (flim1 * dlim1 * lim1y / lim1);
+
+    if (l0i == 0 || l0im1 == 0) {
+      fx = 0;
+      fy = 0;
+    }
+
+    if (std::isnan(F_ps[NDIM * psi])) {
+      cout << "force components responsible for F_ps nan: " << '\n';
+      cout << "fx = " << fx << ", fy = " << fy << '\n';
+      cout << "fli, dli, lix, liy, li = " << fli << '\t' << dli << '\t' << lix << '\t' << liy << '\t' << li << '\n';
+      cout << "flim1, dlim1, lim1x, lim1y, lim1 = " << flim1 << '\t' << dlim1 << '\t' << lim1x << '\t' << lim1y << '\t' << lim1 << '\n';
+      cout << "l0i, l0im1 = " << l0i << '\t' << l0im1 << '\n';
+    }
+
     F_ps[NDIM * psi] += fx;
     F_ps[NDIM * psi + 1] += fy;
     // cout << "F_ps_x due to segment length = " << fx << '\t' << fy << '\n';
@@ -3717,7 +3735,10 @@ void epi2D::integratePurseString(double B) {
   int virtualDOF = psContacts.size() * NDIM;
   for (int i = 0; i < virtualDOF; i++) {
     x_ps[i] += dt * v_ps[i] + 0.5 * dt * dt * F_ps[i];
-
+    if (std::isnan(x_ps[i])) {
+      cout << "x_ps[i] = nan\n";
+      cout << "v_ps, F_ps = " << v_ps[i] << '\t' << F_ps[i] << '\n';
+    }
     // recenter in box
     if (x_ps[i] > L[i % NDIM] && pbc[i % NDIM])
       x_ps[i] -= L[i % NDIM];
@@ -3734,6 +3755,9 @@ void epi2D::integratePurseString(double B) {
     F_ps[i] -= (B * v_ps[i] + B * F_ps_old[i] * dt / 2);
     F_ps[i] /= (1 + B * dt / 2);
     v_ps[i] += 0.5 * (F_ps[i] + F_ps_old[i]) * dt;
+    if (std::isnan(F_ps[i])) {
+      cout << "F_ps[" << i << "] = nan\n";
+    }
   }
 }
 
