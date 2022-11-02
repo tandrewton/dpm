@@ -3232,9 +3232,7 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
   currentWoundIndices.clear();
   std::vector<int> debug_i, debug_j;
   bool iAndjAreInDebug = false;
-  int woundSearchRange = r[0] / resolution;
-  cout << "woundSearchRange = " << woundSearchRange << '\n';
-  cout << "xLow = " << xLow << ", yLow = " << yLow << '\n';
+  int woundSearchRange = 2.0 * r[0] / resolution;
   for (int gi = 0; gi < NVTOT; gi++) {
     double dist;
     int ci, vi;
@@ -3244,8 +3242,6 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
       // cell is indeed one of the initially wound-adjacent cells
       i = x[NDIM * gi] / resolution;
       j = x[NDIM * gi + 1] / resolution;
-      debug_i.push_back(i);
-      debug_j.push_back(j);
       if (i >= labels.size() || j >= labels[0].size()) {
         cout << "about to segfault: i = " << i << ", j = " << j << ", labels.size() = " << labels.size() << ", labels[0].size() = " << labels[0].size() << '\n';
       }
@@ -3260,18 +3256,21 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
             sum += labels[i + xInd][j + yInd];
         }
       }
-      if (sum > 0)
+      if (sum > 0) {
         currentWoundIndices.push_back(gi);
+        debug_i.push_back(i);
+        debug_j.push_back(j);
+      }
     }
   }
 
-  /*cout << "currentWoundIndices.size() = " << currentWoundIndices.size() << '\n';
+  cout << "currentWoundIndices.size() = " << currentWoundIndices.size() << '\n';
 
   for (auto i : currentWoundIndices) {
     cout << "current wound index = " << i << '\n';
-  }*/
+  }
 
-  /*if (currentWoundIndices.size() > 0) {
+  if (currentWoundIndices.size() > 0) {
     for (int i = 0; i < xResolution; i++) {
       cout << "[ ";
       for (int j = 0; j < yResolution; j++) {
@@ -3289,12 +3288,7 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
       }
       cout << "]" << '\n';
     }
-  }*/
-  /*if (fabs(simclock - 101.62) < 0.1) {
-    cout << "sum = " << sum << '\n';
-    cout << "labels size = " << labels.size() << '\t' << labels[i].size() << '\n';
-    cout << "xLocs, yLocs = " << xLocs << '\t' << yLocs << '\n';
-  }*/
+  }
 
   // wound center can be found as the geometric center of all the boxes with label 1, which is as accurate as the resolution
   /*double geometricCenterX = xLocs / sum;
