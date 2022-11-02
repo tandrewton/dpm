@@ -215,6 +215,8 @@ class dpm {
     }
   }
 
+  void moveSimulationToPositiveCoordinates();
+
   // File openers
   void openPosObject(std::string& str) {
     posout.open(str.c_str());

@@ -536,6 +536,29 @@ void dpm::initializeVertexShapeParameters(std::vector<double> calA0, int nref) {
   }
 }
 
+// calculate smallest x and y values and then shift simulation so they're both positive
+void dpm::moveSimulationToPositiveCoordinates() {
+  std::vector<double> posX(NVTOT / 2), posY(NVTOT / 2);
+  for (int i = 0; i < NVTOT; i++) {
+    if (i % 2 == 0)
+      posX[i / 2] = x[NDIM * i];
+    else
+      posY[(i - 1) / 2] = x[NDIM * (i - 1) + 1];
+  }
+
+  double xLow = *std::min_element(posX.begin(), posX.end());
+  double xHigh = *std::max_element(posX.begin(), posX.end());
+  double yLow = *std::min_element(posY.begin(), posY.end());
+  double yHigh = *std::max_element(posY.begin(), posY.end());
+
+  if (xLow < 0)
+    for (int gi = 0; gi < NVTOT; gi++)
+      x[NDIM * gi] += fabs(xLow);
+  if (yLow < 0)
+    for (int gi = 0; gi < NVTOT; gi++)
+      x[NDIM * gi + 1] += fabs(yLow);
+}
+
 // initialize monodisperse cell system, single calA0
 void dpm::monodisperse2D(double calA0, int n) {
   // local variables

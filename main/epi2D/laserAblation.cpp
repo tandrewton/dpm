@@ -259,6 +259,7 @@ int main(int argc, char const* argv[]) {
     epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdate, Ftol, dt0, phiMax, dphi0);
   else
     epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithCircularWalls, Ftol, dt0, phiMax, dphi0);
+  epithelial.moveSimulationToPositiveCoordinates();  // shift box so all coordinates are positive
   epithelial.printConfiguration2D();
 
   // after compress, turn on damped NVE

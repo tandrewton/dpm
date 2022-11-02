@@ -3134,6 +3134,11 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
   // now occupancy matrix is filled. find the largest cluster of open space, given a point within the wound.
   int woundPointXIndex = woundPointX / resolution;
   int woundPointYIndex = woundPointY / resolution;
+  /*cout << "quick check : \n";
+  cout << "woundPointX,y = " << woundPointX << '\t' << woundPointY << '\n';
+  cout << "resolution = " << resolution << '\n';
+  cout << "woundPointX / resolution, y = " << woundPointX / resolution << '\t' << woundPointY / resolution << '\n';
+  cout << "woundPointX - xLow / resolution, y = " << (woundPointX - xLow) / resolution << '\t' << (woundPointY - yLow) / resolution << '\n';*/
 
   /*
   cout << "occupancyMatrix size = " << occupancyMatrix.size() << '\t' << occupancyMatrix[0].size() << '\n';
@@ -3184,16 +3189,6 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
   // choose initial pixel
   int i = woundPointXIndex, j = woundPointYIndex, nni, nnj;
 
-  /*if (fabs(simclock - 101.62) < 0.1) {
-    cout << "woundPointXIndex, woundPointYIndex = " << i << '\t' << j << '\n';
-    cout << "in real coordinates: " << i * resolution << '\t' << j * resolution << '\n';
-    cout << "occupancymatrix[i][j] = " << occupancyMatrix[i][j] << ", labels[i][j] = " << labels[i][j] << '\n';
-    if (occupancyMatrix[i][j] == 1) {
-      cout << "occupancyMatrix of seeded pixel [i][j] has value 1, this should not happen!\n";
-    }
-    cout << "occupancyMatrix[j][i] - transpose of earlier line - = " << occupancyMatrix[j][i] << '\n';
-  }*/
-
   // if pixel has value 0 and is unlabeled, give it current label and add it to queue.
   if (occupancyMatrix[i][j] == 0 && labels[i][j] == 0) {
     emptyGridIndices.push_back(i * yResolution + j);
@@ -3234,6 +3229,67 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
     }
   }
 
+  currentWoundIndices.clear();
+  std::vector<int> debug_i, debug_j;
+  bool iAndjAreInDebug = false;
+  int woundSearchRange = r[0] / resolution;
+  cout << "woundSearchRange = " << woundSearchRange << '\n';
+  cout << "xLow = " << xLow << ", yLow = " << yLow << '\n';
+  for (int gi = 0; gi < NVTOT; gi++) {
+    double dist;
+    int ci, vi;
+    int i, j, sum = 0;
+    cindices(ci, vi, gi);
+    if (std::find(initialWoundCellIndices.begin(), initialWoundCellIndices.end(), ci) != initialWoundCellIndices.end()) {
+      // cell is indeed one of the initially wound-adjacent cells
+      i = x[NDIM * gi] / resolution;
+      j = x[NDIM * gi + 1] / resolution;
+      debug_i.push_back(i);
+      debug_j.push_back(j);
+      if (i >= labels.size() || j >= labels[0].size()) {
+        cout << "about to segfault: i = " << i << ", j = " << j << ", labels.size() = " << labels.size() << ", labels[0].size() = " << labels[0].size() << '\n';
+      }
+      if (labels[i][j] == 1) {
+        cout << "location of bad label = " << i * resolution << '\t' << j * resolution << '\n';
+        assert(labels[i][j] == 0);
+      }
+      // count up all neighbors of i,j. they are 1-valued if in wound, 0 otherwise
+      for (int xInd = -woundSearchRange; xInd < woundSearchRange; xInd++) {
+        for (int yInd = -woundSearchRange; yInd < woundSearchRange; yInd++) {
+          if (i + xInd >= 0 && j + yInd >= 0 && i + xInd < labels.size() && j + yInd < labels[0].size())
+            sum += labels[i + xInd][j + yInd];
+        }
+      }
+      if (sum > 0)
+        currentWoundIndices.push_back(gi);
+    }
+  }
+
+  /*cout << "currentWoundIndices.size() = " << currentWoundIndices.size() << '\n';
+
+  for (auto i : currentWoundIndices) {
+    cout << "current wound index = " << i << '\n';
+  }*/
+
+  /*if (currentWoundIndices.size() > 0) {
+    for (int i = 0; i < xResolution; i++) {
+      cout << "[ ";
+      for (int j = 0; j < yResolution; j++) {
+        // sort through debug vectors, and if i and j are located as a pair in them, plot them as an x
+        for (int k = 0; k < debug_i.size(); k++) {
+          if (i == debug_i[k] && j == debug_j[k]) {
+            iAndjAreInDebug = true;
+          }
+        }
+        if (iAndjAreInDebug) {  // plot an X and then reset bool to check again in later iterations
+          cout << "X";
+          iAndjAreInDebug = false;
+        } else
+          cout << labels[i][j];
+      }
+      cout << "]" << '\n';
+    }
+  }*/
   /*if (fabs(simclock - 101.62) < 0.1) {
     cout << "sum = " << sum << '\n';
     cout << "labels size = " << labels.size() << '\t' << labels[i].size() << '\n';
@@ -3522,8 +3578,8 @@ void epi2D::purseStringContraction(double B) {
   // updatePurseStringContacts();
   integratePurseString(B);  // evaluate forces on and due to purse-string, and integrate its position
   for (int psi = 0; psi < psContacts.size(); psi++) {
-    if (l0_ps[psi] <= 0.5 * r[0]) {
-      l0_ps[psi] = 0.5 * r[0];
+    if (l0_ps[psi] <= 0.1 * r[0]) {
+      l0_ps[psi] = 0.1 * r[0];
       // cout << "setting l0_ps[psi] = 0.1 * r[0]\n";
     } else {
       // l0_ps[psi] *= exp(-strainRate_ps * dt); // constant strain rate
@@ -3736,6 +3792,9 @@ void epi2D::integratePurseString(double B) {
   // first step: delete virtual vertices if the virtual-real bond has yielded.
   for (int i = 0; i < psContacts.size(); i++) {
     if (isSpringBroken[i]) {
+      int prev = (i - 1 + psContacts.size()) % psContacts.size();
+      int next = (i + 1 + psContacts.size()) % psContacts.size();
+      cout << "marking a spring on psContact = " << i << " for deletion!\n";
       // mark all doubles associated with yielded virtual vertex for deletion
       x_ps[NDIM * i] = NAN;
       x_ps[NDIM * i + 1] = NAN;
@@ -3743,15 +3802,23 @@ void epi2D::integratePurseString(double B) {
       v_ps[NDIM * i + 1] = NAN;
       F_ps[NDIM * i] = NAN;
       F_ps[NDIM * i + 1] = NAN;
-      l0_ps[(i - 1 + psContacts.size()) % psContacts.size()] += l0_ps[i];
-      l0_ps[i] = NAN;
+      // l0_ps[(i - 1 + psContacts.size()) % psContacts.size()] += l0_ps[i];
+      l0_ps[prev] = vertDistNoPBC(psContacts[prev], psContacts[next]);
+      psContacts[i] = 9999;
     }
   }
+  // set l0_ps = NAN after the rest to not interfere with l0_ps adjustment
+  for (int i = 0; i < psContacts.size(); i++) {
+    if (isSpringBroken[i])
+      l0_ps[i] = NAN;
+  }
+
   // delete all NANs, the mark for deletion
-  x_ps.erase(remove(x_ps.begin(), x_ps.end(), NAN), x_ps.end());
-  v_ps.erase(remove(v_ps.begin(), v_ps.end(), NAN), v_ps.end());
-  F_ps.erase(remove(F_ps.begin(), F_ps.end(), NAN), F_ps.end());
-  l0_ps.erase(remove(l0_ps.begin(), l0_ps.end(), NAN), l0_ps.end());
+  x_ps.erase(remove_if(x_ps.begin(), x_ps.end(), [](const double& value) { return std::isnan(value); }), x_ps.end());
+  v_ps.erase(remove_if(v_ps.begin(), v_ps.end(), [](const double& value) { return std::isnan(value); }), v_ps.end());
+  F_ps.erase(remove_if(F_ps.begin(), F_ps.end(), [](const double& value) { return std::isnan(value); }), F_ps.end());
+  l0_ps.erase(remove_if(l0_ps.begin(), l0_ps.end(), [](const double& value) { return std::isnan(value); }), l0_ps.end());
+  psContacts.erase(remove(psContacts.begin(), psContacts.end(), 9999), psContacts.end());
 
   // delete all bools associated with yielded virtual vertices for deletion
   isSpringBroken.erase(remove(isSpringBroken.begin(), isSpringBroken.end(), true), isSpringBroken.end());

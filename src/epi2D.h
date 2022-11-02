@@ -96,6 +96,7 @@ class epi2D : public dpm {
   std::vector<double> initiall0;
   double initialPreferredPerimeter;
   std::vector<int> initialWoundCellIndices;
+  std::vector<int> currentWoundIndices;  // as determined by calculateWoundArea
   double woundCenterX;
   double woundCenterY;
   double woundArea = NAN;
