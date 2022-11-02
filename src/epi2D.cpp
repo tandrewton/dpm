@@ -3522,11 +3522,13 @@ void epi2D::purseStringContraction(double B) {
   // updatePurseStringContacts();
   integratePurseString(B);  // evaluate forces on and due to purse-string, and integrate its position
   for (int psi = 0; psi < psContacts.size(); psi++) {
-    // l0_ps[psi] *= exp(-strainRate_ps * dt); // constant strain rate
-    l0_ps[psi] -= strainRate_ps * dt;  // constantly increasing tension, until 0 length
-    if (l0_ps[psi] < 0)
-      l0_ps[psi] = 0;
-    // if (psi == 0) cout << "purse string length = " << l0_ps[psi] << '\n';
+    if (l0_ps[psi] <= 0.5 * r[0]) {
+      l0_ps[psi] = 0.5 * r[0];
+      // cout << "setting l0_ps[psi] = 0.1 * r[0]\n";
+    } else {
+      // l0_ps[psi] *= exp(-strainRate_ps * dt); // constant strain rate
+      l0_ps[psi] -= strainRate_ps * dt;  // constantly increasing tension until length < r[0], the smallest physical lengthscale
+    }
   }
 }
 
@@ -3591,7 +3593,6 @@ void epi2D::evaluatePurseStringForces(double B) {
   // compute center of mass for wound segment interaction
   xi = x_ps[0];
   yi = x_ps[1];
-  cout << "x_ps[0] = " << x_ps[0] << ", l0_ps[0] = " << l0_ps[0] << '\n';
   cx = xi;
   cy = yi;
   for (int psi = 0; psi < psContacts.size() - 1; psi++) {
@@ -3705,9 +3706,9 @@ void epi2D::evaluatePurseStringForces(double B) {
     fx = (fli * dli * lix / li) - (flim1 * dlim1 * lim1x / lim1);
     fy = (fli * dli * liy / li) - (flim1 * dlim1 * lim1y / lim1);
 
-    if (l0i == 0 || l0im1 == 0) {
-      fx = 0;
-      fy = 0;
+    if (psi == 0 && (fabs(fx) > 1 || std::isnan(fx))) {
+      cout << "fx is larger than reasonable, fli = " << fli << ", dli = " << dli << ", lix = " << lix << ", li = " << li << ", flim1 = " << flim1 << ", dlim1 = " << dlim1 << ", lim1x = " << lim1x << ", lim1 = " << lim1 << '\n';
+      cout << "vrad[0] = " << r[0] << ", l0_ps[0] = " << l0_ps[0] << '\n';
     }
 
     if (std::isnan(F_ps[NDIM * psi])) {
@@ -3731,6 +3732,30 @@ void epi2D::evaluatePurseStringForces(double B) {
 
 void epi2D::integratePurseString(double B) {
   // velocity verlet force update with damping
+
+  // first step: delete virtual vertices if the virtual-real bond has yielded.
+  for (int i = 0; i < psContacts.size(); i++) {
+    if (isSpringBroken[i]) {
+      // mark all doubles associated with yielded virtual vertex for deletion
+      x_ps[NDIM * i] = NAN;
+      x_ps[NDIM * i + 1] = NAN;
+      v_ps[NDIM * i] = NAN;
+      v_ps[NDIM * i + 1] = NAN;
+      F_ps[NDIM * i] = NAN;
+      F_ps[NDIM * i + 1] = NAN;
+      l0_ps[(i - 1 + psContacts.size()) % psContacts.size()] += l0_ps[i];
+      l0_ps[i] = NAN;
+    }
+  }
+  // delete all NANs, the mark for deletion
+  x_ps.erase(remove(x_ps.begin(), x_ps.end(), NAN), x_ps.end());
+  v_ps.erase(remove(v_ps.begin(), v_ps.end(), NAN), v_ps.end());
+  F_ps.erase(remove(F_ps.begin(), F_ps.end(), NAN), F_ps.end());
+  l0_ps.erase(remove(l0_ps.begin(), l0_ps.end(), NAN), l0_ps.end());
+
+  // delete all bools associated with yielded virtual vertices for deletion
+  isSpringBroken.erase(remove(isSpringBroken.begin(), isSpringBroken.end(), true), isSpringBroken.end());
+
   // VV position update
   int virtualDOF = psContacts.size() * NDIM;
   for (int i = 0; i < virtualDOF; i++) {
