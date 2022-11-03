@@ -306,6 +306,7 @@ class epi2D : public dpm {
   // main double
   double getPsi(int ci) { return psi.at(ci); };
   double vertDistNoPBC(int gi, int gj);
+  double vertDistSqNoPBC(int gi, int gj);
 
   // editors & updates
   double meanl0();

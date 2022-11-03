@@ -94,6 +94,14 @@ double epi2D::vertDistNoPBC(int gi, int gj) {
   return sqrt(dist);
 }
 
+double epi2D::vertDistSqNoPBC(int gi, int gj) {
+  // not valid for PBC
+  double distsq = 0;
+  distsq = pow(x[gi * NDIM] - x[gj * NDIM], 2) +
+           pow(x[gi * NDIM + 1] - x[gj * NDIM + 1], 2);
+  return distsq;
+}
+
 void epi2D::directorDiffusion() {
   double r1, r2, grv;
   for (int ci = 0; ci < NCELLS; ci++) {
@@ -3258,19 +3266,19 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
       }
       if (sum > 0) {
         currentWoundIndices.push_back(gi);
-        debug_i.push_back(i);
-        debug_j.push_back(j);
+        // debug_i.push_back(i);
+        // debug_j.push_back(j);
       }
     }
   }
 
-  cout << "currentWoundIndices.size() = " << currentWoundIndices.size() << '\n';
+  /*cout << "currentWoundIndices.size() = " << currentWoundIndices.size() << '\n';
 
   for (auto i : currentWoundIndices) {
     cout << "current wound index = " << i << '\n';
-  }
+  }*/
 
-  if (currentWoundIndices.size() > 0) {
+  /*if (currentWoundIndices.size() > 0) {
     for (int i = 0; i < xResolution; i++) {
       cout << "[ ";
       for (int j = 0; j < yResolution; j++) {
@@ -3288,7 +3296,7 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
       }
       cout << "]" << '\n';
     }
-  }
+  }*/
 
   // wound center can be found as the geometric center of all the boxes with label 1, which is as accurate as the resolution
   /*double geometricCenterX = xLocs / sum;
@@ -3568,8 +3576,104 @@ double epi2D::rotateAndCalculateArcLength(int ci, std::vector<int>& woundIndices
   return arc_length;
 }
 
+void epi2D::updatePurseStringContacts() {
+  // check if a vertex is wound adjacent but does not have a PS bond.
+  // give that vertex a PS bond if it does not already have one.
+
+  if (psContacts.size() < 2) {
+    return;  // invalid size for sorting
+  }
+
+  double distanceSq;
+  double first = 1e10, second = 1e10;  // used to find two closest elements (minimum distances) in one traversal of psContacts
+  int firstInd = INT_MAX, secondInd = INT_MAX;
+  int indexOfPsContacts_first = 0, indexOfPsContacts_second = 0;
+  double l0_insert;
+
+  for (auto gi : currentWoundIndices) {
+    if (std::find(psContacts.begin(), psContacts.end(), gi) == psContacts.end()) {
+      cout << "before inserting into psContacts!\n";
+      for (int i = 0; i < x_ps.size(); i += 2) {
+        cout << i / 2 << '\t' << "x_ps = " << x_ps[i] << '\t' << x_ps[i + 1] << '\n';
+      }
+
+      // could not find gi in psContacts, so we have a current wound adjacent vertex with no PS bond
+      // give it a PS bond
+      cout << "in updatePurseStringContacts, found gi = " << gi << ", which is in currentWoundIndices but not in psContacts. must generate a new virtual vertex for gi\n";
+
+      // get a vector of distances from gi to psContacts
+      std::vector<double> distToPsContacts;
+      for (int i = 0; i < psContacts.size(); i++) {
+        distToPsContacts.push_back(vertDistSqNoPBC(gi, psContacts[i]));
+      }
+
+      // get two closest elements in psContacts, they should be ordered adjacent to each other
+      for (int i = 0; i < psContacts.size(); i++) {
+        if (distToPsContacts[i] < first) {
+          second = first;
+          secondInd = firstInd;
+          indexOfPsContacts_second = indexOfPsContacts_first;
+          first = distToPsContacts[i];
+          firstInd = psContacts[i];
+          indexOfPsContacts_first = i;
+
+        } else if (distToPsContacts[i] < second && distToPsContacts[i] != first) {
+          second = distToPsContacts[i];
+          secondInd = psContacts[i];
+          indexOfPsContacts_second = i;
+        }
+      }
+
+      // insert gi into psContacts in the middle of these adjacent elements
+
+      cout << "insert gi between " << psContacts[indexOfPsContacts_first] << ", " << psContacts[indexOfPsContacts_second] << '\n';
+
+      int insert_index = 0;
+
+      if ((indexOfPsContacts_first == 0 && indexOfPsContacts_second == psContacts.size() - 1) || (indexOfPsContacts_second == 0 && indexOfPsContacts_first == psContacts.size() - 1)) {
+        // edge case - insert gi at the beginning of the entire vector
+        insert_index = 0;
+        cout << "inserting at index 0\n";
+      } else if (indexOfPsContacts_first < indexOfPsContacts_second) {
+        insert_index = indexOfPsContacts_first + 1;
+        cout << "inserting at index " << indexOfPsContacts_first + 1 << '\n';
+      } else {
+        insert_index = indexOfPsContacts_second + 1;
+        cout << "inserting at index " << indexOfPsContacts_second + 1 << '\n';
+      }
+
+      psContacts.insert(psContacts.begin() + insert_index, gi);
+
+      for (auto i : psContacts)
+        cout << i << '\t';
+      cout << '\n';
+
+      int next = (insert_index + psContacts.size()) % psContacts.size();
+      int prev = (insert_index - 2 + psContacts.size()) % psContacts.size();
+
+      // new l0 value is dist(x_ps(i + 1 + size % size), x[gi])
+      l0_insert = sqrt(pow(x_ps[NDIM * next] - x[NDIM * gi], 2) + pow(x_ps[NDIM * next + 1] - x[NDIM * gi + 1], 2));
+
+      cout << "expecting to insert " << x[NDIM * gi] << '\t' << x[NDIM * gi + 1] << '\n';
+
+      // x_ps, v_ps, F_ps, l0, isSpringBroken
+      x_ps.insert(x_ps.begin() + NDIM * insert_index, x.begin() + NDIM * gi, x.begin() + NDIM * gi + 2);
+      v_ps.insert(v_ps.begin() + NDIM * insert_index, v.begin() + NDIM * gi, v.begin() + NDIM * gi + 2);
+      F_ps.insert(F_ps.begin() + NDIM * insert_index, F.begin() + NDIM * gi, F.begin() + NDIM * gi + 2);
+      l0_ps[insert_index] = sqrt(pow(x_ps[NDIM * prev] - x[NDIM * gi], 2) + pow(x_ps[NDIM * prev + 1] - x[NDIM * gi + 1], 2));
+      l0_ps.insert(l0_ps.begin() + insert_index, l0_insert);
+      isSpringBroken.insert(isSpringBroken.begin() + insert_index, false);
+
+      cout << "after inserting into psContacts!\n";
+      for (int i = 0; i < x_ps.size(); i += 2) {
+        cout << i / 2 << '\t' << "x_ps = " << x_ps[i] << '\t' << x_ps[i + 1] << '\n';
+      }
+    }
+  }
+}
+
 void epi2D::purseStringContraction(double B) {
-  // updatePurseStringContacts();
+  updatePurseStringContacts();
   integratePurseString(B);  // evaluate forces on and due to purse-string, and integrate its position
   for (int psi = 0; psi < psContacts.size(); psi++) {
     if (l0_ps[psi] <= 0.1 * r[0]) {
