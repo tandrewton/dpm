@@ -1756,7 +1756,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
       double max_ps = x_ps[0], min_ps = x_ps[0];
       double min_allowed_ps_length = r[0];
       // double min_allowed_ps_length = 0.0;
-      for (int psi = 0; psi < x_ps.size() / 2; psi += 2) {
+      for (int psi = 0; psi < x_ps.size(); psi += 2) {
         if (x_ps[psi] < min_ps)
           min_ps = x_ps[psi];
         if (x_ps[psi] > max_ps)
@@ -1775,6 +1775,9 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
           cout << "disassembling purse-string, lengths are too short to shrink further \n";
           isPurseStringDoneShrinking = true;
           strainRate_ps = 0.0;
+          cout << "max_ps = " << max_ps << '\t' << ", min_ps = " << min_ps << '\n';
+          cout << "simclock = " << simclock << '\n';
+          assert(false);
         }
         purseStringContraction(B);
       }
@@ -3240,7 +3243,7 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
   currentWoundIndices.clear();
   std::vector<int> debug_i, debug_j;
   bool iAndjAreInDebug = false;
-  int woundSearchRange = 2.0 * r[0] / resolution;
+  int woundSearchRange = r[0] / resolution + 1;
   for (int gi = 0; gi < NVTOT; gi++) {
     double dist;
     int ci, vi;
@@ -3582,6 +3585,14 @@ void epi2D::updatePurseStringContacts() {
 
   if (psContacts.size() < 2) {
     return;  // invalid size for sorting
+  } else if (psContacts.size() < 5) {
+    cout << "psContacts.size < 5\n";
+    for (int i = 0; i < psContacts.size(); i++) {
+      cout << "psContact " << i << ", gi = " << psContacts[i] << '\n';
+      cout << "x_ps = " << x_ps[NDIM * i] << '\t' << x_ps[NDIM * i + 1] << '\n';
+      cout << "l0_ps = " << l0_ps[i] << '\n';
+      cout << "isSpringBroken = " << isSpringBroken[i] << '\n';
+    }
   }
 
   double distanceSq;
@@ -3592,14 +3603,9 @@ void epi2D::updatePurseStringContacts() {
 
   for (auto gi : currentWoundIndices) {
     if (std::find(psContacts.begin(), psContacts.end(), gi) == psContacts.end()) {
-      cout << "before inserting into psContacts!\n";
-      for (int i = 0; i < x_ps.size(); i += 2) {
-        cout << i / 2 << '\t' << "x_ps = " << x_ps[i] << '\t' << x_ps[i + 1] << '\n';
-      }
-
       // could not find gi in psContacts, so we have a current wound adjacent vertex with no PS bond
       // give it a PS bond
-      cout << "in updatePurseStringContacts, found gi = " << gi << ", which is in currentWoundIndices but not in psContacts. must generate a new virtual vertex for gi\n";
+      // cout << "in updatePurseStringContacts, found gi = " << gi << ", which is in currentWoundIndices but not in psContacts. must generate a new virtual vertex for gi\n";
 
       // get a vector of distances from gi to psContacts
       std::vector<double> distToPsContacts;
@@ -3622,6 +3628,13 @@ void epi2D::updatePurseStringContacts() {
           secondInd = psContacts[i];
           indexOfPsContacts_second = i;
         }
+      }
+
+      // if first and second are not adjacent, then inserting between them will be a large discontinuous break in the shape of the PS cable. so don't allow insertion between non-adjacent elements
+      if (abs(indexOfPsContacts_first - indexOfPsContacts_second) != 1 || abs(indexOfPsContacts_first - indexOfPsContacts_second) != psContacts.size() - 1) {
+        continue;
+        cout << "skipping insertion of " << gi << "between " << indexOfPsContacts_first << ", and " << indexOfPsContacts_second << '\n';
+        // skip any insertions, move onto next gi
       }
 
       // insert gi into psContacts in the middle of these adjacent elements
@@ -3654,8 +3667,6 @@ void epi2D::updatePurseStringContacts() {
       // new l0 value is dist(x_ps(i + 1 + size % size), x[gi])
       l0_insert = sqrt(pow(x_ps[NDIM * next] - x[NDIM * gi], 2) + pow(x_ps[NDIM * next + 1] - x[NDIM * gi + 1], 2));
 
-      cout << "expecting to insert " << x[NDIM * gi] << '\t' << x[NDIM * gi + 1] << '\n';
-
       // x_ps, v_ps, F_ps, l0, isSpringBroken
       x_ps.insert(x_ps.begin() + NDIM * insert_index, x.begin() + NDIM * gi, x.begin() + NDIM * gi + 2);
       v_ps.insert(v_ps.begin() + NDIM * insert_index, v.begin() + NDIM * gi, v.begin() + NDIM * gi + 2);
@@ -3663,11 +3674,6 @@ void epi2D::updatePurseStringContacts() {
       l0_ps[insert_index] = sqrt(pow(x_ps[NDIM * prev] - x[NDIM * gi], 2) + pow(x_ps[NDIM * prev + 1] - x[NDIM * gi + 1], 2));
       l0_ps.insert(l0_ps.begin() + insert_index, l0_insert);
       isSpringBroken.insert(isSpringBroken.begin() + insert_index, false);
-
-      cout << "after inserting into psContacts!\n";
-      for (int i = 0; i < x_ps.size(); i += 2) {
-        cout << i / 2 << '\t' << "x_ps = " << x_ps[i] << '\t' << x_ps[i + 1] << '\n';
-      }
     }
   }
 }
@@ -3892,7 +3898,7 @@ void epi2D::integratePurseString(double B) {
     if (isSpringBroken[i]) {
       int prev = (i - 1 + psContacts.size()) % psContacts.size();
       int next = (i + 1 + psContacts.size()) % psContacts.size();
-      cout << "marking a spring on psContact = " << i << " for deletion!\n";
+      cout << "marking a spring on gi = psContact[i] = " << psContacts[i] << " for deletion!\n";
       // mark all doubles associated with yielded virtual vertex for deletion
       x_ps[NDIM * i] = NAN;
       x_ps[NDIM * i + 1] = NAN;
@@ -3901,7 +3907,7 @@ void epi2D::integratePurseString(double B) {
       F_ps[NDIM * i] = NAN;
       F_ps[NDIM * i + 1] = NAN;
       // l0_ps[(i - 1 + psContacts.size()) % psContacts.size()] += l0_ps[i];
-      l0_ps[prev] = vertDistNoPBC(psContacts[prev], psContacts[next]);
+      l0_ps[prev] = vertDistNoPBC(psContacts[prev], psContacts[next]);  // adjust previous indexed l0 to match new configuration with current l0 deleted
       psContacts[i] = 9999;
     }
   }
