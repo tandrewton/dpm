@@ -44,7 +44,7 @@ makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately and dont s
 plotCells = 1;
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
-showWoundAndShapeProperties = 1;
+showWoundAndShapeProperties = 0;
 
 
 showverts = 1;
@@ -63,7 +63,7 @@ viewBottom = 1.0;
 
 %disable showVoid if using printConfig on its own, outside of
 %dampedNVE/dampedNP0 routines
-showGlobalIndex = 0;
+showGlobalIndex = 1;
 showVoid = 0;
 showVoidBlack = 0; % print void in larger black circles to see easier
 showVoidLite = 1; % print void, but in a way that works with printConfiguration on its own
@@ -396,7 +396,7 @@ for seed = startSeed:max_seed
                                 for yy = itLow:itHigh
                                     rectangle('Position',[xplot+xx*Lx, yplot + yy*Ly, 2*vradtmp(vv), 2*vradtmp(vv)],'Curvature',[1 1],'EdgeColor','k','FaceColor',clr);
                                     if showGlobalIndex
-                                        text(xtmp(vv), ytmp(vv), num2str(gitmp(vv)));
+                                        text(xtmp(vv), ytmp(vv), num2str(gitmp(vv)), 'FontSize', 6);
                                     end
                                 end
                             end

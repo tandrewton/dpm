@@ -3089,6 +3089,7 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
   //  multiply by grid point area to get the total wound area.
 
   // note: NAN will be ignored in plots, so I use it here for plotting purposes. Make sure that woundArea does not collide with important things (i.e. get multiplied into meaningful simulation quantities)
+  cout << "calculating woundArea, simclock = " << simclock << '\n';
 
   // note: running this every 100 or 1000 timesteps should be fine.
   std::vector<double> posX(NVTOT / 2), posY(NVTOT / 2);
@@ -3243,11 +3244,12 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
   currentWoundIndices.clear();
   std::vector<int> debug_i, debug_j;
   bool iAndjAreInDebug = false;
-  int woundSearchRange = r[0] / resolution + 1;
+  int woundSearchRange = r[0] / resolution + 2;  // r[0] / resolution gives # boxes representing a vertex radius. + 1 allows it to search for immediate contacts to the vertex radius. + 2 gives buffer in edge case (vertex just barely passes edge of box). not totally sure why +1 isn't enough, but +2 seems to be the right amount to find the void
+  int woundSearchRange_debug = woundSearchRange + 2;
   for (int gi = 0; gi < NVTOT; gi++) {
     double dist;
     int ci, vi;
-    int i, j, sum = 0;
+    int i, j, sum = 0, sum_debug = 0;
     cindices(ci, vi, gi);
     if (std::find(initialWoundCellIndices.begin(), initialWoundCellIndices.end(), ci) != initialWoundCellIndices.end()) {
       // cell is indeed one of the initially wound-adjacent cells
@@ -3263,9 +3265,24 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
       // count up all neighbors of i,j. they are 1-valued if in wound, 0 otherwise
       for (int xInd = -woundSearchRange; xInd < woundSearchRange; xInd++) {
         for (int yInd = -woundSearchRange; yInd < woundSearchRange; yInd++) {
-          if (i + xInd >= 0 && j + yInd >= 0 && i + xInd < labels.size() && j + yInd < labels[0].size())
+          if (i + xInd >= 0 && j + yInd >= 0 && i + xInd < labels.size() && j + yInd < labels[0].size())  // make sure it's in bounds
             sum += labels[i + xInd][j + yInd];
         }
+      }
+      if (gi == 317) {
+        for (int xInd = -woundSearchRange_debug; xInd < woundSearchRange_debug; xInd++) {
+          for (int yInd = -woundSearchRange_debug; yInd < woundSearchRange_debug; yInd++) {
+            if (i + xInd >= 0 && j + yInd >= 0 && i + xInd < labels.size() && j + yInd < labels[0].size())
+              sum_debug += labels[i + xInd][j + yInd];
+            if (labels[i + xInd][j + yInd]) {
+              cout << "xInd, yInd = " << xInd << '\t' << yInd << '\n';
+              // these tell how large of a displacement i need in box number to find a 1 label
+            }
+          }
+        }
+        cout << "sum_debug for gi " << gi << " = " << sum_debug << '\n';
+        cout << "sum for gi " << gi << " = " << sum << '\n';
+        cout << "search range = " << woundSearchRange << '\t' << ", debug search range = " << woundSearchRange_debug << '\n';
       }
       if (sum > 0) {
         currentWoundIndices.push_back(gi);
@@ -3601,6 +3618,18 @@ void epi2D::updatePurseStringContacts() {
   int indexOfPsContacts_first = 0, indexOfPsContacts_second = 0;
   double l0_insert;
 
+  if (simclock > 120) {
+    cout << "currentWoundIndices = \n";
+    for (auto i : currentWoundIndices) {
+      cout << i << '\t';
+    }
+    cout << '\n';
+    cout << "psContacts = \n";
+    for (auto i : psContacts)
+      cout << i << '\t';
+    cout << '\n';
+  }
+
   for (auto gi : currentWoundIndices) {
     if (std::find(psContacts.begin(), psContacts.end(), gi) == psContacts.end()) {
       // could not find gi in psContacts, so we have a current wound adjacent vertex with no PS bond
@@ -3640,7 +3669,7 @@ void epi2D::updatePurseStringContacts() {
 
       // insert gi into psContacts in the middle of these adjacent elements
 
-      cout << "insert gi between " << psContacts[indexOfPsContacts_first] << ", " << psContacts[indexOfPsContacts_second] << '\n';
+      cout << "insert " << gi << " between " << psContacts[indexOfPsContacts_first] << ", " << psContacts[indexOfPsContacts_second] << '\n';
 
       int insert_index = 0;
 
