@@ -3585,15 +3585,15 @@ void epi2D::updatePurseStringContacts() {
 
   if (psContacts.size() < 2) {
     return;  // invalid size for sorting
-  } else if (psContacts.size() < 5) {
-    cout << "psContacts.size < 5\n";
-    for (int i = 0; i < psContacts.size(); i++) {
-      cout << "psContact " << i << ", gi = " << psContacts[i] << '\n';
-      cout << "x_ps = " << x_ps[NDIM * i] << '\t' << x_ps[NDIM * i + 1] << '\n';
-      cout << "l0_ps = " << l0_ps[i] << '\n';
-      cout << "isSpringBroken = " << isSpringBroken[i] << '\n';
-    }
-  }
+  }          /*else if (psContacts.size() < 5) {
+             cout << "psContacts.size < 5\n";
+             for (int i = 0; i < psContacts.size(); i++) {
+               cout << "psContact " << i << ", gi = " << psContacts[i] << '\n';
+               cout << "x_ps = " << x_ps[NDIM * i] << '\t' << x_ps[NDIM * i + 1] << '\n';
+               cout << "l0_ps = " << l0_ps[i] << '\n';
+               cout << "isSpringBroken = " << isSpringBroken[i] << '\n';
+             }
+           }*/
 
   double distanceSq;
   double first = 1e10, second = 1e10;  // used to find two closest elements (minimum distances) in one traversal of psContacts
@@ -3631,9 +3631,10 @@ void epi2D::updatePurseStringContacts() {
       }
 
       // if first and second are not adjacent, then inserting between them will be a large discontinuous break in the shape of the PS cable. so don't allow insertion between non-adjacent elements
-      if (abs(indexOfPsContacts_first - indexOfPsContacts_second) != 1 || abs(indexOfPsContacts_first - indexOfPsContacts_second) != psContacts.size() - 1) {
+      if (abs(indexOfPsContacts_first - indexOfPsContacts_second) != 1 && abs(indexOfPsContacts_first - indexOfPsContacts_second) != psContacts.size() - 1) {
+        cout << "simclock = " << simclock << ", skipping insertion of " << gi << " between " << indexOfPsContacts_first << ", and " << indexOfPsContacts_second << '\n';
+        cout << "because diff(indices) = " << abs(indexOfPsContacts_first - indexOfPsContacts_second) << ", and psContacts.size() - 1) = " << psContacts.size() - 1 << '\n';
         continue;
-        cout << "skipping insertion of " << gi << "between " << indexOfPsContacts_first << ", and " << indexOfPsContacts_second << '\n';
         // skip any insertions, move onto next gi
       }
 
