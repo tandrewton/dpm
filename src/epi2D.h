@@ -387,6 +387,7 @@ class epi2D : public dpm {
   void updatePurseStringContacts();
   void evaluatePurseStringForces(double B);
   void integratePurseString(double B);
+  void sortPurseStringVariables();
   // polymorphism: write configuration information to file
   void printConfiguration2D();
 };

@@ -3089,7 +3089,7 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
   //  multiply by grid point area to get the total wound area.
 
   // note: NAN will be ignored in plots, so I use it here for plotting purposes. Make sure that woundArea does not collide with important things (i.e. get multiplied into meaningful simulation quantities)
-  cout << "calculating woundArea, simclock = " << simclock << '\n';
+  // cout << "calculating woundArea, simclock = " << simclock << '\n';
 
   // note: running this every 100 or 1000 timesteps should be fine.
   std::vector<double> posX(NVTOT / 2), posY(NVTOT / 2);
@@ -3573,7 +3573,7 @@ void epi2D::updatePurseStringContacts() {
   int indexOfPsContacts_first = 0, indexOfPsContacts_second = 0;
   double l0_insert;
 
-  if (simclock > 120) {
+  if (simclock > 304) {
     cout << "currentWoundIndices = \n";
     for (auto i : currentWoundIndices) {
       cout << i << '\t';
@@ -3619,15 +3619,15 @@ void epi2D::updatePurseStringContacts() {
       int diffOfIndices = abs(indexOfPsContacts_first - indexOfPsContacts_second);
       // if first and second are not adjacent, then inserting between them will be a large discontinuous break in the shape of the PS cable. so don't allow insertion between non-adjacent elements
       if (diffOfIndices != 1 && diffOfIndices != psContacts.size() - 1) {
-        cout << "simclock = " << simclock << ", skipping insertion of " << gi << " between " << psContacts[indexOfPsContacts_first] << ", and " << psContacts[indexOfPsContacts_second];
-        cout << " because diff(indices) = " << diffOfIndices << ", and psContacts.size() - 1) = " << psContacts.size() - 1 << '\n';
+        /*cout << "simclock = " << simclock << ", skipping insertion of " << gi << " between " << psContacts[indexOfPsContacts_first] << ", and " << psContacts[indexOfPsContacts_second];
+        cout << " because diff(indices) = " << diffOfIndices << ", and psContacts.size() - 1) = " << psContacts.size() - 1 << '\n';*/
         continue;
         // skip any insertions, move onto next gi
       }
 
       // insert gi into psContacts in the middle of these adjacent elements
 
-      cout << "insert " << gi << " between " << psContacts[indexOfPsContacts_first] << ", " << psContacts[indexOfPsContacts_second] << ", simclock = " << simclock << '\n';
+      cout << "try to insert " << gi << " between " << psContacts[indexOfPsContacts_first] << ", " << psContacts[indexOfPsContacts_second] << ", simclock = " << simclock << '\n';
 
       int insert_index = 0;
 
@@ -3685,19 +3685,37 @@ void epi2D::updatePurseStringContacts() {
         cout << i << '\t';
       cout << '\n';
 
-      int next = (insert_index + psContacts.size()) % psContacts.size();
-      int prev = (insert_index - 2 + psContacts.size()) % psContacts.size();
+      cout << "sizes of x_ps, l0_ps, psContacts = " << x_ps.size() << '\t' << l0_ps.size() << '\t' << psContacts.size() << '\n';
+      cout << "x_ps to insert: " << x[NDIM * gi] << '\t' << x[NDIM * gi + 1] << '\n';
+      for (int k = 0; k < psContacts.size(); k++) {
+        cout << "before insertion: x_ps[" << k << "] = " << x_ps[NDIM * k] << '\t' << x_ps[NDIM * k + 1] << '\n';
+      }
 
-      // new l0 value is dist(x_ps(i + 1 + size % size), x[gi])
-      l0_insert = sqrt(pow(x_ps[NDIM * next] - x[NDIM * gi], 2) + pow(x_ps[NDIM * next + 1] - x[NDIM * gi + 1], 2));
+      // next and previous represent the index of the next and previous neighbor of the newly inserted index
+      int next = (insert_index + 1 + psContacts.size()) % psContacts.size();
+      int prev = (insert_index - 1 + psContacts.size()) % psContacts.size();
 
       // x_ps, v_ps, F_ps, l0, isSpringBroken
       x_ps.insert(x_ps.begin() + NDIM * insert_index, x.begin() + NDIM * gi, x.begin() + NDIM * gi + 2);
       v_ps.insert(v_ps.begin() + NDIM * insert_index, v.begin() + NDIM * gi, v.begin() + NDIM * gi + 2);
       F_ps.insert(F_ps.begin() + NDIM * insert_index, F.begin() + NDIM * gi, F.begin() + NDIM * gi + 2);
+      isSpringBroken.insert(isSpringBroken.begin() + insert_index, false);
+
+      // new l0 value is dist(x_ps(i + 1 + size % size), x[gi])
+      // compute l0 last because it depends on new additions to x_ps
+      l0_insert = sqrt(pow(x_ps[NDIM * next] - x[NDIM * gi], 2) + pow(x_ps[NDIM * next + 1] - x[NDIM * gi + 1], 2));
       l0_ps[insert_index] = sqrt(pow(x_ps[NDIM * prev] - x[NDIM * gi], 2) + pow(x_ps[NDIM * prev + 1] - x[NDIM * gi + 1], 2));
       l0_ps.insert(l0_ps.begin() + insert_index, l0_insert);
-      isSpringBroken.insert(isSpringBroken.begin() + insert_index, false);
+
+      for (int k = 0; k < psContacts.size(); k++) {
+        cout << "after insertion: x_ps[" << k << "] = " << x_ps[NDIM * k] << '\t' << x_ps[NDIM * k + 1] << '\n';
+      }
+      cout << "sizes of x_ps, l0_ps, psContacts = " << x_ps.size() << '\t' << l0_ps.size() << '\t' << psContacts.size() << '\n';
+      cout << "gi = " << gi << ", insert_index = " << insert_index << ", l0_insert = " << l0_insert << '\n';
+      cout << "l0_insert_sq = " << pow(x_ps[NDIM * next] - x[NDIM * gi], 2) + pow(x_ps[NDIM * next + 1] - x[NDIM * gi + 1], 2) << '\n';
+      cout << "x_ps[NDIM*next], x_ps[NDIM*next+1], x[NDIM*gi], x[NDIM*gi+1] = " << x_ps[NDIM * next] << '\t' << x_ps[NDIM * next + 1] << '\t' << x[NDIM * gi] << '\t' << x[NDIM * gi + 1] << '\n';
+      cout << "l0_ps[insert_index] = " << l0_ps[insert_index] << '\n';
+      cout << "next, prev = " << next << '\t' << prev << '\n';
     }
   }
 }
@@ -3831,8 +3849,12 @@ void epi2D::evaluatePurseStringForces(double B) {
     F_ps[psi * NDIM] -= fx;
     F_ps[psi * NDIM + 1] -= fy;
     // cout << "force on pursestring due to virtual-real bonds = " << -fx << '\t' << -fy << '\n';
-    if (psi == 5)
-      debugout << -fx << '\t' << -fy << '\n';
+
+    if (std::isnan(F_ps[NDIM * psi])) {
+      cout << "force components responsible for F_ps nan: " << '\n';
+      cout << "fx = " << fx << ", fy = " << fy << '\n';
+      cout << "isCutoff = " << isCutoff << ", isSpringBroken = " << isSpringBroken[psi] << ", dx dy = " << dx << '\t' << dy << '\n';
+    }
 
     // stress on gj should be the same as on gi, since it's the opposite separation and also opposite force
     fieldStress[gi][0] += -dx / 2 * fx;
@@ -3895,19 +3917,26 @@ void epi2D::evaluatePurseStringForces(double B) {
       cout << "vrad[0] = " << r[0] << ", l0_ps[0] = " << l0_ps[0] << '\n';
     }
 
+    F_ps[NDIM * psi] += fx;
+    F_ps[NDIM * psi + 1] += fy;
+    // cout << "F_ps_x due to segment length = " << fx << '\t' << fy << '\n';
+    if (l0_ps.size() != psContacts.size()) {
+      cout << "contradiction: l0_ps.size != psContacts.size() : " << l0_ps.size() << '\t' << psContacts.size() << '\n';
+      assert(l0_ps.size() == psContacts.size());
+    }
     if (std::isnan(F_ps[NDIM * psi])) {
       cout << "force components responsible for F_ps nan: " << '\n';
       cout << "fx = " << fx << ", fy = " << fy << '\n';
       cout << "fli, dli, lix, liy, li = " << fli << '\t' << dli << '\t' << lix << '\t' << liy << '\t' << li << '\n';
       cout << "flim1, dlim1, lim1x, lim1y, lim1 = " << flim1 << '\t' << dlim1 << '\t' << lim1x << '\t' << lim1y << '\t' << lim1 << '\n';
       cout << "l0i, l0im1 = " << l0i << '\t' << l0im1 << '\n';
+      cout << "l0_ps.size() = " << l0_ps.size() << '\n';
+      cout << "l0_ps = ";
+      for (auto i : l0_ps) {
+        cout << i << '\t';
+      }
+      cout << "\npsi, imi, psContacts.size = " << psi << '\t' << imi << '\t' << psContacts.size() << '\n';
     }
-
-    F_ps[NDIM * psi] += fx;
-    F_ps[NDIM * psi + 1] += fy;
-    // cout << "F_ps_x due to segment length = " << fx << '\t' << fy << '\n';
-    if (psi == 5)
-      debugout << fx << '\t' << fy << '\n';
 
     // choosing not to update potential energy of the purse-string itself
     // U += 0.5 * kl * (dli * dli);
@@ -3941,6 +3970,13 @@ void epi2D::integratePurseString(double B) {
       l0_ps[i] = NAN;
   }
 
+  if (simclock > 304) {
+    for (int i = 0; i < l0_ps.size(); i++) {
+      cout << "l0_ps[" << i << "] = " << l0_ps[i] << ", x_ps[NDIM*i] = " << x_ps[NDIM * i] << ", F_ps[NDIM*i] = " << F_ps[NDIM * i] << '\n';
+    }
+    cout << "sizes of x_ps, l0_ps, psContacts before deletion = " << x_ps.size() << '\t' << l0_ps.size() << '\t' << psContacts.size() << '\n';
+  }
+
   // delete all NANs, the mark for deletion
   x_ps.erase(remove_if(x_ps.begin(), x_ps.end(), [](const double& value) { return std::isnan(value); }), x_ps.end());
   v_ps.erase(remove_if(v_ps.begin(), v_ps.end(), [](const double& value) { return std::isnan(value); }), v_ps.end());
@@ -3951,6 +3987,10 @@ void epi2D::integratePurseString(double B) {
   // delete all bools associated with yielded virtual vertices for deletion
   isSpringBroken.erase(remove(isSpringBroken.begin(), isSpringBroken.end(), true), isSpringBroken.end());
 
+  if (simclock > 304) {
+    cout << "sizes of x_ps, l0_ps, psContacts after deletion = " << x_ps.size() << '\t' << l0_ps.size() << '\t' << psContacts.size() << '\n';
+  }
+
   // VV position update
   int virtualDOF = psContacts.size() * NDIM;
   for (int i = 0; i < virtualDOF; i++) {
@@ -3959,6 +3999,10 @@ void epi2D::integratePurseString(double B) {
       cout << "x_ps[i] = nan\n";
       cout << "v_ps, F_ps = " << v_ps[i] << '\t' << F_ps[i] << '\n';
     }
+    if (std::isnan(F_ps[i])) {
+      cout << "VV pos update: F_ps[" << i << "] = nan\n";
+    }
+
     // recenter in box
     if (x_ps[i] > L[i % NDIM] && pbc[i % NDIM])
       x_ps[i] -= L[i % NDIM];
@@ -3976,9 +4020,21 @@ void epi2D::integratePurseString(double B) {
     F_ps[i] /= (1 + B * dt / 2);
     v_ps[i] += 0.5 * (F_ps[i] + F_ps_old[i]) * dt;
     if (std::isnan(F_ps[i])) {
-      cout << "F_ps[" << i << "] = nan\n";
+      cout << "VV vel update: F_ps[" << i << "] = nan\n";
     }
   }
+}
+
+void epi2D::sortPurseStringVariables() {
+  // call this periodically because inserting vertices has some unwanted edge cases
+  // list of data to handle: x_ps, v_ps, F_ps, l0_ps, isSpringBroken, psContacts
+  // psContacts is an out of order vector, such as
+  //    psContacts = 117 220 221 222 224 223 390 391 225 226 207 392
+  //  it should be sorted to 117 220 221 222 223 224 225 226 207 390 391 392 ...
+  //    or something equivalent to that.
+  // also, psContacts[i] corresponds to l0_ps[i] and x_ps[NDIM*i] and x_ps[NDIM*i + 1].
+  //  when sorting psContacts, make sure to also sort l0_ps, x_ps, v_ps, F_ps, isSpringBroken accordingly
+  //
 }
 
 void epi2D::printConfiguration2D() {
