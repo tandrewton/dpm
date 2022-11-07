@@ -3685,11 +3685,7 @@ void epi2D::updatePurseStringContacts() {
         cout << i << '\t';
       cout << '\n';
 
-      cout << "sizes of x_ps, l0_ps, psContacts = " << x_ps.size() << '\t' << l0_ps.size() << '\t' << psContacts.size() << '\n';
       cout << "x_ps to insert: " << x[NDIM * gi] << '\t' << x[NDIM * gi + 1] << '\n';
-      for (int k = 0; k < psContacts.size(); k++) {
-        cout << "before insertion: x_ps[" << k << "] = " << x_ps[NDIM * k] << '\t' << x_ps[NDIM * k + 1] << '\n';
-      }
 
       // next and previous represent the index of the next and previous neighbor of the newly inserted index
       int next = (insert_index + 1 + psContacts.size()) % psContacts.size();
@@ -3703,19 +3699,29 @@ void epi2D::updatePurseStringContacts() {
 
       // new l0 value is dist(x_ps(i + 1 + size % size), x[gi])
       // compute l0 last because it depends on new additions to x_ps
-      l0_insert = sqrt(pow(x_ps[NDIM * next] - x[NDIM * gi], 2) + pow(x_ps[NDIM * next + 1] - x[NDIM * gi + 1], 2));
-      l0_ps[insert_index] = sqrt(pow(x_ps[NDIM * prev] - x[NDIM * gi], 2) + pow(x_ps[NDIM * prev + 1] - x[NDIM * gi + 1], 2));
+      l0_insert = sqrt(pow(x_ps[NDIM * prev] - x[NDIM * gi], 2) + pow(x_ps[NDIM * prev + 1] - x[NDIM * gi + 1], 2));
+      l0_ps[insert_index] = sqrt(pow(x_ps[NDIM * next] - x[NDIM * gi], 2) + pow(x_ps[NDIM * next + 1] - x[NDIM * gi + 1], 2));
+      /*cout << "l0_insert = " << l0_insert << " is associated with " << psContacts[prev] << ", and " << gi << '\n';
+      cout << "l0_ps[" << insert_index << "] = " << l0_ps[insert_index] << " is associated with " << psContacts[next] << ", and " << gi << '\n';*/
       l0_ps.insert(l0_ps.begin() + insert_index, l0_insert);
+      /*cout << "l0_ps : ";
+      for (int i = 0; i < l0_ps.size(); i++) {
+        cout << l0_ps[i] << '\t';
+      }
+      cout << '\n';*/
+
+      /*cout << "l0 between " << insert_index << " and " << next << " = " << l0_ps[insert_index] << '\n';
+      cout << "l0 between " << insert_index << " and " << prev << " = " << l0_insert << "which should = " << l0_ps[insert_index] << '\n';*/
 
       for (int k = 0; k < psContacts.size(); k++) {
         cout << "after insertion: x_ps[" << k << "] = " << x_ps[NDIM * k] << '\t' << x_ps[NDIM * k + 1] << '\n';
       }
       cout << "sizes of x_ps, l0_ps, psContacts = " << x_ps.size() << '\t' << l0_ps.size() << '\t' << psContacts.size() << '\n';
       cout << "gi = " << gi << ", insert_index = " << insert_index << ", l0_insert = " << l0_insert << '\n';
-      cout << "l0_insert_sq = " << pow(x_ps[NDIM * next] - x[NDIM * gi], 2) + pow(x_ps[NDIM * next + 1] - x[NDIM * gi + 1], 2) << '\n';
       cout << "x_ps[NDIM*next], x_ps[NDIM*next+1], x[NDIM*gi], x[NDIM*gi+1] = " << x_ps[NDIM * next] << '\t' << x_ps[NDIM * next + 1] << '\t' << x[NDIM * gi] << '\t' << x[NDIM * gi + 1] << '\n';
       cout << "l0_ps[insert_index] = " << l0_ps[insert_index] << '\n';
-      cout << "next, prev = " << next << '\t' << prev << '\n';
+      cout << "prev, next = " << prev << '\t' << next << '\n';
+      cout << "psContacts[prev], psContacts[next] = " << psContacts[prev] << '\t' << psContacts[next] << '\n';
     }
   }
 }
