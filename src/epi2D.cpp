@@ -3567,24 +3567,11 @@ void epi2D::updatePurseStringContacts() {
                cout << "isSpringBroken = " << isSpringBroken[i] << '\n';
              }
            }*/
-  int ci, vi;
+  int ci, vi, c_first, c_second;
   double first = 1e10, second = 1e10;  // used to find two closest elements (minimum distances) in one traversal of psContacts
   int firstInd = INT_MAX, secondInd = INT_MAX;
   int indexOfPsContacts_first = 0, indexOfPsContacts_second = 0;
   double l0_insert;
-
-  if (simclock > 304) {
-    cout << "currentWoundIndices = \n";
-    for (auto i : currentWoundIndices) {
-      cout << i << '\t';
-    }
-    cout << '\n';
-    cout << "psContacts = \n";
-    for (auto i : psContacts) {
-      cout << i << '\t';
-    }
-    cout << '\n';
-  }
 
   for (auto gi : currentWoundIndices) {
     if (std::find(psContacts.begin(), psContacts.end(), gi) == psContacts.end()) {
@@ -3625,29 +3612,52 @@ void epi2D::updatePurseStringContacts() {
       }
 
       int diffOfIndices = abs(indexOfPsContacts_first - indexOfPsContacts_second);
-      // if first and second are not adjacent, then inserting between them will be a large discontinuous break in the shape of the PS cable. so don't allow insertion between non-adjacent elements
-      if (diffOfIndices != 1 && diffOfIndices != psContacts.size() - 1) {
-        cout << "simclock = " << simclock << ", skipping insertion of " << gi << " between " << psContacts[indexOfPsContacts_first] << ", and " << psContacts[indexOfPsContacts_second];
-        cout << " because diff(indices) = " << diffOfIndices << ", and psContacts.size() - 1) = " << psContacts.size() - 1 << '\n';
-        continue;
-        // skip any insertions, move onto next gi
-      }
-
-      // insert gi into psContacts in the middle of these adjacent elements
-
-      cout << "try to insert " << gi << " between " << psContacts[indexOfPsContacts_first] << ", " << psContacts[indexOfPsContacts_second] << ", simclock = " << simclock << '\n';
 
       int insert_index = 0;
 
       int first_gi = psContacts[indexOfPsContacts_first];
       int second_gi = psContacts[indexOfPsContacts_second];
+      cindices(c_first, vi, first_gi);
+      cindices(c_second, vi, second_gi);
       int realDiffOfIndices = abs(first_gi - second_gi);
       bool isIndexFirstAndSecondSameCellNeighbors;
-      isIndexFirstAndSecondSameCellNeighbors = (realDiffOfIndices == 1 || realDiffOfIndices == nv[ci] - 1);
+      isIndexFirstAndSecondSameCellNeighbors = (c_first == c_second && (realDiffOfIndices == 1 || realDiffOfIndices == nv[ci] - 1));
       bool isGiNeighborOfFirst = (gi == ip1[first_gi] || gi == im1[first_gi]);
       bool isGiNeighborOfSecond = (gi == ip1[second_gi] || gi == im1[second_gi]);
       bool isGiNeighborOfFirstOrSecond = (isGiNeighborOfFirst || isGiNeighborOfSecond);
 
+      // if first and second are not adjacent, then inserting between them will be a large discontinuous break in the shape of the PS cable. so don't allow insertion between non-adjacent elements
+      if (diffOfIndices != 1 && diffOfIndices != psContacts.size() - 1) {
+        cout << "simclock = " << simclock << ", skipping insertion of " << gi << " between " << psContacts[indexOfPsContacts_first] << ", and " << psContacts[indexOfPsContacts_second];
+        cout << " because diff(indices) = " << diffOfIndices << ", and psContacts.size() - 1) = " << psContacts.size() - 1 << '\n';
+        cout << "psContacts :";
+        for (auto i : psContacts)
+          cout << i << '\t';
+        cout << '\n';
+        continue;
+        // skip any insertions, move on to next gi
+      }  // instead of skipping, maybe I should consider the case where diffOfIndices is small and isGiNeighborOfFirstOrSecond is true.
+
+      // insert gi into psContacts in the middle of these adjacent elements
+      cout << "try to insert " << gi << " between " << first_gi << ", " << second_gi << ", simclock = " << simclock << '\n';
+
+      /*if (diffOfIndices != 1 && diffOfIndices != psContacts.size() - 1) {
+        if (isGiNeighborOfFirstOrSecond) {  // although diffOfIndices indicates first and second are not adjacent, we can still try to place gi next to first or second, whichever is its neighbor
+          cout << "don't skip, because first or second is a neighbor of gi. try inserting gi next to its neighbor\n";
+          if (isGiNeighborOfFirst){
+          } else if (isGiNeighborOfSecond) {
+
+          }
+        } else {  // skip any insertions, move on to next gi
+          cout << "simclock = " << simclock << ", skipping insertion of " << gi << " between " << psContacts[indexOfPsContacts_first] << ", and " << psContacts[indexOfPsContacts_second];
+          cout << " because diff(indices) = " << diffOfIndices << ", and psContacts.size() - 1) = " << psContacts.size() - 1 << '\n';
+          cout << "psContacts :";
+          for (auto i : psContacts)
+            cout << i << '\t';
+          cout << '\n';
+          continue;
+        }
+      } else */
       if ((indexOfPsContacts_first == 0 && indexOfPsContacts_second == psContacts.size() - 1) || (indexOfPsContacts_second == 0 && indexOfPsContacts_first == psContacts.size() - 1)) {
         // edge case - insert gi at the beginning of the entire vector
         // gi, first, ... , second
@@ -3659,7 +3669,7 @@ void epi2D::updatePurseStringContacts() {
         //  as long as first or second is one of those neighbors
         // ... gi, (first and second), ...
         // or ... , (first and second), gi
-        cout << "in edge case : first and second are neighbors, and " << gi << " is a neighbor of first or second\n";
+        cout << "in edge case : first and second are neighbors (same cell), and " << gi << " is a neighbor of first or second\n";
         assert(!(isGiNeighborOfFirst && isGiNeighborOfSecond));  // should only be a neighbor of one, not both
         if (indexOfPsContacts_first < indexOfPsContacts_second) {
           // first, second
@@ -3676,6 +3686,38 @@ void epi2D::updatePurseStringContacts() {
             insert_index = indexOfPsContacts_first + 1;
           } else if (isGiNeighborOfSecond) {
             insert_index = indexOfPsContacts_second;
+          }
+        }
+      } else if (isIndexFirstAndSecondSameCellNeighbors && !isGiNeighborOfFirstOrSecond) {
+        // edge case - asked to insert gi between two consecutive indices
+        //  in which case we know that we should not break up the consecutive indices first and second.
+        // With additional special case that gi is not a neighbor of either consecutive index.
+        // Check one index to the left and right of first and second. If either left or right is a neighbor of gi, then sandwich gi between the consecutive indices and the matching left or right index.
+        cout << "in edge case 2 : first and second are neighbors (same cell), but " << gi << " is not a neighbor of first or second\n";
+        int indexOfGiNeighbor;
+        // check psContacts[first_gi +/- 1] and psContacts[second_gi +/- 1].
+        if (im1_ind != psContacts.end() || ip1_ind != psContacts.end()) {
+          // if previous index relative to gi is in psContacts
+          if (im1_ind != psContacts.end())
+            indexOfGiNeighbor = im1_ind - psContacts.begin();
+          else
+            indexOfGiNeighbor = ip1_ind - psContacts.begin();
+
+          int diffGiNeighborAndFirst = indexOfGiNeighbor - indexOfPsContacts_first;
+          int diffGiNeighborAndSecond = indexOfGiNeighbor - indexOfPsContacts_second;
+
+          if (diffGiNeighborAndFirst == -1 || diffGiNeighborAndFirst == psContacts.size() - 1) {
+            // if index of gi neighbor is left of first, then insert gi at first's location
+            insert_index = indexOfPsContacts_first;
+          } else if (diffGiNeighborAndFirst == 1 || diffGiNeighborAndFirst == -1 * (psContacts.size() - 1)) {
+            // if index of gi neighbor is right of first, then insert at index of gi neighbor's location
+            insert_index = indexOfGiNeighbor;
+          } else if (diffGiNeighborAndSecond == -1 || diffGiNeighborAndSecond == psContacts.size() - 1) {
+            // if index of gi neighbor is left of second, then insert gi at second's location
+            insert_index = indexOfPsContacts_second;
+          } else if (diffGiNeighborAndSecond == 1 || diffGiNeighborAndSecond == -1 * (psContacts.size() - 1)) {
+            // if index of gi neighbor is right of second, then insert at index of gi neighbor's location
+            insert_index = indexOfGiNeighbor;
           }
         }
       } else if (indexOfPsContacts_first < indexOfPsContacts_second) {
