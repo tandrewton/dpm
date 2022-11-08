@@ -3591,36 +3591,44 @@ void epi2D::updatePurseStringContacts() {
       cindices(ci, vi, gi);
       // could not find gi in psContacts, so we have a current wound adjacent vertex with no PS bond
       // give it a PS bond
-      // cout << "in updatePurseStringContacts, found gi = " << gi << ", which is in currentWoundIndices but not in psContacts. must generate a new virtual vertex for gi\n";
+      auto im1_ind = std::find(psContacts.begin(), psContacts.end(), im1[gi]);
+      auto ip1_ind = std::find(psContacts.begin(), psContacts.end(), ip1[gi]);
+      if (im1_ind != psContacts.end() && ip1_ind != psContacts.end()) {
+        cout << "found gi's neighbors in psContacts, skip distance calculation and insert gi between its topological neighbors\n";
+        // calculate indexOfPsContacts_first, indexOfPsContacts_second
+        indexOfPsContacts_first = im1_ind - psContacts.begin();
+        indexOfPsContacts_second = ip1_ind - psContacts.begin();
+        assert(im1[gi] == psContacts[indexOfPsContacts_first]);
+      } else {
+        // get a vector of distances from gi to psContacts
+        std::vector<double> distToPsContacts;
+        for (int i = 0; i < psContacts.size(); i++) {
+          distToPsContacts.push_back(vertDistSqNoPBC(gi, psContacts[i]));
+        }
 
-      // get a vector of distances from gi to psContacts
-      std::vector<double> distToPsContacts;
-      for (int i = 0; i < psContacts.size(); i++) {
-        distToPsContacts.push_back(vertDistSqNoPBC(gi, psContacts[i]));
-      }
+        // get two closest elements in psContacts, they should be ordered adjacent to each other
+        for (int i = 0; i < psContacts.size(); i++) {
+          if (distToPsContacts[i] < first) {
+            second = first;
+            secondInd = firstInd;
+            indexOfPsContacts_second = indexOfPsContacts_first;
+            first = distToPsContacts[i];
+            firstInd = psContacts[i];
+            indexOfPsContacts_first = i;
 
-      // get two closest elements in psContacts, they should be ordered adjacent to each other
-      for (int i = 0; i < psContacts.size(); i++) {
-        if (distToPsContacts[i] < first) {
-          second = first;
-          secondInd = firstInd;
-          indexOfPsContacts_second = indexOfPsContacts_first;
-          first = distToPsContacts[i];
-          firstInd = psContacts[i];
-          indexOfPsContacts_first = i;
-
-        } else if (distToPsContacts[i] < second && distToPsContacts[i] != first) {
-          second = distToPsContacts[i];
-          secondInd = psContacts[i];
-          indexOfPsContacts_second = i;
+          } else if (distToPsContacts[i] < second && distToPsContacts[i] != first) {
+            second = distToPsContacts[i];
+            secondInd = psContacts[i];
+            indexOfPsContacts_second = i;
+          }
         }
       }
 
       int diffOfIndices = abs(indexOfPsContacts_first - indexOfPsContacts_second);
       // if first and second are not adjacent, then inserting between them will be a large discontinuous break in the shape of the PS cable. so don't allow insertion between non-adjacent elements
       if (diffOfIndices != 1 && diffOfIndices != psContacts.size() - 1) {
-        /*cout << "simclock = " << simclock << ", skipping insertion of " << gi << " between " << psContacts[indexOfPsContacts_first] << ", and " << psContacts[indexOfPsContacts_second];
-        cout << " because diff(indices) = " << diffOfIndices << ", and psContacts.size() - 1) = " << psContacts.size() - 1 << '\n';*/
+        cout << "simclock = " << simclock << ", skipping insertion of " << gi << " between " << psContacts[indexOfPsContacts_first] << ", and " << psContacts[indexOfPsContacts_second];
+        cout << " because diff(indices) = " << diffOfIndices << ", and psContacts.size() - 1) = " << psContacts.size() - 1 << '\n';
         continue;
         // skip any insertions, move onto next gi
       }
@@ -3918,10 +3926,10 @@ void epi2D::evaluatePurseStringForces(double B) {
     fx = (fli * dli * lix / li) - (flim1 * dlim1 * lim1x / lim1);
     fy = (fli * dli * liy / li) - (flim1 * dlim1 * lim1y / lim1);
 
-    if (psi == 0 && (fabs(fx) > 1 || std::isnan(fx))) {
+    /*if (psi == 0 && (fabs(fx) > 1 || std::isnan(fx))) {
       cout << "fx is larger than reasonable, fli = " << fli << ", dli = " << dli << ", lix = " << lix << ", li = " << li << ", flim1 = " << flim1 << ", dlim1 = " << dlim1 << ", lim1x = " << lim1x << ", lim1 = " << lim1 << '\n';
       cout << "vrad[0] = " << r[0] << ", l0_ps[0] = " << l0_ps[0] << '\n';
-    }
+    }*/
 
     F_ps[NDIM * psi] += fx;
     F_ps[NDIM * psi + 1] += fy;

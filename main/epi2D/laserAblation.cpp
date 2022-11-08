@@ -289,9 +289,9 @@ int main(int argc, char const* argv[]) {
   }
 
   if (isPbcOn)
-    epithelial.dampedNP0(customForceUpdate_inactive, B, dt0, relaxTime, printInterval);
+    epithelial.dampedNP0(customForceUpdate_inactive, B, dt0, relaxTime, 0);
   else
-    epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, B, dt0, relaxTime, printInterval);
+    epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, B, dt0, relaxTime, 0);
 
   // epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, B, dt0, runTime, runTime/10.0);
 
@@ -312,7 +312,7 @@ int main(int argc, char const* argv[]) {
     epithelial.dampedNP0(customForceUpdate_active_with_circular_walls, B, dt0, time_dbl, printInterval, purseStringOn);
   } else {
     for (int i = 0; i < 2; i++)
-      epithelial.dampedNP0(customForceUpdate_inactive, B, dt0, relaxTime, printInterval);
+      epithelial.dampedNP0(customForceUpdate_inactive, B, dt0, relaxTime, 0);
 
     epithelial.dampedNP0(customForceUpdate_active, B, dt0, time_dbl, printInterval, purseStringOn);
   }
