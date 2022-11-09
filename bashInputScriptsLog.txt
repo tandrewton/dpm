@@ -279,6 +279,23 @@ do
   done
 done
 
+# testing deformability, adhesion, yield length (max PS force), smoothness
+#bd0 sm1 P
+#!/bin/bash
+for shape in 1.0 1.05 1.10
+do
+  for att in 0.05 0.1 0.2
+  do
+    for dsq in 1.0 2.0 4.0 16.0
+    do
+      for sm in 0 1
+      do
+        bash bash/epi2D/submit_laserAblation.sh 60 20 6 $shape 0.94 0.85 1.0 1.0 $att  0.005 $dsq 1.0 4.0 1.0 0.0 1.0 0.5 0 $sm 1 800 pi_ohern,day,scavenge 0-23:00:00 1 1
+      done
+    done
+  done
+done
+
 
 #scattering
 ./main/epi2D/testSmoothNVE.o 2 20 4 1.0 0.2 0.0 1.0 1.0 0.2 0.013  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   0 1  200  test

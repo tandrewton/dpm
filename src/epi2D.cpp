@@ -2743,6 +2743,7 @@ void epi2D::printBoundaries(int nthLargestCluster) {
   // starting with a vertex in the big cluster
   cerr << "before ordering vertices\n";
   cout << "woundArea = " << woundArea << '\n';
+  cout << "woundCenterX, woundCenterY = " << woundCenterX << '\t' << woundCenterY << '\n';
   int it = 0, middleit = 1000, maxit = 2000;
   int current_vertex = -2;
   bool stopSignal = false;
@@ -3780,8 +3781,6 @@ void epi2D::updatePurseStringContacts() {
       // compute l0 last because it depends on new additions to x_ps
       l0_insert = sqrt(pow(x_ps[NDIM * prev] - x[NDIM * gi], 2) + pow(x_ps[NDIM * prev + 1] - x[NDIM * gi + 1], 2));
       l0_ps[insert_index] = sqrt(pow(x_ps[NDIM * next] - x[NDIM * gi], 2) + pow(x_ps[NDIM * next + 1] - x[NDIM * gi + 1], 2));
-      /*cout << "l0_insert = " << l0_insert << " is associated with " << psContacts[prev] << ", and " << gi << '\n';
-      cout << "l0_ps[" << insert_index << "] = " << l0_ps[insert_index] << " is associated with " << psContacts[next] << ", and " << gi << '\n';*/
       l0_ps.insert(l0_ps.begin() + insert_index, l0_insert);
 
       /*cout << "l0 between " << insert_index << " and " << next << " = " << l0_ps[insert_index] << '\n';
@@ -4050,13 +4049,6 @@ void epi2D::integratePurseString(double B) {
       l0_ps[i] = NAN;
   }
 
-  if (simclock > 304) {
-    for (int i = 0; i < l0_ps.size(); i++) {
-      cout << "l0_ps[" << i << "] = " << l0_ps[i] << ", x_ps[NDIM*i] = " << x_ps[NDIM * i] << ", F_ps[NDIM*i] = " << F_ps[NDIM * i] << '\n';
-    }
-    cout << "sizes of x_ps, l0_ps, psContacts before deletion = " << x_ps.size() << '\t' << l0_ps.size() << '\t' << psContacts.size() << '\n';
-  }
-
   // delete all NANs, the mark for deletion
   x_ps.erase(remove_if(x_ps.begin(), x_ps.end(), [](const double& value) { return std::isnan(value); }), x_ps.end());
   v_ps.erase(remove_if(v_ps.begin(), v_ps.end(), [](const double& value) { return std::isnan(value); }), v_ps.end());
@@ -4066,10 +4058,6 @@ void epi2D::integratePurseString(double B) {
 
   // delete all bools associated with yielded virtual vertices for deletion
   isSpringBroken.erase(remove(isSpringBroken.begin(), isSpringBroken.end(), true), isSpringBroken.end());
-
-  if (simclock > 304) {
-    cout << "sizes of x_ps, l0_ps, psContacts after deletion = " << x_ps.size() << '\t' << l0_ps.size() << '\t' << psContacts.size() << '\n';
-  }
 
   // VV position update
   int virtualDOF = psContacts.size() * NDIM;
