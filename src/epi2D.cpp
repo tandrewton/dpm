@@ -3558,15 +3558,7 @@ void epi2D::updatePurseStringContacts() {
 
   if (psContacts.size() < 2) {
     return;  // invalid size for sorting
-  }          /*else if (psContacts.size() < 5) {
-             cout << "psContacts.size < 5\n";
-             for (int i = 0; i < psContacts.size(); i++) {
-               cout << "psContact " << i << ", gi = " << psContacts[i] << '\n';
-               cout << "x_ps = " << x_ps[NDIM * i] << '\t' << x_ps[NDIM * i + 1] << '\n';
-               cout << "l0_ps = " << l0_ps[i] << '\n';
-               cout << "isSpringBroken = " << isSpringBroken[i] << '\n';
-             }
-           }*/
+  }
   int ci, vi, c_first, c_second;
   double first = 1e10, second = 1e10;  // used to find two closest elements (minimum distances) in one traversal of psContacts
   int firstInd = INT_MAX, secondInd = INT_MAX;
@@ -3581,11 +3573,21 @@ void epi2D::updatePurseStringContacts() {
       auto im1_ind = std::find(psContacts.begin(), psContacts.end(), im1[gi]);
       auto ip1_ind = std::find(psContacts.begin(), psContacts.end(), ip1[gi]);
       if (im1_ind != psContacts.end() && ip1_ind != psContacts.end()) {
-        cout << "found gi's neighbors in psContacts, skip distance calculation and insert gi between its topological neighbors\n";
+        cout << "found both of gi's same-cell neighbors in psContacts, skip distance calculation and insert gi between its topological neighbors\n";
         // calculate indexOfPsContacts_first, indexOfPsContacts_second
         indexOfPsContacts_first = im1_ind - psContacts.begin();
         indexOfPsContacts_second = ip1_ind - psContacts.begin();
         assert(im1[gi] == psContacts[indexOfPsContacts_first]);
+      } else if (im1_ind != psContacts.end()) {
+        // calculate indexOfPsContacts_first, and then assign the second to be one greater
+        indexOfPsContacts_first = im1_ind - psContacts.begin();
+        indexOfPsContacts_second = (indexOfPsContacts_first + 1) % psContacts.size();
+        cout << "found gi's previous same-cell neighbor in psContacts, skip distance calculation and insert gi right of " << indexOfPsContacts_first << "!\n";
+      } else if (ip1_ind != psContacts.end()) {
+        // calculate indexOfPsContacts_second, and then assign the first to be one smaller
+        indexOfPsContacts_second = ip1_ind - psContacts.begin();
+        indexOfPsContacts_first = (indexOfPsContacts_second - 1) % psContacts.size();
+        cout << "found gi's next same-cell neighbor in psContacts, skip distance calculation and insert gi right of " << indexOfPsContacts_second << "!\n";
       } else {
         // get a vector of distances from gi to psContacts
         std::vector<double> distToPsContacts;
@@ -3692,9 +3694,10 @@ void epi2D::updatePurseStringContacts() {
         // edge case - asked to insert gi between two consecutive indices
         //  in which case we know that we should not break up the consecutive indices first and second.
         // With additional special case that gi is not a neighbor of either consecutive index.
-        // Check one index to the left and right of first and second. If either left or right is a neighbor of gi, then sandwich gi between the consecutive indices and the matching left or right index.
+        // Case 1 : Check one index to the left and right of first and second. If either left or right is a neighbor of gi, then sandwich gi between the consecutive indices and the matching left or right index.
+        // Case 2: If either left or right is in a different cell than first and second, then we'll want to insert at one of these locations. This leaves another edge case open, where both left and right are valid. In this case do nothing.
         cout << "in edge case 2 : first and second are neighbors (same cell), but " << gi << " is not a neighbor of first or second\n";
-        int indexOfGiNeighbor;
+        int indexOfGiNeighbor = INT_MAX;
         // check psContacts[first_gi +/- 1] and psContacts[second_gi +/- 1].
         if (im1_ind != psContacts.end() || ip1_ind != psContacts.end()) {
           // if previous index relative to gi is in psContacts
@@ -3719,6 +3722,32 @@ void epi2D::updatePurseStringContacts() {
             // if index of gi neighbor is right of second, then insert at index of gi neighbor's location
             insert_index = indexOfGiNeighbor;
           }
+        } else {
+          // could not find a neighbor of gi. e.g. Want to insert 330 between 174 and 175 into ... 173 174 175 288 289
+          if (realDiffOfIndices == 1) {
+            // if first and second are next to each other in psContacts, we have a potential insert position either before (first, second) or after (first, second)
+            // e.g. zero first second third, if zero or third is not in the same cell, then we insert right of zero or left of third
+            int c1, c2, c3, c4;
+            int sumOfTruths = 0;
+            cindices(c1, vi, psContacts[(indexOfPsContacts_first - 1) % psContacts.size()]);
+            cindices(c2, vi, psContacts[(indexOfPsContacts_first + 1) % psContacts.size()]);
+            cindices(c3, vi, psContacts[(indexOfPsContacts_second - 1) % psContacts.size()]);
+            cindices(c4, vi, psContacts[(indexOfPsContacts_second + 1) % psContacts.size()]);
+            if (c1 != c_first)
+              insert_index = indexOfPsContacts_first;
+            if (c2 != c_first)
+              insert_index = (indexOfPsContacts_first + 1) % psContacts.size();
+            if (c3 != c_first)
+              insert_index = indexOfPsContacts_second;
+            if (c4 != c_first)
+              insert_index = (indexOfPsContacts_second + 1) % psContacts.size();
+            sumOfTruths = (c1 != c_first) + (c2 != c_first) + (c3 != c_first) + (c4 != c_first);
+            if (sumOfTruths > 1) {
+              // more than one of the potential left and right indices belong to different cells than first and second, so abort to not introduce wrong results
+              continue;
+            }
+          } else
+            continue;
         }
       } else if (indexOfPsContacts_first < indexOfPsContacts_second) {
         // ... first, gi, second, ...
@@ -3754,18 +3783,13 @@ void epi2D::updatePurseStringContacts() {
       /*cout << "l0_insert = " << l0_insert << " is associated with " << psContacts[prev] << ", and " << gi << '\n';
       cout << "l0_ps[" << insert_index << "] = " << l0_ps[insert_index] << " is associated with " << psContacts[next] << ", and " << gi << '\n';*/
       l0_ps.insert(l0_ps.begin() + insert_index, l0_insert);
-      /*cout << "l0_ps : ";
-      for (int i = 0; i < l0_ps.size(); i++) {
-        cout << l0_ps[i] << '\t';
-      }
-      cout << '\n';*/
 
       /*cout << "l0 between " << insert_index << " and " << next << " = " << l0_ps[insert_index] << '\n';
       cout << "l0 between " << insert_index << " and " << prev << " = " << l0_insert << "which should = " << l0_ps[insert_index] << '\n';*/
 
-      for (int k = 0; k < psContacts.size(); k++) {
+      /*for (int k = 0; k < psContacts.size(); k++) {
         cout << "after insertion: x_ps[" << k << "] = " << x_ps[NDIM * k] << '\t' << x_ps[NDIM * k + 1] << '\n';
-      }
+      }*/
       cout << "sizes of x_ps, l0_ps, psContacts = " << x_ps.size() << '\t' << l0_ps.size() << '\t' << psContacts.size() << '\n';
       cout << "gi = " << gi << ", insert_index = " << insert_index << ", l0_insert = " << l0_insert << '\n';
       cout << "x_ps[NDIM*next], x_ps[NDIM*next+1], x[NDIM*gi], x[NDIM*gi+1] = " << x_ps[NDIM * next] << '\t' << x_ps[NDIM * next + 1] << '\t' << x[NDIM * gi] << '\t' << x[NDIM * gi + 1] << '\n';
