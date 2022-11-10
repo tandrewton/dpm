@@ -1744,9 +1744,11 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
         woundCenterX /= sortedWoundIndices.size();
         woundCenterY /= sortedWoundIndices.size();
 
+        cout << "wound center before calculateWoundArea (initial wound detection) = " << woundCenterX << '\t' << woundCenterY << '\n';
         woundArea = calculateWoundArea(woundCenterX, woundCenterY);
         vout << simclock - t0 << '\t' << woundArea << '\n';
         // cout << simclock - t0 << '\t' << woundArea << '\n';
+        cout << "wound center after calculateWoundArea (initial wound detection) = " << woundCenterX << '\t' << woundCenterY << '\n';
         initialWoundArea = woundArea;
         assert(!std::isnan(initialWoundArea));
         initializePurseStringVariables();
@@ -2839,6 +2841,12 @@ void epi2D::printBoundaries(int nthLargestCluster) {
 
               // forget the closed subloop, move onto a new one. Keep
               // previous_vertex, which forbids subloop from joining new loop
+              cout << "before seeking alternate route, unwrapped_x_gi = ";
+              for (auto unwrappedIt : unwrapped_x_gi) {
+                cout << unwrappedIt << '\t';
+              }
+              cout << '\n';
+
               unwrapped_x.clear();
               unwrapped_x.push_back(nextx);
               unwrapped_x.push_back(nexty);
