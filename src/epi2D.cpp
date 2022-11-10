@@ -3574,7 +3574,7 @@ void epi2D::updatePurseStringContacts() {
       auto im1_ind = std::find(psContacts.begin(), psContacts.end(), im1[gi]);
       auto ip1_ind = std::find(psContacts.begin(), psContacts.end(), ip1[gi]);
       if (im1_ind != psContacts.end() && ip1_ind != psContacts.end()) {
-        cout << "found both of gi's same-cell neighbors in psContacts, skip distance calculation and insert gi between its topological neighbors\n";
+        cout << "found both of " << gi << "'s same-cell neighbors in psContacts, skip distance calculation and insert gi between its topological neighbors\n";
         // calculate indexOfPsContacts_first, indexOfPsContacts_second
         indexOfPsContacts_first = im1_ind - psContacts.begin();
         indexOfPsContacts_second = ip1_ind - psContacts.begin();
@@ -3583,12 +3583,12 @@ void epi2D::updatePurseStringContacts() {
         // calculate indexOfPsContacts_first, and then assign the second to be one greater
         indexOfPsContacts_first = im1_ind - psContacts.begin();
         indexOfPsContacts_second = (indexOfPsContacts_first + 1) % psContacts.size();
-        cout << "found gi's previous same-cell neighbor in psContacts, skip distance calculation and insert gi right of " << indexOfPsContacts_first << "!\n";
+        cout << "found " << gi << "'s previous same-cell neighbor in psContacts, skip distance calculation and insert gi between" << indexOfPsContacts_first << " and " << indexOfPsContacts_second << "!\n";
       } else if (ip1_ind != psContacts.end()) {
         // calculate indexOfPsContacts_second, and then assign the first to be one smaller
         indexOfPsContacts_second = ip1_ind - psContacts.begin();
-        indexOfPsContacts_first = (indexOfPsContacts_second - 1) % psContacts.size();
-        cout << "found gi's next same-cell neighbor in psContacts, skip distance calculation and insert gi right of " << indexOfPsContacts_second << "!\n";
+        indexOfPsContacts_first = (indexOfPsContacts_second - 1 + psContacts.size()) % psContacts.size();
+        cout << "found " << gi << "'s next same-cell neighbor in psContacts, skip distance calculation and insert gi between " << indexOfPsContacts_second << " and " << indexOfPsContacts_first << "!\n";
       } else {
         // get a vector of distances from gi to psContacts
         std::vector<double> distToPsContacts;
@@ -3631,8 +3631,8 @@ void epi2D::updatePurseStringContacts() {
 
       // if first and second are not adjacent, then inserting between them will be a large discontinuous break in the shape of the PS cable. so don't allow insertion between non-adjacent elements
       if (diffOfIndices != 1 && diffOfIndices != psContacts.size() - 1) {
-        cout << "simclock = " << simclock << ", skipping insertion of " << gi << " between " << psContacts[indexOfPsContacts_first] << ", and " << psContacts[indexOfPsContacts_second];
-        cout << " because diff(indices) = " << diffOfIndices << ", and psContacts.size() - 1) = " << psContacts.size() - 1 << '\n';
+        cout << "simclock = " << simclock << ", skipping insertion of " << gi << " between " << first_gi << ", and " << second_gi;
+        cout << " because diff(indices) = " << diffOfIndices << ", and psContacts.size() - 1 = " << psContacts.size() - 1 << '\n';
         cout << "psContacts :";
         for (auto i : psContacts)
           cout << i << '\t';
@@ -3730,9 +3730,10 @@ void epi2D::updatePurseStringContacts() {
             // e.g. zero first second third, if zero or third is not in the same cell, then we insert right of zero or left of third
             int c1, c2, c3, c4;
             int sumOfTruths = 0;
-            cindices(c1, vi, psContacts[(indexOfPsContacts_first - 1) % psContacts.size()]);
+            // negative numbers don't behave well under modulo operation, so make sure they're positive
+            cindices(c1, vi, psContacts[(indexOfPsContacts_first - 1 + psContacts.size()) % psContacts.size()]);
             cindices(c2, vi, psContacts[(indexOfPsContacts_first + 1) % psContacts.size()]);
-            cindices(c3, vi, psContacts[(indexOfPsContacts_second - 1) % psContacts.size()]);
+            cindices(c3, vi, psContacts[(indexOfPsContacts_second - 1 + psContacts.size()) % psContacts.size()]);
             cindices(c4, vi, psContacts[(indexOfPsContacts_second + 1) % psContacts.size()]);
             if (c1 != c_first)
               insert_index = indexOfPsContacts_first;
