@@ -298,6 +298,7 @@ done
 
 #this one should be bugged
 bash bash/epi2D/submit_laserAblation.sh 60 20 6 1.10 0.94 0.85 1.0 1.0 0.1  0.005 2.0 1.0 4.0 1.0 0.0 1.0 0.5 0 0 1 800 pi_ohern,day,scavenge 0-23:00:00 1 1
+drawWoundSims(60, 0.005, "1.10", "1", "2.0", "0.0","0.1", "0")
 #this one should not be bugged
 bash bash/epi2D/submit_laserAblation.sh 60 20 6 1.0 0.94 0.85 1.0 1.0 0.1  0.005 2.0 1.0 4.0 1.0 0.0 1.0 0.5 0 0 1 800 pi_ohern,day,scavenge 0-23:00:00 1 1
 

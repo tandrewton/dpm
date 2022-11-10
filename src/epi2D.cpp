@@ -2996,6 +2996,11 @@ void epi2D::getWoundVertices(int nthLargestCluster) {
                 cout << temporaryWoundIndexIt << '\t';
               }
               cout << '\n';
+              cout << "previous_vertex before seeking alternate route:";
+              for (auto prev_vert : previous_vertex) {
+                cout << prev_vert << '\t';
+              }
+              cout << '\n';
 
               // forget the closed subloop, move onto a new one. Keep
               // previous_vertex, which forbids subloop from joining new loop
