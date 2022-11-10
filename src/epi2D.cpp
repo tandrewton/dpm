@@ -2258,6 +2258,7 @@ int epi2D::getIndexOfCellLocatedHere(double xLoc, double yLoc) {
     com2D(ci, cx, cy);  // cx, cy use coordinates such that bottom left corner of
                         // sim box = origin
 
+    // we measure distances from the center of the box L/2, L/2, so args=0,0 is really xloc,yloc=L/2,L/2
     distanceSq[ci] =
         pow(cx - (L[0] / 2 + xLoc), 2) + pow(cy - (L[1] / 2 + yLoc), 2);
   }
@@ -2771,12 +2772,8 @@ void epi2D::printBoundaries(int nthLargestCluster) {
       it = 0;
       previous_vertex.push_back(current_vertex);
     }
-    // for debugging:
-    int badVertexIndex;
-    // end debugging
 
     for (auto i : vnn[current_vertex]) {
-      badVertexIndex = i;
       // if i == -1, then we've found a dead end. backtrack (go back by one current_vertex) and try again
       if (i == -1) {
         current_vertex = previous_vertex.end()[-2];
@@ -2891,6 +2888,8 @@ void epi2D::printBoundaries(int nthLargestCluster) {
 }
 
 void epi2D::getWoundVertices(int nthLargestCluster) {
+  // used to get the initial wound vertices for initialization of the purse-string
+
   std::vector<int> temporaryWoundIndices;
   // empty is the maximum negative cluster size
   int empty = -NVTOT - 1;
@@ -2948,12 +2947,8 @@ void epi2D::getWoundVertices(int nthLargestCluster) {
       it = 0;
       previous_vertex.push_back(current_vertex);
     }
-    // for debugging:
-    int badVertexIndex;
-    // end debugging
 
     for (auto i : vnn[current_vertex]) {
-      badVertexIndex = i;
       // if i == -1, then we've found a dead end. backtrack (go back by one current_vertex) and try again
       // another possibility is if i==-1, then we've closed the wound. Check for this
       if (i == -1) {
@@ -2995,6 +2990,12 @@ void epi2D::getWoundVertices(int nthLargestCluster) {
                     previous_vertex.end()) {
               it = 0;
               current_vertex = k;
+
+              cout << "temporary wound indices before seeking alternate route:";
+              for (auto temporaryWoundIndexIt : temporaryWoundIndices) {
+                cout << temporaryWoundIndexIt << '\t';
+              }
+              cout << '\n';
 
               // forget the closed subloop, move onto a new one. Keep
               // previous_vertex, which forbids subloop from joining new loop
