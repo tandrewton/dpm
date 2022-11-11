@@ -2627,10 +2627,13 @@ std::vector<int> epi2D::refineBoundaries() {
         if (vnn_label[j] == -2 &&
             dangling_end_label[gi] != dangling_end_label[j] &&
             dangling_end_label[j] > 0) {
+          cout << "turning a bunch of dangling ends into corners : " << gi << '\t' << j << '\n';
           vnn_label[gi] = 2;
           vnn_label[j] = 2;
           vnn_label[dangling_end_label[j]] = 2;
           vnn_label[dangling_end_label[gi]] = 2;
+        } else {
+          cout << "did not turn these dangling ends into corners : " << gi << '\t' << j << '\n';
         }
       }
     }
