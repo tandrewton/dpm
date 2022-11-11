@@ -2642,7 +2642,8 @@ std::vector<int> epi2D::refineBoundaries() {
     if (vnn_label[gi] == 0 || vnn_label[gi] == 2)
       voidFacingVertexIndices.push_back(gi);
   }
-  // If any vertices have both of their same-cell neighbors in voidFacingVertexIndices, make sure they're included in this list
+
+  // If any vertices have both of their same-cell neighbors in voidFacingVertexIndices, let them also be in the list to rescue certain edge cases
   for (int gi = 0; gi < NVTOT; gi++) {
     // if gi is not in the voidFacingVertexIndices list
     if (std::find(voidFacingVertexIndices.begin(), voidFacingVertexIndices.end(), gi) == voidFacingVertexIndices.end()) {
@@ -3014,7 +3015,6 @@ void epi2D::getWoundVertices(int nthLargestCluster) {
         for (auto j : previous_vertex) {
           // go through previously added vertices, look for their neighbors that
           // are not already added.
-          cout << "previous vertices : " << j << '\n';
           for (auto k : vnn[j]) {
             if (k >= 0 && findRoot(k, ptr) == mode &&
                 std::find(previous_vertex.begin(), previous_vertex.end(), k) ==
