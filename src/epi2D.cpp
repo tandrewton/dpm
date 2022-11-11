@@ -2627,14 +2627,11 @@ std::vector<int> epi2D::refineBoundaries() {
         if (vnn_label[j] == -2 &&
             dangling_end_label[gi] != dangling_end_label[j] &&
             dangling_end_label[j] > 0) {
-          cout << "turning a bunch of dangling ends into corners : " << gi << '\t' << j << ", because vnn_label[j] = " << vnn_label[j] << ", dangling_end_label[gi] = " << dangling_end_label[gi] << ", dangling_end_label[j] = " << dangling_end_label[j] << '\n';
           '\n';
           vnn_label[gi] = 2;
           vnn_label[j] = 2;
           vnn_label[dangling_end_label[j]] = 2;
           vnn_label[dangling_end_label[gi]] = 2;
-        } else {
-          cout << "did not turn these dangling ends into corners : " << gi << '\t' << j << ", because vnn_label[j] = " << vnn_label[j] << ", dangling_end_label[gi] = " << dangling_end_label[gi] << ", dangling_end_label[j] = " << dangling_end_label[j] << '\n';
         }
       }
     }
@@ -2645,7 +2642,35 @@ std::vector<int> epi2D::refineBoundaries() {
     if (vnn_label[gi] == 0 || vnn_label[gi] == 2)
       voidFacingVertexIndices.push_back(gi);
   }
-
+  // If any vertices have both of their same-cell neighbors in voidFacingVertexIndices, make sure they're included in this list
+  for (int gi = 0; gi < NVTOT; gi++) {
+    // if gi is not in the voidFacingVertexIndices list
+    if (std::find(voidFacingVertexIndices.begin(), voidFacingVertexIndices.end(), gi) == voidFacingVertexIndices.end()) {
+      // if same-cell neighbors are in voidFacingVertexIndices
+      int left = im1[gi];
+      int right = ip1[gi];
+      auto indOfLeft = std::find(voidFacingVertexIndices.begin(), voidFacingVertexIndices.end(), left);
+      if (indOfLeft != voidFacingVertexIndices.end()) {
+        auto indOfRight = std::find(voidFacingVertexIndices.begin(), voidFacingVertexIndices.end(), right);
+        if (indOfRight != voidFacingVertexIndices.end()) {
+          // then gi is probably mistakenly excluded from voidFacingVertexIndices, so add it.
+          int offset;
+          if (gi < right) {
+            // then right is gi+1
+            // so we want to insert gi into the location preceding right
+            // i.e. ip1 = 19, gi = 0, ip1 = 1
+            offset = 0;
+            voidFacingVertexIndices.insert(indOfRight, gi);
+          } else {
+            // right is gi + 1 - nv[ci]
+            // so we want to insert gi into the location after left
+            // i.e. ip1 = 18, gi = 19, im1 = 0
+            voidFacingVertexIndices.insert(indOfLeft + 1, gi);
+          }
+        }
+      }
+    }
+  }
   return voidFacingVertexIndices;
 }
 
