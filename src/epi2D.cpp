@@ -2964,6 +2964,13 @@ void epi2D::getWoundVertices(int nthLargestCluster) {
   std::vector<int> previous_vertex;
   // std::vector<double> unwrapped_x;
 
+  for (int gi = 0; gi < NVTOT; gi++) {
+    // for debugging purposes
+    if (findRoot(gi, ptr) == mode) {
+      cout << "for debugging: indices in big cluster = " << gi << '\n';
+    }
+  }
+
   for (int gi = 0; gi < NVTOT; gi++) {  // the lowest gi is the first entry of temporaryWoundIndices, the rest are sorted in based on connectivity
     if (findRoot(gi, ptr) == mode) {
       temporaryWoundIndices.push_back(gi);
@@ -3053,10 +3060,16 @@ void epi2D::getWoundVertices(int nthLargestCluster) {
       break;
     }
   }
+  cout << "temporaryWoundIndices size = " << temporaryWoundIndices.size() << '\n';
+  cout << "previous_vertex size = " << previous_vertex.size() << '\n';
   if (checkWoundClosedPolygon(temporaryWoundIndices)) {
     sortedWoundIndices = temporaryWoundIndices;
   } else {
-    // cout << "temporaryWoundIndices was not a closed shape, use old shape for sortedWoundIndices.\n";
+    cout << "temporaryWoundIndices size = " << temporaryWoundIndices.size() << '\n';
+    for (auto i : temporaryWoundIndices)
+      cout << i << '\t';
+    cout << '\n';
+    cout << "wound was not a closed polygon, not returning any values for sortedWoundIndices, program should terminate soon\n";
   }
 }
 
@@ -3191,6 +3204,7 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
   cout << "occupancyMatrix size = " << occupancyMatrix.size() << '\t' << occupancyMatrix[0].size() << '\n';
   cout << "xResolution, yResolution = " << xResolution << '\t' << yResolution << '\n';*/
 
+  cout << "debugging: woundPointX,Y, and woundPointIndices : " << woundPointX << '\t' << woundPointY << '\t' << woundPointXIndex << '\t' << woundPointYIndex << '\t' << resolution << '\n';
   // check if the given point is not within the wound
   if (occupancyMatrix[woundPointXIndex][woundPointYIndex] == 1) {  // 1 is not in wound, 0 is in wound
     // given point is not in the wound, so we need to look for a nearby point that's hopefully in the wound
@@ -3215,6 +3229,7 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
         }
       }
     }
+
     if (offset > searchRange) {
       cout << "failed to find a nearby point identifiable as a wound, returning NAN for area\n";
       return NAN;
