@@ -2963,13 +2963,6 @@ void epi2D::getWoundVertices(int nthLargestCluster) {
   std::vector<int> previous_vertex;
   // std::vector<double> unwrapped_x;
 
-  for (int gi = 0; gi < NVTOT; gi++) {
-    // for debugging purposes
-    if (findRoot(gi, ptr) == mode) {
-      cout << "for debugging: indices in big cluster = " << gi << '\n';
-    }
-  }
-
   for (int gi = 0; gi < NVTOT; gi++) {  // the lowest gi is the first entry of temporaryWoundIndices, the rest are sorted in based on connectivity
     if (findRoot(gi, ptr) == mode) {
       temporaryWoundIndices.push_back(gi);
@@ -3005,7 +2998,6 @@ void epi2D::getWoundVertices(int nthLargestCluster) {
         current_vertex = i;
 
         temporaryWoundIndices.push_back(current_vertex);
-        cout << "into temporaryWoundIndices, pushing back i = " << current_vertex << '\n';
         break;
 
       } else if (it > middleit) {  // we have formed a closed loop, but have not
@@ -3029,17 +3021,6 @@ void epi2D::getWoundVertices(int nthLargestCluster) {
                     previous_vertex.end()) {
               it = 0;
               current_vertex = k;
-
-              cout << "temporary wound indices before seeking alternate route:";
-              for (auto temporaryWoundIndexIt : temporaryWoundIndices) {
-                cout << temporaryWoundIndexIt << '\t';
-              }
-              cout << '\n';
-              cout << "previous_vertex before seeking alternate route:";
-              for (auto prev_vert : previous_vertex) {
-                cout << prev_vert << '\t';
-              }
-              cout << '\n';
 
               // forget the closed subloop, move onto a new one. Keep
               // previous_vertex, which forbids subloop from joining new loop
