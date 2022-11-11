@@ -2633,7 +2633,7 @@ std::vector<int> epi2D::refineBoundaries() {
           vnn_label[dangling_end_label[j]] = 2;
           vnn_label[dangling_end_label[gi]] = 2;
         } else {
-          cout << "did not turn these dangling ends into corners : " << gi << '\t' << j << '\n';
+          cout << "did not turn these dangling ends into corners : " << gi << '\t' << j << ", because vnn_label[j] = " << vnn_label[j] << ", dangling_end_label[gi] = " << dangling_end_label[gi] << ", dangling_end_label[j] = " << dangling_end_label[j] << '\n';
         }
       }
     }
