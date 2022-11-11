@@ -2933,6 +2933,14 @@ void epi2D::getWoundVertices(int nthLargestCluster) {
   double currentx, currenty, nextx, nexty;
   std::vector<int> previous_vertex;
   // std::vector<double> unwrapped_x;
+
+  for (int gi = 0; gi < NVTOT; gi++) {
+    // for debugging purposes
+    if (findRoot(gi, ptr) == mode) {
+      cout << "for debugging: indices in big cluster = " << gi << '\n';
+    }
+  }
+
   for (int gi = 0; gi < NVTOT; gi++) {  // the lowest gi is the first entry of temporaryWoundIndices, the rest are sorted in based on connectivity
     if (findRoot(gi, ptr) == mode) {
       temporaryWoundIndices.push_back(gi);
@@ -2968,6 +2976,7 @@ void epi2D::getWoundVertices(int nthLargestCluster) {
         current_vertex = i;
 
         temporaryWoundIndices.push_back(current_vertex);
+        cout << "into temporaryWoundIndices, pushing back i = " << current_vertex << '\n';
         break;
 
       } else if (it > middleit) {  // we have formed a closed loop, but have not
@@ -2984,6 +2993,7 @@ void epi2D::getWoundVertices(int nthLargestCluster) {
         for (auto j : previous_vertex) {
           // go through previously added vertices, look for their neighbors that
           // are not already added.
+          cout << "previous vertices : " << j << '\n';
           for (auto k : vnn[j]) {
             if (k >= 0 && findRoot(k, ptr) == mode &&
                 std::find(previous_vertex.begin(), previous_vertex.end(), k) ==
