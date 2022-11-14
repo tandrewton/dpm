@@ -1787,20 +1787,32 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
       // ageCellPerimeters(shapeRelaxationRate, dt);
       if (int(simclock / dt) % 50 == 0) {
         // cout << "woundCenterX, Y before calculating area = " << woundCenterX << '\t' << woundCenterY << '\n';
+        // calculate wound area using connected components clustering
         woundArea = calculateWoundArea(woundCenterX, woundCenterY);
-        // check wound area is valid or not
-        if (std::isnan(woundArea)) {
-          cout << "woundArea is nan\n";
-          if (woundArea < PI * r[0] * r[0] * 5) {
-            cout << " previous area was small, so area might be zero. returning zero for area!\n";
-            woundArea = 0;
-          } else {
-            cout << " previous area was large, so this must be an error. exiting!\n";
-            assert(!std::isnan(woundArea));
+
+        while (std::isnan(woundArea) || woundArea == 0) {
+          cout << "in while loop, repeating wound area calculation to determine if wound area = nan or zero is real!\n";
+          // rerun area calculation using a different wound center seed
+          // every iteration, remove an element from oldWoundLocations. terminate when woundArea is valid, or when oldWoundLocations is empty
+          woundCenterX = oldWoundLocations[0][0];
+          woundCenterY = oldWoundLocations[0][1];
+          // do not record old wound points, since we're looping over them
+          woundArea = calculateWoundArea(woundCenterX, woundCenterY, false);
+          oldWoundLocations.erase(oldWoundLocations.begin());
+          if (oldWoundLocations.size() == 0) {
+            cout << "reached end of oldWoundLocations.. wound area is still nan or zero.\n";
+            break;
           }
+        }
+        if (previousWoundArea < PI * r[0] * r[0] * 5) {
+          woundArea = 0;
+        } else if (std::isnan(woundArea)) {
+          cout << "woundArea is nan! exiting\n";
+          assert(!std::isnan(woundArea));
         }
 
         vout << simclock - t0 << '\t' << woundArea << '\n';
+        previousWoundArea = woundArea;
         // cout << "simclock - t0 = " << simclock - t0 << ", woundArea = " << woundArea << '\n';
 
         // write shape information to files
@@ -3127,7 +3139,7 @@ int epi2D::findRoot(int i, std::vector<int>& ptr) {
   return ptr[i] = findRoot(ptr[i], ptr);
 }
 
-double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
+double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY, bool recordOldWoundPoints) {
   // input: a point previously inside the wound.
   //  we will nucleate the area calculation around this point
   // this algorithm gives the area of a wound by dividing up the simulation box into a grid
@@ -3138,6 +3150,10 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
 
   // note: NAN will be ignored in plots, so I use it here for plotting purposes. Make sure that woundArea does not collide with important things (i.e. get multiplied into meaningful simulation quantities)
   // cout << "calculating woundArea, simclock = " << simclock << '\n';
+
+  if (recordOldWoundPoints) {
+    oldWoundLocations.clear();
+  }
 
   // note: running this every 100 or 1000 timesteps should be fine.
   std::vector<double> posX(NVTOT / 2), posY(NVTOT / 2);
@@ -3204,10 +3220,6 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
   cout << "resolution = " << resolution << '\n';
   cout << "woundPointX / resolution, y = " << woundPointX / resolution << '\t' << woundPointY / resolution << '\n';
   cout << "woundPointX - xLow / resolution, y = " << (woundPointX - xLow) / resolution << '\t' << (woundPointY - yLow) / resolution << '\n';*/
-
-  /*
-  cout << "occupancyMatrix size = " << occupancyMatrix.size() << '\t' << occupancyMatrix[0].size() << '\n';
-  cout << "xResolution, yResolution = " << xResolution << '\t' << yResolution << '\n';*/
 
   cout << "debugging: woundPointX,Y, and woundPointIndices : " << woundPointX << '\t' << woundPointY << '\t' << woundPointXIndex << '\t' << woundPointYIndex << '\t' << resolution << '\n';
   // check if the given point is not within the wound
@@ -3296,6 +3308,19 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
     }
   }
 
+  if (recordOldWoundPoints) {
+    // coarseness controls how many oldWoundLocations we store. currently using sqrt(area)/2 which gives a small fraction of the total number of boxes in each dimension
+    int coarseness = sqrt(sum) / 2.0;
+    for (int i = 0; i < labels.size(); i++) {
+      for (int j = 0; j < labels[i].size(); j++) {
+        if (labels[i][j])
+          if (i % coarseness == 0 && j % coarseness == 0)
+            oldWoundLocations.push_back({i * resolution, j * resolution});
+        // if this is a point in the wound, consider saving it
+      }
+    }
+  }
+
   currentWoundIndices.clear();
   bool iAndjAreInDebug = false;
   int woundSearchRange = r[0] / resolution + 2;  // r[0] / resolution gives # boxes representing a vertex radius. + 1 allows it to search for immediate contacts to the vertex radius. + 2 gives buffer in edge case (vertex just barely passes edge of box). not totally sure why +1 isn't enough, but +2 seems to be the right amount to find the void
@@ -3303,7 +3328,7 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
   for (int gi = 0; gi < NVTOT; gi++) {
     double dist;
     int ci, vi;
-    int i, j, sum = 0, sum_debug = 0;
+    int i, j, sum_labels = 0;
     cindices(ci, vi, gi);
     if (std::find(initialWoundCellIndices.begin(), initialWoundCellIndices.end(), ci) != initialWoundCellIndices.end()) {
       // cell is indeed one of the initially wound-adjacent cells
@@ -3326,26 +3351,15 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
       for (int xInd = -woundSearchRange; xInd < woundSearchRange; xInd++) {
         for (int yInd = -woundSearchRange; yInd < woundSearchRange; yInd++) {
           if (i + xInd >= 0 && j + yInd >= 0 && i + xInd < labels.size() && j + yInd < labels[0].size())  // make sure it's in bounds
-            sum += labels[i + xInd][j + yInd];
+            sum_labels += labels[i + xInd][j + yInd];
         }
       }
-      if (sum > 0) {
+      if (sum_labels > 0) {
         currentWoundIndices.push_back(gi);
       }
     }
   }
 
-  // wound center can be found as the geometric center of all the boxes with label 1, which is as accurate as the resolution
-  /*double geometricCenterX = xLocs / sum;
-  double geometricCenterY = yLocs / sum;
-  if (occupancyMatrix[geometricCenterX / resolution][geometricCenterY / resolution] == 0) {
-    woundPointX = xLocs / sum;
-    woundPointY = yLocs / sum;
-    cout << "geometric center is a valid wound point here\n";
-  } else {
-    cout << "geometric center was not a valid wound point. try using the old wound point's near neighbor: \n";
-    cout << "occupancyMatrix[oldx][oldy] = " << occupancyMatrix[woundPointX / resolution][woundPointY / resolution] << '\n';
-  }*/
   //   area should be the number of boxes times the box area
   //   alternatively, I could get the exact area by locating vertices on the edge of my newly segmented void area, but that's more computational work
   return sum * pow(resolution, 2);

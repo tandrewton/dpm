@@ -97,8 +97,10 @@ class epi2D : public dpm {
   double initialPreferredPerimeter;
   std::vector<int> initialWoundCellIndices;
   std::vector<int> currentWoundIndices;  // as determined by calculateWoundArea
+  std::vector<std::vector<double>> oldWoundLocations;
   double woundCenterX;
   double woundCenterY;
+  double previousWoundArea = NAN;
   double woundArea = NAN;
 
   // flag for vertex repulsion (if a cell has only 1 wound vertex, then turn off repulsion so that it gets sucked into the bulk)
@@ -370,7 +372,7 @@ class epi2D : public dpm {
   bool checkWoundClosedPolygon(std::vector<int>& listOfIndices);
   double computeWoundVerticesUsingRays(double& woundCenterX, double& woundCenterY, int numRays);
   int findRoot(int i, std::vector<int>& ptr);
-  double calculateWoundArea(double& woundPointX, double& woundPointY);
+  double calculateWoundArea(double& woundPointX, double& woundPointY, bool recordOldWoundPoints = true);
   bool isPointInPolygons(double& xloc, double& yloc);
   int pnpoly(int& nvert, std::vector<double>& vertx, std::vector<double>& verty, double& testx, double& testy);
   double calculateArea(std::vector<double>& vertx, std::vector<double>& verty);
