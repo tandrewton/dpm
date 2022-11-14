@@ -3681,17 +3681,16 @@ void epi2D::updatePurseStringContacts() {
       // if first and second are not adjacent, then inserting between them will be a large discontinuous break in the shape of the PS cable. so don't allow insertion between non-adjacent elements
       if (diffOfIndices != 1 && diffOfIndices != psContacts.size() - 1) {
         cout << "simclock = " << simclock << ", skipping insertion of " << gi << " between " << first_gi << ", and " << second_gi;
-        cout << " because diff(indices) = " << diffOfIndices << ", and psContacts.size() - 1 = " << psContacts.size() - 1 << '\n';
-        cout << "psContacts :";
+        cout << " because diff(indices) = " << diffOfIndices << ", psContacts.size - 1 = " << psContacts.size() - 1 << '\n';
+        /*cout << "psContacts :";
         for (auto i : psContacts)
           cout << i << '\t';
-        cout << '\n';
+        cout << '\n';*/
         continue;
         // skip any insertions, move on to next gi
       }  // instead of skipping, maybe I should consider the case where diffOfIndices is small and isGiNeighborOfFirstOrSecond is true.
 
       // insert gi into psContacts in the middle of these adjacent elements
-      cout << "try to insert " << gi << " between " << first_gi << ", " << second_gi << ", simclock = " << simclock << '\n';
 
       /*if (diffOfIndices != 1 && diffOfIndices != psContacts.size() - 1) {
         if (isGiNeighborOfFirstOrSecond) {  // although diffOfIndices indicates first and second are not adjacent, we can still try to place gi next to first or second, whichever is its neighbor
@@ -3807,15 +3806,13 @@ void epi2D::updatePurseStringContacts() {
         // ... second, gi, first
         insert_index = indexOfPsContacts_second + 1;
       }
-      cout << "inserting at index " << insert_index << '\n';
+      // cout << "inserting at index " << insert_index << '\n';
 
       psContacts.insert(psContacts.begin() + insert_index, gi);
 
       for (auto i : psContacts)
         cout << i << '\t';
       cout << '\n';
-
-      cout << "x_ps to insert: " << x[NDIM * gi] << '\t' << x[NDIM * gi + 1] << '\n';
 
       // next and previous represent the index of the next and previous neighbor of the newly inserted index
       int next = (insert_index + 1 + psContacts.size()) % psContacts.size();
@@ -3836,15 +3833,11 @@ void epi2D::updatePurseStringContacts() {
       /*cout << "l0 between " << insert_index << " and " << next << " = " << l0_ps[insert_index] << '\n';
       cout << "l0 between " << insert_index << " and " << prev << " = " << l0_insert << "which should = " << l0_ps[insert_index] << '\n';*/
 
-      /*for (int k = 0; k < psContacts.size(); k++) {
-        cout << "after insertion: x_ps[" << k << "] = " << x_ps[NDIM * k] << '\t' << x_ps[NDIM * k + 1] << '\n';
-      }*/
-      cout << "sizes of x_ps, l0_ps, psContacts = " << x_ps.size() << '\t' << l0_ps.size() << '\t' << psContacts.size() << '\n';
-      cout << "gi = " << gi << ", insert_index = " << insert_index << ", l0_insert = " << l0_insert << '\n';
+      /*cout << "gi = " << gi << ", insert_index = " << insert_index << ", l0_insert = " << l0_insert << '\n';
       cout << "x_ps[NDIM*next], x_ps[NDIM*next+1], x[NDIM*gi], x[NDIM*gi+1] = " << x_ps[NDIM * next] << '\t' << x_ps[NDIM * next + 1] << '\t' << x[NDIM * gi] << '\t' << x[NDIM * gi + 1] << '\n';
       cout << "l0_ps[insert_index] = " << l0_ps[insert_index] << '\n';
       cout << "prev, next = " << prev << '\t' << next << '\n';
-      cout << "psContacts[prev], psContacts[next] = " << psContacts[prev] << '\t' << psContacts[next] << '\n';
+      cout << "psContacts[prev], psContacts[next] = " << psContacts[prev] << '\t' << psContacts[next] << '\n';*/
     }
   }
 }
@@ -4080,8 +4073,8 @@ void epi2D::integratePurseString(double B) {
     if (isSpringBroken[i]) {
       int prev = (i - 1 + psContacts.size()) % psContacts.size();
       int next = (i + 1 + psContacts.size()) % psContacts.size();
-      cout << "marking a spring on gi = psContact[i] = " << psContacts[i] << " for deletion!\n";
-      // mark all doubles associated with yielded virtual vertex for deletion
+      // cout << "marking a spring on gi = psContact[i] = " << psContacts[i] << " for deletion!\n";
+      //  mark all doubles associated with yielded virtual vertex for deletion
       x_ps[NDIM * i] = NAN;
       x_ps[NDIM * i + 1] = NAN;
       v_ps[NDIM * i] = NAN;
