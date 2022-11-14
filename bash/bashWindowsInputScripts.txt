@@ -63,12 +63,12 @@ end
 shape_arr = ["1.0" "1.05" "1.10"];
 att_arr = ["0.05" "0.1" "0.2"];
 dsq_arr = ["1.0" "2.0" "4.0" "16.0"];
-sm_arr = ["0" "1"]; % note - only looking at smooth right now cause i mixed up bd and sm in my bash script
+sm_arr = ["0" "1"];
 for i=1:length(shape_arr)
   for j=1:length(att_arr)
     for k=1:length(dsq_arr)
       for l=1:length(sm_arr)
-        drawWoundSims(30, 0.005, shape_arr(i), sm_arr(l), dsq_arr(k), "0.0", att_arr(j), "0")
+        drawWoundSims(24, 0.005, shape_arr(i), sm_arr(l), dsq_arr(k), "0.0", att_arr(j), "0")
       end
     end
   end

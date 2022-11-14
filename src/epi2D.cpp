@@ -3141,6 +3141,7 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
 
   // note: running this every 100 or 1000 timesteps should be fine.
   std::vector<double> posX(NVTOT / 2), posY(NVTOT / 2);
+  double iResolution, jResolution;  // stores scaled coordinates to pass as reference to isPointInPolygons
   for (int i = 0; i < NVTOT; i++) {
     if (i % 2 == 0)
       posX[i / 2] = x[NDIM * i];
@@ -3148,7 +3149,8 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
       posY[(i - 1) / 2] = x[NDIM * (i - 1) + 1];
   }
   // resolution is the unit box length that we'll use to map occupancyMatrix to real coordinates
-  double resolution = r[0] / 2.0 / 2.0;
+  // double resolution = r[0] / 2.0 / 2.0;
+  double resolution = r[0];
   if (resolution <= 1e-10)
     cerr << "bug: resolution in calculateWoundArea is zero\n";
 
@@ -3165,9 +3167,12 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
   int yResolution = (yHigh - yLow) / resolution;
   std::vector<std::vector<bool>> occupancyMatrix(xResolution, std::vector<bool>(yResolution, 0));
   for (int i = 0; i < xResolution; i++) {
+    iResolution = i * resolution;
     for (int j = 0; j < yResolution; j++) {
+      jResolution = j * resolution;
       // first pass: occupancy is 1 if inside a cell, 0 if not inside a cell (pnpoly point inclusion in polygon test algorithm)
-      occupancyMatrix[i][j] = !isPointInPolygons(i * resolution, j * resolution);
+      // note: area calculation occurs around xResolution^2 times = ~ 1-10 million times per call to calculateWoundArea
+      occupancyMatrix[i][j] = !isPointInPolygons(iResolution, jResolution);
 
       // second pass: if occupancy is 0, set occupancy back to 1 if within vrad (previously resolution) of a vertex
       if (occupancyMatrix[i][j] == 0) {
@@ -3340,7 +3345,7 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
   return sum * pow(resolution, 2);
 }
 
-bool epi2D::isPointInPolygons(double xloc, double yloc) {
+bool epi2D::isPointInPolygons(double& xloc, double& yloc) {
   // check whether (xloc, yloc) is within any dp polygonal areas
   // pnpoly must be false every time in order for isInside to register as true.
   int gi;
@@ -3357,7 +3362,7 @@ bool epi2D::isPointInPolygons(double xloc, double yloc) {
   return isInside;
 }
 
-int epi2D::pnpoly(int nvert, std::vector<double> vertx, std::vector<double> verty, double testx, double testy) {
+int epi2D::pnpoly(int& nvert, std::vector<double>& vertx, std::vector<double>& verty, double& testx, double& testy) {
   // nvert = number of vertices in polygon of interest, vert = vertex position arrays, test is the test point.
   /*
   I run a semi-infinite ray horizontally (increasing x, fixed y) out from the test point, and count how many edges it crosses. At each crossing, the ray switches between inside and outside. This is called the Jordan curve theorem.
@@ -3623,8 +3628,8 @@ void epi2D::updatePurseStringContacts() {
       auto im1_ind = std::find(psContacts.begin(), psContacts.end(), im1[gi]);
       auto ip1_ind = std::find(psContacts.begin(), psContacts.end(), ip1[gi]);
       if (im1_ind != psContacts.end() && ip1_ind != psContacts.end()) {
-        cout << "found both of " << gi << "'s same-cell neighbors in psContacts, skip distance calculation and insert gi between its topological neighbors\n";
-        // calculate indexOfPsContacts_first, indexOfPsContacts_second
+        // cout << "found both of " << gi << "'s same-cell neighbors in psContacts, skip distance calculation and insert gi between its topological neighbors\n";
+        //  calculate indexOfPsContacts_first, indexOfPsContacts_second
         indexOfPsContacts_first = im1_ind - psContacts.begin();
         indexOfPsContacts_second = ip1_ind - psContacts.begin();
         assert(im1[gi] == psContacts[indexOfPsContacts_first]);
@@ -3632,12 +3637,12 @@ void epi2D::updatePurseStringContacts() {
         // calculate indexOfPsContacts_first, and then assign the second to be one greater
         indexOfPsContacts_first = im1_ind - psContacts.begin();
         indexOfPsContacts_second = (indexOfPsContacts_first + 1) % psContacts.size();
-        cout << "found " << gi << "'s previous same-cell neighbor in psContacts, skip distance calculation and insert gi between" << indexOfPsContacts_first << " and " << indexOfPsContacts_second << "!\n";
+        // cout << "found " << gi << "'s previous same-cell neighbor in psContacts, skip distance calculation and insert gi between" << indexOfPsContacts_first << " and " << indexOfPsContacts_second << "!\n";
       } else if (ip1_ind != psContacts.end()) {
         // calculate indexOfPsContacts_second, and then assign the first to be one smaller
         indexOfPsContacts_second = ip1_ind - psContacts.begin();
         indexOfPsContacts_first = (indexOfPsContacts_second - 1 + psContacts.size()) % psContacts.size();
-        cout << "found " << gi << "'s next same-cell neighbor in psContacts, skip distance calculation and insert gi between " << indexOfPsContacts_second << " and " << indexOfPsContacts_first << "!\n";
+        // cout << "found " << gi << "'s next same-cell neighbor in psContacts, skip distance calculation and insert gi between " << indexOfPsContacts_second << " and " << indexOfPsContacts_first << "!\n";
       } else {
         // get a vector of distances from gi to psContacts
         std::vector<double> distToPsContacts;
@@ -3810,9 +3815,9 @@ void epi2D::updatePurseStringContacts() {
 
       psContacts.insert(psContacts.begin() + insert_index, gi);
 
-      for (auto i : psContacts)
+      /*for (auto i : psContacts)
         cout << i << '\t';
-      cout << '\n';
+      cout << '\n';*/
 
       // next and previous represent the index of the next and previous neighbor of the newly inserted index
       int next = (insert_index + 1 + psContacts.size()) % psContacts.size();

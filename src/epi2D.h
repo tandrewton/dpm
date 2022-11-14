@@ -371,8 +371,8 @@ class epi2D : public dpm {
   double computeWoundVerticesUsingRays(double& woundCenterX, double& woundCenterY, int numRays);
   int findRoot(int i, std::vector<int>& ptr);
   double calculateWoundArea(double& woundPointX, double& woundPointY);
-  bool isPointInPolygons(double xloc, double yloc);
-  int pnpoly(int nvert, std::vector<double> vertx, std::vector<double> verty, double testx, double testy);
+  bool isPointInPolygons(double& xloc, double& yloc);
+  int pnpoly(int& nvert, std::vector<double>& vertx, std::vector<double>& verty, double& testx, double& testy);
   double calculateArea(std::vector<double>& vertx, std::vector<double>& verty);
   double calculateAreaFlattened(std::vector<double>& vertPosFlattened);
 
