@@ -3,8 +3,8 @@
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
 
-function drawWoundSims(N, strainRate_ps, calA0, smooth, deltaSq, d_flag, att, boundaryType) %uncomment if using function call to pipeline data
-isTestData = false; %uncomment if using function call to pipeline data
+%function drawWoundSims(N, strainRate_ps, calA0, smooth, deltaSq, d_flag, att, boundaryType) %uncomment if using function call to pipeline data
+%isTestData = false; %uncomment if using function call to pipeline data
 
 %isTestData = true; %uncomment if using test data
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
@@ -44,7 +44,7 @@ makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately and dont s
 plotCells = 1;
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
-showWoundAndShapeProperties = 1; 
+showWoundAndShapeProperties = 0; 
 
 
 showverts = 0;
@@ -68,7 +68,7 @@ showVoid = 0;
 showVoidBlack = 0; % print void in larger black circles to see easier
 showVoidLite = 1; % print void, but in a way that works with printConfiguration on its own
 showCornersOrEdges = 0;
-showPurseString = 1;
+showPurseString = 0;
 showProtrusion = 1;
 showShapeHistogram = 0;
  

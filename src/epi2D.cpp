@@ -3309,9 +3309,15 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY) {
       // cell is indeed one of the initially wound-adjacent cells
       i = x[NDIM * gi] / resolution;
       j = x[NDIM * gi + 1] / resolution;
-      if (i >= labels.size() || j >= labels[0].size()) {
-        cout << "about to segfault: i = " << i << ", j = " << j << ", labels.size() = " << labels.size() << ", labels[0].size() = " << labels[0].size() << '\n';
-      }
+      if (i < 0)
+        i = 0;
+      if (j < 0)
+        j = 0;
+      if (i >= labels.size())
+        i = labels.size() - 1;
+      if (j >= labels[0].size())
+        j = labels[0].size() - 1;
+
       if (labels[i][j] == 1) {
         cout << "location of bad label = " << i * resolution << '\t' << j * resolution << '\n';
         assert(labels[i][j] == 0);
