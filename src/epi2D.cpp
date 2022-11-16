@@ -1985,6 +1985,10 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
       cout << "wound center = " << woundCenterX << '\t' << woundCenterY << '\n';
     } else {
       cout << "wound did not close.\n";
+      cout << "psContacts : ";
+      for (auto i : psContacts)
+        cout << i << '\t';
+      cout << '\n';
       healingTime = duration;
     }
 
@@ -2639,7 +2643,6 @@ std::vector<int> epi2D::refineBoundaries() {
         if (vnn_label[j] == -2 &&
             dangling_end_label[gi] != dangling_end_label[j] &&
             dangling_end_label[j] > 0) {
-          '\n';
           vnn_label[gi] = 2;
           vnn_label[j] = 2;
           vnn_label[dangling_end_label[j]] = 2;
@@ -3855,10 +3858,16 @@ void epi2D::updatePurseStringContacts() {
   if (psContacts.size() < 2) {
     return;  // invalid size for sorting
   }
+
+  cout << "psContacts : ";
+  for (auto i : psContacts)
+    cout << i << '\t';
+  cout << '\n';
+
   int ci, cj, vi, c_first, c_second;
   double first = 1e10, second = 1e10;  // used to find two closest elements (minimum distances) in one traversal of psContacts
   int firstInd = INT_MAX, secondInd = INT_MAX;
-  int indexOfPsContacts_first = 0, indexOfPsContacts_second = 0, indexOfPsContacts_third;
+  int indexOfPsContacts_first = 0, indexOfPsContacts_second = 0, indexOfPsContacts_third = 0;
   std::vector<std::pair<double, int>> distanceToPsContacts;
   double l0_insert;
   bool isBetweenNeighbors = false;  // for debugging
@@ -3913,9 +3922,9 @@ void epi2D::updatePurseStringContacts() {
       // just making sure that the selected indices are next to each other in the psContacts list
       if ((diffOfIndices != 1 && diffOfIndices != psContacts.size() - 1) || isIndexFirstAndSecondSameCellNeighbors) {
         // diffOfIndices was not adjacent
-        cout << "diffOfIndices adjacent? = " << diffOfIndices << ", 1-3 = " << diffOfIndicesOneThree << ", 2-3 = " << diffOfIndicesTwoThree << '\n';
-        cout << "or isIndexFirstAndSecondSameCellNeighbors = " << isIndexFirstAndSecondSameCellNeighbors;
-        cout << ", because first and second are neighbors in the same cell, can't insert between them.\n";
+        // cout << "diffOfIndices adjacent? = " << diffOfIndices << ", 1-3 = " << diffOfIndicesOneThree << ", 2-3 = " << diffOfIndicesTwoThree << '\n';
+        // cout << "or isIndexFirstAndSecondSameCellNeighbors = " << isIndexFirstAndSecondSameCellNeighbors;
+        // cout << ", because first and second are neighbors in the same cell, can't insert between them.\n";
         cout << "trying to switch out first and second for other pairs\n";
         cout << "diffOfIndicesOneThree, TwoThree = " << diffOfIndicesOneThree << '\t' << diffOfIndicesTwoThree << '\n';
         /*cout << "psContacts : ";
@@ -3940,6 +3949,12 @@ void epi2D::updatePurseStringContacts() {
         } else {
           cout << "none worked, refusing to insert gi. calling continue, proceeding with next gi.\n";
           // this happens when a lot of vertices are very close to gi, and it can't differentiate which is the correct one
+          // plan : in this case, check if gi has a neighbor in psContacts.
+          if (ip1_ind != psContacts.end()) {
+            int neighbor_index = ip1_ind - psContacts.begin();
+            int neighbor_gi = psContacts[neighbor_index];
+            cout << "gi of right neighbor = " << neighbor_gi << ", differences of right neighbor with its neighbors = " << neighbor_gi - psContacts[(neighbor_index + 1 + psContacts.size()) % psContacts.size()] << ", " << neighbor_gi - psContacts[(neighbor_index - 1 + psContacts.size()) % psContacts.size()] << '\n';
+          }
           continue;
           // assert(false);
         }
