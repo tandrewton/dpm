@@ -390,6 +390,7 @@ class epi2D : public dpm {
   void evaluatePurseStringForces(double B);
   void integratePurseString(double B);
   void sortPurseStringVariables();
+  bool isFitBetween(int gi, int gl, int gr, int ci);
   // polymorphism: write configuration information to file
   void printConfiguration2D();
 };
