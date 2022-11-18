@@ -22,7 +22,7 @@ ndelete="3";
 %deltaSq = "2.0";
 %k_a = "1.0";
 k_l = "1.0";
-k_ps = "1.0"; %purse-string spring constant
+k_ps = "4.0"; %purse-string spring constant
 k_lp = "4.0"; %lamellipodia spring constant
 %smooth = "1";
 tau_lp = "1.0"; %lamellipodia lifetime
@@ -47,7 +47,7 @@ showPeriodicImages = 0;
 showWoundAndShapeProperties = 0; 
 
 
-showverts = 1;
+showverts = 0;
 showBoundaries = 0;
 showcirculoline = 0; % show line segments of circulo-lines
 isReadAndPlotTrajectoryQualities = 1; % read nvestr and plot associated quantities
@@ -500,8 +500,8 @@ for seed = startSeed:max_seed
                 
                 annotationStr = "$$t/\tau$$ = "+time(ff);
                 %annotationStr = "frame = "+ff;
-                %annotation('textbox',[0.48, 0.5, 0, 0],...
-                %    'interpreter', 'latex', 'String', annotationStr, 'Edgecolor','none', 'FitBoxToText','on');
+                annotation('textbox',[0.48, 0.5, 0, 0],...
+                    'interpreter', 'latex', 'String', annotationStr, 'Edgecolor','none', 'FitBoxToText','on');
                 if showVoid
                     if showVoidBlack 
                         scatter(voidLocations{ff}(:,1), voidLocations{ff}(:,2),...
@@ -534,9 +534,9 @@ for seed = startSeed:max_seed
                 end
                 if showPurseString
                     scatter(purseLocations{ff}(1:2:end,1),...
-                        purseLocations{ff}(1:2:end,2), 50, 'blue', 'o','MarkerFaceColor','blue');
+                        purseLocations{ff}(1:2:end,2), 20, 'blue', 'o','MarkerFaceColor','blue');
                     scatter(purseLocations{ff}(2:2:end,1),...
-                        purseLocations{ff}(2:2:end,2), 25, 'red', 'x');
+                        purseLocations{ff}(2:2:end,2), 10, 'red', 'x');
                     purseLocs = purseLocations{ff};
                     purseLength = length(purseLocs(1:2:end,1));
                     for i=1:purseLength

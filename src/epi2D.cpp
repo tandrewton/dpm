@@ -1790,7 +1790,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
         // calculate wound area using connected components clustering
         woundArea = calculateWoundArea(woundCenterX, woundCenterY);
 
-        while (std::isnan(woundArea) || woundArea == 0) {
+        while (std::isnan(woundArea) || woundArea < 1e-10) {
           cout << "in while loop, repeating wound area calculation to determine if wound area = nan or zero is real!\n";
           // rerun area calculation using a different wound center seed
           // every iteration, remove an element from oldWoundLocations. terminate when woundArea is valid, or when oldWoundLocations is empty
@@ -1804,7 +1804,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
             break;
           }
         }
-        if (previousWoundArea < PI * r[0] * r[0] * 5) {
+        if (previousWoundArea < 4 * 0.5 * PI * r[0] * r[0]) {
           woundArea = 0;
         } else if (std::isnan(woundArea)) {
           cout << "woundArea is nan! exiting\n";
@@ -1927,10 +1927,12 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
       }
     }
     // do things after all the simulation steps have been taken, or if the wound is closed (area=0 or area=2.5% initial area)
-    // choice of woundArea cutoff is 2.5 vertex areas. no particular reason
-    double woundAreaCutoffEndSimulation = 1.0 * PI * r[0] * r[0];
+    // choice of woundArea cutoff is 4 vertex areas. no particular reason
+    double woundAreaCutoffEndSimulation = 4 * 0.5 * PI * r[0] * r[0];
     if (duration > 100 && (simclock - t0 > duration - dt || woundArea == 0.0 || woundArea < woundAreaCutoffEndSimulation) && !std::isnan(healingTime) && !alreadyRecordedFinalCells) {
       // exit conditions
+      cout << "woundAreaCutoff to end simulation = " << woundAreaCutoffEndSimulation << '\n';
+      cout << "woundArea, simclock - t0, duration-dt = " << woundArea << " " << simclock - t0 << " " << duration - dt << '\n';
       break;
     }
   }
@@ -2789,7 +2791,7 @@ void epi2D::printBoundaries(int nthLargestCluster) {
   // in order, print out the unwrapped locations of all main cluster vertices,
   // starting with a vertex in the big cluster
   cerr << "before ordering vertices\n";
-  cout << "woundArea = " << woundArea << '\n';
+  cout << "woundArea = " << woundArea << ", vertex area = " << 0.5 * PI * r[0] * r[0] << '\n';
   cout << "woundCenterX, woundCenterY = " << woundCenterX << '\t' << woundCenterY << '\n';
   int it = 0, middleit = 1000, maxit = 2000;
   int current_vertex = -2;
@@ -3168,7 +3170,7 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY, bool 
   }
   // resolution is the unit box length that we'll use to map occupancyMatrix to real coordinates
   // double resolution = r[0] / 2.0 / 2.0;
-  double resolution = r[0];
+  double resolution = r[0] / 2;
   if (resolution <= 1e-10)
     cerr << "bug: resolution in calculateWoundArea is zero\n";
 
@@ -3313,6 +3315,7 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY, bool 
   if (recordOldWoundPoints) {
     // coarseness controls how many oldWoundLocations we store. currently using sqrt(area)/2 which gives a small fraction of the total number of boxes in each dimension
     int coarseness = sqrt(sum) / 2.0;
+    // coarseness must be > 0 or leads to floating point exception for modulo operation
     if (coarseness < 4)
       coarseness = 4;
     for (int i = 0; i < labels.size(); i++) {
@@ -3749,7 +3752,7 @@ void epi2D::updatePurseStringContacts() {
       realDiffOfIndices = abs(first_gi - second_gi);
       isIndexFirstAndSecondSameCellNeighbors = (c_first == c_second && (realDiffOfIndices == 1 || realDiffOfIndices == nv[ci] - 1));
 
-      cout << "trying to insert " << gi << " between " << first_gi << '\t' << second_gi << ", simclock = " << simclock << '\n';
+      // cout << "trying to insert " << gi << " between " << first_gi << '\t' << second_gi << ", simclock = " << simclock << '\n';
 
       // just making sure that the selected indices are next to each other in the psContacts list
       if ((diffOfIndices != 1 && diffOfIndices != psContacts.size() - 1) || isIndexFirstAndSecondSameCellNeighbors) {
@@ -4057,11 +4060,6 @@ void epi2D::evaluatePurseStringForces(double B) {
     fx = (fli * dli * lix / li) - (flim1 * dlim1 * lim1x / lim1);
     fy = (fli * dli * liy / li) - (flim1 * dlim1 * lim1y / lim1);
 
-    /*if (psi == 0 && (fabs(fx) > 1 || std::isnan(fx))) {
-      cout << "fx is larger than reasonable, fli = " << fli << ", dli = " << dli << ", lix = " << lix << ", li = " << li << ", flim1 = " << flim1 << ", dlim1 = " << dlim1 << ", lim1x = " << lim1x << ", lim1 = " << lim1 << '\n';
-      cout << "vrad[0] = " << r[0] << ", l0_ps[0] = " << l0_ps[0] << '\n';
-    }*/
-
     F_ps[NDIM * psi] += fx;
     F_ps[NDIM * psi + 1] += fy;
     // cout << "F_ps_x due to segment length = " << fx << '\t' << fy << '\n';
@@ -4172,25 +4170,35 @@ void epi2D::sortPurseStringVariables() {
 }
 
 bool epi2D::isFitBetween(int gi, int gl, int gr, int ci) {
-  // check if index gi fits between gl and gr. hardcoded the range = 3. Can change this, but definitely do not let it approach nv/2.
+  // check if index gi fits between gl and gr. hardcoded the range = 4. Can change this, but definitely do not let it approach nv/2.
   // NOTE: gi gl and gr MUST be in the same cell for this to work.
   int numVerts = nv[ci];
-  int range = 3, rightNeighbor, leftNeighbor;
+  int range = numVerts / 5.0, rightNeighbor, leftNeighbor;
   int currentIndex = gi;
   bool hasLeft = false, hasRight = false;
+  if (ci == 0) {
+    cout << "in ci = 0, debugging!\n";
+    cout << "gi, gl, gr = " << gi << '\t' << gl << '\t' << gr << '\n';
+  }
   // want to check validity of gl gi gr
   for (int i = 0; i < range; i++) {
     currentIndex = ip1[currentIndex];
-    if (gr == currentIndex || gl == currentIndex)
+    cout << "currentIndex = " << currentIndex << '\n';
+    if (gr == currentIndex || gl == currentIndex) {
       hasRight = true;
+      cout << "gr = " << gr << ", gl = " << gl << ", hasRight = true\n";
+    }
   }
   currentIndex = gi;
   for (int i = 0; i < range; i++) {
     currentIndex = im1[currentIndex];
-    if (gr == currentIndex || gl == currentIndex)
+    cout << "currentIndex = " << currentIndex << '\n';
+    if (gr == currentIndex || gl == currentIndex) {
       hasLeft = true;
+      cout << "gr = " << gr << ", gl = " << gl << ", hasLeft = true\n";
+    }
   }
-
+  cout << "isFitBetween = " << (hasLeft && hasRight) << '\n';
   return (hasLeft && hasRight);
 }
 
