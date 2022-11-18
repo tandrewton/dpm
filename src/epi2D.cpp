@@ -3869,6 +3869,11 @@ void epi2D::updatePurseStringContacts() {
 }
 
 void epi2D::purseStringContraction(double B) {
+  if (fabs(simclock - 185.147) < 0.1) {
+    for (int i = 0; i < psContacts.size(); i++) {
+      cout << "in psContraction, psContact = " << psContacts[i] << ", l0_ps = " << l0_ps[i] << '\n';
+    }
+  }
   updatePurseStringContacts();
   integratePurseString(B);  // evaluate forces on and due to purse-string, and integrate its position
   for (int psi = 0; psi < psContacts.size(); psi++) {
@@ -4113,12 +4118,45 @@ void epi2D::integratePurseString(double B) {
       l0_ps[i] = NAN;
   }
 
+  if (fabs(simclock - 185.147) < 0.1) {
+    for (int i = 0; i < psContacts.size(); i++) {
+      cout << i << " before deletion, psContact = " << psContacts[i] << ", l0_ps = " << l0_ps[i] << '\n';
+    }
+    for (int i = 0; i < l0_ps.size(); i++) {
+      if (std::isnan(l0_ps[i])) {
+        cout << "l0_ps[i] " << i << " is nan! " << l0_ps[i] << '\n';
+      }
+    }
+  }
+
+  for (int i = 0; i < l0_ps.size(); i++) {
+    if (std::isnan(l0_ps[i]) ^ psContacts[i] == 9999) {
+      cout << "before deletion, xor failed; " << l0_ps[i] << '\t' << psContacts[i] << " simclock = " << simclock << '\n';
+    }
+  }
   // delete all NANs, the mark for deletion
   x_ps.erase(remove_if(x_ps.begin(), x_ps.end(), [](const double& value) { return std::isnan(value); }), x_ps.end());
   v_ps.erase(remove_if(v_ps.begin(), v_ps.end(), [](const double& value) { return std::isnan(value); }), v_ps.end());
   F_ps.erase(remove_if(F_ps.begin(), F_ps.end(), [](const double& value) { return std::isnan(value); }), F_ps.end());
   l0_ps.erase(remove_if(l0_ps.begin(), l0_ps.end(), [](const double& value) { return std::isnan(value); }), l0_ps.end());
   psContacts.erase(remove(psContacts.begin(), psContacts.end(), 9999), psContacts.end());
+
+  if (fabs(simclock - 185.147) < 0.1) {
+    cout << "after deletion, psContacts size " << psContacts.size() << " = l0_ps size " << l0_ps.size() << "simclock = " << simclock << '\n';
+    for (int i = 0; i < psContacts.size(); i++) {
+      cout << i << " after deletion, psContact = " << psContacts[i] << ", l0_ps = " << l0_ps[i] << '\n';
+    }
+  }
+  for (int i = 0; i < l0_ps.size(); i++) {
+    if (std::isnan(l0_ps[i]) ^ psContacts[i] == 9999) {
+      cout << "after deletion, xor failed; " << l0_ps[i] << '\t' << psContacts[i] << "simclock = " << simclock << '\n';
+    }
+  }
+
+  if (psContacts.size() != l0_ps.size()) {
+    cout << "after deletion, psContacts size " << psContacts.size() << " != l0_ps size " << l0_ps.size() << "simclock = " << simclock << '\n';
+    assert(psContacts.size() == l0_ps.size());
+  }
 
   // delete all bools associated with yielded virtual vertices for deletion
   isSpringBroken.erase(remove(isSpringBroken.begin(), isSpringBroken.end(), true), isSpringBroken.end());
