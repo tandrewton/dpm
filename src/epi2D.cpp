@@ -118,12 +118,6 @@ void epi2D::directorDiffusion() {
 std::vector<int> epi2D::regridSegment(int wVertIndex, double vrad) {
   // need to subtract indices from giConnectedToFlag if using this function in the future
   // return value is the indices of the deleted vertices for proper gi counting later
-  /*if (vnn_label[wVertIndex] != 0) {
-    if (simclock > 320 && simclock < 360) {
-      cout << "vnn_label[wVertIndex] = " << vnn_label[wVertIndex] << ", wVertIndex = " << wVertIndex << '\n';
-    }
-    return {};
-  }*/
 
   // regridSegment will adjust a cell's wound-adjacent # vertices and vertex positions to not overlap, deleting vertices and shifting as needed.
   //   to maintain constant energy before and after regridding, need to calculate a number c and use it
@@ -159,12 +153,7 @@ std::vector<int> epi2D::regridSegment(int wVertIndex, double vrad) {
 
   arc_length = rotateAndCalculateArcLength(ci, orderedWVerts);
   if (orderedWVerts.size() == 0) {
-    cout << "why the heck does orderedWVerts.size() = 0?\n";
-    cout << "because we've been asked to regrid a cell that has no vertices in the woundList\n";
-    cout << "how is it that regridSegment has been called on a cell with no wound vertices?\n";
-    cout << "sounds like i have cells ci in woundCells with no vertices in the wound list.\n";
-    cout << "how to handle this?\n";
-    cout << "also, at simclock = 259ish, wound cell 14 keeps attempting a regrid but never succeeds.";
+    cout << "why does orderedWVerts.size() = 0?\n";
     // to handle the last bit, let me first try printing out the number of vertices there.
     return {};
   }
@@ -1430,11 +1419,9 @@ void epi2D::dampedNVETest(dpmMemFn forceCall, double T, double dt0, int NT, int 
       v[i] += 0.5 * (F[i] + F_old[i]) * dt;
 
       if (i / 2 >= szList[0] && i / 2 < szList[1] && i % 2 == 0 && t == 0) {
-        // cout << "szList 0 and 1 = " << szList[0] << '\t' << szList[1] << '\n';
         v[i] += 1.0;
         cout << 0.5 * (F[i] + F_old[i]) * dt << '\n';
       }
-      // cout << "force at simclock = " << simclock << " = ," << F[i] << '\n';
     }
 
     // update sim clock
@@ -1580,17 +1567,12 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duratio
       F[i] -= (B * v[i] + B * F_old[i] * dt / 2);
       F[i] /= (1 + B * dt / 2);
       v[i] += 0.5 * (F[i] + F_old[i]) * dt;
-      // cout << "force at simclock = " << simclock << " = ," << F[i] << '\n';
     }
 
     // update sim clock
     simclock += dt;
 
     // print to console and file
-    /*cout << "in dampedNVE2D : simclock - t0 / dt = " << (simclock - t0) / dt << '\n';
-    cout << "simclock - temp_simclock = " << simclock - temp_simclock << '\n';
-    cout << "NPRINTSKIP = " << NPRINTSKIP << ", dt = " << dt << '\n';
-    cout << "printInterval/2.0 = " << printInterval / 2.0 << '\n';*/
     if (printInterval > dt) {
       if (int((simclock - t0) / dt) % NPRINTSKIP == 0 &&
           (simclock - temp_simclock) > printInterval / 2.0) {
@@ -1813,7 +1795,6 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
 
         vout << simclock - t0 << '\t' << woundArea << '\n';
         previousWoundArea = woundArea;
-        // cout << "simclock - t0 = " << simclock - t0 << ", woundArea = " << woundArea << '\n';
 
         // write shape information to files
         innerout << simclock - t0 << '\t';
@@ -1851,8 +1832,6 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
     simclock += dt;
     // print to console and file
     if (int(printInterval) != 0) {
-      /*if (int((simclock - t0) / dt) % NPRINTSKIP == 0 &&
-          (simclock - temp_simclock) > printInterval / 2) {*/
       if (int((simclock - t0) / dt) % NPRINTSKIP == 0) {
         temp_simclock = simclock;
         // compute kinetic energy
@@ -2423,7 +2402,7 @@ void epi2D::deleteVertex(std::vector<int>& deleteList) {
   // delete the vertices with indices in deleteList. option to interpolate
   // (attempt to distribute remaining vertices into space left behind by deleted
   // old vertex)
-  cout << "\ndeleting vertices!!!\n\n simclock = " << simclock
+  cout << "\ndeleting vertices!\n\n simclock = " << simclock
        << '\n';
   cout << "NVTOT = " << NVTOT << '\n';
   cout << "r.size() = " << r.size() << '\n';
@@ -3869,11 +3848,6 @@ void epi2D::updatePurseStringContacts() {
 }
 
 void epi2D::purseStringContraction(double B) {
-  if (fabs(simclock - 185.147) < 0.1) {
-    for (int i = 0; i < psContacts.size(); i++) {
-      cout << "in psContraction, psContact = " << psContacts[i] << ", l0_ps = " << l0_ps[i] << '\n';
-    }
-  }
   updatePurseStringContacts();
   integratePurseString(B);  // evaluate forces on and due to purse-string, and integrate its position
   for (int psi = 0; psi < psContacts.size(); psi++) {
@@ -4094,6 +4068,8 @@ void epi2D::evaluatePurseStringForces(double B) {
 void epi2D::integratePurseString(double B) {
   // velocity verlet force update with damping
 
+  // debugging test case : ./main/epi2D/laserAblation.o 36 36 3 1.10 0.94 0.85 1.0 1.0 0.05 0.005  2.0  4.0  4.0 1.0  0.0  1.0 0.5  0  0   0 1  1000  test
+
   // first step: delete virtual vertices if the virtual-real bond has yielded.
   for (int i = 0; i < psContacts.size(); i++) {
     if (isSpringBroken[i]) {
@@ -4109,54 +4085,22 @@ void epi2D::integratePurseString(double B) {
       F_ps[NDIM * i + 1] = NAN;
       // l0_ps[(i - 1 + psContacts.size()) % psContacts.size()] += l0_ps[i];
       l0_ps[prev] = vertDistNoPBC(psContacts[prev], psContacts[next]);  // adjust previous indexed l0 to match new configuration with current l0 deleted
-      psContacts[i] = 9999;
     }
   }
-  // set l0_ps = NAN after the rest to not interfere with l0_ps adjustment
+  // set l0_ps = NAN and psContacts = 9999 (deletion criteria) after the rest to not interfere with l0_ps adjustment
   for (int i = 0; i < psContacts.size(); i++) {
-    if (isSpringBroken[i])
+    if (isSpringBroken[i]) {
+      psContacts[i] = 9999;
       l0_ps[i] = NAN;
-  }
-
-  if (fabs(simclock - 185.147) < 0.1) {
-    for (int i = 0; i < psContacts.size(); i++) {
-      cout << i << " before deletion, psContact = " << psContacts[i] << ", l0_ps = " << l0_ps[i] << '\n';
-    }
-    for (int i = 0; i < l0_ps.size(); i++) {
-      if (std::isnan(l0_ps[i])) {
-        cout << "l0_ps[i] " << i << " is nan! " << l0_ps[i] << '\n';
-      }
     }
   }
 
-  for (int i = 0; i < l0_ps.size(); i++) {
-    if (std::isnan(l0_ps[i]) ^ psContacts[i] == 9999) {
-      cout << "before deletion, xor failed; " << l0_ps[i] << '\t' << psContacts[i] << " simclock = " << simclock << '\n';
-    }
-  }
   // delete all NANs, the mark for deletion
   x_ps.erase(remove_if(x_ps.begin(), x_ps.end(), [](const double& value) { return std::isnan(value); }), x_ps.end());
   v_ps.erase(remove_if(v_ps.begin(), v_ps.end(), [](const double& value) { return std::isnan(value); }), v_ps.end());
   F_ps.erase(remove_if(F_ps.begin(), F_ps.end(), [](const double& value) { return std::isnan(value); }), F_ps.end());
   l0_ps.erase(remove_if(l0_ps.begin(), l0_ps.end(), [](const double& value) { return std::isnan(value); }), l0_ps.end());
   psContacts.erase(remove(psContacts.begin(), psContacts.end(), 9999), psContacts.end());
-
-  if (fabs(simclock - 185.147) < 0.1) {
-    cout << "after deletion, psContacts size " << psContacts.size() << " = l0_ps size " << l0_ps.size() << "simclock = " << simclock << '\n';
-    for (int i = 0; i < psContacts.size(); i++) {
-      cout << i << " after deletion, psContact = " << psContacts[i] << ", l0_ps = " << l0_ps[i] << '\n';
-    }
-  }
-  for (int i = 0; i < l0_ps.size(); i++) {
-    if (std::isnan(l0_ps[i]) ^ psContacts[i] == 9999) {
-      cout << "after deletion, xor failed; " << l0_ps[i] << '\t' << psContacts[i] << "simclock = " << simclock << '\n';
-    }
-  }
-
-  if (psContacts.size() != l0_ps.size()) {
-    cout << "after deletion, psContacts size " << psContacts.size() << " != l0_ps size " << l0_ps.size() << "simclock = " << simclock << '\n';
-    assert(psContacts.size() == l0_ps.size());
-  }
 
   // delete all bools associated with yielded virtual vertices for deletion
   isSpringBroken.erase(remove(isSpringBroken.begin(), isSpringBroken.end(), true), isSpringBroken.end());
