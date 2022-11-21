@@ -1716,6 +1716,13 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
       if (psContacts.size() == 0 && std::isnan(woundArea)) {
         cout << "inside psContacts.size() == 0 and woundArea == NAN case, which should only occur once!\n";
         getWoundVertices(nthLargestCluster);
+
+        if (sortedWoundIndices.size() < nv[0]) {
+          cout << "getWoundVertices has returned a cluster smaller than a single cell. print 0th cluster, see if it works\n";
+          getWoundVertices(0);
+          cout << sortedWoundIndices.size() << '\n';
+        }
+
         woundCenterX = 0;
         woundCenterY = 0;
         for (auto gi : sortedWoundIndices) {
@@ -1776,15 +1783,16 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
           cout << "in while loop, repeating wound area calculation to determine if wound area = nan or zero is real!\n";
           // rerun area calculation using a different wound center seed
           // every iteration, remove an element from oldWoundLocations. terminate when woundArea is valid, or when oldWoundLocations is empty
+          if (oldWoundLocations.size() == 0) {
+            cout << "reached end of oldWoundLocations.. wound area is still nan or zero.\n";
+            break;
+          }
           woundCenterX = oldWoundLocations[0][0];
           woundCenterY = oldWoundLocations[0][1];
           // do not record old wound points, since we're looping over them
           woundArea = calculateWoundArea(woundCenterX, woundCenterY, false);
           oldWoundLocations.erase(oldWoundLocations.begin());
-          if (oldWoundLocations.size() == 0) {
-            cout << "reached end of oldWoundLocations.. wound area is still nan or zero.\n";
-            break;
-          }
+          cout << "erased one wound potential wound location from oldWoundLocations\n";
         }
         if (previousWoundArea < 4 * 0.5 * PI * r[0] * r[0]) {
           woundArea = 0;
@@ -4155,7 +4163,7 @@ bool epi2D::isFitBetween(int gi, int gl, int gr, int ci) {
   // check if index gi fits between gl and gr. hardcoded the range = 4. Can change this, but definitely do not let it approach nv/2.
   // NOTE: gi gl and gr MUST be in the same cell for this to work.
   int numVerts = nv[ci];
-  int range = numVerts / 5.0, rightNeighbor, leftNeighbor;
+  int range = numVerts / 3.0, rightNeighbor, leftNeighbor;
   int currentIndex = gi;
   bool hasLeft = false, hasRight = false;
   // want to check validity of gl gi gr

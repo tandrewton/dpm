@@ -11,19 +11,19 @@
 //  note: if using circular boundaries via polyWall, try pmin = 0.9 and pmax = 0.85 because pmin is soft disk density and pmax is DP preferred density
 //
 // below: no purse-string, no crawling (inactive simulation)
-//./main/epi2D/laserAblation.o 20 20 0 1.10 0.92 0.925 1.0 0.5 0.0 0.01  0.0  4.0  4.0 1.0  0.0  1.0 0.5  0  0   0 1  100  test
+//./main/epi2D/laserAblation.o 20 20 0 1.10 0.92 0.925 1.0 4.0 0.0 0.01  0.0  4.0  4.0 1.0  0.0  1.0 0.5  0  0   0 1  100  test
 // ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  B  Dr0 CIL bound sm sd time file
 // below: no purse-string, only crawling
-//./main/epi2D/laserAblation.o 30 16 6 0.9 0.94 0.85 1.0 1.0 0.2 0.001  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   0 1 200  test
+//./main/epi2D/laserAblation.o 30 16 6 0.9 0.94 0.85 1.0 4.0 0.2 0.001  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   0 1 200  test
 // ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  B  Dr0 CIL bound sm sd time file
 // below: purse-string, no crawling
-//./main/epi2D/laserAblation.o 24 20 2 1.10 0.94 0.85 1.0 1.0 0.2 0.005  1.0  1.0  4.0 1.0  0.0  1.0 0.5  0  0   0 1  100  test
+//./main/epi2D/laserAblation.o 24 20 2 1.10 0.94 0.85 1.0 4.0 0.2 0.005  1.0  1.0  4.0 1.0  0.0  1.0 0.5  0  0   0 1  100  test
 // ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  B  Dr0 CIL bound sm sd time file
 // below: purse-string, and crawling
-//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.865 1.0 1.0 0.1 0.01  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  1   1 1  110  test
+//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.865 1.0 4.0 0.1 0.01  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  1   1 1  110  test
 // ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  B  Dr0 CIL bound sm sd time file
 
-// ./main/epi2D/laserAblation.o 40 20 4 1.0 0.92 0.925 1.0 0.5 0.2 0.013  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   0 1  200  test
+// ./main/epi2D/laserAblation.o 40 20 4 1.0 0.92 0.925 1.0 4.0 0.2 0.013  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   0 1  200  test
 
 // bash bash/epi2D/submit_laserAblation.sh 40 20 6 1.10 0.92 0.925 1.0 1.0 0.2 0.01 0.0 4.0 4.0 1.0 3.0 1.0 0.5 0 0 400 pi_ohern,day,scavenge 0-24:00:00 1 1
 
