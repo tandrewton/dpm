@@ -1977,9 +1977,6 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
       cout << "psContacts : ";
       healingTime = duration;
     }
-    for (auto i : psContacts)
-      cout << i << '\t';
-    cout << '\n';
     woundPropertiesout << healingTime << '\t' << finalCellsInCenterOfWound.size() << '\n';
     alreadyRecordedFinalCells = true;
   }
