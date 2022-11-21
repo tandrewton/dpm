@@ -239,58 +239,18 @@ bash bash/epi2D/submit_laserAblation.sh 60 20 6 1.10 0.94 0.85 1.0 1.0 0.2  0.00
 bash bash/epi2D/submit_laserAblation.sh 60 20 6 1.15 0.94 0.85 1.0 1.0 0.05  0.001 0.0 4.0 4.0 1.0 3.0 1.0 0.5 0 0 0 400 pi_ohern,day,scavenge 0-12:00:00 1 1
 ./main/epi2D/laserAblation.o 60 20 6 1.15 0.94 0.85 1.0 1.0 0.05 0.001  0.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   0 1 200  test
 
-#bd0 sm0 C
-#!/bin/bash
-for shape in 1.0 1.05 1.10 1.15 1.20
-do
-  for att in 0.05 0.1 0.15 0.2 0.25
-  do
-    bash bash/epi2D/submit_laserAblation.sh 60 20 6 $shape 0.94 0.85 1.0 1.0 $att  0.001 0.0 4.0 4.0 1.0 3.0 1.0 0.5 0 0 0 400 pi_ohern,day,scavenge 0-12:00:00 1 1
-  done
-done
-
-#bd0 sm1 C
-#!/bin/bash
-for shape in 1.0 1.05 1.10 1.15 1.20
-do
-  for att in 0.05 0.1 0.15 0.2 0.25
-  do
-    bash bash/epi2D/submit_laserAblation.sh 60 20 6 $shape 0.94 0.85 1.0 1.0 $att  0.001 0.0 4.0 4.0 1.0 3.0 1.0 0.5 0 0 1 400 pi_ohern,day,scavenge 0-12:00:00 1 1
-  done
-done
-
-#bd0 sm0 P
-#!/bin/bash
-for shape in 1.0 1.05 1.10 1.15 1.20
-do
-  for att in 0.05 0.1 0.15 0.2 0.25
-  do
-    bash bash/epi2D/submit_laserAblation.sh 60 20 6 $shape 0.94 0.85 1.0 1.0 $att  0.001 2.0 4.0 4.0 1.0 0.0 1.0 0.5 0 0 0 400 pi_ohern,day,scavenge 0-12:00:00 1 1
-  done
-done
-
-#bd0 sm1 P
-#!/bin/bash
-for shape in 1.0 1.05 1.10 1.15 1.20
-do
-  for att in 0.05 0.1 0.15 0.2 0.25
-  do
-    bash bash/epi2D/submit_laserAblation.sh 60 20 6 $shape 0.94 0.85 1.0 1.0 $att  0.001 2.0 4.0 4.0 1.0 0.0 1.0 0.5 0 0 1 400 pi_ohern,day,scavenge 0-12:00:00 1 1
-  done
-done
-
 # testing deformability, adhesion, yield length (max PS force), smoothness
 #bd0 sm1 P
 #!/bin/bash
 for shape in 1.0 1.05 1.10
 do
-  for att in 0.05 0.1 0.2
+  for att in 0.04 0.08 0.12 0.16 0.20
   do
-    for dsq in 1.0 2.0 4.0 16.0
+    for dsq in 1.0 2.0 3.0 4.0
     do
       for sm in 0 1
       do
-        bash bash/epi2D/submit_laserAblation.sh 40 30 5 $shape 0.94 0.85 1.0 1.0 $att  0.005 $dsq 1.0 4.0 1.0 0.0 1.0 0.5 0 0 $sm 500 pi_ohern,day,scavenge 0-23:00:00 1 1
+        bash bash/epi2D/submit_laserAblation.sh 40 30 5 $shape 0.94 0.85 1.0 4.0 $att  0.005 $dsq 4.0 4.0 1.0 0.0 1.0 0.5 0 0 $sm 1000 pi_ohern,day,scavenge 0-23:00:00 1 1
       done
     done
   done
