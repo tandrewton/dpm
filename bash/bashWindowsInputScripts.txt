@@ -15,49 +15,6 @@ bash bash/cells/submit_neuralTube.sh 24 20 1.0 0.01 0.01 0.002 0.002 3000 pi_ohe
 
 bash bash/cells/submit_neuralTube.sh 24 20 1.0 0.01 0.01 0.002 0.02 3000 pi_ohern,day,scavenge 0-12:00:00 1 1
 
-
-function drawWoundSims(N, strainRate_ps, calA0, smooth, deltaSq, d_flag, att, k_ps)
-drawWoundSims(40, 0.001, "1.0", "0", "2.0", "3.0", 0.05, "4.0")
-
-sm_arr = ["0" "1"];
-att_arr = [0.05 0.1 0.2 0.29];
-calA0_arr = ["1.0" "1.10"];
-for i=1:length(calA0_arr)
-  for j=1:length(att_arr)
-    for k=1:length(sm_arr)
-      drawWoundSims(40, 0.001, calA0_arr(i), sm_arr(k), "2.0", "3.0", att_arr(j), "4.0")
-      drawWoundSims(40, 0.001, calA0_arr(i), sm_arr(k), "2.0", "0.0", att_arr(j), "4.0")
-      drawWoundSims(40, 0.001, calA0_arr(i), sm_arr(k), "0.0", "3.0", att_arr(j), "4.0")
-    end
-  end
-end
-
-%sm_arr = ["0" "1"];
-sm_arr = ["0"];
-att_arr = [0.1 0.2];
-boundary_array = ["0" "1"];
-calA0_arr = ["1.0" "1.10"];
-for i=1:length(boundary_array)
-  for j=1:length(att_arr)
-    for k=1:length(sm_arr)
-      for l=1:length(calA0_arr)
-        drawWoundSims(60, 0.001, calA0_arr(l), sm_arr(k), "2.0", "3.0", att_arr(j), boundary_array(i))
-        drawWoundSims(60, 0.001, calA0_arr(l), sm_arr(k), "2.0", "0.0", att_arr(j), boundary_array(i))
-        drawWoundSims(60, 0.001, calA0_arr(l), sm_arr(k), "0.0", "3.0", att_arr(j), boundary_array(i))
-      end
-    end
-  end
-end
-
-att_arr = ["0.05" "0.1" "0.15" "0.2" "0.25"];
-%calA0_arr = ["1.0" "1.05" "1.10" "1.15" "1.20"];
-calA0_arr = ["1.0" "1.05" "1.10" "1.15" "1.20"];
-for i=1:length(att_arr)
-  for j=1:length(calA0_arr)
-    drawWoundSims(60, 0.001, calA0_arr(j), "0", "0.0", "3.0", att_arr(i), "0")
-  end
-end
-
 %function drawWoundSims(N, strainRate_ps, calA0, smooth, deltaSq, d_flag, att, boundaryType)
 %testing PS deformability, adhesion, yield length (max PS force), smoothness
 shape_arr = ["1.0" "1.05" "1.10"];
@@ -68,13 +25,27 @@ for i=1:length(shape_arr)
   for j=1:length(att_arr)
     for k=1:length(dsq_arr)
       for l=1:length(sm_arr)
-        drawWoundSims(40, 0.005, shape_arr(i), sm_arr(l), dsq_arr(k), "0.0", att_arr(j), "0")
+        drawWoundSims(40, 0.005, shape_arr(i), sm_arr(l), dsq_arr(k), "4.0", "0.0", att_arr(j), "0")
       end
     end
   end
 end
 
-drawWoundSims(30, 0.005, "1.05", "1", "16.0", "0.0", "0.2", "0")
+%testing crawling deformability, adhesion, smoothness, strength
+shape_arr = ["1.0" "1.05" "1.10"];
+att_arr = ["0.04" "0.08" "0.12" "0.16" "0.20"];
+sm_arr = ["0" "1"];
+k_lp_arr = ["1.0" "2.0" "3.0" "4.0"]
+for i=1:length(shape_arr)
+  for j=1:length(att_arr)
+    for k=1:length(k_lp_arr)
+      for l=1:length(sm_arr)
+        drawWoundSims(40, 0.005, shape_arr(i), sm_arr(l), "0.0", k_lp_arr(k), "3.0", att_arr(j), "0")
+      end
+    end
+  end
+end
+
 
 profiling:
 valgrind --tool=callgrind --dump-instr=yes -v --instr-atstart=no ./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.925 1.0 1.0 0.1 0.01  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   1 1  200  test > tmp

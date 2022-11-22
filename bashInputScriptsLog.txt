@@ -256,6 +256,7 @@ do
   done
 done
 
+# rsync and run matlab tomorrow morning, finish cs assignment, try to get trends and heatmaps between cralwing and PS
 # testing deformability, adhesion, klp, smoothness
 #bd0 C
 #!/bin/bash
