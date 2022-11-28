@@ -239,10 +239,10 @@ bash bash/epi2D/submit_laserAblation.sh 60 20 6 1.10 0.94 0.85 1.0 1.0 0.2  0.00
 bash bash/epi2D/submit_laserAblation.sh 60 20 6 1.15 0.94 0.85 1.0 1.0 0.05  0.001 0.0 4.0 4.0 1.0 3.0 1.0 0.5 0 0 0 400 pi_ohern,day,scavenge 0-12:00:00 1 1
 ./main/epi2D/laserAblation.o 60 20 6 1.15 0.94 0.85 1.0 1.0 0.05 0.001  0.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   0 1 200  test
 
-# testing deformability, adhesion, yield length (max PS force), smoothness
+# testing deformability, adhesion, smoothness, k_a
 #bd0 P
 #!/bin/bash
-for shape in 1.0 1.05 1.10
+for shape in 1.0
 do
   for att in 0.04 0.08 0.12 0.16 0.20
   do
@@ -250,17 +250,17 @@ do
     do
       for sm in 0 1
       do
-        bash bash/epi2D/submit_laserAblation.sh 30 30 5 $shape 0.94 0.85 1.0 $ka $att  0.005 4.0 4.0 4.0 1.0 0.0 1.0 0.5 0 0 $sm 500 pi_ohern,day,scavenge 0-23:00:00 1 1
+        bash bash/epi2D/submit_laserAblation.sh 36 30 5 $shape 0.94 0.85 1.0 $ka $att  0.005 4.0 4.0 4.0 1.0 0.0 1.0 0.5 0 0 $sm 500 pi_ohern,day,scavenge 0-23:00:00 1 1
       done
     done
   done
 done
 
 # rsync and run matlab tomorrow morning, finish cs assignment, try to get trends and heatmaps between cralwing and PS
-# testing deformability, adhesion, klp, smoothness
+# testing deformability, adhesion, smoothness, k_a
 #bd0 C
 #!/bin/bash
-for shape in 1.0 1.05 1.10
+for shape in 1.0
 do
   for att in 0.04 0.08 0.12 0.16 0.20
   do
@@ -268,7 +268,7 @@ do
     do
       for sm in 0 1
       do
-        bash bash/epi2D/submit_laserAblation.sh 30 30 5 $shape 0.94 0.85 1.0 $ka $att  0.005 0.0 4.0 4.0 1.0 3.0 1.0 0.5 0 0 $sm 500 pi_ohern,day,scavenge 0-23:00:00 1 1
+        bash bash/epi2D/submit_laserAblation.sh 36 30 5 $shape 0.94 0.85 1.0 $ka $att  0.005 0.0 4.0 4.0 1.0 3.0 1.0 0.5 0 0 $sm 500 pi_ohern,day,scavenge 0-23:00:00 1 1
       done
     done
   done

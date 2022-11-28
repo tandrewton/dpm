@@ -52,14 +52,12 @@ k_a_arr = ["0.5" "1.0" "2.0" "4.0"];
 isCrawling = true;
 
 if (isCrawling)
-    dsq_arr = ["0.0"]; % for C
+    dsq = "0.0"; % for C
     d_flag = "3.0"; % for C
-    k_lp_arr = ["1.0" "2.0" "3.0" "4.0"]; % for C
     numPlots = length(calA0_arr)*length(sm_arr)*length(k_lp_arr); %for C
 else
-    dsq_arr = ["1.0" "2.0" "3.0" "4.0"]; % for PS
+    dsq = "4.0"; % for PS
     d_flag = "0.0"; % for PS
-    k_lp_arr = ["4.0"]; % for PS
     numPlots = length(calA0_arr)*length(sm_arr)*length(dsq_arr); %for PS
 end
 
@@ -86,116 +84,114 @@ for shapeii=1:length(calA0_arr)
     calA0=calA0_arr(shapeii);
     for i=1:length(att_arr)
         att = att_arr(i);
-        for j=1:length(dsq_arr)
-            deltaSq = dsq_arr(j);
+        for j=1:length(k_a_arr)
+            k_a = k_a_arr(j);
             for k=1:length(sm_arr)
                 sm = sm_arr(k);
-                for l=1:length(k_lp_arr)
-                    k_lp = k_lp_arr(l);
-                    % might also be looping over m=numSeeds to accumulate some results
-                    voidArea = zeros(0,2);
-                    meanInnerShapes = NaN(0,1);
-                    timeInnerShapes = zeros(0,1);
-                    timestep = 0; % determine on the fly to pad with zeros
-                    innerShapeArr = []; % fill with meanInnerShape and dynamically pad rows with nans
-                    for m=1:numSeeds
-                        % construct filenames to find the right simulation
-                        bd = "0";
-                        seed = m;
-                        run_name =runType+"_A0"+calA0+"_k_l"+k_l+"_w_ps"+strainRate_ps+ ...
-                            "_dsq"+deltaSq+"_k_ps"+k_ps+"_k_lp"+k_lp+...
-                            "_t_lp"+tau_lp+"_d_flag"+d_flag+"_bd"+boundaryType+"_sm"+sm;
-                        pipeline_dir =  subdir_pipeline + run_name + "/";
-                        output_dir = subdir_output + run_name + "/";
-    
-                        if ~exist(pipeline_dir, 'dir')
-                            mkdir(pipeline_dir)
-                        end
-                        if ~exist(output_dir, 'dir')
-                            mkdir(output_dir)
-                        end
-    
-                        fileheader=run_name +"_N"+N+"_Dur"+Duration+"_att"+att+"_sd"+ ...
-                            startSeed+"_sd"+max_seed+"_sd"+seed;
-                        fileheader_short = "_N"+N+"_Dur"+Duration+"_att"+att+"_sd"+seed;
-                        nvestr = pipeline_dir+fileheader+'.pos';
-                        energystr = pipeline_dir+fileheader+'.energy';
-                        stressstr = pipeline_dir+fileheader+'.stress';
-                        boundaryStr = pipeline_dir+fileheader+ ".void";
-                        edgeStr = pipeline_dir+fileheader+ '.edge';
-                        purseStr = pipeline_dir+fileheader+ '.purseString';
-                        voidAreaStr = pipeline_dir+fileheader+ '.voidArea';
-                        innerStr = pipeline_dir+fileheader+ '.innerCellShape';
-                        bulkStr = pipeline_dir+fileheader+ '.bulkCellShape';
-                        woundPropertiesStr = pipeline_dir+fileheader+ '.woundProperties';
-                        innerAndBulkCellIDStr = pipeline_dir+fileheader+ '.cellID';
-        
-                        voidArea_sd = load(voidAreaStr);
-                        voidArea_sd(voidArea_sd == 1e10) = NaN;
-                        bulkCellShape_sd = load(bulkStr);
-                        woundProperties_sd = load(woundPropertiesStr);
-                        cellID = load(innerAndBulkCellIDStr);
-                        innerShapes_sd = bulkCellShape_sd(:,[1; cellID(:,3)]==1);
-                        meanInnerShapes_sd = nanmean(innerShapes_sd(:,2:end),2);
-                        timeInnerShapes_sd = innerShapes_sd(:,1);
-    
-                        % pad shorter voidArea with zeros to add them together
-                        % pad meanInnerShapes end+1:length with NaNs to nanmean them later 
-                        if (length(voidArea) < length(voidArea_sd))
-                            voidArea(length(voidArea_sd),:) = 0;
-                            meanInnerShapes(end+1:length(meanInnerShapes_sd),:) = nan;
-                            voidArea(:,1) = voidArea_sd(:,1); %extend time column
-                            timeInnerShapes = timeInnerShapes_sd; %extend time column
-                        elseif (length(voidArea_sd) < length(voidArea))
-                            voidArea_sd(length(voidArea),:) = 0;
-                            meanInnerShapes_sd(end+1:length(meanInnerShapes),:) = nan;
-                            voidArea_sd(:,1) = voidArea(:,1); %extend time column
-                        end
-                        % otherwise they have exactly the same length, so don't
-                        % adjust lengths
-    
-                        voidArea(:,2) = voidArea(:,2) + voidArea_sd(:,2);
-                        %meanInnerShapes = meanInnerShapes + meanInnerShapes_sd;
-                        sizeInnerShapeArr = size(innerShapeArr);
-                        differenceSize = sizeInnerShapeArr(2) - length(meanInnerShapes_sd);
-                        if (differenceSize < 0)
-                            innerShapeArr = padarray(innerShapeArr, [0 -differenceSize], nan, 'post');
-                        elseif (differenceSize > 0)
-                            meanInnerShapes_sd = padarray(meanInnerShapes_sd, [0 differenecSize], nan, 'post');
-                        end
-                        innerShapeArr(end+1, :) = meanInnerShapes_sd;
+                % might also be looping over m=numSeeds to accumulate some results
+                voidArea = zeros(0,2);
+                meanInnerShapes = NaN(0,1);
+                timeInnerShapes = zeros(0,1);
+                timestep = 0; % determine on the fly to pad with zeros
+                innerShapeArr = []; % fill with meanInnerShape and dynamically pad rows with nans
+                for m=1:numSeeds
+                    % construct filenames to find the right simulation
+                    bd = "0";
+                    seed = m;
+                    run_name =runType+"_A0"+calA0+"_k_l"+k_l+"_w_ps"+strainRate_ps+ ...
+                        "_dsq"+deltaSq+"_k_ps"+k_ps+"_k_lp"+k_lp+...
+                        "_d_flag"+d_flag+"_bd"+boundaryType+"_sm"+sm;
+                    pipeline_dir =  subdir_pipeline + run_name + "/";
+                    output_dir = subdir_output + run_name + "/";
+
+                    if ~exist(pipeline_dir, 'dir')
+                        mkdir(pipeline_dir)
                     end
-    
-                    voidArea = voidArea / numSeeds;
-                    %meanInnerShapes = meanInnerShapes / numSeeds;
-                    meanInnerShapes = nanmean(innerShapeArr, 1);
-    
-                    
-                    if (isCrawling)
-                        % plot area vs time for C
-                        figure((shapeii-1)*length(sm_arr)*length(k_lp_arr) ...
-                            + (k-1)*length(k_lp_arr) ...
-                            + l)
-                    else 
-                        %plot area vs time for PS
-                        figure((shapeii-1)*length(sm_arr)*length(dsq_arr) ...
-                            + (k-1)*length(dsq_arr) ...
-                            + j)
+                    if ~exist(output_dir, 'dir')
+                        mkdir(output_dir)
                     end
 
-                    if (isCrawling)
-                        displayStr = "A0="+calA0+",att="+att+",sm="+sm+",klp="+k_lp;
-                    else
-                        displayStr = "A0="+calA0+",att="+att+",sm="+sm+",dsq="+deltaSq;
-                    end
-
-                    plot(voidArea(:,1), voidArea(:,2), 'linewidth', 4, 'DisplayName', displayStr)
-                    xlabel('$t/\tau$','Interpreter','latex','fontsize', 24);
-                    ylabel('Area','Interpreter','latex','fontsize', 24);
-                    %set(gca,'Yscale','log')
-                    ylim([0 inf])
-                    legend('location','northeast','fontsize', 8)
+                    fileheader=run_name +"_N"+N+"_Dur"+Duration+"_att"+att+"_sd"+ ...
+                        startSeed+"_sd"+max_seed+"_sd"+seed;
+                    fileheader_short = "_N"+N+"_Dur"+Duration+"_att"+att+"_sd"+seed;
+                    nvestr = pipeline_dir+fileheader+'.pos';
+                    energystr = pipeline_dir+fileheader+'.energy';
+                    stressstr = pipeline_dir+fileheader+'.stress';
+                    boundaryStr = pipeline_dir+fileheader+ ".void";
+                    edgeStr = pipeline_dir+fileheader+ '.edge';
+                    purseStr = pipeline_dir+fileheader+ '.purseString';
+                    voidAreaStr = pipeline_dir+fileheader+ '.voidArea';
+                    innerStr = pipeline_dir+fileheader+ '.innerCellShape';
+                    bulkStr = pipeline_dir+fileheader+ '.bulkCellShape';
+                    woundPropertiesStr = pipeline_dir+fileheader+ '.woundProperties';
+                    innerAndBulkCellIDStr = pipeline_dir+fileheader+ '.cellID';
     
+                    voidArea_sd = load(voidAreaStr);
+                    voidArea_sd(voidArea_sd == 1e10) = NaN;
+                    bulkCellShape_sd = load(bulkStr);
+                    woundProperties_sd = load(woundPropertiesStr);
+                    cellID = load(innerAndBulkCellIDStr);
+                    innerShapes_sd = bulkCellShape_sd(:,[1; cellID(:,3)]==1);
+                    meanInnerShapes_sd = nanmean(innerShapes_sd(:,2:end),2);
+                    timeInnerShapes_sd = innerShapes_sd(:,1);
+
+                    % pad shorter voidArea with zeros to add them together
+                    % pad meanInnerShapes end+1:length with NaNs to nanmean them later 
+                    if (length(voidArea) < length(voidArea_sd))
+                        voidArea(length(voidArea_sd),:) = 0;
+                        meanInnerShapes(end+1:length(meanInnerShapes_sd),:) = nan;
+                        voidArea(:,1) = voidArea_sd(:,1); %extend time column
+                        timeInnerShapes = timeInnerShapes_sd; %extend time column
+                    elseif (length(voidArea_sd) < length(voidArea))
+                        voidArea_sd(length(voidArea),:) = 0;
+                        meanInnerShapes_sd(end+1:length(meanInnerShapes),:) = nan;
+                        voidArea_sd(:,1) = voidArea(:,1); %extend time column
+                    end
+                    % otherwise they have exactly the same length, so don't
+                    % adjust lengths
+
+                    voidArea(:,2) = voidArea(:,2) + voidArea_sd(:,2);
+                    %meanInnerShapes = meanInnerShapes + meanInnerShapes_sd;
+                    sizeInnerShapeArr = size(innerShapeArr);
+                    differenceSize = sizeInnerShapeArr(2) - length(meanInnerShapes_sd);
+                    if (differenceSize < 0)
+                        innerShapeArr = padarray(innerShapeArr, [0 -differenceSize], nan, 'post');
+                    elseif (differenceSize > 0)
+                        meanInnerShapes_sd = padarray(meanInnerShapes_sd, [0 differenecSize], nan, 'post');
+                    end
+                    innerShapeArr(end+1, :) = meanInnerShapes_sd;
+                end
+
+                voidArea = voidArea / numSeeds;
+                %meanInnerShapes = meanInnerShapes / numSeeds;
+                meanInnerShapes = nanmean(innerShapeArr, 1);
+
+                
+                if (isCrawling)
+                    % plot area vs time for C
+                    figure((shapeii-1)*length(sm_arr)*length(k_lp_arr) ...
+                        + (k-1)*length(k_lp_arr) ...
+                        + l)
+                else 
+                    %plot area vs time for PS
+                    figure((shapeii-1)*length(sm_arr)*length(dsq_arr) ...
+                        + (k-1)*length(dsq_arr) ...
+                        + j)
+                end
+
+                if (isCrawling)
+                    displayStr = "A0="+calA0+",att="+att+",sm="+sm+",klp="+k_lp;
+                else
+                    displayStr = "A0="+calA0+",att="+att+",sm="+sm+",dsq="+deltaSq;
+                end
+
+                plot(voidArea(:,1), voidArea(:,2), 'linewidth', 4, 'DisplayName', displayStr)
+                xlabel('$t/\tau$','Interpreter','latex','fontsize', 24);
+                ylabel('Area','Interpreter','latex','fontsize', 24);
+                %set(gca,'Yscale','log')
+                ylim([0 inf])
+                legend('location','northeast','fontsize', 8)
+
 %                     % plot shape vs time
 %                     figure(length(calA0_arr)+shapeii + 100*(k-1) + 1000*(j-1))
 %                    
@@ -213,11 +209,10 @@ for shapeii=1:length(calA0_arr)
 %                     xlabel('$t/\tau$','Interpreter','latex','fontsize', 24);
 %                     ylabel('Shape','Interpreter','latex','fontsize', 24);
 %                     legend('location','southeast','fontsize', 6)
-    
-                    heatmap1(shapeii,j) = max(meanInnerShapes)/min(meanInnerShapes);
-                    heatmap2(shapeii,j) = max(innerShapes_sd(:,1));
-                    heatmap3(shapeii,j) = woundProperties_sd(2);
-                end
+
+                heatmap1(shapeii,j) = max(meanInnerShapes)/min(meanInnerShapes);
+                heatmap2(shapeii,j) = max(innerShapes_sd(:,1));
+                heatmap3(shapeii,j) = woundProperties_sd(2);
             end
         end
     end
