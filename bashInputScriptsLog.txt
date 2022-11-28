@@ -275,7 +275,7 @@ do
   done
 done
 
-dsq --job-file joblist_crawling.txt --mem-per-cpu 4g -t 2:00:00 --mail-type END,FAIL
+dsq --job-file joblist_crawling.txt --mem-per-cpu 4g -t 2:00:00 --mail-type NONE --submit --suppress-stats-file -o /dev/null
 
 
 #this one should be bugged
