@@ -12,7 +12,7 @@ addpath('C:\Users\atata\projects\dpm\matlab_funcs')
 
 % simulation parameters go here
 runType = "ablate";
-N="40";
+N="30";
 %ndelete="6";
 %calA0="1.10";
 strainRate_ps="0.005";
@@ -20,7 +20,7 @@ strainRate_ps="0.005";
 %k_a = "1.0";
 k_l = "1.0";
 k_ps = "4.0"; %purse-string spring constant
-%k_lp = "4.0"; %lamellipodia spring constant
+k_lp = "4.0"; %lamellipodia spring constant
 %smooth = "0";
 tau_lp = "1.0"; %lamellipodia lifetime
 %d_flag = "0.0"; %lamellipodia max length
@@ -47,8 +47,9 @@ subdir_output = pc_dir + "output/cells/"+runType+"/";
 calA0_arr = ["1.0" "1.05" "1.10"];
 att_arr = ["0.04" "0.08" "0.12" "0.16" "0.20"];
 sm_arr = ["0" "1"];
+k_a_arr = ["0.5" "1.0" "2.0" "4.0"];
 
-isCrawling = false;
+isCrawling = true;
 
 if (isCrawling)
     dsq_arr = ["0.0"]; % for C
@@ -182,10 +183,17 @@ for shapeii=1:length(calA0_arr)
                             + j)
                     end
 
-                    plot(voidArea(:,1), voidArea(:,2), 'linewidth', 4, 'DisplayName', "A0="+calA0+",att="+att+",sm="+sm+",dsq="+deltaSq)
+                    if (isCrawling)
+                        displayStr = "A0="+calA0+",att="+att+",sm="+sm+",klp="+k_lp;
+                    else
+                        displayStr = "A0="+calA0+",att="+att+",sm="+sm+",dsq="+deltaSq;
+                    end
+
+                    plot(voidArea(:,1), voidArea(:,2), 'linewidth', 4, 'DisplayName', displayStr)
                     xlabel('$t/\tau$','Interpreter','latex','fontsize', 24);
                     ylabel('Area','Interpreter','latex','fontsize', 24);
                     %set(gca,'Yscale','log')
+                    ylim([0 inf])
                     legend('location','northeast','fontsize', 8)
     
 %                     % plot shape vs time
@@ -224,7 +232,7 @@ if (isCrawling)
       FigHandle = FigList(iFig);
       FigName   = num2str(get(FigHandle, 'Number'));
       set(0, 'CurrentFigure', FigHandle);
-      saveas(FigHandle, fullfile(FolderName, "PS"+FigName+".png"))
+      saveas(FigHandle, fullfile(FolderName, "C"+FigName+".png"))
     end
 else
     % % how to save figures:

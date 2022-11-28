@@ -3,10 +3,10 @@
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
 
-function drawWoundSims(N, strainRate_ps, calA0, smooth, deltaSq, k_lp, d_flag, att, boundaryType) %uncomment if using function call to pipeline data
-isTestData = false; %uncomment if using function call to pipeline data
+%function drawWoundSims(N, strainRate_ps, calA0, smooth, deltaSq, k_lp, d_flag, att, boundaryType) %uncomment if using function call to pipeline data
+%isTestData = false; %uncomment if using function call to pipeline data
 
-%isTestData = true; %uncomment if using test data
+isTestData = true; %uncomment if using test data
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('C:\Users\atata\projects\dpm\bash')
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
@@ -19,7 +19,7 @@ runType = "ablate";
 ndelete="3";
 %calA0="1.10";
 %strainRate_ps="0.001";
-%deltaSq = "2.0";
+deltaSq = "0.0";
 %k_a = "1.0";
 k_l = "1.0";
 k_ps = "4.0"; %purse-string spring constant
@@ -39,9 +39,9 @@ etaStr = " ";
 startSeed = 1;
 max_seed = 1;
 no_plots = 0;
-makeAMovie = 0; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
+makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
 %plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
-plotCells = 0;
+plotCells = 1;
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
 showWoundAndShapeProperties = 0; 
@@ -69,9 +69,9 @@ showVoidBlack = 0; % print void in larger black circles to see easier
 showVoidLite = 1; % print void, but in a way that works with printConfiguration on its own
 showCornersOrEdges = 0;
 if (str2num(deltaSq) > 0.0)
-    showPurseString = 0;
-else
     showPurseString = 1;
+else
+    showPurseString = 0;
 end
 showProtrusion = 1;
 showShapeHistogram = 0;
@@ -207,7 +207,7 @@ for seed = startSeed:max_seed
             figure(15)
             voidArea = load(voidAreaStr);
             plot(voidArea(:,1), voidArea(:,2), 'linewidth', 4)
-            %ylim([0 voidArea(1,2)])
+            ylim([0 inf])
             xlabel('$t/\tau$','Interpreter','latex','fontsize', 24);
             ylabel('Area','Interpreter','latex','fontsize', 24);
             %set(gca,'Yscale','log')
