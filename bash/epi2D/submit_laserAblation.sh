@@ -54,7 +54,7 @@ let numSeeds=$numSeedsPerRun*$numRuns
 let endSeed=$startSeed+$numSeeds-1
 
 # name strings
-basestr=ablate_A0"$calA0"_k_l"$kl"_k_a"$ka$"_w_ps"$strainRate_ps"_dsq"$deltaSq"_k_ps"$k_ps"_k_lp"$k_lp"_d_flag"$d_flag"_bd"$bound"_sm"$smooth"
+basestr=ablate_A0"$calA0"_k_l"$kl"_k_a"$ka"_w_ps"$strainRate_ps"_dsq"$deltaSq"_k_ps"$k_ps"_k_lp"$k_lp"_d_flag"$d_flag"_bd"$bound"_sm"$smooth"
 runstr="$basestr"_N"$NCELLS"_Dur"$duration"_att"$att"_sd"$startSeed"_sd"$endSeed"
 
 # make directory specific for this simulation

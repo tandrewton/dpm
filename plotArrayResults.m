@@ -54,11 +54,11 @@ isCrawling = true;
 if (isCrawling)
     dsq = "0.0"; % for C
     d_flag = "3.0"; % for C
-    numPlots = length(calA0_arr)*length(sm_arr)*length(k_lp_arr); %for C
+    numPlots = length(calA0_arr)*length(sm_arr)*length(k_a_arr); %for C
 else
     dsq = "4.0"; % for PS
     d_flag = "0.0"; % for PS
-    numPlots = length(calA0_arr)*length(sm_arr)*length(dsq_arr); %for PS
+    numPlots = length(calA0_arr)*length(sm_arr)*length(k_a_arr); %for PS
 end
 
 % set up plotting windows
@@ -98,9 +98,9 @@ for shapeii=1:length(calA0_arr)
                     % construct filenames to find the right simulation
                     bd = "0";
                     seed = m;
-                    run_name =runType+"_A0"+calA0+"_k_l"+k_l+"_w_ps"+strainRate_ps+ ...
-                        "_dsq"+deltaSq+"_k_ps"+k_ps+"_k_lp"+k_lp+...
-                        "_d_flag"+d_flag+"_bd"+boundaryType+"_sm"+sm;
+                    run_name =runType+"_A0"+calA0+"_k_l"+k_l+"k_a"+k_a+"_w_ps"+ ...
+                        strainRate_ps+ "_dsq"+deltaSq+"_k_ps"+k_ps+"_k_lp"+ ...
+                        k_lp+"_d_flag"+d_flag+"_bd"+boundaryType+"_sm"+sm;
                     pipeline_dir =  subdir_pipeline + run_name + "/";
                     output_dir = subdir_output + run_name + "/";
 
@@ -169,20 +169,19 @@ for shapeii=1:length(calA0_arr)
                 
                 if (isCrawling)
                     % plot area vs time for C
-                    figure((shapeii-1)*length(sm_arr)*length(k_lp_arr) ...
-                        + (k-1)*length(k_lp_arr) ...
+                    figure((shapeii-1)*length(sm_arr)*length(k_a_arr) ...
+                        + (k-1)*length(k_a_arr) ...
                         + l)
                 else 
                     %plot area vs time for PS
-                    figure((shapeii-1)*length(sm_arr)*length(dsq_arr) ...
-                        + (k-1)*length(dsq_arr) ...
+                    figure((shapeii-1)*length(sm_arr)*length(k_a_arr) ...
+                        + (k-1)*length(k_a_arr) ...
                         + j)
                 end
-
                 if (isCrawling)
-                    displayStr = "A0="+calA0+",att="+att+",sm="+sm+",klp="+k_lp;
+                    displayStr = "C: A0="+calA0+",att="+att+",sm="+sm+",ka="+ka;
                 else
-                    displayStr = "A0="+calA0+",att="+att+",sm="+sm+",dsq="+deltaSq;
+                    displayStr = "P: A0="+calA0+",att="+att+",sm="+sm+",ka="+ka;
                 end
 
                 plot(voidArea(:,1), voidArea(:,2), 'linewidth', 4, 'DisplayName', displayStr)

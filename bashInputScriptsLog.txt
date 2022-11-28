@@ -239,7 +239,7 @@ bash bash/epi2D/submit_laserAblation.sh 60 20 6 1.10 0.94 0.85 1.0 1.0 0.2  0.00
 bash bash/epi2D/submit_laserAblation.sh 60 20 6 1.15 0.94 0.85 1.0 1.0 0.05  0.001 0.0 4.0 4.0 1.0 3.0 1.0 0.5 0 0 0 400 pi_ohern,day,scavenge 0-12:00:00 1 1
 ./main/epi2D/laserAblation.o 60 20 6 1.15 0.94 0.85 1.0 1.0 0.05 0.001  0.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   0 1 200  test
 
-# testing deformability, adhesion, smoothness, k_a
+# testing deformability, adhesion, smoothness, k_a for PS
 #bd0 P
 #!/bin/bash
 for shape in 1.0
@@ -257,9 +257,10 @@ do
 done
 
 # rsync and run matlab tomorrow morning, finish cs assignment, try to get trends and heatmaps between cralwing and PS
-# testing deformability, adhesion, smoothness, k_a
+# testing deformability, adhesion, smoothness, k_a for crawling
 #bd0 C
 #!/bin/bash
+rm joblist_crawling.txt
 for shape in 1.0
 do
   for att in 0.04 0.08 0.12 0.16 0.20
@@ -268,11 +269,13 @@ do
     do
       for sm in 0 1
       do
-        bash bash/epi2D/submit_laserAblation.sh 36 30 5 $shape 0.94 0.85 1.0 $ka $att  0.005 0.0 4.0 4.0 1.0 3.0 1.0 0.5 0 0 $sm 500 pi_ohern,day,scavenge 0-23:00:00 1 1
+        echo bash bash/epi2D/submit_laserAblation.sh 36 30 5 $shape 0.94 0.85 1.0 $ka $att  0.005 0.0 4.0 4.0 1.0 3.0 1.0 0.5 0 0 $sm 500 pi_ohern,day,scavenge 0-23:00:00 1 1 >> joblist_crawling.txt
       done
     done
   done
 done
+
+dsq --job-file joblist_crawling.txt --mem-per-cpu 4g -t 2:00:00 --mail-type END,FAIL
 
 
 #this one should be bugged
