@@ -79,7 +79,7 @@ bool isPbcOn = false;
 int main(int argc, char const* argv[]) {
   // local variables to be read in
   int NCELLS, nsmall, seed, gi, ndelete;
-  double calA0, kl, ka = 1.0, kb = 0.0, phiMin, phiMax, att, B, Dr0, time_dbl;
+  double calA0, kl, ka = 1.0, ka_for_equilibration = 2.0, kb = 0.0, phiMin, phiMax, att, B, Dr0, time_dbl;
   bool boolCIL, boolBound, boolSmooth, purseStringOn = true;
   double strainRate_ps, k_ps, k_LP, tau_LP, deltaSq, maxProtrusionLength, shapeRelaxationRate;
 
@@ -202,7 +202,7 @@ int main(int argc, char const* argv[]) {
   epithelial.openDebugObject(debugFile);
 
   // set spring constants
-  epithelial.setka(ka);
+  epithelial.setka(ka_for_equilibration);
   epithelial.setkl(kl);
   epithelial.setkb(kb);
   epithelial.setkc(kc);
@@ -263,6 +263,8 @@ int main(int argc, char const* argv[]) {
     epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithCircularWalls, Ftol, dt0, phiMax, dphi0);
   epithelial.moveSimulationToPositiveCoordinates();  // shift box so all coordinates are positive
   epithelial.printConfiguration2D();
+
+  epithelial.setka(ka);
 
   // after compress, turn on damped NVE
   double T = 1e-10;

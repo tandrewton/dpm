@@ -20,7 +20,7 @@ ndelete="3";
 %calA0="1.10";
 strainRate_ps="0.005";
 if (isTestData)
-    deltaSq = "0.0";
+    deltaSq = "4.0";
 end
 %k_a = "1.0";
 k_l = "1.0";
@@ -49,7 +49,7 @@ showPeriodicImages = 0;
 showWoundAndShapeProperties = 0; 
 
 
-showverts = 1;
+showverts = 0;
 showBoundaries = 0;
 showcirculoline = 0; % show line segments of circulo-lines
 isReadAndPlotTrajectoryQualities = 1; % read nvestr and plot associated quantities
@@ -70,7 +70,7 @@ showVoid = 0;
 showVoidBlack = 0; % print void in larger black circles to see easier
 showVoidLite = 1; % print void, but in a way that works with printConfiguration on its own
 showCornersOrEdges = 0;
-if (str2num(deltaSq) > 0.0)
+if (str2num(deltaSq) > 0.0 && ~no_plots)
     showPurseString = 1;
 else
     showPurseString = 0;
