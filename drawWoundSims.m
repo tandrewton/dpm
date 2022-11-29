@@ -3,8 +3,8 @@
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
 
-%function drawWoundSims(N, strainRate_ps, calA0, smooth, deltaSq, k_lp, d_flag, att, boundaryType) %uncomment if using function call to pipeline data
-%isTestData = false; %uncomment if using function call to pipeline data
+function drawWoundSims(N, calA0, k_a, smooth, deltaSq, d_flag, att) %uncomment if using function call to pipeline data
+isTestData = false; %uncomment if using function call to pipeline data
 
 isTestData = true; %uncomment if using test data
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
@@ -18,21 +18,21 @@ runType = "ablate";
 %N="40";
 ndelete="3";
 %calA0="1.10";
-%strainRate_ps="0.001";
+strainRate_ps="0.005";
 deltaSq = "0.0";
 %k_a = "1.0";
 k_l = "1.0";
 k_ps = "4.0"; %purse-string spring constant
-%k_lp = "4.0"; %lamellipodia spring constant
+k_lp = "4.0"; %lamellipodia spring constant
 %smooth = "1";
 tau_lp = "1.0"; %lamellipodia lifetime
 %d_flag = "0.0"; %lamellipodia max length
-%boundaryType = "0"; 
+boundaryType = "0"; 
 %att="0.2";
 B="1.0";
 Dr0="0.5";
 boolCIL="0";
-Duration="1000";
+Duration="500";
 FSKIP = 1;
 
 etaStr = " ";

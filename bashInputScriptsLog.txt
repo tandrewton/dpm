@@ -242,30 +242,33 @@ bash bash/epi2D/submit_laserAblation.sh 60 20 6 1.15 0.94 0.85 1.0 1.0 0.05  0.0
 # testing deformability, adhesion, smoothness, k_a for PS
 #bd0 P
 #!/bin/bash
-for shape in 1.0
+rm joblist_PS.txt
+for shape in 1.05
 do
-  for att in 0.04 0.08 0.12 0.16 0.20
+  for att in 0.04 0.12 0.20
   do
-    for ka in 0.5 1.0 2.0 4.0
+    for ka in 0.5 1.0 2.0
     do
       for sm in 0 1
       do
-        bash bash/epi2D/submit_laserAblation.sh 36 30 5 $shape 0.94 0.85 1.0 $ka $att  0.005 4.0 4.0 4.0 1.0 0.0 1.0 0.5 0 0 $sm 500 pi_ohern,day,scavenge 0-23:00:00 1 1
+        echo bash bash/epi2D/submit_laserAblation.sh 36 30 5 $shape 0.94 0.85 1.0 $ka $att  0.005 4.0 4.0 4.0 1.0 0.0 1.0 0.5 0 0 $sm 500 pi_ohern,day,scavenge 0-23:00:00 1 1 >> joblist_PS.txt
       done
     done
   done
 done
+
+dsq --job-file joblist_PS.txt --mem-per-cpu 4g -t 2:00:00 --mail-type NONE --submit --suppress-stats-file -o /dev/null
 
 # rsync and run matlab tomorrow morning, finish cs assignment, try to get trends and heatmaps between cralwing and PS
 # testing deformability, adhesion, smoothness, k_a for crawling
 #bd0 C
 #!/bin/bash
 rm joblist_crawling.txt
-for shape in 1.0
+for shape in 1.05
 do
-  for att in 0.04 0.08 0.12 0.16 0.20
+  for att in 0.04 0.12 0.20
   do
-  for ka in 0.5 1.0 2.0 4.0
+  for ka in 0.5 1.0 2.0
     do
       for sm in 0 1
       do
@@ -302,4 +305,4 @@ bash bash/cells/submit_neuralTube.sh 10 20 1.0 0.01 0.002 0.002 3000 pi_ohern,da
 
 rsync -r at965@transfer-grace.hpc.yale.edu:/gpfs/gibbs/project/fas/ohern/at965/dpm/ablate /Users/AndrewTon/Documents/YalePhD/projects/dpm/pipeline/cells/.
 rsync -r at965@transfer-grace.hpc.yale.edu:/gpfs/gibbs/project/fas/ohern/at965/dpm/cell /mnt/c/Users/atata/projects/dpm/pipeline/cells/.
-rsync -r --inplace at965@transfer-grace.hpc.yale.edu:/gpfs/gibbs/project/fas/ohern/at965/dpm/ablate /mnt/c/Users/atata/projects/dpm/pipeline/cells/.
+rsync -ra --inplace --progress at965@transfer-grace.hpc.yale.edu:/gpfs/gibbs/project/fas/ohern/at965/dpm/ablate /mnt/c/Users/atata/projects/dpm/pipeline/cells/.

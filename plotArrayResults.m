@@ -7,16 +7,16 @@ addpath('C:\Users\atata\projects\dpm\matlab_funcs')
 % first identify all the strings I'll need to run over
 
 %    "C:\Users\atata\projects\dpm\pipeline/cells/ablate/
-% ablate_A01.10_k_l1.0_w_ps0.005_dsq0.0_k_ps4.0_k_lp4.0_t_lp1.0_d_flag3.0_bd0_sm1/
-% ablate_A01.10_k_l1.0_w_ps0.005_dsq0.0_k_ps4.0_k_lp4.0_t_lp1.0_d_flag3.0_bd0_sm1_N40_Dur1000_att0.20_sd1_sd1_sd1.pos"
+% ablate_A01.10_k_l1.0_k_a0.5_w_ps0.005_dsq0.0_k_ps4.0_k_lp4.0_d_flag3.0_bd0_sm1/
+% ablate_A01.10_k_l1.0_k_a0.5_w_ps0.005_dsq0.0_k_ps4.0_k_lp4.0_d_flag3.0_bd0_sm1_N40_Dur1000_att0.20_sd1_sd1_sd1.pos"
 
 % simulation parameters go here
 runType = "ablate";
-N="30";
+N="36";
 %ndelete="6";
 %calA0="1.10";
 strainRate_ps="0.005";
-%deltaSq = "2.0";
+%deltaSq = "4.0";
 %k_a = "1.0";
 k_l = "1.0";
 k_ps = "4.0"; %purse-string spring constant
@@ -29,7 +29,7 @@ boundaryType = "0";
 B="1.0";
 Dr0="0.5";
 boolCIL="0";
-Duration="1000";
+Duration="500";
 
 numSeeds = 1;
 startSeed = 1;
@@ -52,11 +52,11 @@ k_a_arr = ["0.5" "1.0" "2.0" "4.0"];
 isCrawling = true;
 
 if (isCrawling)
-    dsq = "0.0"; % for C
+    deltaSq = "0.0"; % for C
     d_flag = "3.0"; % for C
     numPlots = length(calA0_arr)*length(sm_arr)*length(k_a_arr); %for C
 else
-    dsq = "4.0"; % for PS
+    deltaSq = "4.0"; % for PS
     d_flag = "0.0"; % for PS
     numPlots = length(calA0_arr)*length(sm_arr)*length(k_a_arr); %for PS
 end
@@ -98,7 +98,7 @@ for shapeii=1:length(calA0_arr)
                     % construct filenames to find the right simulation
                     bd = "0";
                     seed = m;
-                    run_name =runType+"_A0"+calA0+"_k_l"+k_l+"k_a"+k_a+"_w_ps"+ ...
+                    run_name =runType+"_A0"+calA0+"_k_l"+k_l+"_k_a"+k_a+"_w_ps"+ ...
                         strainRate_ps+ "_dsq"+deltaSq+"_k_ps"+k_ps+"_k_lp"+ ...
                         k_lp+"_d_flag"+d_flag+"_bd"+boundaryType+"_sm"+sm;
                     pipeline_dir =  subdir_pipeline + run_name + "/";
