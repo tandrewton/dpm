@@ -239,6 +239,7 @@ bash bash/epi2D/submit_laserAblation.sh 60 20 6 1.10 0.94 0.85 1.0 1.0 0.2  0.00
 bash bash/epi2D/submit_laserAblation.sh 60 20 6 1.15 0.94 0.85 1.0 1.0 0.05  0.001 0.0 4.0 4.0 1.0 3.0 1.0 0.5 0 0 0 400 pi_ohern,day,scavenge 0-12:00:00 1 1
 ./main/epi2D/laserAblation.o 60 20 6 1.15 0.94 0.85 1.0 1.0 0.05 0.001  0.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   0 1 200  test
 
+module load dSQ
 # testing deformability, adhesion, smoothness, k_a for PS
 #bd0 P
 #!/bin/bash

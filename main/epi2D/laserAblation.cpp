@@ -14,7 +14,7 @@
 //./main/epi2D/laserAblation.o 20 20 0 1.10 0.92 0.925 1.0 4.0 0.0 0.01  0.0  4.0  4.0 1.0  0.0  1.0 0.5  0  0   0 1  100  test
 // ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  B  Dr0 CIL bound sm sd time file
 // below: no purse-string, only crawling
-//./main/epi2D/laserAblation.o 30 26 3 1.05 0.94 0.85 1.0 4.0 0.1 0.005 0.0 4.0  4.0 1.0  3.0  1.0 0.5  0   0   0  1 500  test
+//./main/epi2D/laserAblation.o 36 26 3 1.05 0.94 0.85 1.0 4.0 0.1 0.005 0.0 4.0  4.0 1.0  3.0  1.0 0.5  0   0   0  1 500  test
 // ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  B  Dr0 CIL bound sm sd time file
 // below: purse-string, no crawling
 //./main/epi2D/laserAblation.o 24 20 2 1.10 0.94 0.85 1.0 4.0 0.2 0.005  1.0  1.0  4.0 1.0  0.0  1.0 0.5  0  0   0 1  100  test
@@ -252,6 +252,8 @@ int main(int argc, char const* argv[]) {
   epithelial.printConfiguration2D();
 
   epithelial.initializeNeighborLinkedList2D(boxLengthScale);
+
+  cout << "\n\nafter initialize, first print, and neighbor list construction\n\n";
 
   // epithelial.vertexCompress2Target2D(repulsiveForceUpdateWithWalls, Ftol, dt0, phiMax, dphi0);
   //  epithelial.vertexCompress2Target2D(repulsiveForceUpdateWithCircularAperture, Ftol, dt0, phiMax, dphi0);

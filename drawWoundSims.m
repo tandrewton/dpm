@@ -3,8 +3,8 @@
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
 
-function drawWoundSims(N, calA0, k_a, smooth, deltaSq, d_flag, att) %uncomment if using function call to pipeline data
-isTestData = false; %uncomment if using function call to pipeline data
+%function drawWoundSims(N, calA0, k_a, smooth, deltaSq, d_flag, att) %uncomment if using function call to pipeline data
+%isTestData = false; %uncomment if using function call to pipeline data
 
 isTestData = true; %uncomment if using test data
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
@@ -19,7 +19,9 @@ runType = "ablate";
 ndelete="3";
 %calA0="1.10";
 strainRate_ps="0.005";
-deltaSq = "0.0";
+if (isTestData)
+    deltaSq = "0.0";
+end
 %k_a = "1.0";
 k_l = "1.0";
 k_ps = "4.0"; %purse-string spring constant
@@ -38,7 +40,7 @@ FSKIP = 1;
 etaStr = " ";
 startSeed = 1;
 max_seed = 1;
-no_plots = 0;
+no_plots = 1;
 makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
 %plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
 plotCells = 1;
@@ -47,7 +49,7 @@ showPeriodicImages = 0;
 showWoundAndShapeProperties = 0; 
 
 
-showverts = 0;
+showverts = 1;
 showBoundaries = 0;
 showcirculoline = 0; % show line segments of circulo-lines
 isReadAndPlotTrajectoryQualities = 1; % read nvestr and plot associated quantities
@@ -116,7 +118,7 @@ for seed = startSeed:max_seed
     else
         run_name =runType+"_A0"+calA0+"_k_l"+k_l+"_k_a"+k_a+"_w_ps"+strainRate_ps+ ...
             "_dsq"+deltaSq+"_k_ps"+k_ps+"_k_lp"+k_lp+...
-            "_d_flag"+d_flag+"_bd"+boundaryType+"_sm"+smooth;
+            "_d_flag"+d_flag+"_bd"+boundaryType+"_sm"+smooth
         pipeline_dir =  subdir_pipeline + run_name + "/";
         output_dir = subdir_output + run_name + "/";
         mkdir(pipeline_dir)
@@ -124,7 +126,7 @@ for seed = startSeed:max_seed
         fileheader=run_name +"_N"+N+"_Dur"+Duration+"_att"+att+"_sd"+ ...
             startSeed+"_sd"+max_seed+"_sd"+seed;
         fileheader_short = "_N"+N+"_Dur"+Duration+"_att"+att+"_sd"+seed;
-        nvestr = pipeline_dir+fileheader+'.pos';
+        nvestr = pipeline_dir+fileheader+'.pos'
         energystr = pipeline_dir+fileheader+'.energy';
         stressstr = pipeline_dir+fileheader+'.stress';
         boundaryStr = pipeline_dir+fileheader+ ".void";

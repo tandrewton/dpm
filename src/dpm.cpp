@@ -2645,6 +2645,12 @@ void dpm::vertexFIRE2D(dpmMemFn forceCall, double Ftol, double dt0) {
     CALL_MEMBER_FN(*this, forceCall)
     ();
 
+    /*cout << "vertex fire after force call \n\n\n\n";
+    for (int k = 0; k < F.size(); k += 2) {
+      cout << "Fx,Fy = " << F[k * NDIM] << '\t' << F[k * NDIM + 1] << '\n';
+      cout << "rx, ry = " << x[k * NDIM] << '\t' << x[k * NDIM + 1] << '\n';
+    }*/
+
     // VV VELOCITY UPDATE #2
     for (i = 0; i < vertDOF; i++)
       v[i] += 0.5 * F[i] * dt;
