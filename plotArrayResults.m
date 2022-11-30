@@ -44,12 +44,12 @@ subdir_pipeline = pc_dir + "pipeline/cells/"+runType+"/";
 %output is location of results of this postprocessing
 subdir_output = pc_dir + "output/cells/"+runType+"/";
 
-calA0_arr = ["1.0" "1.05" "1.10"];
-att_arr = ["0.04" "0.08" "0.12" "0.16" "0.20"];
+calA0_arr = ["1.05"];
+att_arr = ["0.04" "0.12" "0.20"];
 sm_arr = ["0" "1"];
-k_a_arr = ["0.5" "1.0" "2.0" "4.0"];
+k_a_arr = ["0.5" "1.0" "2.0"];
 
-isCrawling = true;
+isCrawling = false;
 
 if (isCrawling)
     deltaSq = "0.0"; % for C
@@ -75,10 +75,16 @@ heatmap_fig_num = numPlots*numPlotTypes+1;
 figure(heatmap_fig_num); clf; %shape_max/shape_bulk
 figure(heatmap_fig_num+1); clf;%healing time
 figure(heatmap_fig_num+2); clf; % rosette number
+figure(heatmap_fig_num+3); clf; %shape_max/shape_bulk, smooth
+figure(heatmap_fig_num+4); clf;%healing time, smooth
+figure(heatmap_fig_num+5); clf; % rosette number, smooth
 
 heatmap1 = zeros(length(calA0_arr), length(calA0_arr)); 
 heatmap2 = zeros(length(calA0_arr), length(calA0_arr));
 heatmap3 = zeros(length(calA0_arr), length(calA0_arr)); 
+heatmap4 = zeros(length(calA0_arr), length(calA0_arr)); 
+heatmap5 = zeros(length(calA0_arr), length(calA0_arr));
+heatmap6 = zeros(length(calA0_arr), length(calA0_arr)); 
 
 for shapeii=1:length(calA0_arr)
     calA0=calA0_arr(shapeii);
@@ -166,22 +172,14 @@ for shapeii=1:length(calA0_arr)
                 %meanInnerShapes = meanInnerShapes / numSeeds;
                 meanInnerShapes = nanmean(innerShapeArr, 1);
 
-                
+                % plot area vs time for C
+                figure((shapeii-1)*length(sm_arr)*length(k_a_arr) ...
+                    + (k-1)*length(k_a_arr) + j)
+
                 if (isCrawling)
-                    % plot area vs time for C
-                    figure((shapeii-1)*length(sm_arr)*length(k_a_arr) ...
-                        + (k-1)*length(k_a_arr) ...
-                        + l)
-                else 
-                    %plot area vs time for PS
-                    figure((shapeii-1)*length(sm_arr)*length(k_a_arr) ...
-                        + (k-1)*length(k_a_arr) ...
-                        + j)
-                end
-                if (isCrawling)
-                    displayStr = "C: A0="+calA0+",att="+att+",sm="+sm+",ka="+ka;
+                    displayStr = "C: A0="+calA0+",att="+att+",sm="+sm+",ka="+k_a;
                 else
-                    displayStr = "P: A0="+calA0+",att="+att+",sm="+sm+",ka="+ka;
+                    displayStr = "P: A0="+calA0+",att="+att+",sm="+sm+",ka="+k_a;
                 end
 
                 plot(voidArea(:,1), voidArea(:,2), 'linewidth', 4, 'DisplayName', displayStr)
@@ -209,9 +207,20 @@ for shapeii=1:length(calA0_arr)
 %                     ylabel('Shape','Interpreter','latex','fontsize', 24);
 %                     legend('location','southeast','fontsize', 6)
 
-                heatmap1(shapeii,j) = max(meanInnerShapes)/min(meanInnerShapes);
-                heatmap2(shapeii,j) = max(innerShapes_sd(:,1));
-                heatmap3(shapeii,j) = woundProperties_sd(2);
+                %heatmap1(shapeii,j) = max(meanInnerShapes)/min(meanInnerShapes);
+                %heatmap2(shapeii,j) = max(innerShapes_sd(:,1));
+                %heatmap3(shapeii,j) = woundProperties_sd(2);
+                if (k == 1) % bumpy friction heatmaps
+                    heatmap1(i,j) = max(meanInnerShapes)/min(meanInnerShapes);
+                    %heatmap2(i,j) = max(innerShapes_sd(:,1)); 
+                    heatmap2(i,j) = woundProperties_sd(1); 
+                    heatmap3(i,j) = woundProperties_sd(2);
+                elseif (k == 2) % smooth friction heatmaps
+                    heatmap4(i,j) = max(meanInnerShapes)/min(meanInnerShapes);
+                    %heatmap5(i,j) = max(innerShapes_sd(:,1));
+                    heatmap5(i,j) = woundProperties_sd(1); 
+                    heatmap6(i,j) = woundProperties_sd(2);
+                end
             end
         end
     end
@@ -221,6 +230,7 @@ if (isCrawling)
     % % how to save figures:
     % need to get them saved in order
     FolderName = "output/cells/ablate/array_output_figures/activity_sweep";   % Your destination folder
+    mkdir(FolderName);
     FigList = findobj(allchild(0), 'flat', 'Type', 'figure');
     for iFig = 1:length(FigList)
       FigHandle = FigList(iFig);
@@ -245,39 +255,57 @@ end
 heatmap_filepath = "output/cells/ablate/array_output_figures";
 mkdir(heatmap_filepath);
 
+for smii=1:2
+    figure(heatmap_fig_num + 3*(smii-1))
+    %h = heatmap(att_arr, calA0_arr, heatmap1);
+    if (smii == 1)
+        h = heatmap(k_a_arr, att_arr, heatmap1);
+        h.YLabel = "att";
+    elseif (smii == 2)
+        h = heatmap(k_a_arr, att_arr, heatmap4);
+        h.YLabel = "att, smooth";
+    end
 
-figure(heatmap_fig_num)
-h = heatmap(att_arr, calA0_arr, heatmap1);
-h.XLabel = 'att';
-h.YLabel = '$\mathcal{A}_0$';
-h.Title = '$\langle\mathcal{A}_{max}\rangle / \langle\mathcal{A}_{0}\rangle$';
-h.NodeChildren(3).XAxis.Label.Interpreter = 'latex';
-h.NodeChildren(3).YAxis.Label.Interpreter = 'latex';
-h.NodeChildren(3).Title.Interpreter = 'latex';
-saveas(gcf, heatmap_filepath+"/relativeMaxShapeDeformationSmooth"+ sm_arr(1) + ...
-             '.eps', 'epsc')
-
-figure(heatmap_fig_num+1)
-h = heatmap(att_arr, calA0_arr, heatmap2);
-h.XLabel = 'att';
-h.YLabel = '$\mathcal{A}_0$';
-h.Title = 'Healing time';
-h.NodeChildren(3).XAxis.Label.Interpreter = 'latex';
-h.NodeChildren(3).YAxis.Label.Interpreter = 'latex';
-h.NodeChildren(3).Title.Interpreter = 'latex';
-saveas(gcf, heatmap_filepath+"/healingTimesSmooth"+ sm_arr(1) + ...
-             '.eps', 'epsc')
-
-figure(heatmap_fig_num+2)
-heatmap3(heatmap3==0) = nan;
-h = heatmap(att_arr, calA0_arr, heatmap3);
-h.XLabel = 'att';
-h.YLabel = '$\mathcal{A}_0$';
-h.Title = 'Rosette number';
-h.NodeChildren(3).XAxis.Label.Interpreter = 'latex';
-h.NodeChildren(3).YAxis.Label.Interpreter = 'latex';
-h.NodeChildren(3).Title.Interpreter = 'latex';
-saveas(gcf, heatmap_filepath+"/rosetteNumberSmooth"+ sm_arr(1) + ...
-             '.eps', 'epsc')
-
+    h.XLabel = 'ka';
+    %h.YLabel = '$\mathcal{A}_0$';
+    h.Title = '$\langle\mathcal{A}_{max}\rangle / \langle\mathcal{A}_{0}\rangle$';
+    h.NodeChildren(3).XAxis.Label.Interpreter = 'latex';
+    h.NodeChildren(3).YAxis.Label.Interpreter = 'latex';
+    h.NodeChildren(3).Title.Interpreter = 'latex';
+    saveas(gcf, heatmap_filepath+"/relativeMaxShapeDeformationSmooth"+ sm_arr(smii) + ...
+                 "PS"+~isCrawling+'.eps', 'epsc')
+    
+    figure(heatmap_fig_num + 1 + 3*(smii-1))
+    if (smii == 1)
+        h = heatmap(k_a_arr, att_arr, heatmap2);
+        h.YLabel = "att";
+    elseif (smii == 2)
+        h = heatmap(k_a_arr, att_arr, heatmap5);
+        h.YLabel = "att, smooth";
+    end
+    h.XLabel = 'ka';
+    h.Title = 'Healing time';
+    h.NodeChildren(3).XAxis.Label.Interpreter = 'latex';
+    h.NodeChildren(3).YAxis.Label.Interpreter = 'latex';
+    h.NodeChildren(3).Title.Interpreter = 'latex';
+    saveas(gcf, heatmap_filepath+"/healingTimesSmooth"+ sm_arr(smii) + ...
+                 "PS"+~isCrawling+'.eps', 'epsc')
+    
+    figure(heatmap_fig_num + 2 + 3*(smii-1))
+    heatmap3(heatmap3==0) = nan;
+     if (smii == 1)
+        h = heatmap(k_a_arr, att_arr, heatmap3);
+        h.YLabel = "att";
+    elseif (smii == 2)
+        h = heatmap(k_a_arr, att_arr, heatmap6);
+        h.YLabel = "att, smooth";
+     end
+    h.XLabel = 'ka';
+    h.Title = 'Rosette number';
+    h.NodeChildren(3).XAxis.Label.Interpreter = 'latex';
+    h.NodeChildren(3).YAxis.Label.Interpreter = 'latex';
+    h.NodeChildren(3).Title.Interpreter = 'latex';
+    saveas(gcf, heatmap_filepath+"/rosetteNumberSmooth"+ sm_arr(smii) + ...
+                 "PS"+~isCrawling+'.eps', 'epsc')
+end
 
