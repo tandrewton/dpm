@@ -320,6 +320,8 @@ int main(int argc, char const* argv[]) {
 
     epithelial.dampedNP0(customForceUpdate_active, B, dt0, time_dbl, printInterval, purseStringOn);
   }
+  cout << "about to end simulation : printing one last configuration\n";
+  epithelial.printConfiguration2D();
   cout << "\n** Finished laserAblation.cpp, ending. " << endl;
   return 0;
 }
