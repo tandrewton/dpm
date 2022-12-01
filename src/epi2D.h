@@ -102,6 +102,7 @@ class epi2D : public dpm {
   double woundCenterY;
   double previousWoundArea = NAN;
   double woundArea = NAN;
+  double woundAreaCutoffEndSimulation;
 
   // flag for vertex repulsion (if a cell has only 1 wound vertex, then turn off repulsion so that it gets sucked into the bulk)
   std::vector<int> sortedWoundIndices;

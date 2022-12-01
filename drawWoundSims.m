@@ -3,10 +3,10 @@
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
 
-function drawWoundSims(N, calA0, k_a, smooth, deltaSq, d_flag, att) %uncomment if using function call to pipeline data
-isTestData = false; %uncomment if using function call to pipeline data
+%function drawWoundSims(N, calA0, k_a, smooth, deltaSq, d_flag, att) %uncomment if using function call to pipeline data
+%isTestData = false; %uncomment if using function call to pipeline data
 
-%isTestData = true; %uncomment if using test data
+isTestData = true; %uncomment if using test data
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('C:\Users\atata\projects\dpm\bash')
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
@@ -20,7 +20,7 @@ ndelete="3";
 %calA0="1.10";
 strainRate_ps="0.005";
 if (isTestData)
-    deltaSq = "4.0";
+    deltaSq = "0.0";
 end
 %k_a = "1.0";
 k_l = "1.0";
@@ -40,7 +40,7 @@ FSKIP = 1;
 etaStr = " ";
 startSeed = 1;
 max_seed = 1;
-no_plots = 1;
+no_plots = 0;
 makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
 %plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
 plotCells = 1;
@@ -49,7 +49,7 @@ showPeriodicImages = 0;
 showWoundAndShapeProperties = 0; 
 
 
-showverts = 0;
+showverts = 1;
 showBoundaries = 0;
 showcirculoline = 0; % show line segments of circulo-lines
 isReadAndPlotTrajectoryQualities = 1; % read nvestr and plot associated quantities
@@ -65,7 +65,7 @@ viewBottom = 1.0;
 
 %disable showVoid if using printConfig on its own, outside of
 %dampedNVE/dampedNP0 routines
-showGlobalIndex = 1;
+showGlobalIndex = 0;
 showVoid = 0;
 showVoidBlack = 0; % print void in larger black circles to see easier
 showVoidLite = 1; % print void, but in a way that works with printConfiguration on its own

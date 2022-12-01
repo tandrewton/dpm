@@ -1775,16 +1775,18 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
 
       // ageCellPerimeters(shapeRelaxationRate, dt);
       if (int(simclock / dt) % 50 == 0) {
+        // choice of woundArea cutoff is 4 vertex areas in constructor. % of initial wound area is unreliable, 10 vertex areas is too many, 1 vertex area will lead to too many issues with void segmentation
+        woundAreaCutoffEndSimulation = 4 * 0.5 * PI * r[0] * r[0];
         // cout << "woundCenterX, Y before calculating area = " << woundCenterX << '\t' << woundCenterY << '\n';
         // calculate wound area using connected components clustering
         woundArea = calculateWoundArea(woundCenterX, woundCenterY);
 
-        while (std::isnan(woundArea) || woundArea < 1e-10) {
-          cout << "in while loop, repeating wound area calculation to determine if wound area = nan or zero is real!\n";
+        while (std::isnan(woundArea) || woundArea < woundAreaCutoffEndSimulation) {
+          cout << "in while loop, repeating wound area calculation to determine if wound area = nan or smaller than simulation end threshold is real! woundArea = " << woundArea << "\n";
           // rerun area calculation using a different wound center seed
           // every iteration, remove an element from oldWoundLocations. terminate when woundArea is valid, or when oldWoundLocations is empty
           if (oldWoundLocations.size() == 0) {
-            cout << "reached end of oldWoundLocations.. wound area is still nan or zero.\n";
+            cout << "reached end of oldWoundLocations.. wound area is still nan or below simulation end threshold.\n";
             break;
           }
           woundCenterX = oldWoundLocations[0][0];
@@ -1913,12 +1915,11 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
              << '\n';
       }
     }
-    // do things after all the simulation steps have been taken, or if the wound is closed (area=0 or area=2.5% initial area)
-    // choice of woundArea cutoff is 4 vertex areas. no particular reason
-    double woundAreaCutoffEndSimulation = 4 * 0.5 * PI * r[0] * r[0];
+    // do things after all the simulation steps have been taken, or if the wound is closed (area=0 or area= 4 vertex areas)
     if (duration > 100 && (simclock - t0 > duration - dt || woundArea == 0.0 || woundArea < woundAreaCutoffEndSimulation) && !std::isnan(healingTime) && !alreadyRecordedFinalCells) {
       // exit conditions
       cout << "woundAreaCutoff to end simulation = " << woundAreaCutoffEndSimulation << '\n';
+      cout << "final calculated wound center = " << woundCenterX << '\t' << woundCenterY << '\n';
       cout << "woundArea, simclock - t0, duration-dt = " << woundArea << " " << simclock - t0 << " " << duration - dt << '\n';
       break;
     }
@@ -3139,10 +3140,6 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY, bool 
   // note: NAN will be ignored in plots, so I use it here for plotting purposes. Make sure that woundArea does not collide with important things (i.e. get multiplied into meaningful simulation quantities)
   // cout << "calculating woundArea, simclock = " << simclock << '\n';
 
-  if (recordOldWoundPoints) {
-    oldWoundLocations.clear();
-  }
-
   // note: running this every 100 or 1000 timesteps should be fine.
   std::vector<double> posX(NVTOT / 2), posY(NVTOT / 2);
   double iResolution, jResolution;  // stores scaled coordinates to pass as reference to isPointInPolygons
@@ -3296,12 +3293,17 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY, bool 
     }
   }
 
+  // coarseness controls how many oldWoundLocations we store. currently using sqrt(area)/2 which gives a small fraction of the total number of boxes in each dimension
+  int coarseness = sqrt(sum) / 2.0;
+  if (coarseness < 4)
+    coarseness = 4;
+  if (recordOldWoundPoints && woundArea > woundAreaCutoffEndSimulation && sum > coarseness * 10) {
+    // only clear rescue conditions if wound area is larger than needed. if it's less than needed, I should be keeping the old rescue condition, because sum will be small, so I won't have any stored points to remember
+    oldWoundLocations.clear();
+  }
+
   if (recordOldWoundPoints) {
-    // coarseness controls how many oldWoundLocations we store. currently using sqrt(area)/2 which gives a small fraction of the total number of boxes in each dimension
-    int coarseness = sqrt(sum) / 2.0;
     // coarseness must be > 0 or leads to floating point exception for modulo operation
-    if (coarseness < 4)
-      coarseness = 4;
     for (int i = 0; i < labels.size(); i++) {
       for (int j = 0; j < labels[i].size(); j++) {
         if (labels[i][j])
@@ -3311,6 +3313,8 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY, bool 
       }
     }
   }
+
+  // cout << "inside calculateWoundArea, recording=" << recordOldWoundPoints << ", sum = " << sum << ", oldWoundLocations stored " << oldWoundLocations.size() << " locations\n";
 
   currentWoundIndices.clear();
   bool iAndjAreInDebug = false;
