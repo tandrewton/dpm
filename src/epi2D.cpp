@@ -1791,6 +1791,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
           }
           woundCenterX = oldWoundLocations[0][0];
           woundCenterY = oldWoundLocations[0][1];
+          cout << "potential wound location: " << woundCenterX << '\t' << woundCenterY << '\n';
           // do not record old wound points, since we're looping over them
           woundArea = calculateWoundArea(woundCenterX, woundCenterY, false);
           oldWoundLocations.erase(oldWoundLocations.begin());

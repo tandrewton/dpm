@@ -12,7 +12,7 @@ addpath('C:\Users\atata\projects\dpm\matlab_funcs')
 
 % simulation parameters go here
 runType = "ablate";
-N="36";
+N="50";
 %ndelete="6";
 %calA0="1.10";
 strainRate_ps="0.005";
@@ -49,7 +49,7 @@ att_arr = ["0.04" "0.12" "0.20"];
 sm_arr = ["0" "1"];
 k_a_arr = ["0.5" "1.0" "2.0"];
 
-isCrawling = false;
+isCrawling = true;
 
 if (isCrawling)
     deltaSq = "0.0"; % for C
