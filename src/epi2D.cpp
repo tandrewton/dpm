@@ -1775,12 +1775,11 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
 
       // ageCellPerimeters(shapeRelaxationRate, dt);
       if (int(simclock / dt) % 50 == 0) {
-        // choice of woundArea cutoff is 4 vertex areas in constructor. % of initial wound area is unreliable, 10 vertex areas is too many, 1 vertex area will lead to too many issues with void segmentation
+        // choice of woundArea cutoff is 4 vertex areas. % of initial wound area is unreliable, 10 vertex areas is too many, 1 vertex area will lead to too many issues with void segmentation
         woundAreaCutoffEndSimulation = 4 * 0.5 * PI * r[0] * r[0];
-        // cout << "woundCenterX, Y before calculating area = " << woundCenterX << '\t' << woundCenterY << '\n';
         // calculate wound area using connected components clustering
         woundArea = calculateWoundArea(woundCenterX, woundCenterY);
-
+        bool oldWoundSeedsTooSmall = false;
         while (std::isnan(woundArea) || woundArea < woundAreaCutoffEndSimulation) {
           cout << "in while loop, repeating wound area calculation to determine if wound area = nan or smaller than simulation end threshold is real! woundArea = " << woundArea << "\n";
           // rerun area calculation using a different wound center seed
@@ -1795,11 +1794,16 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
           // do not record old wound points, since we're looping over them
           woundArea = calculateWoundArea(woundCenterX, woundCenterY, false);
           oldWoundLocations.erase(oldWoundLocations.begin());
-          cout << "erased one wound potential wound location from oldWoundLocations\n";
+
+          if (!std::isnan(woundArea) && woundArea < woundAreaCutoffEndSimulation) {
+            // non-NAN values were found for area, but they were too small and were discarded
+            oldWoundSeedsTooSmall = true;
+          }
         }
-        if (previousWoundArea < 4 * 0.5 * PI * r[0] * r[0]) {
+        if (previousWoundArea < woundAreaCutoffEndSimulation || (std::isnan(woundArea) && oldWoundSeedsTooSmall)) {
+          // if previous area is small and current area is small, then end simulation. if current area is NaN and alternative areas were small, then end simulation.
           woundArea = 0;
-        } else if (std::isnan(woundArea)) {
+        } else if (std::isnan(woundArea) && !oldWoundSeedsTooSmall) {
           cout << "woundArea is nan! exiting\n";
           assert(!std::isnan(woundArea));
         }
