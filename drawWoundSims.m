@@ -3,8 +3,8 @@
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
 
-function drawWoundSims(N, calA0, k_a, smooth, deltaSq, d_flag, att) %uncomment if using function call to pipeline data
-isTestData = false; %uncomment if using function call to pipeline data
+%function drawWoundSims(N, calA0, k_a, smooth, deltaSq, d_flag, att) %uncomment if using function call to pipeline data
+%isTestData = false; %uncomment if using function call to pipeline data
 
 %isTestData = true; %uncomment if using test data
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
