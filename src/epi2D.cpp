@@ -1776,7 +1776,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
         woundArea = calculateWoundArea(woundCenterX, woundCenterY);
         bool oldWoundSeedsTooSmall = false;
         while (std::isnan(woundArea) || woundArea < woundAreaCutoffEndSimulation) {
-          cout << "in while loop, repeating wound area calculation to determine if wound area = nan or smaller than simulation end threshold is real! woundArea = " << woundArea << "\n";
+          cout << "in while loop, repeating wound area calculation to determine if wound area = nan or smaller than simulation end threshold is real!\n woundArea = " << woundArea << ", oldWoundLocations.size() = " << oldWoundLocations.size() << "\n";
           // every iteration, remove an element from oldWoundLocations. terminate when woundArea is valid, or when oldWoundLocations is empty
           if (oldWoundLocations.size() == 0) {
             cout << "reached end of oldWoundLocations.. wound area is still nan or below simulation end threshold.\n";
@@ -3201,13 +3201,7 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY, bool 
   // now occupancy matrix is filled. find the largest cluster of open space, given a point within the wound.
   int woundPointXIndex = woundPointX / resolution;
   int woundPointYIndex = woundPointY / resolution;
-  /*cout << "quick check : \n";
-  cout << "woundPointX,y = " << woundPointX << '\t' << woundPointY << '\n';
-  cout << "resolution = " << resolution << '\n';
-  cout << "woundPointX / resolution, y = " << woundPointX / resolution << '\t' << woundPointY / resolution << '\n';
-  cout << "woundPointX - xLow / resolution, y = " << (woundPointX - xLow) / resolution << '\t' << (woundPointY - yLow) / resolution << '\n';*/
 
-  // cout << "debugging: woundPointX,Y, and woundPointIndices : " << woundPointX << '\t' << woundPointY << '\t' << woundPointXIndex << '\t' << woundPointYIndex << '\t' << resolution << '\n';
   //  check if the given point is not within the wound
   if (occupancyMatrix[woundPointXIndex][woundPointYIndex] == 1) {  // 1 is not in wound, 0 is in wound
     // given point is not in the wound, so we need to look for a nearby point that's hopefully in the wound
@@ -3301,10 +3295,6 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY, bool 
   if (recordOldWoundPoints && woundArea > woundAreaCutoffEndSimulation && sum > 100 && sum * pow(resolution, 2) > woundAreaCutoffEndSimulation) {
     // only clear rescue conditions if wound area is larger than needed. if it's less than needed, I should be keeping the old rescue condition, because sum will be small, so I won't have any stored points to remember
     oldWoundLocations.clear();
-  }
-
-  if (oldWoundLocations.size() > 100) {
-    // MAYBE - remove all elements past the 100th index to keep the size of oldWoundLocations small?
   }
 
   if (recordOldWoundPoints) {
