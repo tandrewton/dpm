@@ -12,7 +12,7 @@ addpath('C:\Users\atata\projects\dpm\matlab_funcs')
 
 % simulation parameters go here
 runType = "ablate";
-N="50";
+N="36";
 %ndelete="6";
 %calA0="1.10";
 strainRate_ps="0.005";

@@ -3298,9 +3298,13 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY, bool 
   int coarseness = sqrt(sum) / 2.0;
   if (coarseness < 4)
     coarseness = 4;
-  if (recordOldWoundPoints && woundArea > woundAreaCutoffEndSimulation && sum > coarseness * 10) {
+  if (recordOldWoundPoints && woundArea > woundAreaCutoffEndSimulation && sum > 100 && sum * pow(resolution, 2) > woundAreaCutoffEndSimulation) {
     // only clear rescue conditions if wound area is larger than needed. if it's less than needed, I should be keeping the old rescue condition, because sum will be small, so I won't have any stored points to remember
     oldWoundLocations.clear();
+  }
+
+  if (oldWoundLocations.size() > 100) {
+    // MAYBE - remove all elements past the 100th index to keep the size of oldWoundLocations small?
   }
 
   if (recordOldWoundPoints) {
@@ -3315,7 +3319,7 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY, bool 
     }
   }
 
-  // cout << "inside calculateWoundArea, recording=" << recordOldWoundPoints << ", sum = " << sum << ", oldWoundLocations stored " << oldWoundLocations.size() << " locations\n";
+  cout << "inside calculateWoundArea, recording=" << recordOldWoundPoints << ", sum = " << sum << ", oldWoundLocations stored " << oldWoundLocations.size() << " locations\n";
 
   currentWoundIndices.clear();
   bool iAndjAreInDebug = false;
