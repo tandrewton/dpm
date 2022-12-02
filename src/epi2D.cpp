@@ -1775,8 +1775,10 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
         woundAreaCutoffEndSimulation = 4 * 0.5 * PI * r[0] * r[0];
         woundArea = calculateWoundArea(woundCenterX, woundCenterY);
         bool oldWoundSeedsTooSmall = false;
-        while (std::isnan(woundArea) || woundArea < woundAreaCutoffEndSimulation) {
-          cout << "in while loop, repeating wound area calculation to determine if wound area = nan or smaller than simulation end threshold is real!\n woundArea = " << woundArea << ", oldWoundLocations.size() = " << oldWoundLocations.size() << "\n";
+        double newAreaFraction = fabs(woundArea - previousWoundArea) / previousWoundArea;
+        while (std::isnan(woundArea) || woundArea < woundAreaCutoffEndSimulation || (newAreaFraction > 0.5 && previousWoundArea > woundAreaCutoffEndSimulation)) {
+          cout << "in while loop, detected wound area is nan or very small, or has a discontinuous-looking drop in area above the cutoff criterion (which is relevant for determining healing time). repeating wound area calculation with a stored wound seed from previous configurations. \n oldWoundLocations.size() = " << oldWoundLocations.size() << "\n";
+          cout << "current (proposed) wound area = " << woundArea << ", previous wound area = " << previousWoundArea << '\n';
           // every iteration, remove an element from oldWoundLocations. terminate when woundArea is valid, or when oldWoundLocations is empty
           if (oldWoundLocations.size() == 0) {
             cout << "reached end of oldWoundLocations.. wound area is still nan or below simulation end threshold.\n";
@@ -1787,6 +1789,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
           cout << "potential wound location: " << woundCenterX << '\t' << woundCenterY << '\n';
           // do not record old wound points, since we're looping over them
           woundArea = calculateWoundArea(woundCenterX, woundCenterY, false);
+          newAreaFraction = fabs(woundArea - previousWoundArea) / previousWoundArea;
 
           if (oldWoundLocations.size() < 50)
             oldWoundLocations.erase(oldWoundLocations.begin());
@@ -3290,8 +3293,8 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY, bool 
 
   // coarseness controls how many oldWoundLocations we store. currently using sqrt(area)/2 which gives a small fraction of the total number of boxes in each dimension
   int coarseness = sqrt(sum) / 2.0;
-  if (coarseness < 4)
-    coarseness = 4;
+  if (coarseness < 1)
+    coarseness = 1;
   if (recordOldWoundPoints && woundArea > woundAreaCutoffEndSimulation && sum > 100 && sum * pow(resolution, 2) > woundAreaCutoffEndSimulation) {
     // only clear rescue conditions if wound area is larger than needed. if it's less than needed, I should be keeping the old rescue condition, because sum will be small, so I won't have any stored points to remember
     oldWoundLocations.clear();
