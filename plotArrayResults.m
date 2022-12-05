@@ -44,12 +44,12 @@ subdir_pipeline = pc_dir + "pipeline/cells/"+runType+"/";
 %output is location of results of this postprocessing
 subdir_output = pc_dir + "output/cells/"+runType+"/";
 
-calA0_arr = ["1.05"];
+calA0_arr = ["1.15"];
 att_arr = ["0.04" "0.10" "0.15" "0.20" "0.25" "0.29"];
 sm_arr = ["0" "1"];
 k_a_arr = ["0.5" "1.0" "2.0"];
 
-isCrawling = true;
+isCrawling = false;
 
 if (isCrawling)
     deltaSq = "0.0"; % for C

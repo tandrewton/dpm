@@ -3,10 +3,10 @@
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
 
-%function drawWoundSims(N, calA0, k_a, smooth, deltaSq, d_flag, att) %uncomment if using function call to pipeline data
-%isTestData = false; %uncomment if using function call to pipeline data
+function drawWoundSims(N, calA0, k_a, smooth, deltaSq, d_flag, att) %uncomment if using function call to pipeline data
+isTestData = false; %uncomment if using function call to pipeline data
 
-isTestData = true; %uncomment if using test data
+%isTestData = true; %uncomment if using test data
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('C:\Users\atata\projects\dpm\bash')
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
@@ -20,7 +20,7 @@ ndelete="3";
 %calA0="1.10";
 strainRate_ps="0.005";
 if (isTestData)
-    deltaSq = "0.0";
+    deltaSq = "4.0";
 end
 %k_a = "1.0";
 k_l = "1.0";
@@ -506,8 +506,8 @@ for seed = startSeed:max_seed
                 
                 annotationStr = "$$t/\tau$$ = "+time(ff);
                 %annotationStr = "frame = "+ff;
-                annotation('textbox',[0.48, 0.5, 0, 0],...
-                    'interpreter', 'latex', 'String', annotationStr, 'Edgecolor','none', 'FitBoxToText','on');
+                %annotation('textbox',[0.48, 0.5, 0, 0],...
+                %    'interpreter', 'latex', 'String', annotationStr, 'Edgecolor','none', 'FitBoxToText','on');
                 if showVoid
                     if showVoidBlack 
                         scatter(voidLocations{ff}(:,1), voidLocations{ff}(:,2),...
@@ -571,6 +571,7 @@ for seed = startSeed:max_seed
                 end
                 % if making a movie, save frame
                 if makeAMovie == 1
+                    set(gca,'visible','off')
                     currframe = getframe(gcf);
                     writeVideo(vobj,currframe);
                 end
