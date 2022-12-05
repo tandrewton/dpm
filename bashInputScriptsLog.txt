@@ -273,7 +273,7 @@ do
     do
       for sm in 0 1
       do
-        echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 $shape 0.94 0.85 1.0 $ka $att  0.005 0.0 4.0 4.0 1.0 3.0 1.0 0.5 0 0 $sm 500 pi_ohern,day,scavenge 0-23:00:00 numSeeds 1 >> joblist_crawling.txt
+        echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 $shape 0.94 0.85 1.0 $ka $att  0.005 0.0 4.0 4.0 1.0 3.0 1.0 0.5 0 0 $sm 500 pi_ohern,day,scavenge 0-23:00:00 $numSeeds 1 >> joblist_crawling.txt
       done
     done
   done
