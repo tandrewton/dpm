@@ -27,7 +27,7 @@ makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
 
-showverts = 1;
+showverts = 0;
 showcirculoline = 0;
 walls = 0;
 att_range = 0.3;
@@ -237,6 +237,7 @@ for seed = startSeed:max_seed
                 rads = sqrt(rx.^2 + ry.^2);
                 xtmp = xtmp + 0.4*l0tmp(1)*(rx./rads);
                 ytmp = ytmp + 0.4*l0tmp(1)*(ry./rads);
+                text(cx,cy,num2str(nn))
                 for xx = itLow:itHigh
                     for yy = itLow:itHigh
                         vpos = [xtmp + xx*Lx, ytmp + yy*Ly];

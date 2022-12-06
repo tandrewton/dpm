@@ -80,6 +80,7 @@ class cell : public dpm {
   void repulsiveForceUpdateWithWalls();
   // void repulsiveForceUpdateWithoutTopWall();
   void attractiveForceUpdate();
+  void attractiveSmoothForceUpdate();
   void repulsiveWithPolarityForceUpdate();
   void attractiveWithPolarityForceUpdate();
   void attractiveWithPolarityForceAndWallCrawlingUpdate();

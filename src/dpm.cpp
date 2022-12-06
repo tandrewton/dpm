@@ -1678,11 +1678,12 @@ void dpm::generateCircle(int numEdges, double cx, double cy, double r, std::vect
   // generate an n-gon at center cx,cy with radius r. Modifies data in px, py to give the n-gon
   double theta;
   std::vector<double> poly_x_temp, poly_y_temp;
+  cout << "px, py (list) = \n";
   for (int i = 0; i < numEdges; i++) {
     theta = i * 2 * PI / numEdges;
     poly_x_temp.push_back(r * cos(theta) + cx);
     poly_y_temp.push_back(r * sin(theta) + cy);
-    cout << "px,py = " << r * cos(theta) + cx << '\t' << r * sin(theta) + cy << '\n';
+    cout << r * cos(theta) + cx << '\t' << r * sin(theta) + cy << '\n';
   }
   px = poly_x_temp;
   py = poly_y_temp;

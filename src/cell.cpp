@@ -129,6 +129,12 @@ void cell::attractiveForceUpdatePrint(double& forceX, double& forceY, double& en
   forceY = F[1];
 }
 
+void cell::attractiveSmoothForceUpdate() {
+  resetForcesAndEnergy();
+  shapeForces2D();
+  circuloLineAttractiveForces();
+}
+
 /*void cell::attractiveForceUpdateSmoothPrint(double& forceX, double& forceY, double& energy) {
   resetForcesAndEnergy();
   // shapeForces2D();
@@ -1546,7 +1552,7 @@ void cell::initializeTransverseTissue(double phi0, double Ftol) {
     for (i = cumNumCells; i < cumNumCells + numCellsInTissue[n]; i++) {
       cout << "i = " << i << "\t, dpos.size() = " << dpos.size() << ", cumNumCells = " << cumNumCells << "\t, numCellsInTissue[n] = " << numCellsInTissue[n] << '\n';
       double dpos_x = tissueRadii[n] * (2 * drand48() - 1) + cx[n], dpos_y = tissueRadii[n] * (2 * drand48() - 1) + cy[n];
-      while (pow(dpos_x - cx[n], 2) + pow(dpos_y - cy[n], 2) > pow(tissueRadii[n], 2)) {
+      while (pow(dpos_x - cx[n], 2) + pow(dpos_y - cy[n], 2) > pow(tissueRadii[n] / (scale_radius), 2)) {
         dpos_x = tissueRadii[n] * (2 * drand48() - 1) + cx[n];
         dpos_y = tissueRadii[n] * (2 * drand48() - 1) + cy[n];
       }
@@ -1555,6 +1561,7 @@ void cell::initializeTransverseTissue(double phi0, double Ftol) {
       ipStream << dpos[i * NDIM] << '\t' << dpos[i * NDIM + 1] << '\n';
       cellID[i] = n;
       cout << "cell " << i << " is in tissue number " << n << "with cell type = " << cellID[i] << '\n';
+      cout << " with position " << dpos_x << '\t' << dpos_y << '\n';
     }
     cout << "before adding to cumNumCells\n";
     cumNumCells += numCellsInTissue[n];

@@ -1,4 +1,12 @@
 // simulate transverse section, focusing on tissue structure
+// 2D justification: cells don't move much in the Anterior-Posterior plane of the PSM
+//   the measurements are taken in the 2D transverse section, so a 2D simulation would help
+//   our understanding of tissue structure in those same 2D sections.
+// Scientific question: Why do cells gain extracellular space in cadherin AND/OR fibronectin/fibrillin mutants?
+//  cadherin mutants lose intercellular adhesion. fN/fbn mutants lose cell-ECM adhesion.
+// My understanding - cell-ECM adhesion acts as a compression. The ECM proteins link up with the actin skeleton
+//   of cells on the boundary of the PSM. This causes action like a purse-string at the boundary of the tissue
+//   which might explain why PSM is rounded up like a cylinder.
 
 // Compilation command:
 // g++ -O3 --std=c++11 -g -I src main/cell/psm2D.cpp src/dpm.cpp src/cell.cpp -o main/cell/psm2D.o
@@ -20,8 +28,8 @@ const double kc = 1.0;              // interaction force spring constant (should
 const double kb = 0.0;              // bending energy spring constant (should be zero)
 const double kl = 1.0;              // segment length interaction force (should be unit)
 const double boxLengthScale = 2.5;  // neighbor list box size in units of initial l0
-const double phi0 = 0.85;           // initial packing fraction
-const double phiMax = 0.75;
+const double phi0 = 0.95;           // initial packing fraction
+const double phiMax = 0.8;
 const double smallfrac = 1.0;  // fraction of small particles
 const double sizeratio = 1.0;  // size ratio between small and large particles
 const double dt0 = 1e-2;       // initial magnitude of time step in units of MD time
@@ -112,6 +120,7 @@ int main(int argc, char const* argv[]) {
   cell2D.printConfiguration2D();
 
   cell2D.initializeNeighborLinkedList2D(boxLengthScale);
+  cell2D.printConfiguration2D();
 
   // compress to target packing fraction
   cell2D.vertexCompress2Target2D_polygon(attractiveForceUpdateWithPolyWalls, Ftol, dt0, phiMax, dphi0);
@@ -121,7 +130,7 @@ int main(int argc, char const* argv[]) {
   bool wallsBool = true;
   double relaxTimeShort = 10.0;
   double relaxTime = 100.0;
-  double runTime = 3000.0;
+  double runTime = 300.0;
   double B = 1.0;
   std::vector<double> savedPositions;
 
@@ -129,10 +138,10 @@ int main(int argc, char const* argv[]) {
   // dpmMemFn customForceUpdate = attractivePolarityForceUpdate;
   dpmMemFn customForceUpdate = attractiveForceUpdate;
   cell2D.dampedVertexNVE(attractiveForceUpdateWithPolyWalls, B, dt0, relaxTime, relaxTime / 5);
-  cell2D.saveConfiguration(savedPositions);
+  cell2D.replacePolyWallWithDP(numCellTypes);
+  cell2D.dampedVertexNVE(customForceUpdate, B, dt0, relaxTime, relaxTime / 5);
 
-  // cell2D.replacePolyWallWithDP(numCellTypes);
-  cell2D.dampedVertexNVE(customForceUpdate, B, dt0, relaxTimeShort, relaxTimeShort / 5);
+  cell2D.saveConfiguration(savedPositions);
   cell2D.loadConfiguration(savedPositions);
 
   /*cell2D.dampedVertexNVE(customForceUpdate, B, dt0, relaxTimeShort, relaxTimeShort/5);
