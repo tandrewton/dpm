@@ -63,6 +63,49 @@ class cell : public dpm {
     cout << "Initializing epi2D object, l1 = " << l1 << ", l2 = " << l2 << '\n';
   }
 
+  /*// destructor
+  ~cell() {
+    // clear all private vectors
+    // should update this soon
+    cout << "destructor\n";
+    L.clear();
+    pbc.clear();
+    a0.clear();
+    l0.clear();
+    t0.clear();
+    nv.clear();
+    szList.clear();
+    im1.clear();
+    ip1.clear();
+    r.clear();
+    x.clear();
+    v.clear();
+    F.clear();
+    stress.clear();
+    sb.clear();
+    lb.clear();
+    cout << "nn size = " << nn.size() << '\n';
+    cout << "NBX = " << NBX << '\n';
+    for (int i = 0; i < NBX; i++)
+      nn.at(i).clear();
+    nn.clear();
+    head.clear();
+    last.clear();
+    list.clear();
+
+    if (posout.is_open())
+      posout.close();
+    if (enout.is_open())
+      enout.close();
+    if (stressout.is_open())
+      stressout.close();
+
+    cellID.clear();
+    cellTypeIntMat.clear();
+    cellTouchesWallsLeft.clear();
+    cellTouchesWallsRight.clear();
+  }*/
+
   // test routines for force calculation
   void moveVertex(int gi, double xpos, double ypos);
 
@@ -76,10 +119,12 @@ class cell : public dpm {
   void printInteractionMatrix();
   // consider writing a function that uses cell IDs
 
-  // epi cell interactions
+  // cell interactions
+  void shapeForces2D();
   void repulsiveForceUpdateWithWalls();
   // void repulsiveForceUpdateWithoutTopWall();
   void attractiveForceUpdate();
+  void attractiveForceUpdateWithCrawling();
   void attractiveSmoothForceUpdate();
   void repulsiveWithPolarityForceUpdate();
   void attractiveWithPolarityForceUpdate();
@@ -96,6 +141,7 @@ class cell : public dpm {
   void wallForces(bool left, bool bottom, bool right, bool top, double& forceLeft, double& forceBottom, double& forceRight, double& forceTop, double appliedUniaxialPressure = 0.0);
   void wallCrawlingForces();
   void cellPolarityForces(int ci, double k_polarity, std::string direction = "y");
+  void brownianCrawlingUpdate();
 
   // File openers
   void openEnergyObject(std::string& str) {
@@ -128,6 +174,7 @@ class cell : public dpm {
   void vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0);
   void vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0);
   void simulateDampedWithWalls(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, double pressureRate, double adhesionRate, bool wallsOn, bool leftOpen, bool bottomOpen, bool rightOpen, bool topOpen, double trueStrainRateX = 0.0, double trueStrainRateY = 0.0, double appliedUniaxialPressure = 0.0);
+  void vertexNVE(dpmMemFn forceCall, double T, double dt0, double duration, double printInterval);
   void dampedVertexNVE(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval);
 
   // printouts

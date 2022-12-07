@@ -1723,10 +1723,10 @@ std::vector<double> dpm::resample_polygon(std::vector<double> px, std::vector<do
 void dpm::resetForcesAndEnergy() {
   fill(F.begin(), F.end(), 0.0);
   fill(stress.begin(), stress.end(), 0.0);
-  fill(fieldStress.begin(), fieldStress.end(), vector<double>(3, 0.0));
-  fill(fieldShapeStress.begin(), fieldShapeStress.end(), vector<double>(3, 0.0));
-  fill(fieldStressCells.begin(), fieldStressCells.end(), vector<double>(3, 0.0));
-  fill(fieldShapeStressCells.begin(), fieldShapeStressCells.end(), vector<double>(3, 0.0));
+  fill(fieldStress.begin(), fieldStress.end(), vector<double>(3));
+  fill(fieldShapeStress.begin(), fieldShapeStress.end(), vector<double>(3));
+  fill(fieldStressCells.begin(), fieldStressCells.end(), vector<double>(3));
+  fill(fieldShapeStressCells.begin(), fieldShapeStressCells.end(), vector<double>(3));
   U = 0.0;
   fill(cellU.begin(), cellU.end(), 0.0);
 }
@@ -1824,6 +1824,10 @@ void dpm::shapeForces2D() {
         ci++;
       }
     }
+
+    if (ci >= NCELLS)
+      ci--;
+
     // unwrapped vertex coordinate
     unwrappedX = cx + rix;
     unwrappedY = cy + riy;
@@ -1842,8 +1846,7 @@ void dpm::shapeForces2D() {
     // -- Area force (comes from a cross product)
     forceX = 0.5 * fa * (rim1y - rip1y);
     forceY = 0.5 * fa * (rip1x - rim1x);
-    int cellIndex, vertexIndex;
-    cindices(cellIndex, vertexIndex, gi);
+
     F[NDIM * gi] += forceX;
     F[NDIM * gi + 1] += forceY;
 

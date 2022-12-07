@@ -42,6 +42,250 @@ void cell::printInteractionMatrix() {
   }
 }
 
+void cell::shapeForces2D() {
+  // uses cellID to determine whether to compute certain parts of the shape forces
+  // for example, the ECM cellID shouldn't have any bending energy.
+
+  // local variables
+  int ci, ci_real, gi, vi, nvtmp;
+  double fa, fli, flim1, fb, cx, cy, xi, yi;
+  double rho0, l0im1, l0i, a0tmp, atmp;
+  double dx, dy, da, dli, dlim1, dtim1, dti, dtip1;
+  double lim2x, lim2y, lim1x, lim1y, lix, liy, lip1x, lip1y, li, lim1;
+  double rim2x, rim2y, rim1x, rim1y, rix, riy, rip1x, rip1y, rip2x, rip2y;
+  double nim1x, nim1y, nix, niy, sinim1, sini, sinip1, cosim1, cosi, cosip1;
+  double ddtim1, ddti;
+  double forceX, forceY;
+  double unwrappedX, unwrappedY;
+
+  // loop over vertices, add to force
+  rho0 = sqrt(a0.at(0));
+  ci = 0;
+  for (gi = 0; gi < NVTOT; gi++) {
+    // -- Area force (and get cell index ci)
+    if (ci < NCELLS) {
+      if (gi == szList[ci]) {
+        //  shape information
+        nvtmp = nv[ci];
+        a0tmp = a0[ci];
+
+        // preferred segment length of last segment
+        l0im1 = l0[im1[gi]];
+
+        // compute area deviation
+        atmp = area(ci);
+        da = (atmp / a0tmp) - 1.0;
+
+        // update potential energy
+        U += 0.5 * ka * (da * da);
+        cellU[ci] += 0.5 * ka * (da * da);
+
+        // shape force parameters
+        fa = ka * da * (rho0 / a0tmp);
+        fb = kb * rho0;
+
+        // compute cell center of mass
+        xi = x[NDIM * gi];
+        yi = x[NDIM * gi + 1];
+        cx = xi;
+        cy = yi;
+        for (vi = 1; vi < nvtmp; vi++) {
+          // get distances between vim1 and vi
+          dx = x[NDIM * (gi + vi)] - xi;
+          dy = x[NDIM * (gi + vi) + 1] - yi;
+          if (pbc[0])
+            dx -= L[0] * round(dx / L[0]);
+          if (pbc[1])
+            dy -= L[1] * round(dy / L[1]);
+
+          // add to centers
+          xi += dx;
+          yi += dy;
+
+          cx += xi;
+          cy += yi;
+        }
+        cx /= nvtmp;
+        cy /= nvtmp;
+
+        // get coordinates relative to center of mass
+        rix = x[NDIM * gi] - cx;
+        riy = x[NDIM * gi + 1] - cy;
+
+        // get prior adjacent vertices
+        rim2x = x[NDIM * im1[im1[gi]]] - cx;
+        rim2y = x[NDIM * im1[im1[gi]] + 1] - cy;
+        if (pbc[0])
+          rim2x -= L[0] * round(rim2x / L[0]);
+        if (pbc[1])
+          rim2y -= L[1] * round(rim2y / L[1]);
+
+        rim1x = x[NDIM * im1[gi]] - cx;
+        rim1y = x[NDIM * im1[gi] + 1] - cy;
+        if (pbc[0])
+          rim1x -= L[0] * round(rim1x / L[0]);
+        if (pbc[1])
+          rim1y -= L[1] * round(rim1y / L[1]);
+
+        // get prior segment vectors
+        lim2x = rim1x - rim2x;
+        lim2y = rim1y - rim2y;
+
+        lim1x = rix - rim1x;
+        lim1y = riy - rim1y;
+
+        // increment cell index
+        ci++;
+      }
+    }
+
+    ci_real = ci - 1;  // ci is one too large from above code, but more efficient than calling cindices repeatedly
+
+    // unwrapped vertex coordinate
+    unwrappedX = cx + rix;
+    unwrappedY = cy + riy;
+
+    // preferred segment length
+    l0i = l0[gi];
+
+    // get next adjacent vertices
+    rip1x = x[NDIM * ip1[gi]] - cx;
+    rip1y = x[NDIM * ip1[gi] + 1] - cy;
+    if (pbc[0])
+      rip1x -= L[0] * round(rip1x / L[0]);
+    if (pbc[1])
+      rip1y -= L[1] * round(rip1y / L[1]);
+
+    // -- Area force (comes from a cross product)
+    forceX = 0.5 * fa * (rim1y - rip1y);
+    forceY = 0.5 * fa * (rip1x - rim1x);
+
+    // cellIndex is separate from ci because ci is used to get adjacent vertices
+    // int cellIndex, vertexIndex;
+    // cindices(cellIndex, vertexIndex, gi);
+    F[NDIM * gi] += forceX;
+    F[NDIM * gi + 1] += forceY;
+
+    fieldShapeStress[gi][0] += unwrappedX * forceX;
+    fieldShapeStress[gi][1] += unwrappedY * forceY;
+    fieldShapeStress[gi][2] += unwrappedX * forceY;
+
+    // -- Perimeter force
+    lix = rip1x - rix;
+    liy = rip1y - riy;
+
+    // segment lengths
+    lim1 = sqrt(lim1x * lim1x + lim1y * lim1y);
+    li = sqrt(lix * lix + liy * liy);
+
+    // segment deviations (note: m is prior vertex, p is next vertex i.e. gi - 1, gi + 1 mod the right number of vertices)
+    dlim1 = (lim1 / l0im1) - 1.0;
+    dli = (li / l0i) - 1.0;
+
+    // segment forces
+    flim1 = kl * (rho0 / l0im1);
+    fli = kl * (rho0 / l0i);
+
+    // add to forces
+    forceX = (fli * dli * lix / li) - (flim1 * dlim1 * lim1x / lim1);
+    forceY = (fli * dli * liy / li) - (flim1 * dlim1 * lim1y / lim1);
+    F[NDIM * gi] += forceX;
+    F[NDIM * gi + 1] += forceY;
+
+    // note - Andrew here, confirmed that the shape stress matrix is diagonal as written
+    fieldShapeStress[gi][0] += unwrappedX * forceX;
+    fieldShapeStress[gi][1] += unwrappedY * forceY;
+    fieldShapeStress[gi][2] += unwrappedX * forceY;
+
+    // update potential energy
+    U += 0.5 * kl * (dli * dli);
+    cellU[ci_real] += 0.5 * kl * (dli * dli);
+
+    // -- Bending force
+    if (kb > 0 && cellID[ci_real] == 0) {
+      // if (kb > 0) {
+      //  get ip2 for third angle
+      rip2x = x[NDIM * ip1[ip1[gi]]] - cx;
+      rip2y = x[NDIM * ip1[ip1[gi]] + 1] - cy;
+      if (pbc[0])
+        rip2x -= L[0] * round(rip2x / L[0]);
+      if (pbc[1])
+        rip2y -= L[1] * round(rip2y / L[1]);
+
+      // get last segment length
+      lip1x = rip2x - rip1x;
+      lip1y = rip2y - rip1y;
+
+      // get angles
+      sinim1 = lim1x * lim2y - lim1y * lim2x;
+      cosim1 = lim1x * lim2x + lim1y * lim2y;
+
+      sini = lix * lim1y - liy * lim1x;
+      cosi = lix * lim1x + liy * lim1y;
+
+      sinip1 = lip1x * liy - lip1y * lix;
+      cosip1 = lip1x * lix + lip1y * liy;
+
+      // get normal vectors
+      nim1x = lim1y;
+      nim1y = -lim1x;
+
+      nix = liy;
+      niy = -lix;
+
+      // get change in angles
+      dtim1 = atan2(sinim1, cosim1) - t0[im1[gi]];
+      dti = atan2(sini, cosi) - t0[gi];
+      dtip1 = atan2(sinip1, cosip1) - t0[ip1[gi]];
+
+      // get delta delta theta's
+      ddtim1 = (dti - dtim1) / (lim1 * lim1);
+      ddti = (dti - dtip1) / (li * li);
+
+      // add to force
+      F[NDIM * gi] += fb * (ddtim1 * nim1x + ddti * nix);
+      F[NDIM * gi + 1] += fb * (ddtim1 * nim1y + ddti * niy);
+
+      // update potential energy
+      U += 0.5 * kb * (dti * dti);
+      cellU[ci] += 0.5 * kb * (dti * dti);
+    }
+
+    // update old coordinates
+    rim2x = rim1x;
+    rim1x = rix;
+    rix = rip1x;
+
+    rim2y = rim1y;
+    rim1y = riy;
+    riy = rip1y;
+
+    // update old segment vectors
+    lim2x = lim1x;
+    lim2y = lim1y;
+
+    lim1x = lix;
+    lim1y = liy;
+
+    // update old preferred segment length
+    l0im1 = l0i;
+  }
+
+  // normalize per-cell stress by preferred cell area
+  for (int ci = 0; ci < NCELLS; ci++) {
+    for (int vi = 0; vi < nv[ci]; vi++) {
+      int gi = gindex(ci, vi);
+      fieldShapeStressCells[ci][0] += fieldShapeStress[gi][0];
+      fieldShapeStressCells[ci][1] += fieldShapeStress[gi][1];
+      fieldShapeStressCells[ci][2] += fieldShapeStress[gi][2];
+    }
+    // nondimensionalize the stress
+    fieldShapeStressCells[ci][0] *= rho0 / a0[ci];
+    fieldShapeStressCells[ci][1] *= rho0 / a0[ci];
+    fieldShapeStressCells[ci][2] *= rho0 / a0[ci];
+  }
+}
+
 void cell::repulsiveForceUpdateWithWalls() {
   double a, b, c, d;
   resetForcesAndEnergy();
@@ -118,6 +362,18 @@ void cell::attractiveForceUpdate() {
   resetForcesAndEnergy();
   shapeForces2D();
   vertexAttractiveForces2D_2();
+}
+
+void cell::attractiveForceUpdateWithCrawling() {
+  resetForcesAndEnergy();
+  shapeForces2D();
+  vertexAttractiveForces2D_2();
+  brownianCrawlingUpdate();
+}
+
+void cell::brownianCrawlingUpdate() {
+  // for each cell, protrude in direction of polarity
+  //  then modify polarity using a random number
 }
 
 void cell::attractiveForceUpdatePrint(double& forceX, double& forceY, double& energy) {
@@ -1382,7 +1638,6 @@ void cell::replacePolyWallWithDP(int numCellTypes) {
     vector<double> poly_y = poly_bd_y[tissueIt];
     for (int i = 0; i < poly_x.size(); i++) {
       polyPerimeter += sqrt(pow(poly_x[i] - poly_x[(i + 1) % poly_x.size()], 2) + pow(poly_y[i] - poly_y[(i + 1) % poly_y.size()], 2));
-      // cout << "polyPerimeter += " << sqrt(pow(poly_x[i]-poly_x[(i+1) % poly_x.size()],2) + pow(poly_y[i]-poly_y[(i+1) % poly_y.size()],2)) << '\n';
     }
     int numVerts = polyPerimeter / l0[0];
     int cellTypeIndex = numCellTypes - 1;
@@ -1392,7 +1647,13 @@ void cell::replacePolyWallWithDP(int numCellTypes) {
       dp_x.push_back(dp_coords[i]);
       dp_y.push_back(dp_coords[i + 1]);
     }
+    for (int i = 0; i < cellID.size(); i++) {
+      cout << "cellID[" << i << "] = " << cellID[i] << '\n';
+    }
     addDP(numVerts, dp_x, dp_y, cellTypeIndex, numCellTypes);
+    for (int i = 0; i < cellID.size(); i++) {
+      cout << "cellID[" << i << "] = " << cellID[i] << '\n';
+    }
 
     polyPerimeter = 0.0;
     dp_x = {};
@@ -1461,10 +1722,17 @@ void cell::addDP(int numVerts, vector<double>& dp_x, vector<double>& dp_y, int c
   // other variables
   // cellU, stresses, cij in main DPM class need to be resized
   cellU.resize(NCELLS);
-  fieldStress.resize(NVTOT, vector<double>(3));
+  // resize instead of push_back leads to exception, not sure why.
+  /*fieldStress.resize(NVTOT, vector<double>(3));
   fieldStressCells.resize(NCELLS, vector<double>(3));
   fieldShapeStress.resize(NVTOT, vector<double>(3));
-  fieldShapeStressCells.resize(NCELLS, vector<double>(3));
+  fieldShapeStressCells.resize(NCELLS, vector<double>(3));*/
+  for (int i = 0; i < numVerts; i++) {
+    fieldStress.push_back(vector<double>(3, 0.0));
+    fieldShapeStress.push_back(vector<double>(3, 0.0));
+  }
+  fieldStressCells.push_back(vector<double>(3, 0.0));
+  fieldShapeStressCells.push_back(vector<double>(3, 0.0));
   cij.resize(NCELLS * (NCELLS - 1) / 2);
 
   // cellID, cellTouchesLeft, cellTouchesRight in Cell class need to be resized, then I should be good
@@ -2436,6 +2704,94 @@ void cell::simulateDampedWithWalls(dpmMemFn forceCall, double B, double dt0, dou
   }
 }
 
+// for testing numerical stability
+void cell::vertexNVE(dpmMemFn forceCall, double T, double dt0, double duration, double printInterval) {
+  // local variables
+  int t, i;
+  double K, t0 = simclock;
+  double temp_simclock = simclock;
+
+  // set time step magnitude
+  setdt(dt0);
+  int NPRINTSKIP = printInterval / dt;
+
+  // initialize time keeper
+  simclock = 0.0;
+
+  // initialize velocities
+  drawVelocities2D(T);
+
+  // loop over time, print energy
+  while (simclock - t0 < duration) {
+    // VV VELOCITY UPDATE #1
+    for (i = 0; i < vertDOF; i++)
+      v[i] += 0.5 * dt * F[i];
+
+    // VV POSITION UPDATE
+    for (i = 0; i < vertDOF; i++) {
+      // update position
+      x[i] += dt * v[i];
+
+      // recenter in box
+      if (x[i] > L[i % NDIM] && pbc[i % NDIM])
+        x[i] -= L[i % NDIM];
+      else if (x[i] < 0 && pbc[i % NDIM])
+        x[i] += L[i % NDIM];
+    }
+
+    // FORCE UPDATE
+    CALL_MEMBER_FN(*this, forceCall)
+    ();
+
+    // VV VELOCITY UPDATE #2
+    for (i = 0; i < vertDOF; i++)
+      v[i] += 0.5 * F[i] * dt;
+
+    // update sim clock
+    simclock += dt;
+
+    // print to console and file
+    if (printInterval > dt) {
+      if (int((simclock - t0) / dt) % NPRINTSKIP == 0 &&
+          (simclock - temp_simclock) > printInterval / 2.0) {
+        temp_simclock = simclock;
+        // compute kinetic energy
+        K = vertexKineticEnergy();
+
+        // print to console
+        cout << endl
+             << endl;
+        cout << "===============================" << endl;
+        cout << "	D P M  						" << endl;
+        cout << " 			 					" << endl;
+        cout << "		N V E 					" << endl;
+        cout << "===============================" << endl;
+        cout << endl;
+        cout << "	** simclock - t0 / duration	= " << simclock - t0
+             << " / " << duration << endl;
+        cout << " **  dt   = " << setprecision(12) << dt << endl;
+        cout << "	** U 		= " << setprecision(12) << U << endl;
+        cout << "	** K 		= " << setprecision(12) << K << endl;
+        cout << "	** E 		= " << setprecision(12) << U + K
+             << endl;
+
+        // print to energy file
+        cout << "** printing energy" << endl;
+        enout << setw(w) << left << t;
+        enout << setw(wnum) << left << simclock;
+        enout << setw(wnum) << setprecision(12) << U;
+        enout << setw(wnum) << setprecision(12) << K;
+        enout << setw(wnum) << setprecision(12) << U + K;
+        enout << endl;
+
+        // print to configuration only if position file is open
+        if (posout.is_open())
+          printConfiguration2D();
+      }
+    }
+  }
+}
+
 void cell::dampedVertexNVE(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval) {
   // make sure velocities exist or are already initialized before calling this
   int i;
@@ -2458,15 +2814,13 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double B, double dt0, double dura
     for (i = 0; i < vertDOF; i++) {
       // update position
       x[i] += dt * v[i] + 0.5 * dt * dt * F[i];
-      // if (NCELLS == 20)
-      //   cout << "simclock = " << simclock << '\t' << "x[i] = " << x[i] << '\n';
-
       // recenter in box
       if (x[i] > L[i % NDIM] && pbc[i % NDIM])
         x[i] -= L[i % NDIM];
       else if (x[i] < 0 && pbc[i % NDIM])
         x[i] += L[i % NDIM];
     }
+
     // FORCE UPDATE
     std::vector<double> F_old = F;
     CALL_MEMBER_FN(*this, forceCall)

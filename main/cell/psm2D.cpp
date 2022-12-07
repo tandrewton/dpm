@@ -11,7 +11,7 @@
 // Compilation command:
 // g++ -O3 --std=c++11 -g -I src main/cell/psm2D.cpp src/dpm.cpp src/cell.cpp -o main/cell/psm2D.o
 // run command:
-// ./main/cell/psm2D.o   13   20 1.0 0.01  1    test
+// ./main/cell/psm2D.o   24   25 1.05 0.01  1    test
 //                     NCELLS NV  A0  att seed outFileStem
 
 #include <sstream>
@@ -25,14 +25,14 @@ const bool plotCompression = 0;     // whether or not to plot configuration duri
 const double dphi0 = 0.005;         // packing fraction increment
 const double ka = 1.0;              // area force spring constant (should be unit)
 const double kc = 1.0;              // interaction force spring constant (should be unit)
-const double kb = 0.0;              // bending energy spring constant (should be zero)
+const double kb = 1.0;              // bending energy spring constant (should be zero)
 const double kl = 1.0;              // segment length interaction force (should be unit)
 const double boxLengthScale = 2.5;  // neighbor list box size in units of initial l0
-const double phi0 = 0.95;           // initial packing fraction
-const double phiMax = 0.8;
+const double phi0 = 0.7;            // initial packing fraction
+const double phiMax = 0.6;
 const double smallfrac = 1.0;  // fraction of small particles
 const double sizeratio = 1.0;  // size ratio between small and large particles
-const double dt0 = 1e-2;       // initial magnitude of time step in units of MD time
+const double dt0 = 0.01;       // initial magnitude of time step in units of MD time
 const double Ptol = 1e-8;
 const double Ftol = 1e-12;
 const double att_range = 0.3;
@@ -95,6 +95,7 @@ int main(int argc, char const* argv[]) {
   dpmMemFn repulsiveForceUpdate = &dpm::repulsiveForceUpdate;
   dpmMemFn repulsiveForceUpdateWithWalls = static_cast<void (dpm::*)()>(&cell::repulsiveForceUpdateWithWalls);
   dpmMemFn attractiveForceUpdate = static_cast<void (dpm::*)()>(&cell::attractiveForceUpdate);
+  dpmMemFn attractiveSmoothForceUpdate = static_cast<void (dpm::*)()>(&cell::attractiveSmoothForceUpdate);
   dpmMemFn repulsivePolarityForceUpdate = static_cast<void (dpm::*)()>(&cell::repulsiveWithPolarityForceUpdate);
   dpmMemFn attractivePolarityForceUpdate = static_cast<void (dpm::*)()>(&cell::attractiveWithPolarityForceUpdate);
   dpmMemFn repulsiveForceUpdateWithPolyWalls = static_cast<void (dpm::*)()>(&cell::repulsiveForceUpdateWithPolyWall);
@@ -128,21 +129,23 @@ int main(int argc, char const* argv[]) {
   cell2D.printConfiguration2D();
 
   bool wallsBool = true;
-  double relaxTimeShort = 10.0;
+  double relaxTimeShort = 5.0;
   double relaxTime = 100.0;
-  double runTime = 300.0;
+  double runTime = 100.0;
   double B = 1.0;
   std::vector<double> savedPositions;
 
   // dpmMemFn customForceUpdate = repulsivePolarityForceUpdate;
   // dpmMemFn customForceUpdate = attractivePolarityForceUpdate;
   dpmMemFn customForceUpdate = attractiveForceUpdate;
-  cell2D.dampedVertexNVE(attractiveForceUpdateWithPolyWalls, B, dt0, relaxTime, relaxTime / 5);
+  cell2D.dampedVertexNVE(attractiveForceUpdateWithPolyWalls, B, dt0, relaxTimeShort, relaxTimeShort / 2);
   cell2D.replacePolyWallWithDP(numCellTypes);
-  cell2D.dampedVertexNVE(customForceUpdate, B, dt0, relaxTime, relaxTime / 5);
+  cout << "after replacePolyWallWithDP\n";
+  // cell2D.dampedVertexNVE(customForceUpdate, B, dt0, relaxTime, relaxTime / 15);
+  cell2D.vertexNVE(customForceUpdate, 1e-1, dt0, runTime, 1.0);
 
-  cell2D.saveConfiguration(savedPositions);
-  cell2D.loadConfiguration(savedPositions);
+  // cell2D.saveConfiguration(savedPositions);
+  // cell2D.loadConfiguration(savedPositions);
 
   /*cell2D.dampedVertexNVE(customForceUpdate, B, dt0, relaxTimeShort, relaxTimeShort/5);
   cell2D.loadConfiguration(savedPositions);
