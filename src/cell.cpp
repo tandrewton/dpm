@@ -1157,7 +1157,7 @@ void cell::vertexAttractiveForces2D_2() {
   // values. (warning: probably won't work with bending. Francesco says it should be fine though, haven't tested.) local variables
   int ci, cj, gi, gj, vi, vj, bi, bj, pi, pj;
   double sij, rij, dx, dy, rho0;
-  double ftmp, fx, fy;
+  double ftmp, utmp, fx, fy;
   double cellTypeIntModifier = 1.0, cellTypeIntModifier_repulsion = 1.0;
 
   // attraction shell parameters
@@ -1233,25 +1233,25 @@ void cell::vertexAttractiveForces2D_2() {
                 // repulsions
                 if (rij < sij) {
                   ftmp = cellTypeIntModifier_repulsion * kc * (1 - (rij / sij)) * (rho0 / sij);
-                  cellU[ci] += 0.5 * cellTypeIntModifier_repulsion * kc * pow((1 - (rij / sij)), 2.0);
+                  utmp = 0.5 * cellTypeIntModifier_repulsion * kc * pow((1 - (rij / sij)), 2.0);
+                  U += utmp;
+                  cellU[ci] += utmp;
                 } else
                   ftmp = 0;
               } else if (rij > cutij) {
                 // force scale
                 ftmp = kint * cellTypeIntModifier * (xij - 1.0 - l2) / sij;
-
-                // increase potential energy
-                U += -0.5 * cellTypeIntModifier * kint * pow(1.0 + l2 - xij, 2.0);
-                cellU[ci] += -0.5 * cellTypeIntModifier * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
-                cellU[cj] += -0.5 * cellTypeIntModifier * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
+                utmp = -0.5 * cellTypeIntModifier * kint * pow(1.0 + l2 - xij, 2.0);
+                U += utmp;
+                cellU[ci] += utmp / 2.0;
+                cellU[cj] += utmp / 2.0;
               } else {
                 // force scale
                 ftmp = cellTypeIntModifier * kc * (1 - xij) / sij;
-
-                // increase potential energy
-                U += 0.5 * cellTypeIntModifier * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
-                cellU[ci] += 0.5 * cellTypeIntModifier * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
-                cellU[cj] += 0.5 * cellTypeIntModifier * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
+                utmp = 0.5 * cellTypeIntModifier * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
+                U += utmp;
+                cellU[ci] += utmp / 2.0;
+                cellU[cj] += utmp / 2.0;
               }
 
               // force elements
@@ -1343,25 +1343,25 @@ void cell::vertexAttractiveForces2D_2() {
                   // repulsions
                   if (rij < sij) {
                     ftmp = cellTypeIntModifier_repulsion * kc * (1 - (rij / sij)) * (rho0 / sij);
-                    cellU[ci] += 0.5 * cellTypeIntModifier_repulsion * kc * pow((1 - (rij / sij)), 2.0);
+                    utmp = 0.5 * cellTypeIntModifier_repulsion * kc * pow((1 - (rij / sij)), 2.0);
+                    U += utmp;
+                    cellU[ci] += utmp;
                   } else
                     ftmp = 0;
                 } else if (rij > cutij) {
                   // force scale
-                  ftmp = cellTypeIntModifier * kint * (xij - 1.0 - l2) / sij;
-
-                  // increase potential energy
-                  U += -0.5 * cellTypeIntModifier * kint * pow(1.0 + l2 - xij, 2.0);
-                  cellU[ci] += -0.5 * cellTypeIntModifier * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
-                  cellU[cj] += -0.5 * cellTypeIntModifier * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
+                  ftmp = kint * cellTypeIntModifier * (xij - 1.0 - l2) / sij;
+                  utmp = -0.5 * cellTypeIntModifier * kint * pow(1.0 + l2 - xij, 2.0);
+                  U += utmp;
+                  cellU[ci] += utmp / 2.0;
+                  cellU[cj] += utmp / 2.0;
                 } else {
                   // force scale
                   ftmp = cellTypeIntModifier * kc * (1 - xij) / sij;
-
-                  // increase potential energy
-                  U += 0.5 * cellTypeIntModifier * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
-                  cellU[ci] += 0.5 * cellTypeIntModifier * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
-                  cellU[cj] += 0.5 * cellTypeIntModifier * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
+                  utmp = 0.5 * cellTypeIntModifier * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
+                  U += utmp;
+                  cellU[ci] += utmp / 2.0;
+                  cellU[cj] += utmp / 2.0;
                 }
 
                 // force elements
@@ -1647,13 +1647,7 @@ void cell::replacePolyWallWithDP(int numCellTypes) {
       dp_x.push_back(dp_coords[i]);
       dp_y.push_back(dp_coords[i + 1]);
     }
-    for (int i = 0; i < cellID.size(); i++) {
-      cout << "cellID[" << i << "] = " << cellID[i] << '\n';
-    }
     addDP(numVerts, dp_x, dp_y, cellTypeIndex, numCellTypes);
-    for (int i = 0; i < cellID.size(); i++) {
-      cout << "cellID[" << i << "] = " << cellID[i] << '\n';
-    }
 
     polyPerimeter = 0.0;
     dp_x = {};

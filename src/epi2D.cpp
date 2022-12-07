@@ -310,7 +310,7 @@ void epi2D::vertexAttractiveForces2D_2() {
   // values. (warning: probably won't work with bending.) local variables
   int ci, cj, gi, gj, vi, vj, bi, bj, pi, pj;
   double sij, rij, dx, dy, rho0;
-  double ftmp, fx, fy;
+  double ftmp, utmp, fx, fy;
 
   // attraction shell parameters
   double shellij, cutij, xij, kint = (kc * l1) / (l2 - l1);
@@ -381,26 +381,25 @@ void epi2D::vertexAttractiveForces2D_2() {
                 // repulsions
                 if (rij < sij) {
                   ftmp = kc * (1 - (rij / sij)) * (1 / sij);
-                  cellU[ci] += 0.5 * kc * pow((1 - (rij / sij)), 2.0);
-                  U += 0.5 * kc * pow((1 - (rij / sij)), 2.0);
+                  utmp = 0.5 * kc * pow((1 - (rij / sij)), 2.0);
+                  cellU[ci] += utmp;
+                  U += utmp;
                 } else
                   ftmp = 0;
               } else if (rij > cutij) {
                 // force scale
                 ftmp = kint * (xij - 1.0 - l2) / sij;
-
-                // increase potential energy
-                U += -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
-                cellU[ci] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
-                cellU[cj] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
+                utmp = -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
+                U += utmp;
+                cellU[ci] += utmp / 2.0;
+                cellU[cj] += utmp / 2.0;
               } else {
                 // force scale
                 ftmp = kc * (1 - xij) / sij;
-
-                // increase potential energy
-                U += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
-                cellU[ci] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
-                cellU[cj] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
+                utmp = 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
+                U += utmp;
+                cellU[ci] += utmp / 2.0;
+                cellU[cj] += utmp / 2.0;
               }
 
               // force elements
@@ -505,29 +504,28 @@ void epi2D::vertexAttractiveForces2D_2() {
                 // pick force based on vertex-vertex distance
                 if (ci == cj) {
                   // if vertices (not neighbors) are in same cell, compute
-                  // repulsions if within contact distance
+                  // repulsions
                   if (rij < sij) {
                     ftmp = kc * (1 - (rij / sij)) * (1 / sij);
-                    cellU[ci] += 0.5 * kc * pow((1 - (rij / sij)), 2.0);
-                    U += 0.5 * kc * pow((1 - (rij / sij)), 2.0);
+                    utmp = 0.5 * kc * pow((1 - (rij / sij)), 2.0);
+                    cellU[ci] += utmp;
+                    U += utmp;
                   } else
                     ftmp = 0;
                 } else if (rij > cutij) {
                   // force scale
                   ftmp = kint * (xij - 1.0 - l2) / sij;
-
-                  // increase potential energy
-                  U += -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
-                  cellU[ci] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
-                  cellU[cj] += -0.5 * kint * pow(1.0 + l2 - xij, 2.0) / 2.0;
+                  utmp = -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
+                  U += utmp;
+                  cellU[ci] += utmp / 2.0;
+                  cellU[cj] += utmp / 2.0;
                 } else {
                   // force scale
                   ftmp = kc * (1 - xij) / sij;
-
-                  // increase potential energy
-                  U += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
-                  cellU[ci] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
-                  cellU[cj] += 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2) / 2.0;
+                  utmp = 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
+                  U += utmp;
+                  cellU[ci] += utmp / 2.0;
+                  cellU[cj] += utmp / 2.0;
                 }
 
                 // force elements

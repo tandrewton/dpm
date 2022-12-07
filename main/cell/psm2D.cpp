@@ -25,7 +25,7 @@ const bool plotCompression = 0;     // whether or not to plot configuration duri
 const double dphi0 = 0.005;         // packing fraction increment
 const double ka = 1.0;              // area force spring constant (should be unit)
 const double kc = 1.0;              // interaction force spring constant (should be unit)
-const double kb = 1.0;              // bending energy spring constant (should be zero)
+const double kb = 0.0;              // bending energy spring constant (should be zero)
 const double kl = 1.0;              // segment length interaction force (should be unit)
 const double boxLengthScale = 2.5;  // neighbor list box size in units of initial l0
 const double phi0 = 0.7;            // initial packing fraction
@@ -142,7 +142,7 @@ int main(int argc, char const* argv[]) {
   cell2D.replacePolyWallWithDP(numCellTypes);
   cout << "after replacePolyWallWithDP\n";
   // cell2D.dampedVertexNVE(customForceUpdate, B, dt0, relaxTime, relaxTime / 15);
-  cell2D.vertexNVE(customForceUpdate, 1e-1, dt0, runTime, 1.0);
+  cell2D.vertexNVE(customForceUpdate, 1e-2, dt0, runTime, 5.0);
 
   // cell2D.saveConfiguration(savedPositions);
   // cell2D.loadConfiguration(savedPositions);
