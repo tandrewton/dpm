@@ -3310,7 +3310,7 @@ double epi2D::calculateWoundArea(double& woundPointX, double& woundPointY, bool 
     }
   }
 
-  cout << "inside calculateWoundArea, recording=" << recordOldWoundPoints << ", sum = " << sum << ", oldWoundLocations stored " << oldWoundLocations.size() << " locations\n";
+  // cout << "inside calculateWoundArea, recording=" << recordOldWoundPoints << ", sum = " << sum << ", oldWoundLocations stored " << oldWoundLocations.size() << " locations\n";
 
   currentWoundIndices.clear();
   bool iAndjAreInDebug = false;

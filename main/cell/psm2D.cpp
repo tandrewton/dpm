@@ -11,8 +11,8 @@
 // Compilation command:
 // g++ -O3 --std=c++11 -g -I src main/cell/psm2D.cpp src/dpm.cpp src/cell.cpp -o main/cell/psm2D.o
 // run command:
-// ./main/cell/psm2D.o   24   25 1.05 0.01  1    test
-//                     NCELLS NV  A0  att seed outFileStem
+// ./main/cell/psm2D.o   24   25 1.05 0.01  0    1    test
+//                     NCELLS NV  A0  att  sm  seed outFileStem
 
 #include <sstream>
 #include "cell.h"
@@ -25,7 +25,7 @@ const bool plotCompression = 0;     // whether or not to plot configuration duri
 const double dphi0 = 0.005;         // packing fraction increment
 const double ka = 1.0;              // area force spring constant (should be unit)
 const double kc = 1.0;              // interaction force spring constant (should be unit)
-const double kb = 0.0;              // bending energy spring constant (should be zero)
+const double kb = 0.01;             // bending energy spring constant (should be zero)
 const double kl = 1.0;              // segment length interaction force (should be unit)
 const double boxLengthScale = 2.5;  // neighbor list box size in units of initial l0
 const double phi0 = 0.7;            // initial packing fraction
@@ -47,8 +47,9 @@ int main(int argc, char const* argv[]) {
   string nv_str = argv[2];
   string calA0_str = argv[3];
   string att_str = argv[4];
-  string seed_str = argv[5];
-  string outFileStem = argv[6];
+  string sm_str = argv[5];
+  string seed_str = argv[6];
+  string outFileStem = argv[7];
 
   string positionFile = outFileStem + ".pos";
 
@@ -57,6 +58,7 @@ int main(int argc, char const* argv[]) {
   stringstream nvss(nv_str);
   stringstream calA0ss(calA0_str);
   stringstream attss(att_str);
+  stringstream smss(sm_str);
   stringstream seedss(seed_str);
 
   // read into data
@@ -64,6 +66,7 @@ int main(int argc, char const* argv[]) {
   nvss >> nv;
   calA0ss >> calA0;
   attss >> att;
+  smss >> sm_str;
   seedss >> seed;
 
   int numCellTypes = 2;  // 1 interior cell type (PSM) and 1 exterior cell type (boundary)
@@ -75,6 +78,7 @@ int main(int argc, char const* argv[]) {
   cell2D.setkl(kl);
   cell2D.setkb(kb);
   cell2D.setkc(kc);
+  cout << "ka, kl, kb, kc = " << ka << '\t' << kl << '\t' << kb << '\t' << kc << '\n';
 
   // specify non-periodic boundaries
   cell2D.setpbc(0, false);
@@ -131,18 +135,23 @@ int main(int argc, char const* argv[]) {
   bool wallsBool = true;
   double relaxTimeShort = 5.0;
   double relaxTime = 100.0;
-  double runTime = 100.0;
+  double runTime = 2000.0;
   double B = 1.0;
   std::vector<double> savedPositions;
 
   // dpmMemFn customForceUpdate = repulsivePolarityForceUpdate;
   // dpmMemFn customForceUpdate = attractivePolarityForceUpdate;
-  dpmMemFn customForceUpdate = attractiveForceUpdate;
+  dpmMemFn customForceUpdate;
+  if (isSmooth)
+    customForceUpdate = attractiveSmoothForceUpdate;
+  else
+    customForceUpdate = attractiveForceUpdate;
+
   cell2D.dampedVertexNVE(attractiveForceUpdateWithPolyWalls, B, dt0, relaxTimeShort, relaxTimeShort / 2);
   cell2D.replacePolyWallWithDP(numCellTypes);
   cout << "after replacePolyWallWithDP\n";
   // cell2D.dampedVertexNVE(customForceUpdate, B, dt0, relaxTime, relaxTime / 15);
-  cell2D.vertexNVE(customForceUpdate, 1e-2, dt0, runTime, 5.0);
+  cell2D.vertexNVE(customForceUpdate, 1e-2, dt0, runTime, runTime / 50.0);
 
   // cell2D.saveConfiguration(savedPositions);
   // cell2D.loadConfiguration(savedPositions);

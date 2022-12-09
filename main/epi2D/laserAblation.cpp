@@ -79,7 +79,8 @@ bool isPbcOn = false;
 int main(int argc, char const* argv[]) {
   // local variables to be read in
   int NCELLS, nsmall, seed, gi, ndelete;
-  double calA0, kl, ka = 1.0, ka_for_equilibration = 2.0, kb = 0.0, phiMin, phiMax, att, B, Dr0, time_dbl;
+  double calA0, kl, ka = 1.0, kb = 0.01, phiMin, phiMax, att, B, Dr0, time_dbl;
+  double ka_for_equilibration = 2.0, kb_for_equilibration = 0.0;
   bool boolCIL, boolBound, boolSmooth, purseStringOn = true;
   double strainRate_ps, k_ps, k_LP, tau_LP, deltaSq, maxProtrusionLength, shapeRelaxationRate;
 
@@ -204,7 +205,7 @@ int main(int argc, char const* argv[]) {
   // set spring constants
   epithelial.setka(ka_for_equilibration);
   epithelial.setkl(kl);
-  epithelial.setkb(kb);
+  epithelial.setkb(kb_for_equilibration);
   epithelial.setkc(kc);
   epithelial.setShapeRelaxationRate(shapeRelaxationRate);
 
@@ -264,7 +265,9 @@ int main(int argc, char const* argv[]) {
   epithelial.moveSimulationToPositiveCoordinates();  // shift box so all coordinates are positive
   epithelial.printConfiguration2D();
 
+  // after FIRE, restore spring constants to specified value
   epithelial.setka(ka);
+  epithelial.setkb(kb);
 
   // after compress, turn on damped NVE
   double T = 1e-10;
