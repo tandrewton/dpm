@@ -31,7 +31,7 @@ Dr0="0.5";
 boolCIL="0";
 Duration="500";
 
-numSeeds = 1;
+numSeeds = 10;
 startSeed = 1;
 max_seed = numSeeds;
 set(0,'DefaultFigureWindowStyle','docked')
@@ -44,8 +44,8 @@ subdir_pipeline = pc_dir + "pipeline/cells/"+runType+"/";
 %output is location of results of this postprocessing
 subdir_output = pc_dir + "output/cells/"+runType+"/";
 
-calA0_arr = ["1.15"];
-att_arr = ["0.04" "0.10" "0.15" "0.20" "0.25" "0.29"];
+calA0_arr = ["1.05"];
+att_arr = ["0.15" "0.20" "0.25" "0.29"];
 sm_arr = ["0" "1"];
 k_a_arr = ["0.5" "1.0" "2.0"];
 
@@ -100,7 +100,10 @@ for shapeii=1:length(calA0_arr)
                 timeInnerShapes = zeros(0,1);
                 timestep = 0; % determine on the fly to pad with zeros
                 innerShapeArr = []; % fill with meanInnerShape and dynamically pad rows with nans
+                healingTime = 0;
+                rosetteNumber = 0;
                 for m=1:numSeeds
+                %for m=1:1
                     % construct filenames to find the right simulation
                     bd = "0";
                     seed = m;
@@ -157,6 +160,9 @@ for shapeii=1:length(calA0_arr)
                     % adjust lengths
 
                     voidArea(:,2) = voidArea(:,2) + voidArea_sd(:,2);
+                    healingTime = healingTime + woundProperties_sd(1);
+                    rosetteNumber = rosetteNumber + woundProperties_sd(2);
+                    %voidArea = voidArea + voidArea_sd;
                     %meanInnerShapes = meanInnerShapes + meanInnerShapes_sd;
                     sizeInnerShapeArr = size(innerShapeArr);
                     differenceSize = sizeInnerShapeArr(2) - length(meanInnerShapes_sd);
@@ -165,10 +171,12 @@ for shapeii=1:length(calA0_arr)
                     elseif (differenceSize > 0)
                         meanInnerShapes_sd = padarray(meanInnerShapes_sd, [0 differenecSize], nan, 'post');
                     end
-                    innerShapeArr(end+1, :) = meanInnerShapes_sd;
+                     (end+1, :) = meanInnerShapes_sd;
                 end
 
-                voidArea = voidArea / numSeeds;
+                voidArea(:,2) = voidArea(:,2) / numSeeds;
+                healingTime = healingTime / numSeeds;
+                rosetteNumber = rosetteNumber / numSeeds;
                 %meanInnerShapes = meanInnerShapes / numSeeds;
                 meanInnerShapes = nanmean(innerShapeArr, 1);
 
@@ -213,13 +221,13 @@ for shapeii=1:length(calA0_arr)
                 if (k == 1) % bumpy friction heatmaps
                     heatmap1(i,j) = max(meanInnerShapes)/min(meanInnerShapes);
                     %heatmap2(i,j) = max(innerShapes_sd(:,1)); 
-                    heatmap2(i,j) = woundProperties_sd(1); 
-                    heatmap3(i,j) = woundProperties_sd(2);
+                    heatmap2(i,j) = healingTime; 
+                    heatmap3(i,j) = rosetteNumber;
                 elseif (k == 2) % smooth friction heatmaps
                     heatmap4(i,j) = max(meanInnerShapes)/min(meanInnerShapes);
                     %heatmap5(i,j) = max(innerShapes_sd(:,1));
-                    heatmap5(i,j) = woundProperties_sd(1); 
-                    heatmap6(i,j) = woundProperties_sd(2);
+                    heatmap5(i,j) = healingTime; 
+                    heatmap6(i,j) = rosetteNumber;
                 end
             end
         end

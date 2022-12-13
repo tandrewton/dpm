@@ -40,6 +40,10 @@ class cell : public dpm {
   std::vector<bool> cellTouchesWallsLeft;
   std::vector<bool> cellTouchesWallsRight;
 
+  // active brownian variables and parameters
+  std::vector<double> psi;  // directors
+  double v0_ABP, tau_ABP;   // velocity parameter, rotation time constant
+
  public:
   cell(int n, double att1, double att2, int seed, int numCellTypes)
       : dpm(n, seed) {
@@ -60,6 +64,9 @@ class cell : public dpm {
     cellTypeIntMat = onesCellIDxCellID;  // all interactions start with multiplicative modifier 1.0
     cellTouchesWallsLeft = falseNCELLS;
     cellTouchesWallsRight = falseNCELLS;
+    v0_ABP = 0.0;
+    tau_ABP = 1.0;
+    psi = zerosNCELLS;
     cout << "Initializing epi2D object, l1 = " << l1 << ", l2 = " << l2 << '\n';
   }
 
@@ -141,7 +148,12 @@ class cell : public dpm {
   void wallForces(bool left, bool bottom, bool right, bool top, double& forceLeft, double& forceBottom, double& forceRight, double& forceTop, double appliedUniaxialPressure = 0.0);
   void wallCrawlingForces();
   void cellPolarityForces(int ci, double k_polarity, std::string direction = "y");
+  void setActiveBrownianParameters(double v0, double tau) {
+    v0_ABP = v0;
+    tau_ABP = tau;
+  }
   void brownianCrawlingUpdate();
+  void directorDiffusion();
 
   // File openers
   void openEnergyObject(std::string& str) {

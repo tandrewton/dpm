@@ -11,8 +11,8 @@
 // Compilation command:
 // g++ -O3 --std=c++11 -g -I src main/cell/psm2D.cpp src/dpm.cpp src/cell.cpp -o main/cell/psm2D.o
 // run command:
-// ./main/cell/psm2D.o   24   25 1.05 0.01  0    1    test
-//                     NCELLS NV  A0  att  sm  seed outFileStem
+// ./main/cell/psm2D.o   24   25 1.05 0.01 0.01  0.01    0    1    test
+//                     NCELLS NV  A0  att   v0  tau_abp sm  seed outFileStem
 
 #include <sstream>
 #include "cell.h"
@@ -39,17 +39,20 @@ const double att_range = 0.3;
 
 int main(int argc, char const* argv[]) {
   // local variables to be read in
-  int NCELLS, nv, seed;
+  int NCELLS, nv, seed, sm;
   double calA0, att;
+  double v0_abp, tau_abp;
 
   // read in parameters from command line input
   string NCELLS_str = argv[1];
   string nv_str = argv[2];
   string calA0_str = argv[3];
   string att_str = argv[4];
-  string sm_str = argv[5];
-  string seed_str = argv[6];
-  string outFileStem = argv[7];
+  string v0_str = argv[5];
+  string tau_abp_str = argv[6];
+  string sm_str = argv[7];
+  string seed_str = argv[8];
+  string outFileStem = argv[9];
 
   string positionFile = outFileStem + ".pos";
 
@@ -58,6 +61,8 @@ int main(int argc, char const* argv[]) {
   stringstream nvss(nv_str);
   stringstream calA0ss(calA0_str);
   stringstream attss(att_str);
+  stringstream v0ss(v0_str);
+  stringstream tau_abpss(tau_abp_str);
   stringstream smss(sm_str);
   stringstream seedss(seed_str);
 
@@ -66,7 +71,9 @@ int main(int argc, char const* argv[]) {
   nvss >> nv;
   calA0ss >> calA0;
   attss >> att;
-  smss >> sm_str;
+  v0ss >> v0_abp;
+  tau_abpss >> tau_abp;
+  smss >> sm;
   seedss >> seed;
 
   int numCellTypes = 2;  // 1 interior cell type (PSM) and 1 exterior cell type (boundary)
@@ -99,6 +106,7 @@ int main(int argc, char const* argv[]) {
   dpmMemFn repulsiveForceUpdate = &dpm::repulsiveForceUpdate;
   dpmMemFn repulsiveForceUpdateWithWalls = static_cast<void (dpm::*)()>(&cell::repulsiveForceUpdateWithWalls);
   dpmMemFn attractiveForceUpdate = static_cast<void (dpm::*)()>(&cell::attractiveForceUpdate);
+  dpmMemFn attractionWithActiveBrownianUpdate = static_cast<void (dpm::*)()>(&cell::attractiveForceUpdateWithCrawling);
   dpmMemFn attractiveSmoothForceUpdate = static_cast<void (dpm::*)()>(&cell::attractiveSmoothForceUpdate);
   dpmMemFn repulsivePolarityForceUpdate = static_cast<void (dpm::*)()>(&cell::repulsiveWithPolarityForceUpdate);
   dpmMemFn attractivePolarityForceUpdate = static_cast<void (dpm::*)()>(&cell::attractiveWithPolarityForceUpdate);
@@ -142,7 +150,7 @@ int main(int argc, char const* argv[]) {
   // dpmMemFn customForceUpdate = repulsivePolarityForceUpdate;
   // dpmMemFn customForceUpdate = attractivePolarityForceUpdate;
   dpmMemFn customForceUpdate;
-  if (isSmooth)
+  if (sm)
     customForceUpdate = attractiveSmoothForceUpdate;
   else
     customForceUpdate = attractiveForceUpdate;

@@ -271,8 +271,8 @@ int main(int argc, char const* argv[]) {
 
   // after compress, turn on damped NVE
   double T = 1e-10;
-  double relaxTime = 10.0;
-  assert(relaxTime <= 10.0);  // if relaxTime > 10.0, then dampedNP0 will run over the hardcoded limit. Could pass a parameter to dampedNP0 to tell it how long to wait, or just hardcode for now.
+  double relaxTime = 25.0;
+  // assert(relaxTime <= 10.0);  // if relaxTime > 10.0, then dampedNP0 will run over the hardcoded limit. Could pass a parameter to dampedNP0 to tell it how long to wait, or just hardcode for now.
   double printInterval = relaxTime / 2.0;
   double runTime = 25.0;
   epithelial.drawVelocities2D(T);

@@ -372,8 +372,34 @@ void cell::attractiveForceUpdateWithCrawling() {
 }
 
 void cell::brownianCrawlingUpdate() {
-  // for each cell, protrude in direction of polarity
-  //  then modify polarity using a random number
+  int gi;
+  // propel at constant speed v_0
+  // v_0 should have a force scale comparable to the shape energy? or other energy scale. check that and make v0_ABP scale with one of the spring constants
+  for (int ci = 0; ci < NCELLS; ci++) {
+    double director = psi[ci];
+    for (int vi = 0; vi < nv[ci]; vi++) {
+      gi = gindex(ci, vi);
+      F[gi * NDIM] += v0_ABP * cos(director);
+      F[gi * NDIM + 1] += v0_ABP * sin(director);
+    }
+  }
+
+  // shake up the polarities
+  directorDiffusion();
+}
+
+void cell::directorDiffusion() {
+  double r1, r2, grv;
+  double Dr0 = 1 / tau_ABP;
+  for (int ci = 0; ci < NCELLS; ci++) {
+    // propagate diffusion of directors psi
+    r1 = drand48();
+    r2 = drand48();
+    grv = sqrt(-2.0 * log(r1)) * cos(2.0 * PI * r2);
+    // if flag is present, do not diffuse.
+    psi[ci] += sqrt(dt * 2.0 * Dr0) * grv;
+    psi[ci] -= 2 * PI * round(psi[ci] / (2 * PI));
+  }
 }
 
 void cell::attractiveForceUpdatePrint(double& forceX, double& forceY, double& energy) {

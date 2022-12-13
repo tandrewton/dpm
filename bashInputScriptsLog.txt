@@ -243,6 +243,7 @@ module load dSQ
 # testing deformability, adhesion, smoothness, k_a for PS
 #bd0 P
 #!/bin/bash
+numSeeds=10
 rm joblist_PS.txt
 for shape in 1.05 1.10 1.15
 do
@@ -252,7 +253,7 @@ do
     do
       for sm in 0 1
       do
-        echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 $shape 0.94 0.85 1.0 $ka $att  0.005 4.0 4.0 4.0 1.0 0.0 1.0 0.5 0 0 $sm 500 pi_ohern,day,scavenge 0-23:00:00 1 1 >> joblist_PS.txt
+        echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 $shape 0.94 0.85 1.0 $ka $att  0.005 4.0 4.0 4.0 1.0 0.0 1.0 0.5 0 0 $sm 500 pi_ohern,day,scavenge 0-23:00:00 $numSeeds 1 >> joblist_PS.txt
       done
     done
   done

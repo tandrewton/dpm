@@ -32,8 +32,8 @@ end
 
 shape_arr = ["1.05"];
 k_a_arr = ["1.0"];
-sm_arr = ["1"];
-att_arr = ["0.04"];
+sm_arr = ["0"];
+att_arr = ["0.10"];
 for i=1:length(shape_arr)
   for j=1:length(k_a_arr)
     for k=1:length(sm_arr)

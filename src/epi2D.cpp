@@ -1649,7 +1649,7 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duratio
 }
 
 // currently, dampedNP0 is my way of coding a simulation without boundaries, i.e. 0 pressure simulation
-void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, int purseStringOn) {
+void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, int purseStringOn, double relaxTime) {
   // make sure velocities exist or are already initialized before calling this
   // assuming zero temperature - ignore thermostat (not implemented)
   int i;
@@ -1673,23 +1673,6 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
     initialPreferredPerimeter += l0[i];
   }
 
-  /*for (int ci = 0; ci < NCELLS; ci++) {
-    // if ci is an initial wound cell, record it in the first row. if, record it in the second row.
-    std::vector<int> firstRow, secondRow;
-    if (std::find(initialWoundCellIndices.begin(), initialWoundCellIndices.end(), ci) != initialWoundCellIndices.end())
-      firstRow.push_back(ci);
-    else
-      secondRow.push_back(ci);
-
-    for (auto i : firstRow)
-      cellIDout << i << '\t';
-    cellIDout << '\n';
-
-    for (auto i : secondRow)
-      cellIDout << i << '\t';
-    cellIDout << '\n';
-  }*/
-
   // loop over time, print energy
   while (simclock - t0 < duration) {
     // VV POSITION UPDATE
@@ -1710,7 +1693,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
     CALL_MEMBER_FN(*this, forceCall)
     ();  // calls main force routine
 
-    if (simclock - t0 > 10 && purseStringOn == 1) {  // purseStringOn refers to whether it's been initialized, not its parameters. so dsq = 0 has a nonfunctional pursestring, but still has purseStringOn = 1
+    if (simclock - t0 > relaxTime && purseStringOn == 1) {  // purseStringOn refers to whether it's been initialized, not its parameters. so dsq = 0 has a nonfunctional pursestring, but still has purseStringOn = 1
       if (psContacts.size() == 0 && std::isnan(woundArea)) {
         cout << "inside psContacts.size() == 0 and woundArea == NAN case, which should only occur once!\n";
         getWoundVertices(nthLargestCluster);
