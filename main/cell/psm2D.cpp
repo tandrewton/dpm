@@ -13,19 +13,19 @@
 // run command:
 
 // ./main/cell/psm2D.o   24   25 1.05 0.05 0.1  1.0    0    1    test
-// ./main/cell/psm2D.o   24   25 1.05 0.1 0.1  1.0    0    1    test
+// ./main/cell/psm2D.o   24   25 1.05 0.1  0.1  1.0    0    1    test
 // ./main/cell/psm2D.o   24   25 1.05 0.15 0.1  1.0    0    1    test
-// ./main/cell/psm2D.o   24   25 1.05 0.2 0.1  1.0    0    1    test
+// ./main/cell/psm2D.o   24   25 1.05 0.2  0.1  1.0    0    1    test
 
 // ./main/cell/psm2D.o   24   25 1.05 0.05 0.5  1.0    0    1    test
-// ./main/cell/psm2D.o   24   25 1.05 0.1 0.5  1.0    0    1    test
+// ./main/cell/psm2D.o   24   25 1.05 0.1  0.5  1.0    0    1    test
 // ./main/cell/psm2D.o   24   25 1.05 0.15 0.5  1.0    0    1    test
-// ./main/cell/psm2D.o   24   25 1.05 0.2 0.5  1.0    0    1    test
+// ./main/cell/psm2D.o   24   25 1.05 0.2  0.5  1.0    0    1    test
 
 // ./main/cell/psm2D.o   24   25 1.05 0.05 1.0  1.0    0    1    test
-// ./main/cell/psm2D.o   24   25 1.05 0.1 1.0  1.0    0    1    test
+// ./main/cell/psm2D.o   24   25 1.05 0.1  1.0  1.0    0    1    test
 // ./main/cell/psm2D.o   24   25 1.05 0.15 1.0  1.0    0    1    test
-// ./main/cell/psm2D.o   24   25 1.05 0.2 1.0  1.0    0    1    test
+// ./main/cell/psm2D.o   24   25 1.05 0.2  1.0  1.0    0    1    test
 //                     NCELLS NV  A0  att   v0  tau_abp sm  seed outFileStem
 
 #include <sstream>
