@@ -46,9 +46,6 @@ mkdir(subdir_output);
 
 %txt = 'N = '+N+', NV = '+NV+', calA_o='+calA+', att='+att+', B='+B;
 txt='test';
-load("polyBoundary.txt"); % load boundaries of polygon walls
-load("initPosSP.txt");
-load("initPosSP2.txt");
 
 fnum = 1;
 figure(13), clf, hold on, box on;
@@ -63,6 +60,7 @@ for seed = startSeed:max_seed
         nvestr = pc_dir+'test.pos';
         energystr = pc_dir+'test.energy';
         stressstr = pc_dir+'test.stress';
+        tissuestr = pc_dir+'test.tissue';
     else
         %NT_calA01.0_initPressure-0.01_prate0.002_adhrate0.0
         % _NCELLS10_Duration100_att0.01_startseed1_endseed1_seed1
@@ -77,10 +75,23 @@ for seed = startSeed:max_seed
         nvestr = pipeline_dir+fileheader+'.pos';
         energystr = pipeline_dir+fileheader+'.energy';
         stressstr = pipeline_dir+fileheader+'.stress';
+        tissuestr = pipeline_dir+fileheader+'.tissue';
     end
 
+    A = load(tissuestr);
+    %plot(A(:,1), A(:,2), 'displayname', 'boundary area')
+    %plot(A(:,1), A(:,3), 'displayname', 'total cell area')
+    plot(A(:,1), (A(:,2) - A(:,3))./A(:,2), 'displayname',...
+        "$\phi$, $<A>$ = " + mean(A(:,2)), 'linewidth', 2)
+    legend()
+    xlabel('$\tau$','Interpreter','latex');
+    ylabel('Extracellular Fraction','Interpreter','latex');
+    legend('Location', 'northeast', 'Interpreter', 'latex');
+    ylim([0 1])
+    ax = gca;
+    ax.FontSize = 20;
+
     % read in position data
-    nvestr
     [trajectoryData, cell_count] = readCellClassPosOutput(nvestr);
 
     % get number of frames

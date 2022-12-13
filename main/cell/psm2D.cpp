@@ -11,7 +11,21 @@
 // Compilation command:
 // g++ -O3 --std=c++11 -g -I src main/cell/psm2D.cpp src/dpm.cpp src/cell.cpp -o main/cell/psm2D.o
 // run command:
-// ./main/cell/psm2D.o   24   25 1.05 0.01 0.01  0.01    0    1    test
+
+// ./main/cell/psm2D.o   24   25 1.05 0.05 0.1  1.0    0    1    test
+// ./main/cell/psm2D.o   24   25 1.05 0.1 0.1  1.0    0    1    test
+// ./main/cell/psm2D.o   24   25 1.05 0.15 0.1  1.0    0    1    test
+// ./main/cell/psm2D.o   24   25 1.05 0.2 0.1  1.0    0    1    test
+
+// ./main/cell/psm2D.o   24   25 1.05 0.05 0.5  1.0    0    1    test
+// ./main/cell/psm2D.o   24   25 1.05 0.1 0.5  1.0    0    1    test
+// ./main/cell/psm2D.o   24   25 1.05 0.15 0.5  1.0    0    1    test
+// ./main/cell/psm2D.o   24   25 1.05 0.2 0.5  1.0    0    1    test
+
+// ./main/cell/psm2D.o   24   25 1.05 0.05 1.0  1.0    0    1    test
+// ./main/cell/psm2D.o   24   25 1.05 0.1 1.0  1.0    0    1    test
+// ./main/cell/psm2D.o   24   25 1.05 0.15 1.0  1.0    0    1    test
+// ./main/cell/psm2D.o   24   25 1.05 0.2 1.0  1.0    0    1    test
 //                     NCELLS NV  A0  att   v0  tau_abp sm  seed outFileStem
 
 #include <sstream>
@@ -32,7 +46,7 @@ const double phi0 = 0.7;            // initial packing fraction
 const double phiMax = 0.6;
 const double smallfrac = 1.0;  // fraction of small particles
 const double sizeratio = 1.0;  // size ratio between small and large particles
-const double dt0 = 0.01;       // initial magnitude of time step in units of MD time
+const double dt0 = 0.05;       // initial magnitude of time step in units of MD time
 const double Ptol = 1e-8;
 const double Ftol = 1e-12;
 const double att_range = 0.3;
@@ -55,6 +69,7 @@ int main(int argc, char const* argv[]) {
   string outFileStem = argv[9];
 
   string positionFile = outFileStem + ".pos";
+  string tissueFile = outFileStem + ".tissue";
 
   // using sstreams to get parameters
   stringstream NCELLSss(NCELLS_str);
@@ -76,9 +91,10 @@ int main(int argc, char const* argv[]) {
   smss >> sm;
   seedss >> seed;
 
-  int numCellTypes = 2;  // 1 interior cell type (PSM) and 1 exterior cell type (boundary)
+  int numCellTypes = 2;  // 0 = interior cell type (PSM) and 1 = exterior cell type (boundary)
   cell cell2D(NCELLS, 0.0, 0.0, seed, numCellTypes);
   cell2D.openPosObject(positionFile);
+  cell2D.openTissueObject(tissueFile);
 
   // set spring constants
   cell2D.setka(ka);
@@ -107,6 +123,7 @@ int main(int argc, char const* argv[]) {
   dpmMemFn repulsiveForceUpdateWithWalls = static_cast<void (dpm::*)()>(&cell::repulsiveForceUpdateWithWalls);
   dpmMemFn attractiveForceUpdate = static_cast<void (dpm::*)()>(&cell::attractiveForceUpdate);
   dpmMemFn attractionWithActiveBrownianUpdate = static_cast<void (dpm::*)()>(&cell::attractiveForceUpdateWithCrawling);
+  // dpmMemFn attractionSmoothWithActiveBrownianUpdate = static_cast<void (dpm::*)()>(&cell::attractiveSmoothForceUpdateWithCrawling);
   dpmMemFn attractiveSmoothForceUpdate = static_cast<void (dpm::*)()>(&cell::attractiveSmoothForceUpdate);
   dpmMemFn repulsivePolarityForceUpdate = static_cast<void (dpm::*)()>(&cell::repulsiveWithPolarityForceUpdate);
   dpmMemFn attractivePolarityForceUpdate = static_cast<void (dpm::*)()>(&cell::attractiveWithPolarityForceUpdate);
@@ -143,24 +160,39 @@ int main(int argc, char const* argv[]) {
   bool wallsBool = true;
   double relaxTimeShort = 5.0;
   double relaxTime = 100.0;
-  double runTime = 2000.0;
+  double runTime = 400.0;
   double B = 1.0;
   std::vector<double> savedPositions;
 
   // dpmMemFn customForceUpdate = repulsivePolarityForceUpdate;
   // dpmMemFn customForceUpdate = attractivePolarityForceUpdate;
   dpmMemFn customForceUpdate;
-  if (sm)
-    customForceUpdate = attractiveSmoothForceUpdate;
-  else
-    customForceUpdate = attractiveForceUpdate;
-
+  if (sm) {
+    if (v0_abp <= 0.0)
+      customForceUpdate = attractiveSmoothForceUpdate;
+    else
+      assert(false);  // don't have this yet
+                      // customForceUpdate = attractionSmoothWithActiveBrownianUpdate;
+  } else {
+    // bumpy
+    if (v0_abp <= 0.0)
+      customForceUpdate = attractiveForceUpdate;
+    else {
+      customForceUpdate = attractionWithActiveBrownianUpdate;
+      cell2D.setActiveBrownianParameters(v0_abp, tau_abp);
+    }
+  }
   cell2D.dampedVertexNVE(attractiveForceUpdateWithPolyWalls, B, dt0, relaxTimeShort, relaxTimeShort / 2);
   cell2D.replacePolyWallWithDP(numCellTypes);
   cout << "after replacePolyWallWithDP\n";
   // cell2D.dampedVertexNVE(customForceUpdate, B, dt0, relaxTime, relaxTime / 15);
-  cell2D.vertexNVE(customForceUpdate, 1e-2, dt0, runTime, runTime / 50.0);
-
+  if (v0_abp <= 0.0) {
+    // thermal simulation, no activity, no damping
+    cell2D.vertexNVE(customForceUpdate, 1e-2, dt0, runTime, runTime / 50.0);
+  } else {
+    // active simulation, damping
+    cell2D.dampedVertexNVE(customForceUpdate, B, dt0, runTime, runTime / 50.0);
+  }
   // cell2D.saveConfiguration(savedPositions);
   // cell2D.loadConfiguration(savedPositions);
 

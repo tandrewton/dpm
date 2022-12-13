@@ -375,6 +375,7 @@ void cell::brownianCrawlingUpdate() {
   int gi;
   // propel at constant speed v_0
   // v_0 should have a force scale comparable to the shape energy? or other energy scale. check that and make v0_ABP scale with one of the spring constants
+  // printf("v0_ABP = %f, kc * rho0 / 2*r = %f \n", v0_ABP, kc * sqrt(a0[0]) / (2 * r[0]));
   for (int ci = 0; ci < NCELLS; ci++) {
     double director = psi[ci];
     for (int vi = 0; vi < nv[ci]; vi++) {
@@ -2921,9 +2922,36 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double B, double dt0, double dura
           printConfiguration2D();
           cout << "done printing in NVE\n";
         }
+
+        if (tissueout.is_open()) {
+          int maxCellID = *std::max_element(cellID.begin(), cellID.end());
+          if (maxCellID > 0) {
+            cout << "printing maxCellID boundary ID tissueMeasurements to file\n";
+            // hardcoding boundary ID for now.
+            takeTissueMeasurements(maxCellID);
+          }
+        }
       }
     }
   }
+}
+
+void cell::takeTissueMeasurements(int cellBoundaryType) {
+  // compute boundary area - total cell area = extracellular space
+  // write to file
+  double boundaryArea = 0.0, totalCellArea = 0.0;
+  int cellType;
+  for (int ci = 0; ci < NCELLS; ci++) {
+    cellType = cellID[ci];
+    if (cellType == cellBoundaryType)
+      boundaryArea = area(ci);
+    else
+      totalCellArea += area(ci);
+  }
+  if (boundaryArea == 0.0 || totalCellArea == 0.0) {
+    cout << "error, could not find either boundary or cells in takeTissueMeasurements\n";
+  }
+  tissueout << simclock << '\t' << boundaryArea << '\t' << totalCellArea << '\n';
 }
 
 void cell::printConfiguration2D() {

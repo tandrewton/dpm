@@ -25,6 +25,7 @@ class cell : public dpm {
   // specific output objects
   std::ofstream enout;      // output stream for energy data
   std::ofstream stressout;  // output stream for stress data
+  std::ofstream tissueout;  // output stream for tissue measurements over time
 
   // simulation-scale stored quantities
   double simclock;         // accumulator for simulation time
@@ -176,6 +177,16 @@ class cell : public dpm {
       std::cout << "** Opening file " << str << " ..." << std::endl;
   }
 
+  void openTissueObject(std::string& str) {
+    tissueout.open(str.c_str());
+    if (!tissueout.is_open()) {
+      std::cout << "	ERROR: file could not open " << str << "..."
+                << std::endl;
+      exit(1);
+    } else
+      std::cout << "** Opening file " << str << " ..." << std::endl;
+  }
+
   // boundary routines
   void replacePolyWallWithDP(int numCellTypes);
   void addDP(int numVerts, vector<double>& dp_x, vector<double>& dp_y, int cellTypeIndex, int numCellTypes);
@@ -188,6 +199,7 @@ class cell : public dpm {
   void simulateDampedWithWalls(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, double pressureRate, double adhesionRate, bool wallsOn, bool leftOpen, bool bottomOpen, bool rightOpen, bool topOpen, double trueStrainRateX = 0.0, double trueStrainRateY = 0.0, double appliedUniaxialPressure = 0.0);
   void vertexNVE(dpmMemFn forceCall, double T, double dt0, double duration, double printInterval);
   void dampedVertexNVE(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval);
+  void takeTissueMeasurements(int cellBoundaryType);
 
   // printouts
   void printConfiguration2D();
