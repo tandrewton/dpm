@@ -376,6 +376,7 @@ void cell::brownianCrawlingUpdate() {
   // propel at constant speed v_0
   // v_0 should have a force scale comparable to the shape energy? or other energy scale. check that and make v0_ABP scale with one of the spring constants
   // printf("v0_ABP = %f, kc * rho0 / 2*r = %f \n", v0_ABP, kc * sqrt(a0[0]) / (2 * r[0]));
+  cout << "NCELLS = " << NCELLS << ", psi.size = " << psi.size() << '\n';
   for (int ci = 0; ci < NCELLS; ci++) {
     double director = psi[ci];
     cout << "director = " << director << ", v0_ABP = " << v0_ABP << '\n';
@@ -393,6 +394,7 @@ void cell::brownianCrawlingUpdate() {
 void cell::directorDiffusion() {
   double r1, r2, grv;
   double Dr0 = 1 / tau_ABP;
+  cout << "Dr0 = " << Dr0 << '\n';
   for (int ci = 0; ci < NCELLS; ci++) {
     // propagate diffusion of directors psi
     r1 = drand48();
