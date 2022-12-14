@@ -3423,34 +3423,6 @@ double epi2D::calculateAreaFlattened(std::vector<double>& vertPosFlattened) {
   return abs(areaVal);
 }
 
-void epi2D::notchTest(int numCellsToDelete, double strain, double strainRate, double boxLengthScale, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, double printInterval, std::string loadingType) {
-  // select xloc, yloc. delete the nearest cell. scale particle sizes, loop.
-  // our proxy for isotropic stretching is to scale the particle sizes down.
-  // Inter-vertex distances change,
-  double xLoc, yLoc;
-  double tauRelax = 1.0;
-  std::cout << "inside notch test!\n";
-
-  for (int i = 0; i < 1; i++) {
-    xLoc = 0.0;
-    yLoc = 0.0;
-    laserAblate(numCellsToDelete, sizeRatio, nsmall, xLoc, yLoc);
-    initialLx = L[0];
-
-    if (loadingType == "uniaxial" && pbc[0]) {
-      while (L[0] / initialLx - 1 < strain) {
-        cout << "current strain = " << L[0] / initialLx - 1 << '\n';
-        scaleBoxSize(boxLengthScale, 1 + strainRate * tauRelax, 1);
-        cout << "scaling box\n";
-        cout << "tauRelax = " << tauRelax << ", printInterval = " << printInterval << '\n';
-        dampedNVE2D(forceCall, B, dt0, tauRelax, printInterval);
-        cout << "finished relaxing\n";
-      }
-    } else
-      std::cout << "Issue: loadingType not understood or pbc is disabled\n";
-  }
-}
-
 void epi2D::orientDirector(int ci, double xLoc, double yLoc) {
   // point the director of cell ci towards (xLoc, yLoc)
   double dx, dy, cx, cy;

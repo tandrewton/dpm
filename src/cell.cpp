@@ -394,7 +394,6 @@ void cell::brownianCrawlingUpdate() {
 void cell::directorDiffusion() {
   double r1, r2, grv;
   double Dr0 = 1 / tau_ABP;
-  cout << "Dr0 = " << Dr0 << '\n';
   for (int ci = 0; ci < NCELLS; ci++) {
     // propagate diffusion of directors psi
     r1 = drand48();

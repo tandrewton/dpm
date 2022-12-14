@@ -379,7 +379,6 @@ class epi2D : public dpm {
   double calculateArea(std::vector<double>& vertx, std::vector<double>& verty);
   double calculateAreaFlattened(std::vector<double>& vertPosFlattened);
 
-  void notchTest(int numCellsToDelete, double strain, double strainRate, double boxLengthScale, double sizeRatio, int nsmall, dpmMemFn forceCall, double B, double dt0, double printInterval, std::string loadingType);
   void orientDirector(int ci, double xLoc, double yLoc);
   void deflectOverlappingDirectors();
   double getDistanceToVertexAtAnglePsi(int ci, double psi_ci, double cx, double cy, int& gi);
