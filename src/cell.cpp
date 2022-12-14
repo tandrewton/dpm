@@ -378,6 +378,7 @@ void cell::brownianCrawlingUpdate() {
   // printf("v0_ABP = %f, kc * rho0 / 2*r = %f \n", v0_ABP, kc * sqrt(a0[0]) / (2 * r[0]));
   for (int ci = 0; ci < NCELLS; ci++) {
     double director = psi[ci];
+    cout << "director = " << director << ", v0_ABP = " << v0_ABP << '\n';
     for (int vi = 0; vi < nv[ci]; vi++) {
       gi = gindex(ci, vi);
       F[gi * NDIM] += v0_ABP * cos(director);
@@ -2842,10 +2843,12 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double B, double dt0, double dura
         x[i] += L[i % NDIM];
     }
 
+    cout << "before force call\n";
     // FORCE UPDATE
     std::vector<double> F_old = F;
     CALL_MEMBER_FN(*this, forceCall)
     ();
+    cout << "after force call\n";
 
     // VV VELOCITY UPDATE #2
     for (i = 0; i < vertDOF; i++) {

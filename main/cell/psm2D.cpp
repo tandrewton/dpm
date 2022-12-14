@@ -12,20 +12,20 @@
 // g++ -O3 --std=c++11 -g -I src main/cell/psm2D.cpp src/dpm.cpp src/cell.cpp -o main/cell/psm2D.o
 // run command:
 
-// ./main/cell/psm2D.o   24   25 1.05 0.05 0.1  1.0    0    1    test
-// ./main/cell/psm2D.o   24   25 1.05 0.1  0.1  1.0    0    1    test
-// ./main/cell/psm2D.o   24   25 1.05 0.15 0.1  1.0    0    1    test
-// ./main/cell/psm2D.o   24   25 1.05 0.2  0.1  1.0    0    1    test
+// ./main/cell/psm2D.o   24   25 1.05 0.05 0.1  1.0    0    1    test1
+// ./main/cell/psm2D.o   24   25 1.05 0.1  0.1  1.0    0    1    test2
+// ./main/cell/psm2D.o   24   25 1.05 0.15 0.1  1.0    0    1    test3
+// ./main/cell/psm2D.o   24   25 1.05 0.2  0.1  1.0    0    1    test4
 
-// ./main/cell/psm2D.o   24   25 1.05 0.05 0.5  1.0    0    1    test
-// ./main/cell/psm2D.o   24   25 1.05 0.1  0.5  1.0    0    1    test
-// ./main/cell/psm2D.o   24   25 1.05 0.15 0.5  1.0    0    1    test
-// ./main/cell/psm2D.o   24   25 1.05 0.2  0.5  1.0    0    1    test
+// ./main/cell/psm2D.o   24   25 1.05 0.05 0.5  1.0    0    1    test5
+// ./main/cell/psm2D.o   24   25 1.05 0.1  0.5  1.0    0    1    test6
+// ./main/cell/psm2D.o   24   25 1.05 0.15 0.5  1.0    0    1    test7
+// ./main/cell/psm2D.o   24   25 1.05 0.2  0.5  1.0    0    1    test8
 
-// ./main/cell/psm2D.o   24   25 1.05 0.05 1.0  1.0    0    1    test
-// ./main/cell/psm2D.o   24   25 1.05 0.1  1.0  1.0    0    1    test
-// ./main/cell/psm2D.o   24   25 1.05 0.15 1.0  1.0    0    1    test
-// ./main/cell/psm2D.o   24   25 1.05 0.2  1.0  1.0    0    1    test
+// ./main/cell/psm2D.o   24   25 1.05 0.05 1.0  1.0    0    1    test9
+// ./main/cell/psm2D.o   24   25 1.05 0.1  1.0  1.0    0    1    test10
+// ./main/cell/psm2D.o   24   25 1.05 0.15 1.0  1.0    0    1    test11
+// ./main/cell/psm2D.o   24   25 1.05 0.2  1.0  1.0    0    1    test12
 //                     NCELLS NV  A0  att   v0  tau_abp sm  seed outFileStem
 
 #include <sstream>
