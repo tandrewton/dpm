@@ -1313,6 +1313,118 @@ void dpm::initializeNeighborLinkedList2D(double boxLengthScale) {
   cout << ";  initially NBX = " << NBX << " ..." << endl;
 }
 
+// resize neighbor linked list based on current position of particles
+void dpm::resizeNeighborLinkedList2D() {
+  // local variables
+  double llscale;
+  int i, d, nntmp, scx;
+
+  // print to console
+  double boxLengthScale = *std::max_element(x.begin(), x.end());
+  cout << "** resizing neighbor linked list, lengthscale = " << boxLengthScale << '\n';
+
+  if (!pbc[0] && !pbc[1]) {
+    cout << "assigning max particle dimensions to be the new box length to size the neighbor list properly\n";
+    L[0] = boxLengthScale;
+    L[1] = boxLengthScale;
+  }
+
+  // get largest diameter times attraction shell (let buffer be larger than attraction range would ever be) as llscale
+  double buffer = 1.5;
+  llscale = buffer * 2 * (*max_element(r.begin(), r.end()));
+  cout << "llscale = " << llscale << '\n';
+
+  // initialize box length vectors
+  NBX = 1;
+  sb.resize(NDIM);
+  lb.resize(NDIM);
+  for (d = 0; d < NDIM; d++) {
+    // determine number of cells along given dimension by rmax
+    sb[d] = round(L[d] / (boxLengthScale * llscale));
+
+    // just in case, if < 3, change to 3 so box neighbor checking will work
+    if (sb[d] < 3)
+      sb[d] = 3;
+
+    // determine box length by number of cells
+    lb[d] = L[d] / sb[d];
+
+    // count total number of cells
+    NBX *= sb[d];
+  }
+
+  // initialize list of box nearest neighbors
+  scx = sb[0];
+  nn.resize(NBX);
+
+  // loop over cells, save forward neighbors for each box
+  for (i = 0; i < NBX; i++) {
+    // reshape entry
+    nn[i].resize(NNN);
+
+    // right neighbor (i+1)
+    nn[i][0] = (i + 1) % NBX;
+
+    // top neighbors (i,j+1), (i+1,j+1)
+    if (pbc[1]) {
+      // (i,j+1) w/ pbc
+      nn[i][1] = (i + scx) % NBX;
+
+      // (i+1,j+1) w/ pbc
+      nn[i][2] = (nn[i][1] + 1) % NBX;
+    } else {
+      // if on top row, both = -1
+      if (i >= NBX - scx) {
+        nn[i][1] = -1;
+        nn[i][2] = -1;
+      }
+      // if not on top row, still add
+      else {
+        nn[i][1] = i + scx;
+        nn[i][2] = nn[i][1] + 1;
+      }
+    }
+
+    // bottom neighbor w/ pbc (j-1)
+    nntmp = (i + NBX - scx) % NBX;
+
+    // bottom-right neighbor (i+1, j-1)
+    if (pbc[1])
+      nn[i][3] = nntmp + 1;
+    else {
+      // if on bottom row, skip
+      if (i < scx)
+        nn[i][3] = -1;
+      // otherwise, set
+      else
+        nn[i][3] = nntmp + 1;
+    }
+
+    // right-hand bc (periodic)
+    if ((i + 1) % scx == 0) {
+      if (pbc[0]) {
+        nn[i][0] = i - scx + 1;
+        if (pbc[1]) {
+          nn[i][2] = nn[i][1] - scx + 1;
+          nn[i][3] = nntmp - scx + 1;
+        }
+      } else {
+        nn[i][0] = -1;
+        nn[i][2] = -1;
+        nn[i][3] = -1;
+      }
+    }
+  }
+
+  // linked-list variables
+  head.resize(NBX);
+  last.resize(NBX);
+  list.resize(NVTOT + 1);
+
+  // print box info to console
+  cout << ";  initially NBX = " << NBX << " ..." << endl;
+}
+
 /******************************
 
         E D I T I N G   &
@@ -1359,7 +1471,7 @@ void dpm::sortNeighborLinkedList2D() {
       } else if (xtmp > L[d]) {
         if (pbc[d])
           xtmp -= L[d] * floor(xtmp / L[d]);
-        else
+        else  // if pbc is off, whenever I call resizeNeighborLinkedList I also shift L to be the max dimensions of the system with a little wiggle room
           xtmp = 0.99999 * L[d];
       }
 
@@ -1384,6 +1496,13 @@ void dpm::sortNeighborLinkedList2D() {
       head[boxid] = gi + 1;
       last[boxid] = gi + 1;
     } else {
+      if (boxid >= last.size()) {
+        cout << "gi " << gi << ", boxid out of range : " << boxid << '\t' << last.size() << '\n';
+        cout << x[NDIM * gi] << '\t' << x[NDIM * gi + 1] << '\n';
+      }
+      if (last[boxid] >= list.size()) {
+        cout << "gi " << gi << ", last[boxid] out of range : " << last[boxid] << '\t' << list.size() << '\n';
+      }
       list[last[boxid]] = gi + 1;
       last[boxid] = gi + 1;
     }

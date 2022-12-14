@@ -239,6 +239,7 @@ class dpm {
   void initializeAllPositions(std::string vertexPositionFile, int nref);
   void initializeFromConfigurationFile(std::string vertexPositionFile, double phi0);
   void initializeNeighborLinkedList2D(double boxLengthScale);
+  void resizeNeighborLinkedList2D();
 
   // editing & updating
   void sortNeighborLinkedList2D();

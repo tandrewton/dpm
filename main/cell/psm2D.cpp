@@ -185,6 +185,7 @@ int main(int argc, char const* argv[]) {
   cell2D.dampedVertexNVE(attractiveForceUpdateWithPolyWalls, B, dt0, relaxTimeShort, relaxTimeShort / 2);
   cell2D.replacePolyWallWithDP(numCellTypes);
   cout << "after replacePolyWallWithDP\n";
+  cell2D.resizeNeighborLinkedList2D();
   // cell2D.dampedVertexNVE(customForceUpdate, B, dt0, relaxTime, relaxTime / 15);
   if (v0_abp <= 0.0) {
     // thermal simulation, no activity, no damping

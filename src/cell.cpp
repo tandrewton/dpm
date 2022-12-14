@@ -376,10 +376,10 @@ void cell::brownianCrawlingUpdate() {
   // propel at constant speed v_0
   // v_0 should have a force scale comparable to the shape energy? or other energy scale. check that and make v0_ABP scale with one of the spring constants
   // printf("v0_ABP = %f, kc * rho0 / 2*r = %f \n", v0_ABP, kc * sqrt(a0[0]) / (2 * r[0]));
-  cout << "NCELLS = " << NCELLS << ", psi.size = " << psi.size() << '\n';
   for (int ci = 0; ci < NCELLS; ci++) {
+    if (cellID[ci] != 0)  // only cell types are allowed to crawl, boundaries are not allowed to crawl
+      continue;
     double director = psi[ci];
-    cout << "director = " << director << ", v0_ABP = " << v0_ABP << '\n';
     for (int vi = 0; vi < nv[ci]; vi++) {
       gi = gindex(ci, vi);
       F[gi * NDIM] += v0_ABP * cos(director);
@@ -1193,6 +1193,11 @@ void cell::vertexAttractiveForces2D_2() {
   // attraction shell parameters
   double shellij, cutij, xij, kint = (kc * l1) / (l2 - l1);
   // cout << "kc / kint = " << kc / kint << '\t' << kc << '\t' << kint << '\n';
+
+  /*cout << "before sorting : " << '\n';
+  for (int i = 0; i < NVTOT; i++) {
+    cout << "i " << i << " at pos : " << x[NDIM * i] << '\t' << x[NDIM * i + 1] << '\n';
+  }*/
 
   // sort particles
   sortNeighborLinkedList2D();
@@ -2845,12 +2850,10 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double B, double dt0, double dura
         x[i] += L[i % NDIM];
     }
 
-    cout << "before force call\n";
     // FORCE UPDATE
     std::vector<double> F_old = F;
     CALL_MEMBER_FN(*this, forceCall)
     ();
-    cout << "after force call\n";
 
     // VV VELOCITY UPDATE #2
     for (i = 0; i < vertDOF; i++) {
