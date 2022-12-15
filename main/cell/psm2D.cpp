@@ -13,22 +13,22 @@
 // run command:
 
 /*
-./main/cell/psm2D.o   24   25 1.05 0.01 0.01  1.0    0    1    test1
-./main/cell/psm2D.o   24   25 1.05 0.05 0.01  1.0    0    1    test2
-./main/cell/psm2D.o   24   25 1.05 0.1  0.01  1.0    0    1    test3
-./main/cell/psm2D.o   24   25 1.05 0.2  0.01  1.0    0    1    test4
+./main/cell/psm2D.o   24   25 1.05 0.01  10.0   0.01  1.0    0    1    test1
+./main/cell/psm2D.o   24   25 1.05 0.05  10.0   0.01  1.0    0    1    test2
+./main/cell/psm2D.o   24   25 1.05 0.1   10.0   0.01  1.0    0    1    test3
+./main/cell/psm2D.o   24   25 1.05 0.2   10.0   0.01  1.0    0    1    test4
 
-./main/cell/psm2D.o   24   25 1.05 0.01 0.05  1.0    0    1    test5
-./main/cell/psm2D.o   24   25 1.05 0.05 0.05  1.0    0    1    test6
-./main/cell/psm2D.o   24   25 1.05 0.1  0.05  1.0    0    1    test7
-./main/cell/psm2D.o   24   25 1.05 0.2  0.05  1.0    0    1    test8
+./main/cell/psm2D.o   24   25 1.05 0.01  10.0   0.05  1.0    0    1    test5
+./main/cell/psm2D.o   24   25 1.05 0.05  10.0   0.05  1.0    0    1    test6
+./main/cell/psm2D.o   24   25 1.05 0.1   10.0   0.05  1.0    0    1    test7
+./main/cell/psm2D.o   24   25 1.05 0.2   10.0   0.05  1.0    0    1    test8
 
-./main/cell/psm2D.o   24   25 1.05 0.01 0.1  1.0    0    1    test9
-./main/cell/psm2D.o   24   25 1.05 0.05 0.1  1.0    0    1    test10
-./main/cell/psm2D.o   24   25 1.05 0.1  0.1  1.0    0    1    test11
-./main/cell/psm2D.o   24   25 1.05 0.2  0.1  1.0    0    1    test12
+./main/cell/psm2D.o   24   25 1.05 0.01  10.0   0.1   1.0    0    1    test9
+./main/cell/psm2D.o   24   25 1.05 0.05  10.0   0.1   1.0    0    1    test10
+./main/cell/psm2D.o   24   25 1.05 0.1   10.0   0.1   1.0    0    1    test11
+./main/cell/psm2D.o   24   25 1.05 0.2   10.0   0.1   1.0    0    1    test12
 */
-//                  NCELLS NV  A0  att   v0  tau_abp sm  seed outFileStem
+//                  NCELLS NV  A0  att t_maxwell v0  tau_abp sm  seed outFileStem
 
 #include <sstream>
 #include "cell.h"
@@ -52,6 +52,7 @@ const double dt0 = 0.05;       // initial magnitude of time step in units of MD 
 const double Ptol = 1e-8;
 const double Ftol = 1e-12;
 const double att_range = 0.3;
+const double maxwellRelaxationTime = 10.0;
 
 int main(int argc, char const* argv[]) {
   // local variables to be read in
@@ -106,6 +107,7 @@ int main(int argc, char const* argv[]) {
   cout << "ka, kl, kb, kc = " << ka << '\t' << kl << '\t' << kb << '\t' << kc << '\n';
 
   cell2D.setB(B);
+  cell2D.setMaxwellRelaxationTime(maxwellRelaxationTime);
   // specify non-periodic boundaries
   cell2D.setpbc(0, false);
   cell2D.setpbc(1, false);

@@ -201,6 +201,7 @@ class dpm {
   void setl1(double val) { l1 = val; };
   void setl2(double val) { l2 = val; };
   void setB(double val) { B = val; };
+  void setMaxwellRelaxationTime(double val) { maxwellRelaxationTime = val; };
   void scaleL(int d, double val) { L.at(d) *= val; };
   void scaleVelocities(double scalefactor) {
     for (int i = 0; i < vertDOF; i++)

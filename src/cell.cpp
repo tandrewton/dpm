@@ -57,6 +57,7 @@ void cell::shapeForces2D() {
   double ddtim1, ddti;
   double forceX, forceY;
   double unwrappedX, unwrappedY;
+  std::vector<double> li_vector(NVTOT, 0.0);
 
   // loop over vertices, add to force
   rho0 = sqrt(a0.at(0));
@@ -177,6 +178,7 @@ void cell::shapeForces2D() {
     // segment lengths
     lim1 = sqrt(lim1x * lim1x + lim1y * lim1y);
     li = sqrt(lix * lix + liy * liy);
+    li_vector[gi] = li;  // save li for Maxwell relaxation integration
 
     // segment deviations (note: m is prior vertex, p is next vertex i.e. gi - 1, gi + 1 mod the right number of vertices)
     dlim1 = (lim1 / l0im1) - 1.0;
@@ -270,6 +272,8 @@ void cell::shapeForces2D() {
     // update old preferred segment length
     l0im1 = l0i;
   }
+
+  maxwellRelaxationRestLengths(li_vector);
 
   // normalize per-cell stress by preferred cell area
   for (int ci = 0; ci < NCELLS; ci++) {
