@@ -42,6 +42,9 @@ dpm::dpm(int n, int ndim, int seed) {
   kb = 0.0;
   kc = 0.0;
 
+  maxwellRelaxationTime = INFINITY;
+  B = 0.0;
+
   l1 = 0.0;
   l2 = 0.0;
 
@@ -463,6 +466,8 @@ void dpm::initializeVertexShapeParameters(double calA0, int nref) {
 
   // resize shape paramters
   l0.resize(NVTOT);
+  vl0.resize(NVTOT);
+  Fl0.resize(NVTOT);
   t0.resize(NVTOT);
   r.resize(NVTOT);
 
@@ -483,6 +488,8 @@ void dpm::initializeVertexShapeParameters(double calA0, int nref) {
     gi = szList.at(ci);
     for (vi = 0; vi < nv.at(ci); vi++) {
       l0.at(gi + vi) = 2.0 * sqrt(PI * calA0tmp * a0.at(ci)) / nvtmp;
+      vl0.at(gi + vi) = 0.0;
+      Fl0.at(gi + vi) = 0.0;
       t0.at(gi + vi) = 0.0;
       r.at(gi + vi) = 0.5 * l0.at(gi + vi);
     }
@@ -510,6 +517,8 @@ void dpm::initializeVertexShapeParameters(std::vector<double> calA0, int nref) {
 
   // resize shape paramters
   l0.resize(NVTOT);
+  vl0.resize(NVTOT);
+  Fl0.resize(NVTOT);
   t0.resize(NVTOT);
   r.resize(NVTOT);
 
@@ -530,6 +539,8 @@ void dpm::initializeVertexShapeParameters(std::vector<double> calA0, int nref) {
     gi = szList.at(ci);
     for (vi = 0; vi < nv.at(ci); vi++) {
       l0.at(gi + vi) = 2.0 * sqrt(PI * calA0tmp * a0.at(ci)) / nvtmp;
+      vl0.at(gi + vi) = 0.0;
+      Fl0.at(gi + vi) = 0.0;
       t0.at(gi + vi) = 0.0;
       r.at(gi + vi) = 0.5 * l0.at(gi + vi);
     }
@@ -1076,6 +1087,8 @@ void dpm::initializeFromConfigurationFile(std::string vertexPositionFile, double
 
   // resize shape paramters
   l0.resize(NVTOT);
+  vl0.resize(NVTOT);
+  Fl0.resize(NVTOT);
   t0.resize(NVTOT);
   r.resize(NVTOT);
 
@@ -1098,6 +1111,8 @@ void dpm::initializeFromConfigurationFile(std::string vertexPositionFile, double
         }
       }
       l0.at(gi) = l0_ci / d_all;
+      vl0.at(gi) = 0.0;
+      Fl0.at(gi) = 0.0;
       t0.at(gi) = 0.0;
       r.at(gi) = r_ci / d_all;
       cout << "r[gi] at time of setting = " << r[gi] << '\n';
@@ -1862,6 +1877,7 @@ void dpm::shapeForces2D() {
   double ddtim1, ddti;
   double forceX, forceY;
   double unwrappedX, unwrappedY;
+  std::vector<double> li_vector(NVTOT, 0.0);
 
   // loop over vertices, add to force
   rho0 = sqrt(a0.at(0));
@@ -1980,6 +1996,7 @@ void dpm::shapeForces2D() {
     // segment lengths
     lim1 = sqrt(lim1x * lim1x + lim1y * lim1y);
     li = sqrt(lix * lix + liy * liy);
+    li_vector[gi] = li;  // save li for Maxwell relaxation integration
 
     // segment deviations (note: m is prior vertex, p is next vertex i.e. gi - 1, gi + 1 mod the right number of vertices)
     dlim1 = (lim1 / l0im1) - 1.0;
@@ -2073,6 +2090,8 @@ void dpm::shapeForces2D() {
     l0im1 = l0i;
   }
 
+  maxwellRelaxationRestLengths(li_vector);
+
   // normalize per-cell stress by preferred cell area
   for (int ci = 0; ci < NCELLS; ci++) {
     for (int vi = 0; vi < nv[ci]; vi++) {
@@ -2085,6 +2104,30 @@ void dpm::shapeForces2D() {
     fieldShapeStressCells[ci][0] *= rho0 / a0[ci];
     fieldShapeStressCells[ci][1] *= rho0 / a0[ci];
     fieldShapeStressCells[ci][2] *= rho0 / a0[ci];
+  }
+}
+
+void dpm::maxwellRelaxationRestLengths(std::vector<double>& l) {
+  // we are integrating a 1D equation of motion for rest lengths
+  //  assuming a Maxwell model for stress relaxation.
+  double al0, al0_old;
+  double li;
+  for (int i = 0; i < l0.size(); i++) {
+    li = l[i];
+    al0 = Fl0[i];  // make sure al0 and al0_old have different addresses
+    al0_old = al0;
+
+    // velocity verlet position update
+    l0[i] += vl0[i] * dt + al0_old * dt * dt / 2;
+
+    // force on l0. kl/tau is the effective mass of the preferred length spring
+    Fl0[i] = kl / maxwellRelaxationTime * (li - l0[i]);
+
+    // correction for velocity dependent force with damping
+    Fl0[i] = (Fl0[i] - B * (vl0[i] + al0_old * dt / 2)) / (1 + B * dt / 2);
+
+    // velocity verlet velocity update
+    vl0[i] += (al0_old + al0) * dt / 2;
   }
 }
 

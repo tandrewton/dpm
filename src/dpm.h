@@ -77,6 +77,10 @@ class dpm {
   double kb;
   double kc;
 
+  // rheological parameters
+  double maxwellRelaxationTime;
+  std::vector<double> vl0, Fl0;
+
   // particle attraction constants
   double l1, l2;
 
@@ -104,6 +108,7 @@ class dpm {
   std::vector<double> x;
   std::vector<double> v;
   std::vector<double> F;
+  double B;
 
   // macroscopic stress vector
   std::vector<double> stress;
@@ -195,6 +200,7 @@ class dpm {
   void setkc(double val) { kc = val; };
   void setl1(double val) { l1 = val; };
   void setl2(double val) { l2 = val; };
+  void setB(double val) { B = val; };
   void scaleL(int d, double val) { L.at(d) *= val; };
   void scaleVelocities(double scalefactor) {
     for (int i = 0; i < vertDOF; i++)
@@ -256,6 +262,7 @@ class dpm {
   // force definitions
   void resetForcesAndEnergy();
   void shapeForces2D();
+  void maxwellRelaxationRestLengths(std::vector<double>& l);
   void vertexRepulsiveForces2D();
   void vertexAttractiveForces2D();
   void evaluatePolygonalWallForces(const std::vector<double>& poly_x, const std::vector<double>& poly_y, bool attractionOn = false);

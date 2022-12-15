@@ -11,17 +11,17 @@
 //  note: if using circular boundaries via polyWall, try pmin = 0.9 and pmax = 0.85 because pmin is soft disk density and pmax is DP preferred density
 //
 // below: no purse-string, no crawling (inactive simulation)
-//./main/epi2D/laserAblation.o 20 20 0 1.10 0.92 0.925 1.0 4.0 0.0 0.01  0.0  4.0  4.0 1.0  0.0  1.0 0.5  0  0   0 1  100  test
-// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  B  Dr0 CIL bound sm sd time file
+//./main/epi2D/laserAblation.o 20 20 0 1.10 0.92 0.925 1.0 4.0 0.0 0.01  0.0  4.0  4.0 1.0  0.0  0.5  0  0   0 1  100  test
+// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  Dr0 CIL bound sm sd time file
 // below: no purse-string, only crawling
-//./main/epi2D/laserAblation.o 36 26 3 1.05 0.94 0.85 1.0 4.0 0.1 0.005 0.0 4.0  4.0 1.0  3.0  1.0 0.5  0   0   0  1 500  test
-// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  B  Dr0 CIL bound sm sd time file
+//./main/epi2D/laserAblation.o 36 26 3 1.05 0.94 0.85 1.0 4.0 0.1 0.005 0.0 4.0  4.0 1.0  3.0  0.5  0   0   0  1 500  test
+// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  Dr0 CIL bound sm sd time file
 // below: purse-string, no crawling
-//./main/epi2D/laserAblation.o 24 20 2 1.10 0.94 0.85 1.0 4.0 0.2 0.005  1.0  1.0  4.0 1.0  0.0  1.0 0.5  0  0   0 1  100  test
-// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  B  Dr0 CIL bound sm sd time file
+//./main/epi2D/laserAblation.o 24 20 2 1.10 0.94 0.85 1.0 4.0 0.2 0.005  1.0  1.0  4.0 1.0  0.0  0.5  0  0   0 1  100  test
+// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  Dr0 CIL bound sm sd time file
 // below: purse-string, and crawling
-//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.865 1.0 4.0 0.1 0.01  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  1   1 1  110  test
-// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  B  Dr0 CIL bound sm sd time file
+//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.865 1.0 4.0 0.1 0.01  2.0  4.0  4.0 1.0  3.0  0.5  0  1   1 1  110  test
+// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  Dr0 CIL bound sm sd time file
 
 // ./main/epi2D/laserAblation.o 40 20 4 1.0 0.92 0.925 1.0 4.0 0.2 0.013  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   0 1  200  test
 
@@ -44,14 +44,13 @@
 // 13. k_lp:        spring constant for flag to nearest vertex on wound edge for crawling
 // 14. tau_lp:      protrusion time constant (controls stochastic lifetime of a protrusion)
 // 15. d_flag:      protrusion distance from cell edge in units of vertex diameter
-// 16. B:           (over)damping coefficient gamma
-// 17. Dr0:         rotational diffusion constant for protrusion activity
-// 18. boolCIL:     bool for whether cells conduct contact inhibition of locomotion
-// 19. boundary     choice of boundary condition (0 = free, 1 = sticky circular boundaries)
-// 20. smooth       choice of smooth or bumpy forces (0 = bumpy, 1 = smooth)
-// 21. seed: 			  seed for random number generator
-// 22. time:        amount of time (tau) to simulate
-// 23. outFileStem  stem of output file names, i.e. for "test", energy.test, position.test, etc.
+// 16. Dr0:         rotational diffusion constant for protrusion activity
+// 17. boolCIL:     bool for whether cells conduct contact inhibition of locomotion
+// 18. boundary     choice of boundary condition (0 = free, 1 = sticky circular boundaries)
+// 19. smooth       choice of smooth or bumpy forces (0 = bumpy, 1 = smooth)
+// 20. seed: 			  seed for random number generator
+// 21. time:        amount of time (tau) to simulate
+// 22. outFileStem  stem of output file names, i.e. for "test", energy.test, position.test, etc.
 
 // header files
 #include <sstream>
@@ -79,10 +78,10 @@ bool isPbcOn = false;
 int main(int argc, char const* argv[]) {
   // local variables to be read in
   int NCELLS, nsmall, seed, gi, ndelete;
-  double calA0, kl, ka = 1.0, kb = 0.01, phiMin, phiMax, att, B, Dr0, time_dbl;
+  double calA0, kl, ka = 1.0, kb = 0.01, phiMin, phiMax, att, B = 1.0, Dr0, time_dbl;
   double ka_for_equilibration = 2.0, kb_for_equilibration = 0.0;
   bool boolCIL, boolBound, boolSmooth, purseStringOn = true;
-  double strainRate_ps, k_ps, k_LP, tau_LP, deltaSq, maxProtrusionLength, shapeRelaxationRate;
+  double strainRate_ps, k_ps, k_LP, tau_LP, deltaSq, maxProtrusionLength;
 
   // read in parameters from command line input
   string NCELLS_str = argv[1];
@@ -100,14 +99,13 @@ int main(int argc, char const* argv[]) {
   string k_lp_str = argv[13];
   string tau_lp_str = argv[14];
   string d_flag_str = argv[15];
-  string B_str = argv[16];
-  string Dr0_str = argv[17];
-  string boolCIL_str = argv[18];
-  string bound_str = argv[19];
-  string smooth_str = argv[20];
-  string seed_str = argv[21];
-  string time_str = argv[22];
-  string outFileStem = argv[23];
+  string Dr0_str = argv[16];
+  string boolCIL_str = argv[17];
+  string bound_str = argv[18];
+  string smooth_str = argv[19];
+  string seed_str = argv[20];
+  string time_str = argv[21];
+  string outFileStem = argv[22];
 
   string positionFile = outFileStem + ".pos";
   string energyFile = outFileStem + ".energy";
@@ -138,7 +136,6 @@ int main(int argc, char const* argv[]) {
   stringstream k_lpss(k_lp_str);
   stringstream tau_lpss(tau_lp_str);
   stringstream d_flagss(d_flag_str);
-  stringstream Bss(B_str);
   stringstream Dr0ss(Dr0_str);
   stringstream boolCILss(boolCIL_str);
   stringstream boundss(bound_str);
@@ -162,7 +159,6 @@ int main(int argc, char const* argv[]) {
   k_lpss >> k_LP;
   tau_lpss >> tau_LP;
   d_flagss >> maxProtrusionLength;
-  Bss >> B;
   Dr0ss >> Dr0;
   boolCILss >> boolCIL;
   boundss >> boolBound;
@@ -207,7 +203,7 @@ int main(int argc, char const* argv[]) {
   epithelial.setkl(kl);
   epithelial.setkb(kb_for_equilibration);
   epithelial.setkc(kc);
-  epithelial.setShapeRelaxationRate(shapeRelaxationRate);
+  epithelial.setB(B);
 
   // set CIL option
   epithelial.setboolCIL(boolCIL);
@@ -296,9 +292,9 @@ int main(int argc, char const* argv[]) {
   }
 
   if (isPbcOn)
-    epithelial.dampedNP0(customForceUpdate_inactive, B, dt0, relaxTime, 0);
+    epithelial.dampedNP0(customForceUpdate_inactive, dt0, relaxTime, 0);
   else
-    epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, B, dt0, relaxTime, 0);
+    epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, dt0, relaxTime, 0);
 
   // epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, B, dt0, runTime, runTime/10.0);
 
@@ -314,14 +310,14 @@ int main(int argc, char const* argv[]) {
   // boolBound is used here to do wound healing simulations with walls, simulating a static bulk medium
   if (boolBound) {
     for (int i = 0; i < 2; i++)
-      epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, B, dt0, relaxTime, printInterval);
+      epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, dt0, relaxTime, printInterval);
 
-    epithelial.dampedNP0(customForceUpdate_active_with_circular_walls, B, dt0, time_dbl, printInterval, purseStringOn);
+    epithelial.dampedNP0(customForceUpdate_active_with_circular_walls, dt0, time_dbl, printInterval, purseStringOn);
   } else {
     for (int i = 0; i < 2; i++)
-      epithelial.dampedNP0(customForceUpdate_inactive, B, dt0, relaxTime, 0);
+      epithelial.dampedNP0(customForceUpdate_inactive, dt0, relaxTime, 0);
 
-    epithelial.dampedNP0(customForceUpdate_active, B, dt0, time_dbl, printInterval, purseStringOn);
+    epithelial.dampedNP0(customForceUpdate_active, dt0, time_dbl, printInterval, purseStringOn);
   }
   cout << "about to end simulation : printing one last configuration\n";
   epithelial.printConfiguration2D();

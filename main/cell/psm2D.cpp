@@ -56,7 +56,7 @@ const double att_range = 0.3;
 int main(int argc, char const* argv[]) {
   // local variables to be read in
   int NCELLS, nv, seed, sm;
-  double calA0, att;
+  double calA0, att, B = 1.0;
   double v0_abp, tau_abp;
 
   // read in parameters from command line input
@@ -105,6 +105,7 @@ int main(int argc, char const* argv[]) {
   cell2D.setkc(kc);
   cout << "ka, kl, kb, kc = " << ka << '\t' << kl << '\t' << kb << '\t' << kc << '\n';
 
+  cell2D.setB(B);
   // specify non-periodic boundaries
   cell2D.setpbc(0, false);
   cell2D.setpbc(1, false);
@@ -163,7 +164,6 @@ int main(int argc, char const* argv[]) {
   double relaxTimeShort = 5.0;
   double relaxTime = 100.0;
   double runTime = 400.0;
-  double B = 1.0;
   std::vector<double> savedPositions;
 
   // dpmMemFn customForceUpdate = repulsivePolarityForceUpdate;
@@ -184,17 +184,17 @@ int main(int argc, char const* argv[]) {
       cell2D.setActiveBrownianParameters(v0_abp, tau_abp);
     }
   }
-  cell2D.dampedVertexNVE(attractiveForceUpdateWithPolyWalls, B, dt0, relaxTimeShort, relaxTimeShort / 2);
+  cell2D.dampedVertexNVE(attractiveForceUpdateWithPolyWalls, dt0, relaxTimeShort, relaxTimeShort / 2);
   cell2D.replacePolyWallWithDP(numCellTypes);
   cout << "after replacePolyWallWithDP\n";
   cell2D.resizeNeighborLinkedList2D();
-  // cell2D.dampedVertexNVE(customForceUpdate, B, dt0, relaxTime, relaxTime / 15);
+  // cell2D.dampedVertexNVE(customForceUpdate, dt0, relaxTime, relaxTime / 15);
   if (v0_abp <= 0.0) {
     // thermal simulation, no activity, no damping
     cell2D.vertexNVE(customForceUpdate, 1e-2, dt0, runTime, runTime / 50.0);
   } else {
     // active simulation, damping
-    cell2D.dampedVertexNVE(customForceUpdate, B, dt0, runTime, runTime / 50.0);
+    cell2D.dampedVertexNVE(customForceUpdate, dt0, runTime, runTime / 50.0);
   }
   // cell2D.saveConfiguration(savedPositions);
   // cell2D.loadConfiguration(savedPositions);

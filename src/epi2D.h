@@ -349,8 +349,8 @@ class epi2D : public dpm {
   void scaleBoxSize(double boxLengthScale, double scaleFactorX, double scaleFactorY);
   void dampedNVETest(dpmMemFn forceCall, double T, double dt0, int NT, int NPRINTSKIP);
   void vertexNVE(ofstream& enout, dpmMemFn forceCall, double dt0, int NT, int NPRINTSKIP);
-  void dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval);
-  void dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, int purseStringOn = 0, double relaxTime = 10.0);
+  void dampedNVE2D(dpmMemFn forceCall, double dt0, double duration, double printInterval);
+  void dampedNP0(dpmMemFn forceCall, double dt0, double duration, double printInterval, int purseStringOn = 0, double relaxTime = 10.0);
   void wallForces(bool left, bool bottom, bool right, bool top, double& forceLeft, double& forceBottom, double& forceRight, double& forceTop, int forceOption = 0);
   void circularApertureForces(double radius);
   void vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0);
@@ -384,11 +384,11 @@ class epi2D : public dpm {
   double getDistanceToVertexAtAnglePsi(int ci, double psi_ci, double cx, double cy, int& gi);
   double getDistanceToRandomUnadheredVertex(int ci, double cx, double cy, int& gi);
   double rotateAndCalculateArcLength(int ci, std::vector<int>& woundIndicesBelongingToCi);
-  void purseStringContraction(double B);
+  void purseStringContraction();
   void initializePurseStringVariables();
   void updatePurseStringContacts();
-  void evaluatePurseStringForces(double B);
-  void integratePurseString(double B);
+  void evaluatePurseStringForces();
+  void integratePurseString();
   void sortPurseStringVariables();
   bool isFitBetween(int gi, int gl, int gr, int ci);
   // polymorphism: write configuration information to file

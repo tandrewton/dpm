@@ -1531,7 +1531,7 @@ void epi2D::vertexNVE(ofstream& enout, dpmMemFn forceCall, double dt0, int NT, i
   }
 }
 
-void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval) {
+void epi2D::dampedNVE2D(dpmMemFn forceCall, double dt0, double duration, double printInterval) {
   // make sure velocities exist or are already initialized before calling this
   int i;
   double K, t0 = simclock;
@@ -1649,7 +1649,7 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double B, double dt0, double duratio
 }
 
 // currently, dampedNP0 is my way of coding a simulation without boundaries, i.e. 0 pressure simulation
-void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, int purseStringOn, double relaxTime) {
+void epi2D::dampedNP0(dpmMemFn forceCall, double dt0, double duration, double printInterval, int purseStringOn, double relaxTime) {
   // make sure velocities exist or are already initialized before calling this
   // assuming zero temperature - ignore thermostat (not implemented)
   int i;
@@ -1738,7 +1738,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
       if (deltaSq == 0.0) {
         // do nothing - ignore pursestring
       } else if (max_ps - min_ps > min_allowed_ps_length) {
-        purseStringContraction(B);
+        purseStringContraction();
       } else {                                      // purse-string can't shrink anymore
         if (isPurseStringDoneShrinking == false) {  // if purse-string can't shrink anymore, set this flag to true and stop straining the pursestring
           cout << "disassembling purse-string, lengths are too short to shrink further \n";
@@ -1748,7 +1748,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double B, double dt0, double duration,
           cout << "simclock = " << simclock << '\n';
           assert(false);
         }
-        purseStringContraction(B);
+        purseStringContraction();
       }
 
       if (int(simclock / dt) % 50 == 0) {
@@ -2342,6 +2342,10 @@ void epi2D::deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc) {
           r.begin() + deleteIndexGlobal + numVertsDeleted);
   l0.erase(l0.begin() + deleteIndexGlobal,
            l0.begin() + deleteIndexGlobal + numVertsDeleted);
+  vl0.erase(vl0.begin() + deleteIndexGlobal,
+            vl0.begin() + deleteIndexGlobal + numVertsDeleted);
+  Fl0.erase(Fl0.begin() + deleteIndexGlobal,
+            Fl0.begin() + deleteIndexGlobal + numVertsDeleted);
   fieldStress.erase(fieldStress.begin() + deleteIndexGlobal,
                     fieldStress.begin() + deleteIndexGlobal + numVertsDeleted);
   fieldShapeStress.erase(fieldShapeStress.begin() + deleteIndexGlobal,
@@ -2418,6 +2422,8 @@ void epi2D::deleteVertex(std::vector<int>& deleteList) {
     list.erase(list.begin() + i);
     r.erase(r.begin() + i);
     l0.erase(l0.begin() + i);
+    vl0.erase(vl0.begin() + i);
+    Fl0.erase(Fl0.begin() + i);
     vnn.erase(vnn.begin() + i);
     vnn_label.erase(vnn_label.begin() + i);
     // initialRadius, initiall0 are handled in dampedNP0
@@ -3807,9 +3813,9 @@ void epi2D::updatePurseStringContacts() {
   }
 }
 
-void epi2D::purseStringContraction(double B) {
+void epi2D::purseStringContraction() {
   updatePurseStringContacts();
-  integratePurseString(B);  // evaluate forces on and due to purse-string, and integrate its position
+  integratePurseString();  // evaluate forces on and due to purse-string, and integrate its position
   for (int psi = 0; psi < psContacts.size(); psi++) {
     if (l0_ps[psi] <= 0.01 * r[0]) {
       l0_ps[psi] = 0.01 * r[0];
@@ -3859,7 +3865,7 @@ void epi2D::initializePurseStringVariables() {
     cout << "WARNING: purse-string vector has size 1 or smaller, in initializePurseStringVariables.\n";
 }
 
-void epi2D::evaluatePurseStringForces(double B) {
+void epi2D::evaluatePurseStringForces() {
   // using psContacts and the preferred length interaction, calculate forces on purse-string virtual particles
   // deltaSq is the breaking point for the virtual particle-wound particle interaction
   // k_ps is the wound-purseString spring force constant
@@ -4025,7 +4031,7 @@ void epi2D::evaluatePurseStringForces(double B) {
   }
 }
 
-void epi2D::integratePurseString(double B) {
+void epi2D::integratePurseString() {
   // velocity verlet force update with damping
 
   // debugging test case : ./main/epi2D/laserAblation.o 36 36 3 1.10 0.94 0.85 1.0 1.0 0.05 0.005  2.0  4.0  4.0 1.0  0.0  1.0 0.5  0  0   0 1  1000  test
@@ -4086,7 +4092,7 @@ void epi2D::integratePurseString(double B) {
 
   // force update
   std::vector<double> F_ps_old = F_ps;
-  evaluatePurseStringForces(B);
+  evaluatePurseStringForces();
 
   // VV VELOCITY UPDATE #2
   for (int i = 0; i < virtualDOF; i++) {

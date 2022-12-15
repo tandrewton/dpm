@@ -1708,6 +1708,8 @@ void cell::addDP(int numVerts, vector<double>& dp_x, vector<double>& dp_y, int c
   for (int vi = 0; vi < dp_x.size(); vi++) {
     dist = sqrt(pow(dp_x[vi] - dp_x[(vi + 1) % dp_x.size()], 2) + pow(dp_y[vi] - dp_y[(vi + 1) % dp_y.size()], 2));
     l0.push_back(dist);
+    vl0.push_back(0.0);
+    Fl0.push_back(0.0);
     t0.push_back(0.0);
     r.push_back(0.5 * dist);
 
@@ -2564,7 +2566,7 @@ void cell::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, doub
 }
 
 // used for running MD on neuralTube simulation
-void cell::simulateDampedWithWalls(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval, double pressureRate, double adhesionRate, bool wallsOn, bool leftOpen, bool bottomOpen, bool rightOpen, bool topOpen, double trueStrainRateX, double trueStrainRateY, double appliedUniaxialPressure) {
+void cell::simulateDampedWithWalls(dpmMemFn forceCall, double dt0, double duration, double printInterval, double pressureRate, double adhesionRate, bool wallsOn, bool leftOpen, bool bottomOpen, bool rightOpen, bool topOpen, double trueStrainRateX, double trueStrainRateY, double appliedUniaxialPressure) {
   // make sure velocities exist or are already initialized before calling this
   // assuming zero temperature - ignore thermostat (not implemented)
   // allow box lengths to move as a dynamical variable - rudimentary barostat,
@@ -2820,7 +2822,7 @@ void cell::vertexNVE(dpmMemFn forceCall, double T, double dt0, double duration, 
   }
 }
 
-void cell::dampedVertexNVE(dpmMemFn forceCall, double B, double dt0, double duration, double printInterval) {
+void cell::dampedVertexNVE(dpmMemFn forceCall, double dt0, double duration, double printInterval) {
   // make sure velocities exist or are already initialized before calling this
   int i;
   double K, t0 = simclock;
