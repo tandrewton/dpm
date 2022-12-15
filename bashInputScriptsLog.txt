@@ -243,18 +243,15 @@ module load dSQ
 # testing deformability, adhesion, smoothness, k_a for PS
 #bd0 P
 #!/bin/bash
-numSeeds=10
+numSeeds=1
 rm joblist_PS.txt
-for shape in 1.05 1.10 1.15
+for t_stress in 1.0 5.0 25.0 125.0
 do
-  for att in 0.10 0.15 0.20 0.25 0.29
+  for att in 0.05 0.1 0.2 0.29
   do
-    for ka in 0.5 1.0 2.0
+    for sm in 0 1
     do
-      for sm in 0 1
-      do
-        echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 $shape 0.94 0.85 1.0 $ka $att  0.005 4.0 4.0 4.0 1.0 0.0 1.0 0.5 0 0 $sm 500 pi_ohern,day,scavenge 0-23:00:00 $numSeeds 1 >> joblist_PS.txt
-      done
+      echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 1.10 0.94 0.85 1.0 1.0 $att  0.005 4.0 4.0 4.0 1.0 0.0 $t_stress 0 0 $sm 500 pi_ohern,day,scavenge 0-23:00:00 $numSeeds 1 >> joblist_PS.txt
     done
   done
 done
@@ -264,18 +261,15 @@ dsq --job-file joblist_PS.txt --mem-per-cpu 4g -t 2:00:00 --mail-type NONE --sub
 # testing deformability, adhesion, smoothness, k_a for crawling
 #bd0 C
 #!/bin/bash
-numSeeds=10
+numSeeds=1
 rm joblist_crawling.txt
-for shape in 1.05 1.10 1.15
+for t_stress in 1.0 5.0 25.0 125.0
 do
-  for att in 0.10 0.15 0.20 0.25 0.29
+  for att in 0.05 0.1 0.2 0.29
   do
-    for ka in 0.5 1.0 2.0
+    for sm in 0 1
     do
-      for sm in 0 1
-      do
-        echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 $shape 0.94 0.85 1.0 $ka $att  0.005 0.0 4.0 4.0 1.0 3.0 0.5 0 0 $sm 500 pi_ohern,day,scavenge 0-23:00:00 $numSeeds 1 >> joblist_crawling.txt
-      done
+      echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 1.10 0.94 0.85 1.0 1.0 $att  0.005 0.0 4.0 4.0 1.0 3.0 $t_stress 0 0 $sm 500 pi_ohern,day,scavenge 0-23:00:00 $numSeeds 1 >> joblist_crawling.txt
     done
   done
 done

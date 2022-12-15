@@ -38,9 +38,6 @@ class epi2D : public dpm {
   // directors (direction vectors) for activity
   std::vector<double> psi;
 
-  // rotational diffusion constant
-  double Dr0;
-
   // whether cell ci has planted a flag, to which it will anchor one of its
   // vertices to the flag with a spring
   std::vector<bool> flag;
@@ -137,13 +134,12 @@ class epi2D : public dpm {
 
  public:
   // constructor and destructor
-  epi2D(int n, double att1, double att2, double Dr, double omega_ps, double kps, double kLP, double tauLP, double deltaSquared, double maxCrawlLength, int seed)
+  epi2D(int n, double att1, double att2, double omega_ps, double kps, double kLP, double tauLP, double deltaSquared, double maxCrawlLength, int seed)
       : dpm(n, seed) {
     z.resize(n);
     // att = attraction;
     l1 = att1;
     l2 = att2;
-    Dr0 = Dr;
     boolCIL = false;
     vector<double> temp(NCELLS, 0.0);
     vector<double> temp2(NCELLS, 1.0);
@@ -167,7 +163,7 @@ class epi2D : public dpm {
     vector<double> temp3(NDIM * 2, 0.0);
     VL = temp3;
     cout << "Initializing epi2D object, l1 = " << l1 << ", l2 = " << l2
-         << ", Dr0 = " << Dr0 << '\n';
+         << '\n';
     simclock = 0.0;
     strainRate_ps = omega_ps;
     k_ps = kps;

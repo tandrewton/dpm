@@ -102,19 +102,6 @@ double epi2D::vertDistSqNoPBC(int gi, int gj) {
   return distsq;
 }
 
-void epi2D::directorDiffusion() {
-  double r1, r2, grv;
-  for (int ci = 0; ci < NCELLS; ci++) {
-    // propagate diffusion of directors psi
-    r1 = drand48();
-    r2 = drand48();
-    grv = sqrt(-2.0 * log(r1)) * cos(2.0 * PI * r2);
-    // if flag is present, do not diffuse.
-    psi[ci] += sqrt(dt * 2.0 * Dr0 * !flag[ci]) * grv;
-    psi[ci] -= 2 * PI * round(psi[ci] / (2 * PI));
-  }
-}
-
 std::vector<int> epi2D::regridSegment(int wVertIndex, double vrad) {
   // need to subtract indices from giConnectedToFlag if using this function in the future
   // return value is the indices of the deleted vertices for proper gi counting later
@@ -2265,7 +2252,7 @@ int epi2D::getIndexOfCellLocatedHere(double xLoc, double yLoc) {
 void epi2D::deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc) {
   /*need to touch smallN, largeN, NCELLS, NVTOT, cellDOF, vertDOF, szList, nv,
   list, vvel, vpos, vF, vrad, im1, ip1, vim1, vip1, a0, l0, NCTCS, cij, calA0,
-  psi, DrList (this list of items is from jamFracture.cpp) and possibly others
+  psi, and possibly others
 
   deleteCell effectively deletes a cell by erasing 1 element from vectors who
   have size = NCELLS and by erasing largeNV or smallNV elements from vectors who
@@ -3790,7 +3777,7 @@ void epi2D::updatePurseStringContacts() {
         // ... second, gi, first
         insert_index = indexOfPsContacts_second + 1;
       }
-      cout << "inserting " << gi << " at index " << insert_index << " between " << psContacts[(insert_index - 1 + psContacts.size()) % psContacts.size()] << " and " << psContacts[insert_index] << '\n';
+      // cout << "inserting " << gi << " at index " << insert_index << " between " << psContacts[(insert_index - 1 + psContacts.size()) % psContacts.size()] << " and " << psContacts[insert_index] << '\n';
 
       psContacts.insert(psContacts.begin() + insert_index, gi);
 

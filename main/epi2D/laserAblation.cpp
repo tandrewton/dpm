@@ -11,19 +11,19 @@
 //  note: if using circular boundaries via polyWall, try pmin = 0.9 and pmax = 0.85 because pmin is soft disk density and pmax is DP preferred density
 //
 // below: no purse-string, no crawling (inactive simulation)
-//./main/epi2D/laserAblation.o 20 20 0 1.10 0.92 0.925 1.0 4.0 0.0 0.01  0.0  4.0  4.0 1.0  0.0  0.5  0  0   0 1  100  test
-// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  Dr0 CIL bound sm sd time file
+//./main/epi2D/laserAblation.o 20 20 0 1.10 0.92 0.925 1.0 4.0 0.0 0.01  0.0  4.0  4.0 1.0  0.0     10.0     0  0   0 1  100  test
+// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  t_stress CIL bound sm sd time file
 // below: no purse-string, only crawling
-//./main/epi2D/laserAblation.o 36 26 3 1.05 0.94 0.85 1.0 4.0 0.1 0.005 0.0 4.0  4.0 1.0  3.0  0.5  0   0   0  1 500  test
-// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  Dr0 CIL bound sm sd time file
+//./main/epi2D/laserAblation.o 36 26 3 1.05 0.94 0.85 1.0 4.0 0.1 0.005 0.0 4.0  4.0 1.0  3.0       10.0     0   0   0  1 500  test
+// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  t_stress CIL bound sm sd time file
 // below: purse-string, no crawling
-//./main/epi2D/laserAblation.o 24 20 2 1.10 0.94 0.85 1.0 4.0 0.2 0.005  1.0  1.0  4.0 1.0  0.0  0.5  0  0   0 1  100  test
-// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  Dr0 CIL bound sm sd time file
+//./main/epi2D/laserAblation.o 30 30 2 1.05 0.94 0.85 1.0 1.0 0.2 0.005  4.0  1.0  4.0 1.0  0.0     10.0     0  0   0 1  300  test
+// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  t_stress CIL bound sm sd time file
 // below: purse-string, and crawling
-//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.865 1.0 4.0 0.1 0.01  2.0  4.0  4.0 1.0  3.0  0.5  0  1   1 1  110  test
-// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  Dr0 CIL bound sm sd time file
+//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.865 1.0 4.0 0.1 0.01  2.0  4.0  4.0 1.0  3.0     10.0     0  1   1 1  110  test
+// ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  t_stress CIL bound sm sd time file
 
-// ./main/epi2D/laserAblation.o 40 20 4 1.0 0.92 0.925 1.0 4.0 0.2 0.013  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   0 1  200  test
+// ./main/epi2D/laserAblation.o 40 20 4 1.0 0.92 0.925 1.0 4.0 0.2 0.013  2.0  4.0  4.0 1.0  3.0  1.0 10.0  0  0   0 1  200  test
 
 // bash bash/epi2D/submit_laserAblation.sh 40 20 6 1.10 0.92 0.925 1.0 1.0 0.2 0.01 0.0 4.0 4.0 1.0 3.0 1.0 0.5 0 0 400 pi_ohern,day,scavenge 0-24:00:00 1 1
 
@@ -44,7 +44,7 @@
 // 13. k_lp:        spring constant for flag to nearest vertex on wound edge for crawling
 // 14. tau_lp:      protrusion time constant (controls stochastic lifetime of a protrusion)
 // 15. d_flag:      protrusion distance from cell edge in units of vertex diameter
-// 16. Dr0:         rotational diffusion constant for protrusion activity
+// 16. tau_maxwell: stress relaxation timescale for preferred lengths
 // 17. boolCIL:     bool for whether cells conduct contact inhibition of locomotion
 // 18. boundary     choice of boundary condition (0 = free, 1 = sticky circular boundaries)
 // 19. smooth       choice of smooth or bumpy forces (0 = bumpy, 1 = smooth)
@@ -78,7 +78,7 @@ bool isPbcOn = false;
 int main(int argc, char const* argv[]) {
   // local variables to be read in
   int NCELLS, nsmall, seed, gi, ndelete;
-  double calA0, kl, ka = 1.0, kb = 0.01, phiMin, phiMax, att, B = 1.0, Dr0, time_dbl;
+  double calA0, kl, ka = 1.0, kb = 0.01, phiMin, phiMax, att, B = 1.0, t_stress, time_dbl;
   double ka_for_equilibration = 2.0, kb_for_equilibration = 0.0;
   bool boolCIL, boolBound, boolSmooth, purseStringOn = true;
   double strainRate_ps, k_ps, k_LP, tau_LP, deltaSq, maxProtrusionLength;
@@ -99,7 +99,7 @@ int main(int argc, char const* argv[]) {
   string k_lp_str = argv[13];
   string tau_lp_str = argv[14];
   string d_flag_str = argv[15];
-  string Dr0_str = argv[16];
+  string t_stress_str = argv[16];
   string boolCIL_str = argv[17];
   string bound_str = argv[18];
   string smooth_str = argv[19];
@@ -136,7 +136,7 @@ int main(int argc, char const* argv[]) {
   stringstream k_lpss(k_lp_str);
   stringstream tau_lpss(tau_lp_str);
   stringstream d_flagss(d_flag_str);
-  stringstream Dr0ss(Dr0_str);
+  stringstream t_stressss(t_stress_str);
   stringstream boolCILss(boolCIL_str);
   stringstream boundss(bound_str);
   stringstream smoothss(smooth_str);
@@ -159,7 +159,7 @@ int main(int argc, char const* argv[]) {
   k_lpss >> k_LP;
   tau_lpss >> tau_LP;
   d_flagss >> maxProtrusionLength;
-  Dr0ss >> Dr0;
+  t_stressss >> t_stress;
   boolCILss >> boolCIL;
   boundss >> boolBound;
   smoothss >> boolSmooth;
@@ -183,7 +183,7 @@ int main(int argc, char const* argv[]) {
     cout << "strain rate for pursestring is zero, setting deltaSq yield length to also be zero\n";
     deltaSq = 0.0;
   }
-  epi2D epithelial(NCELLS, 0.0, 0.0, Dr0, strainRate_ps, k_ps, k_LP, tau_LP, deltaSq, maxProtrusionLength, seed);
+  epi2D epithelial(NCELLS, 0.0, 0.0, strainRate_ps, k_ps, k_LP, tau_LP, deltaSq, maxProtrusionLength, seed);
 
   epithelial.openPosObject(positionFile);
   epithelial.openEnergyObject(energyFile);
@@ -261,9 +261,10 @@ int main(int argc, char const* argv[]) {
   epithelial.moveSimulationToPositiveCoordinates();  // shift box so all coordinates are positive
   epithelial.printConfiguration2D();
 
-  // after FIRE, restore spring constants to specified value
+  // after FIRE, restore spring constants and stress relaxation time to specified value
   epithelial.setka(ka);
   epithelial.setkb(kb);
+  epithelial.setMaxwellRelaxationTime(t_stress);
 
   // after compress, turn on damped NVE
   double T = 1e-10;
