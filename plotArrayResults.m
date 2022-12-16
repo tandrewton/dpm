@@ -17,7 +17,7 @@ N="50";
 %calA0="1.10";
 strainRate_ps="0.005";
 %deltaSq = "4.0";
-%k_a = "1.0";
+k_a = "1.0";
 k_l = "1.0";
 k_ps = "4.0"; %purse-string spring constant
 k_lp = "4.0"; %lamellipodia spring constant
@@ -27,11 +27,10 @@ tau_lp = "1.0"; %lamellipodia lifetime
 boundaryType = "0"; 
 %att="0.2";
 B="1.0";
-Dr0="0.5";
 boolCIL="0";
 Duration="500";
 
-numSeeds = 10;
+numSeeds = 1;
 startSeed = 1;
 max_seed = numSeeds;
 set(0,'DefaultFigureWindowStyle','docked')
@@ -43,22 +42,24 @@ pc_dir="C:\Users\atata\projects\dpm\";
 subdir_pipeline = pc_dir + "pipeline/cells/"+runType+"/";
 %output is location of results of this postprocessing
 subdir_output = pc_dir + "output/cells/"+runType+"/";
+array_output_dir = subdir_output + "array_output_figures/";
 
-calA0_arr = ["1.05"];
-att_arr = ["0.15" "0.20" "0.25" "0.29"];
+calA0_arr = ["1.10"];
+att_arr = ["0.05" "0.1" "0.2" "0.29"];
 sm_arr = ["0" "1"];
-k_a_arr = ["0.5" "1.0" "2.0"];
+t_stress_arr = ["1.0" "5.0" "25.0" "125.0"];  
 
-isCrawling = false;
+isCrawling = true;
+showLastFrameOfSimulations = true;
 
 if (isCrawling)
     deltaSq = "0.0"; % for C
     d_flag = "3.0"; % for C
-    numPlots = length(calA0_arr)*length(sm_arr)*length(k_a_arr); %for C
+    numPlots = length(calA0_arr)*length(sm_arr)*length(t_stress_arr); %for C
 else
     deltaSq = "4.0"; % for PS
     d_flag = "0.0"; % for PS
-    numPlots = length(calA0_arr)*length(sm_arr)*length(k_a_arr); %for PS
+    numPlots = length(calA0_arr)*length(sm_arr)*length(t_stress_arr); %for PS
 end
 
 % set up plotting windows
@@ -86,12 +87,14 @@ heatmap4 = zeros(length(calA0_arr), length(calA0_arr));
 heatmap5 = zeros(length(calA0_arr), length(calA0_arr));
 heatmap6 = zeros(length(calA0_arr), length(calA0_arr)); 
 
+
+numItsTotal = 1;
 for shapeii=1:length(calA0_arr)
     calA0=calA0_arr(shapeii);
     for i=1:length(att_arr)
         att = att_arr(i);
-        for j=1:length(k_a_arr)
-            k_a = k_a_arr(j);
+        for j=1:length(t_stress_arr)
+            t_stress = t_stress_arr(j);
             for k=1:length(sm_arr)
                 sm = sm_arr(k);
                 % might also be looping over m=numSeeds to accumulate some results
@@ -102,12 +105,17 @@ for shapeii=1:length(calA0_arr)
                 innerShapeArr = []; % fill with meanInnerShape and dynamically pad rows with nans
                 healingTime = 0;
                 rosetteNumber = 0;
+                if (isCrawling)
+                    displayStr = "C__A0="+calA0+",att="+att+",sm="+sm+",t_{stress}="+t_stress;
+                else
+                    displayStr = "P__A0="+calA0+",att="+att+",sm="+sm+",t_{stress}="+t_stress;
+                end
                 for m=1:numSeeds
                 %for m=1:1
                     % construct filenames to find the right simulation
                     bd = "0";
                     seed = m;
-                    run_name =runType+"_A0"+calA0+"_k_l"+k_l+"_k_a"+k_a+"_w_ps"+ ...
+                    run_name =runType+"_A0"+calA0+"_t_stress"+t_stress+"k_l"+k_l+"_k_a"+k_a+"_w_ps"+ ...
                         strainRate_ps+ "_dsq"+deltaSq+"_k_ps"+k_ps+"_k_lp"+ ...
                         k_lp+"_d_flag"+d_flag+"_bd"+boundaryType+"_sm"+sm;
                     pipeline_dir =  subdir_pipeline + run_name + "/";
@@ -144,6 +152,58 @@ for shapeii=1:length(calA0_arr)
                     meanInnerShapes_sd = nanmean(innerShapes_sd(:,2:end),2);
                     timeInnerShapes_sd = innerShapes_sd(:,1);
 
+                    if (showLastFrameOfSimulations)
+                        figure(1000 + numItsTotal); hold on;
+                        [trajectoryData, cell_count] = readDPMClassPosOutput(nvestr);
+                        ff = trajectoryData.NFRAMES;
+
+                        % get cell positions
+                        xpos = trajectoryData.xpos(ff,:);
+                        ypos = trajectoryData.ypos(ff,:);
+                        gi = trajectoryData.gi(ff,:);
+                        l0 = trajectoryData.l0(ff,:);
+                        vrad = trajectoryData.vrad(ff,:);
+                        psi = trajectoryData.psi(ff,:);
+                        NCELLS = cell_count(ff);
+                        nv = trajectoryData.nv;
+
+                        [nvUQ, ~, IC] = unique(nonzeros(nv(ff,:)));                
+                        NUQ = length(nvUQ);
+                        cellCLR = jet(NUQ);
+
+                        for nn = 1:NCELLS
+                            xtmp = xpos{nn};
+                            ytmp = ypos{nn};
+                            gitmp = gi{nn};
+                            l0tmp = l0{nn};
+                            vradtmp = vrad{nn};
+                            psitmp = psi(nn);
+                            costmp = cos(psitmp);
+                            sintmp = sin(psitmp);
+                
+                            clr = cellCLR(IC(nn),:);
+                
+                            cx = mean(xtmp);
+                            cy = mean(ytmp);
+
+                            rx = xtmp - cx;
+                            ry = ytmp - cy;
+                            rads = sqrt(rx.^2 + ry.^2);
+                            xtmp = xtmp + 0.4*l0tmp(1)*(rx./rads);
+                            ytmp = ytmp + 0.4*l0tmp(1)*(ry./rads);
+                            vpos = [xtmp, ytmp];
+                            finfo = [1:nv(ff,nn) 1];
+                            %disp("finfo is "+ finfo)
+                            patch('Faces',finfo,'vertices',vpos,'FaceColor',clr,'EdgeColor','k','linewidth',2);
+                        end
+                        ann = annotation('textbox', [.42 .8 0.1 0.1],'interpreter', 'latex',...
+                        'String', displayStr,'FitBoxToText','on','Edgecolor','none',...
+                        'FaceAlpha', 0.5, 'backgroundcolor','white','interpreter', 'latex');
+                        ann.FontSize = 10;
+                        axis equal; axis off;
+                        saveas(gcf, array_output_dir+displayStr+'.eps', 'epsc')
+                    end
+
                     % pad shorter voidArea with zeros to add them together
                     % pad meanInnerShapes end+1:length with NaNs to nanmean them later 
                     if (length(voidArea) < length(voidArea_sd))
@@ -171,7 +231,7 @@ for shapeii=1:length(calA0_arr)
                     elseif (differenceSize > 0)
                         meanInnerShapes_sd = padarray(meanInnerShapes_sd, [0 differenecSize], nan, 'post');
                     end
-                     (end+1, :) = meanInnerShapes_sd;
+                     innerShapeArr(end+1, :) = meanInnerShapes_sd;
                 end
 
                 voidArea(:,2) = voidArea(:,2) / numSeeds;
@@ -181,14 +241,8 @@ for shapeii=1:length(calA0_arr)
                 meanInnerShapes = nanmean(innerShapeArr, 1);
 
                 % plot area vs time for C
-                figure((shapeii-1)*length(sm_arr)*length(k_a_arr) ...
-                    + (k-1)*length(k_a_arr) + j)
-
-                if (isCrawling)
-                    displayStr = "C: A0="+calA0+",att="+att+",sm="+sm+",ka="+k_a;
-                else
-                    displayStr = "P: A0="+calA0+",att="+att+",sm="+sm+",ka="+k_a;
-                end
+                figure((shapeii-1)*length(sm_arr)*length(t_stress_arr) ...
+                    + (k-1)*length(t_stress_arr) + j)
 
                 plot(voidArea(:,1), voidArea(:,2), 'linewidth', 4, 'DisplayName', displayStr)
                 xlabel('$t/\tau$','Interpreter','latex','fontsize', 24);
@@ -229,6 +283,7 @@ for shapeii=1:length(calA0_arr)
                     heatmap5(i,j) = healingTime; 
                     heatmap6(i,j) = rosetteNumber;
                 end
+                numItsTotal = numItsTotal + 1;
             end
         end
     end
@@ -267,14 +322,14 @@ for smii=1:2
     figure(heatmap_fig_num + 3*(smii-1))
     %h = heatmap(att_arr, calA0_arr, heatmap1);
     if (smii == 1)
-        h = heatmap(k_a_arr, att_arr, heatmap1);
+        h = heatmap(t_stress_arr, att_arr, heatmap1);
         h.YLabel = "att";
     elseif (smii == 2)
-        h = heatmap(k_a_arr, att_arr, heatmap4);
+        h = heatmap(t_stress_arr, att_arr, heatmap4);
         h.YLabel = "att, smooth";
     end
 
-    h.XLabel = 'ka';
+    h.XLabel = '$\tau_{relax}$';
     %h.YLabel = '$\mathcal{A}_0$';
     h.Title = '$\langle\mathcal{A}_{max}\rangle / \langle\mathcal{A}_{0}\rangle$';
     h.NodeChildren(3).XAxis.Label.Interpreter = 'latex';
@@ -285,13 +340,13 @@ for smii=1:2
     
     figure(heatmap_fig_num + 1 + 3*(smii-1))
     if (smii == 1)
-        h = heatmap(k_a_arr, att_arr, heatmap2);
+        h = heatmap(t_stress_arr, att_arr, heatmap2);
         h.YLabel = "att";
     elseif (smii == 2)
-        h = heatmap(k_a_arr, att_arr, heatmap5);
+        h = heatmap(t_stress_arr, att_arr, heatmap5);
         h.YLabel = "att, smooth";
     end
-    h.XLabel = 'ka';
+    h.XLabel = '$\tau_{relax}$';
     h.Title = 'Healing time';
     h.NodeChildren(3).XAxis.Label.Interpreter = 'latex';
     h.NodeChildren(3).YAxis.Label.Interpreter = 'latex';
@@ -302,13 +357,13 @@ for smii=1:2
     figure(heatmap_fig_num + 2 + 3*(smii-1))
     heatmap3(heatmap3==0) = nan;
      if (smii == 1)
-        h = heatmap(k_a_arr, att_arr, heatmap3);
+        h = heatmap(t_stress_arr, att_arr, heatmap3);
         h.YLabel = "att";
     elseif (smii == 2)
-        h = heatmap(k_a_arr, att_arr, heatmap6);
+        h = heatmap(t_stress_arr, att_arr, heatmap6);
         h.YLabel = "att, smooth";
      end
-    h.XLabel = 'ka';
+    h.XLabel = '$\tau_{relax}$';
     h.Title = 'Rosette number';
     h.NodeChildren(3).XAxis.Label.Interpreter = 'latex';
     h.NodeChildren(3).YAxis.Label.Interpreter = 'latex';

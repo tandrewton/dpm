@@ -16,30 +16,24 @@ bash bash/cells/submit_neuralTube.sh 24 20 1.0 0.01 0.01 0.002 0.002 3000 pi_ohe
 bash bash/cells/submit_neuralTube.sh 24 20 1.0 0.01 0.01 0.002 0.02 3000 pi_ohern,day,scavenge 0-12:00:00 1 1
 
 %function drawWoundSims(N, calA0, k_a, smooth, deltaSq, d_flag, att)
-shape_arr = ["1.05"];
-k_a_arr = ["1.0"];
-sm_arr = ["1"];
-att_arr = ["0.12"];
-for i=1:length(shape_arr)
-  for j=1:length(k_a_arr)
-    for k=1:length(sm_arr)
-      for l=1:length(att_arr)
-        drawWoundSims(50, shape_arr(i), k_a_arr(j), sm_arr(k), "4.0", "0.0", att_arr(l))
-      end
+t_stress_arr = ["1.0" "5.0" "25.0" "125.0"];
+sm_arr = ["0" "1"];
+att_arr = ["0.05" "0.1" "0.2" "0.29"];
+for j=1:length(t_stress_arr)
+  for k=1:length(sm_arr)
+    for l=1:length(att_arr)
+        drawWoundSims(50, "1.10", t_stress_arr(j), sm_arr(k), "4.0", "0.0", att_arr(l))
     end
   end
 end
 
-shape_arr = ["1.05"];
-k_a_arr = ["1.0"];
-sm_arr = ["0"];
-att_arr = ["0.10"];
-for i=1:length(shape_arr)
-  for j=1:length(k_a_arr)
-    for k=1:length(sm_arr)
-      for l=1:length(att_arr)
-        drawWoundSims(50, shape_arr(i), k_a_arr(j), sm_arr(k), "0.0", "3.0", att_arr(l))
-      end
+t_stress_arr = ["1.0" "5.0" "25.0" "125.0"];
+sm_arr = ["0" "1"];
+att_arr = ["0.05" "0.1" "0.2" "0.29"];
+for j=1:length(t_stress_arr)
+  for k=1:length(sm_arr)
+    for l=1:length(att_arr)
+      drawWoundSims(50, "1.10", t_stress_arr(j), sm_arr(k), "0.0", "3.0", att_arr(l))
     end
   end
 end

@@ -2110,6 +2110,7 @@ void dpm::shapeForces2D() {
 void dpm::maxwellRelaxationRestLengths(std::vector<double>& l) {
   // we are integrating a 1D equation of motion for rest lengths
   //  assuming a Maxwell model for stress relaxation.
+  //  k(l-l0) is the spring, -B*vl0 is the dashpot.
   double al0, al0_old;
   double li;
   for (int i = 0; i < l0.size(); i++) {
