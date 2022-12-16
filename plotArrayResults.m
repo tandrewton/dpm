@@ -30,7 +30,7 @@ B="1.0";
 boolCIL="0";
 Duration="500";
 
-numSeeds = 1;
+numSeeds = 10;
 startSeed = 1;
 max_seed = numSeeds;
 set(0,'DefaultFigureWindowStyle','docked')
@@ -50,7 +50,7 @@ sm_arr = ["0" "1"];
 t_stress_arr = ["1.0" "5.0" "25.0" "125.0"];  
 
 isCrawling = true;
-showLastFrameOfSimulations = true;
+showLastFrameOfSimulations = false;
 
 if (isCrawling)
     deltaSq = "0.0"; % for C

@@ -271,7 +271,6 @@ int main(int argc, char const* argv[]) {
   double relaxTime = 25.0;
   // assert(relaxTime <= 10.0);  // if relaxTime > 10.0, then dampedNP0 will run over the hardcoded limit. Could pass a parameter to dampedNP0 to tell it how long to wait, or just hardcode for now.
   double printInterval = relaxTime / 2.0;
-  double runTime = 25.0;
   epithelial.drawVelocities2D(T);
 
   dpmMemFn customForceUpdate_inactive;
@@ -297,8 +296,6 @@ int main(int argc, char const* argv[]) {
   else
     epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, dt0, relaxTime, 0);
 
-  // epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, B, dt0, runTime, runTime/10.0);
-
   // LASER ABLATION SCHEME
   double xLoc = 0.0, yLoc = 0.0;
   int numCellsToAblate = ndelete;
@@ -307,11 +304,10 @@ int main(int argc, char const* argv[]) {
 
   //  dampedNP0 runs simulation with purse-string integration and crawling
 
-  cout << "boolBound = " << boolBound << '\n';
   // boolBound is used here to do wound healing simulations with walls, simulating a static bulk medium
   if (boolBound) {
     for (int i = 0; i < 2; i++)
-      epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, dt0, relaxTime, printInterval);
+      epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, dt0, relaxTime, 0);
 
     epithelial.dampedNP0(customForceUpdate_active_with_circular_walls, dt0, time_dbl, printInterval, purseStringOn);
   } else {
