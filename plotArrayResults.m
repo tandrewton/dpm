@@ -24,9 +24,10 @@ k_lp = "4.0"; %lamellipodia spring constant
 %smooth = "0";
 tau_lp = "1.0"; %lamellipodia lifetime
 %d_flag = "0.0"; %lamellipodia max length
-boundaryType = "0"; 
+boundaryType = "1"; 
 %att="0.2";
 B="1.0";
+%bd = "1";
 boolCIL="0";
 Duration="500";
 
@@ -44,13 +45,13 @@ subdir_pipeline = pc_dir + "pipeline/cells/"+runType+"/";
 subdir_output = pc_dir + "output/cells/"+runType+"/";
 array_output_dir = subdir_output + "array_output_figures/";
 
-calA0_arr = ["1.10"];
+calA0_arr = ["1.05"];
 att_arr = ["0.05" "0.1" "0.2" "0.29"];
-sm_arr = ["0" "1"];
-t_stress_arr = ["1.0" "5.0" "25.0" "125.0"];  
+sm_arr = ["1"];
+t_stress_arr = ["5.0" "25.0" "125.0" "625.0" ];  
 
-isCrawling = true;
-showLastFrameOfSimulations = false;
+isCrawling = false;
+showLastFrameOfSimulations = true;
 
 if (isCrawling)
     deltaSq = "0.0"; % for C
@@ -113,7 +114,6 @@ for shapeii=1:length(calA0_arr)
                 for m=1:numSeeds
                 %for m=1:1
                     % construct filenames to find the right simulation
-                    bd = "0";
                     seed = m;
                     run_name =runType+"_A0"+calA0+"_t_stress"+t_stress+"k_l"+k_l+"_k_a"+k_a+"_w_ps"+ ...
                         strainRate_ps+ "_dsq"+deltaSq+"_k_ps"+k_ps+"_k_lp"+ ...
@@ -152,7 +152,7 @@ for shapeii=1:length(calA0_arr)
                     meanInnerShapes_sd = nanmean(innerShapes_sd(:,2:end),2);
                     timeInnerShapes_sd = innerShapes_sd(:,1);
 
-                    if (showLastFrameOfSimulations)
+                    if (showLastFrameOfSimulations && seed == 1)
                         figure(1000 + numItsTotal); hold on;
                         [trajectoryData, cell_count] = readDPMClassPosOutput(nvestr);
                         ff = trajectoryData.NFRAMES;
@@ -318,7 +318,7 @@ end
 heatmap_filepath = "output/cells/ablate/array_output_figures";
 mkdir(heatmap_filepath);
 
-for smii=1:2
+for smii=1:length(sm_arr)
     figure(heatmap_fig_num + 3*(smii-1))
     %h = heatmap(att_arr, calA0_arr, heatmap1);
     if (smii == 1)
