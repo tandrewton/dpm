@@ -3920,6 +3920,7 @@ void epi2D::evaluatePurseStringForces() {
       fy = 0;
       dx = 0;
       dy = 0;
+      cout << "spring yielded, simclock = " << simclock << '\n';
     }
     if (std::isnan(fx)) {
       cout << "from purse-string interaction, fx from psi = " << psi << " is NaN! this affects vertex " << gi << '\n';

@@ -17,10 +17,10 @@
 //./main/epi2D/laserAblation.o 36 26 3 1.05 0.94 0.85 1.0 4.0 0.1 0.005 0.0 4.0  4.0 1.0  3.0       10.0     0   0   0  1 500  test
 // ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  t_stress CIL bound sm sd time file
 // below: purse-string, no crawling
-//./main/epi2D/laserAblation.o 30 30 2 1.05 0.94 0.85 1.0 1.0 0.2 0.005  4.0  1.0  4.0 1.0  0.0     10.0     0  0   0 1  300  test
+//./main/epi2D/laserAblation.o 50 30 3 1.05 0.94 0.85 1.0 1.0 0.2 0.005  4.0  1.0  4.0 1.0  0.0     25.0     0  0   0 1  500  test
 // ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  t_stress CIL bound sm sd time file
 // below: purse-string, and crawling
-//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.865 1.0 4.0 0.1 0.01  2.0  4.0  4.0 1.0  3.0     10.0     0  1   1 1  110  test
+//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.865 1.0 4.0 0.1 0.01  2.0  4.0  4.0 1.0  3.0     10.0     0  0   1 1  110  test
 // ........................... N  NV Nd A0  pMin  pMax  kl ka att  om   dsq  kps  klp tau dflag  t_stress CIL bound sm sd time file
 
 // ./main/epi2D/laserAblation.o 40 20 4 1.0 0.92 0.925 1.0 4.0 0.2 0.013  2.0  4.0  4.0 1.0  3.0  1.0 10.0  0  0   0 1  200  test
@@ -271,6 +271,7 @@ int main(int argc, char const* argv[]) {
   double relaxTime = 25.0;
   // assert(relaxTime <= 10.0);  // if relaxTime > 10.0, then dampedNP0 will run over the hardcoded limit. Could pass a parameter to dampedNP0 to tell it how long to wait, or just hardcode for now.
   double printInterval = relaxTime / 2.0;
+  double runTime = 25.0;
   epithelial.drawVelocities2D(T);
 
   dpmMemFn customForceUpdate_inactive;
@@ -296,6 +297,8 @@ int main(int argc, char const* argv[]) {
   else
     epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, dt0, relaxTime, 0);
 
+  // epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, B, dt0, runTime, runTime/10.0);
+
   // LASER ABLATION SCHEME
   double xLoc = 0.0, yLoc = 0.0;
   int numCellsToAblate = ndelete;
@@ -307,7 +310,7 @@ int main(int argc, char const* argv[]) {
   // boolBound is used here to do wound healing simulations with walls, simulating a static bulk medium
   if (boolBound) {
     for (int i = 0; i < 2; i++)
-      epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, dt0, relaxTime, 0);
+      epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, dt0, relaxTime, printInterval);
 
     epithelial.dampedNP0(customForceUpdate_active_with_circular_walls, dt0, time_dbl, printInterval, purseStringOn);
   } else {
