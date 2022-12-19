@@ -3920,7 +3920,6 @@ void epi2D::evaluatePurseStringForces() {
       fy = 0;
       dx = 0;
       dy = 0;
-      cout << "spring yielded, simclock = " << simclock << '\n';
     }
     if (std::isnan(fx)) {
       cout << "from purse-string interaction, fx from psi = " << psi << " is NaN! this affects vertex " << gi << '\n';
@@ -4027,6 +4026,7 @@ void epi2D::integratePurseString() {
   // first step: delete virtual vertices if the virtual-real bond has yielded.
   for (int i = 0; i < psContacts.size(); i++) {
     if (isSpringBroken[i]) {
+      cout << "spring broken on particle " << psContacts[i] << " with psContacts index " << i << '\n';
       int prev = (i - 1 + psContacts.size()) % psContacts.size();
       int next = (i + 1 + psContacts.size()) % psContacts.size();
       // cout << "marking a spring on gi = psContact[i] = " << psContacts[i] << " for deletion!\n";
