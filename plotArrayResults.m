@@ -24,7 +24,7 @@ k_lp = "4.0"; %lamellipodia spring constant
 %smooth = "0";
 tau_lp = "1.0"; %lamellipodia lifetime
 %d_flag = "0.0"; %lamellipodia max length
-boundaryType = "1"; 
+boundaryType = "0"; 
 %att="0.2";
 B="1.0";
 %bd = "1";
@@ -48,7 +48,7 @@ array_output_dir = subdir_output + "array_output_figures/";
 calA0_arr = ["1.05"];
 att_arr = ["0.05" "0.1" "0.2" "0.29"];
 sm_arr = ["1"];
-t_stress_arr = ["5.0" "25.0" "125.0" "625.0" ];  
+t_stress_arr = ["5.0" "25.0" "125.0" "625.0"];  
 
 isCrawling = false;
 showLastFrameOfSimulations = true;
