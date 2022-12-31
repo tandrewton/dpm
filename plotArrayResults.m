@@ -37,8 +37,8 @@ max_seed = numSeeds;
 set(0,'DefaultFigureWindowStyle','docked')
 
 %PC directory
-%pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
-pc_dir="C:\Users\atata\projects\dpm\";
+pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
+%pc_dir="C:\Users\atata\projects\dpm\";
 %pipeline is the location of data generated during simulations
 subdir_pipeline = pc_dir + "pipeline/cells/"+runType+"/";
 %output is location of results of this postprocessing
@@ -51,7 +51,7 @@ sm_arr = ["1"];
 t_stress_arr = ["5.0" "25.0" "125.0" "625.0"];  
 
 isCrawling = false;
-showLastFrameOfSimulations = true;
+showLastFrameOfSimulations = false;
 
 if (isCrawling)
     deltaSq = "0.0"; % for C
@@ -205,14 +205,24 @@ for shapeii=1:length(calA0_arr)
                     end
 
                     % pad shorter voidArea with zeros to add them together
+                    % pad shorted voidArea with its last known value to add
+                    % them together?
                     % pad meanInnerShapes end+1:length with NaNs to nanmean them later 
                     if (length(voidArea) < length(voidArea_sd))
-                        voidArea(length(voidArea_sd),:) = 0;
+                        if (voidArea > 0)
+                            voidArea(length(voidArea_sd),:) = voidArea(length(voidArea), :);
+                        else
+                            voidArea(length(voidArea_sd),:) = 0;
+                        end
                         meanInnerShapes(end+1:length(meanInnerShapes_sd),:) = nan;
                         voidArea(:,1) = voidArea_sd(:,1); %extend time column
                         timeInnerShapes = timeInnerShapes_sd; %extend time column
                     elseif (length(voidArea_sd) < length(voidArea))
-                        voidArea_sd(length(voidArea),:) = 0;
+                        if (voidArea_sd > 0)
+                            voidArea_sd(length(voidArea),:) = voidArea_sd(length(voidArea_sd),:);
+                        else
+                            voidArea_sd(length(voidArea),:) = 0;
+                        end
                         meanInnerShapes_sd(end+1:length(meanInnerShapes),:) = nan;
                         voidArea_sd(:,1) = voidArea(:,1); %extend time column
                     end
