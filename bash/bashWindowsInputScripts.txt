@@ -38,6 +38,8 @@ for j=1:length(t_stress_arr)
   end
 end
 
+drawWoundSims(50, "1.05", "5.0", "1", "4.0", "0.0", "0.2")
+
 profiling:
 valgrind --tool=callgrind --dump-instr=yes -v --instr-atstart=no ./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.925 1.0 1.0 0.1 0.01  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   1 1  200  test > tmp
 callgrind_control -i on

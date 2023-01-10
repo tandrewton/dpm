@@ -50,7 +50,7 @@ att_arr = ["0.05" "0.1" "0.2" "0.29"];
 sm_arr = ["1"];
 t_stress_arr = ["5.0" "25.0" "125.0" "625.0"];  
 
-isCrawling = false;
+isCrawling = true;
 showLastFrameOfSimulations = false;
 
 if (isCrawling)
@@ -196,10 +196,10 @@ for shapeii=1:length(calA0_arr)
                             %disp("finfo is "+ finfo)
                             patch('Faces',finfo,'vertices',vpos,'FaceColor',clr,'EdgeColor','k','linewidth',2);
                         end
-                        ann = annotation('textbox', [.42 .8 0.1 0.1],'interpreter', 'latex',...
-                        'String', displayStr,'FitBoxToText','on','Edgecolor','none',...
-                        'FaceAlpha', 0.5, 'backgroundcolor','white','interpreter', 'latex');
-                        ann.FontSize = 10;
+%                         ann = annotation('textbox', [.42 .8 0.1 0.1],'interpreter', 'latex',...
+%                         'String', displayStr,'FitBoxToText','on','Edgecolor','none',...
+%                         'FaceAlpha', 0.5, 'backgroundcolor','white','interpreter', 'latex');
+%                         ann.FontSize = 10;
                         axis equal; axis off;
                         saveas(gcf, array_output_dir+displayStr+'.eps', 'epsc')
                     end
@@ -345,6 +345,7 @@ for smii=1:length(sm_arr)
     h.NodeChildren(3).XAxis.Label.Interpreter = 'latex';
     h.NodeChildren(3).YAxis.Label.Interpreter = 'latex';
     h.NodeChildren(3).Title.Interpreter = 'latex';
+    fontsize(gca, scale=1.5)
     saveas(gcf, heatmap_filepath+"/relativeMaxShapeDeformationSmooth"+ sm_arr(smii) + ...
                  "PS"+~isCrawling+'.eps', 'epsc')
     
@@ -361,6 +362,7 @@ for smii=1:length(sm_arr)
     h.NodeChildren(3).XAxis.Label.Interpreter = 'latex';
     h.NodeChildren(3).YAxis.Label.Interpreter = 'latex';
     h.NodeChildren(3).Title.Interpreter = 'latex';
+    fontsize(gca, scale=1.5)
     saveas(gcf, heatmap_filepath+"/healingTimesSmooth"+ sm_arr(smii) + ...
                  "PS"+~isCrawling+'.eps', 'epsc')
     
@@ -378,6 +380,7 @@ for smii=1:length(sm_arr)
     h.NodeChildren(3).XAxis.Label.Interpreter = 'latex';
     h.NodeChildren(3).YAxis.Label.Interpreter = 'latex';
     h.NodeChildren(3).Title.Interpreter = 'latex';
+    fontsize(gca, scale=1.5)
     saveas(gcf, heatmap_filepath+"/rosetteNumberSmooth"+ sm_arr(smii) + ...
                  "PS"+~isCrawling+'.eps', 'epsc')
 end
