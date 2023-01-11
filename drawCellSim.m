@@ -7,8 +7,8 @@
 %isTestData = false; %uncomment if using function call to pipeline data
 
 isTestData = true; %uncomment if using test data
-for testDataii=1:12
-    %testDataID = '1';
+for testDataii=9:9
+    %testDataID = '5';
     testDataID = num2str(testDataii);
     addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
     addpath('C:\Users\atata\projects\dpm\bash')
@@ -81,18 +81,18 @@ for testDataii=1:12
             tissuestr = pipeline_dir+fileheader+'.tissue';
         end
     
-        A = load(tissuestr);
-        %plot(A(:,1), A(:,2), 'displayname', 'boundary area')
-        %plot(A(:,1), A(:,3), 'displayname', 'total cell area')
-        plot(A(:,1), (A(:,2) - A(:,3))./A(:,2), 'displayname',...
-            "$\phi$, $<A>$ = " + mean(A(:,2)), 'linewidth', 2)
-        legend()
-        xlabel('$\tau$','Interpreter','latex');
-        ylabel('Extracellular Fraction','Interpreter','latex');
-        legend('Location', 'northeast', 'Interpreter', 'latex');
-        ylim([0 1])
-        ax = gca;
-        ax.FontSize = 20;
+%         A = load(tissuestr);
+%         %plot(A(:,1), A(:,2), 'displayname', 'boundary area')
+%         %plot(A(:,1), A(:,3), 'displayname', 'total cell area')
+%         plot(A(:,1), (A(:,2) - A(:,3))./A(:,2), 'displayname',...
+%             "$\phi$, $<A>$ = " + mean(A(:,2)), 'linewidth', 2)
+%         legend()
+%         xlabel('$\tau$','Interpreter','latex');
+%         ylabel('Extracellular Fraction','Interpreter','latex');
+%         legend('Location', 'northeast', 'Interpreter', 'latex');
+%         ylim([0 1])
+%         ax = gca;
+%         ax.FontSize = 20;
     
         % read in position data
         [trajectoryData, cell_count] = readCellClassPosOutput(nvestr);

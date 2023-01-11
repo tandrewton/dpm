@@ -133,6 +133,7 @@ class cell : public dpm {
   // void repulsiveForceUpdateWithoutTopWall();
   void attractiveForceUpdate();
   void attractiveForceUpdateWithCrawling();
+  void attractiveSmoothForceUpdateWithCrawling();
   void attractiveSmoothForceUpdate();
   void repulsiveWithPolarityForceUpdate();
   void attractiveWithPolarityForceUpdate();

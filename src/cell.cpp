@@ -157,19 +157,18 @@ void cell::shapeForces2D() {
     if (pbc[1])
       rip1y -= L[1] * round(rip1y / L[1]);
 
-    // -- Area force (comes from a cross product)
-    forceX = 0.5 * fa * (rim1y - rip1y);
-    forceY = 0.5 * fa * (rip1x - rim1x);
+    // -- Area force (comes from a cross product) only applies to cellID 0 = ordinary cells, not boundaries
+    if (cellID[ci_real] == 0) {
+      forceX = 0.5 * fa * (rim1y - rip1y);
+      forceY = 0.5 * fa * (rip1x - rim1x);
 
-    // cellIndex is separate from ci because ci is used to get adjacent vertices
-    // int cellIndex, vertexIndex;
-    // cindices(cellIndex, vertexIndex, gi);
-    F[NDIM * gi] += forceX;
-    F[NDIM * gi + 1] += forceY;
+      F[NDIM * gi] += forceX;
+      F[NDIM * gi + 1] += forceY;
 
-    fieldShapeStress[gi][0] += unwrappedX * forceX;
-    fieldShapeStress[gi][1] += unwrappedY * forceY;
-    fieldShapeStress[gi][2] += unwrappedX * forceY;
+      fieldShapeStress[gi][0] += unwrappedX * forceX;
+      fieldShapeStress[gi][1] += unwrappedY * forceY;
+      fieldShapeStress[gi][2] += unwrappedX * forceY;
+    }
 
     // -- Perimeter force
     lix = rip1x - rix;
@@ -194,7 +193,6 @@ void cell::shapeForces2D() {
     F[NDIM * gi] += forceX;
     F[NDIM * gi + 1] += forceY;
 
-    // note - Andrew here, confirmed that the shape stress matrix is diagonal as written
     fieldShapeStress[gi][0] += unwrappedX * forceX;
     fieldShapeStress[gi][1] += unwrappedY * forceY;
     fieldShapeStress[gi][2] += unwrappedX * forceY;
@@ -372,6 +370,13 @@ void cell::attractiveForceUpdateWithCrawling() {
   resetForcesAndEnergy();
   shapeForces2D();
   vertexAttractiveForces2D_2();
+  brownianCrawlingUpdate();
+}
+
+void cell::attractiveSmoothForceUpdateWithCrawling() {
+  resetForcesAndEnergy();
+  shapeForces2D();
+  circuloLineAttractiveForces();
   brownianCrawlingUpdate();
 }
 
