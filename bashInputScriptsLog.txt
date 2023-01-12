@@ -276,6 +276,10 @@ done
 
 dsq --job-file joblist_crawling.txt --mem-per-cpu 4g -t 2:00:00 --mail-type NONE --submit --suppress-stats-file -o /dev/null
 
+# for testing psm script
+#!/bin/bash
+numSeeds = 1
+bash bash/cells/submit_psm.sh 12 25 1.05 0.01 25.0 0.05 1.0 1 1 400 pi_ohern,day,scavenge 0-23:00:00 1 1
 
 #this one should be bugged
 bash bash/epi2D/submit_laserAblation.sh 60 20 6 1.10 0.94 0.85 1.0 1.0 0.1  0.005 2.0 1.0 4.0 1.0 0.0 0.5 0 0 1 800 pi_ohern,day,scavenge 0-23:00:00 1 1

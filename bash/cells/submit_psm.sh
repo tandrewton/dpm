@@ -2,9 +2,9 @@
 # directories with code
 
 #example call: bash bash/cells/submit_psm.sh 10 20 1.0 0.01 -0.01 0.002 0.002 3000 pi_ohern,day,scavenge 0-12:00:00 1 1
-dpmdir=~/dpm
-srcdir=$dpmdir/src
-maindir=$dpmdir/main/cell
+cellsdir=~/dpm
+srcdir=$cellsdir/src
+maindir=$cellsdir/main/cell
 
 # directory for all output for cell simulations
 outputdir=/gpfs/loomis/project/fas/ohern/at965/dpm
@@ -67,8 +67,8 @@ echo sm = "$sm" >> $configFile
 
 # run compiler
 rm -f $binf
-g++ --std=c++11 -O3 -I "$srcdir" "$mainf" "$srcdir"/*.cpp -o $binf
-echo compiling with : g++ --std=c++11 -O3 -I "$srcdir" "$mainf" "$srcdir"/*.cpp -o $binf
+g++ --std=c++11 -O3 -I "$srcdir" "$mainf" "$srcdir"/dpm.cpp "$srcdir"/cell.cpp -o $binf
+echo compiling with : g++ --std=c++11 -O3 -I "$srcdir" "$mainf" "$srcdir"/dpm.cpp "$srcdir"/cell.cpp -o $binf
 
 # check compilation
 if [[ ! -f $binf ]]
