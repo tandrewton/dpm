@@ -201,7 +201,7 @@ int main(int argc, char const* argv[]) {
   }
   cell2D.dampedVertexNVE(attractiveForceUpdateWithPolyWalls, dt0, relaxTimeShort, relaxTimeShort / 2);
   cell2D.replacePolyWallWithDP(numCellTypes);
-  cout << "after replacePolyWallWithDP\n";
+  cout << "after replacePolyWallWithDP, about to run NVE for duration " << runTime << "\n";
   cell2D.resizeNeighborLinkedList2D();
   // cell2D.dampedVertexNVE(customForceUpdate, dt0, relaxTime, relaxTime / 15);
   if (v0_abp <= 0.0) {
@@ -214,16 +214,8 @@ int main(int argc, char const* argv[]) {
   // cell2D.saveConfiguration(savedPositions);
   // cell2D.loadConfiguration(savedPositions);
 
-  /*cell2D.dampedVertexNVE(customForceUpdate, B, dt0, relaxTimeShort, relaxTimeShort/5);
-  cell2D.loadConfiguration(savedPositions);
-
-  cell2D.setCellTypeAttractionModifiers(0,3,10.0);
-
-  cell2D.dampedVertexNVE(customForceUpdate, B, dt0, relaxTimeShort, relaxTimeShort/5);
-  cell2D.loadConfiguration(savedPositions);
-  */
   cout
-      << "\n** Finished transverseIntertissue.cpp, ending. " << endl;
+      << "\n** Finished psm.cpp (2D transverse section of pre-somitic mesoderm), ending. " << endl;
 
   return 0;
 }
