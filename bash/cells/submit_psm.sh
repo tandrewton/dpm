@@ -7,7 +7,7 @@ srcdir=$cellsdir/src
 maindir=$cellsdir/main/cell
 
 # directory for all output for cell simulations
-outputdir=/gpfs/loomis/project/fas/ohern/at965/dpm
+outputdir=/gpfs/gibbs/project/fas/ohern/at965/dpm
 
 # directory for simulations specific to neuralTube
 simtypedir=$outputdir/psm
@@ -49,7 +49,7 @@ simdatadir=$simtypedir/$basestr
 mkdir -p $simdatadir
 
 # write input parameters to a configuration file for organization
-configFile=$simdatadir/config.txt
+configFile=$simdatadir/"$runstr"_config.txt
 
 # compile into binary
 binf=bin/"$runstr".o
@@ -103,7 +103,7 @@ for seed in `seq $startSeed $numSeedsPerRun $endSeed`; do
         let runseed=$seed+ss
 
         # get file str
-        filestr="$runstr"_seed"$seed"
+        filestr="$runstr"_sd"$seed"
 
         # create output files
         outFileStem=$simdatadir/$filestr
