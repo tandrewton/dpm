@@ -42,6 +42,37 @@ void cell::printInteractionMatrix() {
   }
 }
 
+void cell::maxwellRelaxationRestLengths(std::vector<double>& l, std::vector<int> viscoelasticCellTypes) {
+  // overloaded version of dpm function. only makes certain cellTypes viscoelastic
+  // we are integrating a 1D equation of motion for rest lengths
+  //  assuming a Maxwell model for stress relaxation.
+  //  k(l-l0) is the spring, -B*vl0 is the dashpot.
+  double al0, al0_old;
+  double li;
+  int ci, vi;
+  for (int i = 0; i < l0.size(); i++) {
+    cindices(ci, vi, i);
+    if (std::find(viscoelasticCellTypes.begin(), viscoelasticCellTypes.end(), cellID[ci]) != viscoelasticCellTypes.end()) {
+      // if cellID[ci] is a viscoelastic cell type, then integrate its preferred length according to viscoelastic equations of motion
+      li = l[i];
+      al0 = Fl0[i];  // make sure al0 and al0_old have different addresses
+      al0_old = al0;
+
+      // velocity verlet position update
+      l0[i] += vl0[i] * dt + al0_old * dt * dt / 2;
+
+      // force on l0. kl/tau is the effective mass of the preferred length spring
+      Fl0[i] = kl / maxwellRelaxationTime * (li - l0[i]);
+
+      // correction for velocity dependent force with damping
+      Fl0[i] = (Fl0[i] - B * (vl0[i] + al0_old * dt / 2)) / (1 + B * dt / 2);
+
+      // velocity verlet velocity update
+      vl0[i] += (al0_old + al0) * dt / 2;
+    }
+  }
+}
+
 void cell::shapeForces2D() {
   // uses cellID to determine whether to compute certain parts of the shape forces
   // for example, the ECM cellID shouldn't have any bending energy.
@@ -271,7 +302,9 @@ void cell::shapeForces2D() {
     l0im1 = l0i;
   }
 
-  maxwellRelaxationRestLengths(li_vector);
+  // cellType 0 is not allowed to have viscoelastic membrane elements
+  // 1 represents the boundary, which is viscoelastic for us
+  maxwellRelaxationRestLengths(li_vector, {1});
 
   // normalize per-cell stress by preferred cell area
   for (int ci = 0; ci < NCELLS; ci++) {

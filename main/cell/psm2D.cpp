@@ -23,7 +23,7 @@
 ./main/cell/psm2D.o   24   25 1.05 0.1   0.0   0.05  1.0    1    1    test7
 ./main/cell/psm2D.o   24   25 1.05 0.2   0.0   0.05  1.0    1    1    test8
 
-./main/cell/psm2D.o   16   25 1.05 0.01  0.0   0.1   1.0    1    1    test9
+./main/cell/psm2D.o   16   25 1.05 0.01  1.0   0.1   1.0    1    1    test9
 ./main/cell/psm2D.o   16   25 1.05 0.05  0.0   0.1   1.0    1    1    test10
 ./main/cell/psm2D.o   16   25 1.05 0.1   0.0   0.1   1.0    1    1    test11
 ./main/cell/psm2D.o   16   25 1.05 0.2   0.0   0.1   1.0    1    1    test12

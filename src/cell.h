@@ -128,6 +128,7 @@ class cell : public dpm {
   // consider writing a function that uses cell IDs
 
   // cell interactions
+  void maxwellRelaxationRestLengths(std::vector<double>& l, std::vector<int> cellTypes);
   void shapeForces2D();
   void repulsiveForceUpdateWithWalls();
   // void repulsiveForceUpdateWithoutTopWall();
