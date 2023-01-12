@@ -13,26 +13,26 @@
 // run command:
 
 /*
-./main/cell/psm2D.o   12   25 1.05 0.01  25.0   0.01  1.0    1    1    test1
-./main/cell/psm2D.o   12   25 1.05 0.05  25.0   0.01  1.0    1    1    test2
-./main/cell/psm2D.o   12   25 1.05 0.1   25.0   0.01  1.0    1    1    test3
-./main/cell/psm2D.o   12   25 1.05 0.2   25.0   0.01  1.0    1    1    test4
+./main/cell/psm2D.o   12   25 1.05 0.01  25.0   0.01  1.0    1   400      1    test1
+./main/cell/psm2D.o   12   25 1.05 0.05  25.0   0.01  1.0    1   400      1    test2
+./main/cell/psm2D.o   12   25 1.05 0.1   25.0   0.01  1.0    1   400      1    test3
+./main/cell/psm2D.o   12   25 1.05 0.2   25.0   0.01  1.0    1   400      1    test4
 
-./main/cell/psm2D.o   12   25 1.05 0.01  25.0   0.05  1.0    1    1    test5
-./main/cell/psm2D.o   12   25 1.05 0.05  25.0   0.05  1.0    1    1    test6
-./main/cell/psm2D.o   12   25 1.05 0.1   25.0   0.05  1.0    1    1    test7
-./main/cell/psm2D.o   12   25 1.05 0.2   25.0   0.05  1.0    1    1    test8
+./main/cell/psm2D.o   12   25 1.05 0.01  25.0   0.05  1.0    1   400      1    test5
+./main/cell/psm2D.o   12   25 1.05 0.05  25.0   0.05  1.0    1   400      1    test6
+./main/cell/psm2D.o   12   25 1.05 0.1   25.0   0.05  1.0    1   400      1    test7
+./main/cell/psm2D.o   12   25 1.05 0.2   25.0   0.05  1.0    1   400      1    test8
 
-./main/cell/psm2D.o   12   25 1.05 0.01  25.0   0.1   1.0    1    1    test9
-./main/cell/psm2D.o   12   25 1.05 0.05  25.0   0.1   1.0    1    1    test10
-./main/cell/psm2D.o   12   25 1.05 0.1   25.0   0.1   1.0    1    1    test11
-./main/cell/psm2D.o   12   25 1.05 0.2   25.0   0.1   1.0    1    1    test12
+./main/cell/psm2D.o   12   25 1.05 0.01  25.0   0.1   1.0    1   400      1    test9
+./main/cell/psm2D.o   12   25 1.05 0.05  25.0   0.1   1.0    1   400      1    test10
+./main/cell/psm2D.o   12   25 1.05 0.1   25.0   0.1   1.0    1   400      1    test11
+./main/cell/psm2D.o   12   25 1.05 0.2   25.0   0.1   1.0    1   400      1    test12
 
-./main/cell/psm2D.o   12   25 1.05 0.0  25.0   0.05   1.0    1    1    test1
-./main/cell/psm2D.o   12   25 1.05 0.01  25.0   0.05   1.0    1    1    test2
-./main/cell/psm2D.o   12   25 1.05 0.1  25.0   0.05   1.0    1    1    test3
+./main/cell/psm2D.o   12   25 1.05 0.0  25.0   0.05   1.0    1   400      1    test1
+./main/cell/psm2D.o   12   25 1.05 0.01 25.0   0.05   1.0    1   400      1    test2
+./main/cell/psm2D.o   12   25 1.05 0.1  25.0   0.05   1.0    1   400      1    test3
 */
-//                  NCELLS NV  A0  att t_maxwell v0  tau_abp sm  seed outFileStem
+//                  NCELLS NV  A0  att t_maxwell v0  tau_abp sm duration seed outFileStem
 
 #include <sstream>
 #include "cell.h"
@@ -62,7 +62,7 @@ int main(int argc, char const* argv[]) {
   // local variables to be read in
   int NCELLS, nv, seed, sm;
   double calA0, att, B = 1.0;
-  double t_stress;
+  double t_stress, runTime;
   double v0_abp, tau_abp;
 
   // read in parameters from command line input
@@ -74,8 +74,9 @@ int main(int argc, char const* argv[]) {
   string v0_str = argv[6];
   string tau_abp_str = argv[7];
   string sm_str = argv[8];
-  string seed_str = argv[9];
-  string outFileStem = argv[10];
+  string duration_str = argv[9];
+  string seed_str = argv[10];
+  string outFileStem = argv[11];
 
   string positionFile = outFileStem + ".pos";
   string tissueFile = outFileStem + ".tissue";
@@ -89,6 +90,7 @@ int main(int argc, char const* argv[]) {
   stringstream v0ss(v0_str);
   stringstream tau_abpss(tau_abp_str);
   stringstream smss(sm_str);
+  stringstream durationss(duration_str);
   stringstream seedss(seed_str);
 
   // read into data
@@ -100,6 +102,7 @@ int main(int argc, char const* argv[]) {
   v0ss >> v0_abp;
   tau_abpss >> tau_abp;
   smss >> sm;
+  durationss >> runTime;
   seedss >> seed;
 
   int numCellTypes = 2;  // 0 = interior cell type (PSM) and 1 = exterior cell type (boundary)
@@ -174,7 +177,6 @@ int main(int argc, char const* argv[]) {
   bool wallsBool = true;
   double relaxTimeShort = 5.0;
   double relaxTime = 100.0;
-  double runTime = 400.0;
   std::vector<double> savedPositions;
 
   // dpmMemFn customForceUpdate = repulsivePolarityForceUpdate;
