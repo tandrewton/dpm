@@ -13,20 +13,24 @@
 // run command:
 
 /*
-./main/cell/psm2D.o   24   25 1.05 0.01  0.0   0.01  1.0    1    1    test1
-./main/cell/psm2D.o   24   25 1.05 0.05  0.0   0.01  1.0    1    1    test2
-./main/cell/psm2D.o   24   25 1.05 0.1   0.0   0.01  1.0    1    1    test3
-./main/cell/psm2D.o   24   25 1.05 0.2   0.0   0.01  1.0    1    1    test4
+./main/cell/psm2D.o   12   25 1.05 0.01  25.0   0.01  1.0    1    1    test1
+./main/cell/psm2D.o   12   25 1.05 0.05  25.0   0.01  1.0    1    1    test2
+./main/cell/psm2D.o   12   25 1.05 0.1   25.0   0.01  1.0    1    1    test3
+./main/cell/psm2D.o   12   25 1.05 0.2   25.0   0.01  1.0    1    1    test4
 
-./main/cell/psm2D.o   24   25 1.05 0.01  0.0   0.05  1.0    1    1    test5
-./main/cell/psm2D.o   24   25 1.05 0.05  0.0   0.05  1.0    1    1    test6
-./main/cell/psm2D.o   24   25 1.05 0.1   0.0   0.05  1.0    1    1    test7
-./main/cell/psm2D.o   24   25 1.05 0.2   0.0   0.05  1.0    1    1    test8
+./main/cell/psm2D.o   12   25 1.05 0.01  25.0   0.05  1.0    1    1    test5
+./main/cell/psm2D.o   12   25 1.05 0.05  25.0   0.05  1.0    1    1    test6
+./main/cell/psm2D.o   12   25 1.05 0.1   25.0   0.05  1.0    1    1    test7
+./main/cell/psm2D.o   12   25 1.05 0.2   25.0   0.05  1.0    1    1    test8
 
-./main/cell/psm2D.o   16   25 1.05 0.01  1.0   0.1   1.0    1    1    test9
-./main/cell/psm2D.o   16   25 1.05 0.05  0.0   0.1   1.0    1    1    test10
-./main/cell/psm2D.o   16   25 1.05 0.1   0.0   0.1   1.0    1    1    test11
-./main/cell/psm2D.o   16   25 1.05 0.2   0.0   0.1   1.0    1    1    test12
+./main/cell/psm2D.o   12   25 1.05 0.01  25.0   0.1   1.0    1    1    test9
+./main/cell/psm2D.o   12   25 1.05 0.05  25.0   0.1   1.0    1    1    test10
+./main/cell/psm2D.o   12   25 1.05 0.1   25.0   0.1   1.0    1    1    test11
+./main/cell/psm2D.o   12   25 1.05 0.2   25.0   0.1   1.0    1    1    test12
+
+./main/cell/psm2D.o   12   25 1.05 0.0  25.0   0.05   1.0    1    1    test1
+./main/cell/psm2D.o   12   25 1.05 0.01  25.0   0.05   1.0    1    1    test2
+./main/cell/psm2D.o   12   25 1.05 0.1  25.0   0.05   1.0    1    1    test3
 */
 //                  NCELLS NV  A0  att t_maxwell v0  tau_abp sm  seed outFileStem
 
@@ -48,7 +52,7 @@ const double phi0 = 0.91;           // initial packing fraction
 const double phiMax = 0.8;
 const double smallfrac = 1.0;  // fraction of small particles
 const double sizeratio = 1.0;  // size ratio between small and large particles
-const double dt0 = 0.08;       // initial magnitude of time step in units of MD time
+const double dt0 = 0.1;        // initial magnitude of time step in units of MD time
 const double Ptol = 1e-8;
 const double Ftol = 1e-12;
 const double att_range = 0.3;

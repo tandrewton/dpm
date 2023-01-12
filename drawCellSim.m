@@ -7,7 +7,7 @@
 %isTestData = false; %uncomment if using function call to pipeline data
 
 isTestData = true; %uncomment if using test data
-for testDataii=9:9
+for testDataii=3:3
     %testDataID = '5';
     testDataID = num2str(testDataii);
     addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
@@ -17,7 +17,7 @@ for testDataii=9:9
     
     %NT_calA01.0_initPressure-0.01_prate0.002_adhrate0.0
     % _NCELLS10_Duration100_att0.01_startseed1_endseed1_seed1
-    runType = "NT";
+    runType = "psm";
     %N="40";
     calA0="1.0";
     %att="0.2";
