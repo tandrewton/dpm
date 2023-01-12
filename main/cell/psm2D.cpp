@@ -13,26 +13,26 @@
 // run command:
 
 /*
-./main/cell/psm2D.o   12   25 1.05 0.01  25.0   0.01  1.0    1   400      1    test1
-./main/cell/psm2D.o   12   25 1.05 0.05  25.0   0.01  1.0    1   400      1    test2
-./main/cell/psm2D.o   12   25 1.05 0.1   25.0   0.01  1.0    1   400      1    test3
-./main/cell/psm2D.o   12   25 1.05 0.2   25.0   0.01  1.0    1   400      1    test4
+./main/cell/psm2D.o   12   25 1.05 0.01  25.0   0.01  1.0    1   1      400    test1
+./main/cell/psm2D.o   12   25 1.05 0.05  25.0   0.01  1.0    1   1      400    test2
+./main/cell/psm2D.o   12   25 1.05 0.1   25.0   0.01  1.0    1   1      400    test3
+./main/cell/psm2D.o   12   25 1.05 0.2   25.0   0.01  1.0    1   1      400    test4
 
-./main/cell/psm2D.o   12   25 1.05 0.01  25.0   0.05  1.0    1   400      1    test5
-./main/cell/psm2D.o   12   25 1.05 0.05  25.0   0.05  1.0    1   400      1    test6
-./main/cell/psm2D.o   12   25 1.05 0.1   25.0   0.05  1.0    1   400      1    test7
-./main/cell/psm2D.o   12   25 1.05 0.2   25.0   0.05  1.0    1   400      1    test8
+./main/cell/psm2D.o   12   25 1.05 0.01  25.0   0.05  1.0    1   1      400    test5
+./main/cell/psm2D.o   12   25 1.05 0.05  25.0   0.05  1.0    1   1      400    test6
+./main/cell/psm2D.o   12   25 1.05 0.1   25.0   0.05  1.0    1   1      400    test7
+./main/cell/psm2D.o   12   25 1.05 0.2   25.0   0.05  1.0    1   1      400    test8
 
-./main/cell/psm2D.o   12   25 1.05 0.01  25.0   0.1   1.0    1   400      1    test9
-./main/cell/psm2D.o   12   25 1.05 0.05  25.0   0.1   1.0    1   400      1    test10
-./main/cell/psm2D.o   12   25 1.05 0.1   25.0   0.1   1.0    1   400      1    test11
-./main/cell/psm2D.o   12   25 1.05 0.2   25.0   0.1   1.0    1   400      1    test12
+./main/cell/psm2D.o   12   25 1.05 0.01  25.0   0.1   1.0    1   1      400    test9
+./main/cell/psm2D.o   12   25 1.05 0.05  25.0   0.1   1.0    1   1      400    test10
+./main/cell/psm2D.o   12   25 1.05 0.1   25.0   0.1   1.0    1   1      400    test11
+./main/cell/psm2D.o   12   25 1.05 0.2   25.0   0.1   1.0    1   1      400    test12
 
-./main/cell/psm2D.o   12   25 1.05 0.0  25.0   0.05   1.0    1   400      1    test1
-./main/cell/psm2D.o   12   25 1.05 0.01 25.0   0.05   1.0    1   400      1    test2
-./main/cell/psm2D.o   12   25 1.05 0.1  25.0   0.05   1.0    1   400      1    test3
+./main/cell/psm2D.o   12   25 1.05 0.0  25.0   0.05   1.0    1   1      400    test1
+./main/cell/psm2D.o   12   25 1.05 0.01 25.0   0.05   1.0    1   1      400    test2
+./main/cell/psm2D.o   12   25 1.05 0.1  25.0   0.05   1.0    1   1      400    test3
 */
-//                  NCELLS NV  A0  att t_maxwell v0  tau_abp sm duration seed outFileStem
+//                  NCELLS NV  A0  att t_maxwell v0  tau_abp sm seed duration outFileStem
 
 #include <sstream>
 #include "cell.h"
@@ -74,8 +74,8 @@ int main(int argc, char const* argv[]) {
   string v0_str = argv[6];
   string tau_abp_str = argv[7];
   string sm_str = argv[8];
-  string duration_str = argv[9];
-  string seed_str = argv[10];
+  string seed_str = argv[9];
+  string duration_str = argv[10];
   string outFileStem = argv[11];
 
   string positionFile = outFileStem + ".pos";
