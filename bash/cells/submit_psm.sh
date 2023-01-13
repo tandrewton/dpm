@@ -42,14 +42,17 @@ let endSeed=$startSeed+$numSeeds-1
 
 # name strings
 basestr=psm_calA0"$calA0"_t_maxwell"$t_maxwell"_v0"$v0"_t_abp"$t_abp"_sm"$sm"
-runstr="$basestr"_NCELLS"$NCELLS"_dur"$duration"_att"$att"_startsd"$startSeed"_endsd"$endSeed"
+# name of file (not unique, but is unique within its subdirectory)
+file_basename=_NCELLS"$NCELLS"_dur"$duration"_att"$att"_startsd"$startSeed"_endsd"$endSeed"
+# name of run (must be unique, distinguishes from other runs on slurm)
+runstr="$basestr""$file_basename"
 
 # make directory specific for this simulation
 simdatadir=$simtypedir/$basestr
 mkdir -p $simdatadir
 
 # write input parameters to a configuration file for organization
-configFile=$simdatadir/"$runstr"_config.txt
+configFile=$simdatadir/"$file_basename"_config.txt
 
 # compile into binary
 binf=bin/"$runstr".o
@@ -103,7 +106,7 @@ for seed in `seq $startSeed $numSeedsPerRun $endSeed`; do
         let runseed=$seed+ss
 
         # get file str
-        filestr="$runstr"_sd"$seed"
+        filestr="$file_basename"_sd"$seed"
 
         # create output files
         outFileStem=$simdatadir/$filestr
