@@ -78,7 +78,7 @@ int main(int argc, char const* argv[]) {
   int NCELLS, nsmall, seed, gi, ndelete;
   double calA0, kl, ka = 1.0, kb, phiMin, phiMax, att, B = 1.0, t_stress, time_dbl;
   double ka_for_equilibration = 2.0, kb_for_equilibration = 0.0;
-  bool boolCIL, boolBound, boolSmooth, purseStringOn = true;
+  bool boolBound, boolSmooth, purseStringOn = true;
   double strainRate_ps, k_ps, k_LP, tau_LP, deltaSq, maxProtrusionLength;
 
   // read in parameters from command line input
@@ -99,12 +99,11 @@ int main(int argc, char const* argv[]) {
   string tau_lp_str = argv[15];
   string d_flag_str = argv[16];
   string t_stress_str = argv[17];
-  string boolCIL_str = argv[18];
-  string bound_str = argv[19];
-  string smooth_str = argv[20];
-  string seed_str = argv[21];
-  string time_str = argv[22];
-  string outFileStem = argv[23];
+  string bound_str = argv[18];
+  string smooth_str = argv[19];
+  string seed_str = argv[20];
+  string time_str = argv[21];
+  string outFileStem = argv[22];
 
   string positionFile = outFileStem + ".pos";
   string energyFile = outFileStem + ".energy";
@@ -137,7 +136,6 @@ int main(int argc, char const* argv[]) {
   stringstream tau_lpss(tau_lp_str);
   stringstream d_flagss(d_flag_str);
   stringstream t_stressss(t_stress_str);
-  stringstream boolCILss(boolCIL_str);
   stringstream boundss(bound_str);
   stringstream smoothss(smooth_str);
   stringstream seedss(seed_str);
@@ -161,7 +159,6 @@ int main(int argc, char const* argv[]) {
   tau_lpss >> tau_LP;
   d_flagss >> maxProtrusionLength;
   t_stressss >> t_stress;
-  boolCILss >> boolCIL;
   boundss >> boolBound;
   smoothss >> boolSmooth;
   seedss >> seed;
@@ -205,9 +202,6 @@ int main(int argc, char const* argv[]) {
   epithelial.setkb(kb_for_equilibration);
   epithelial.setkc(kc);
   epithelial.setB(B);
-
-  // set CIL option
-  epithelial.setboolCIL(boolCIL);
 
   epithelial.setpbc(0, isPbcOn);
   epithelial.setpbc(1, isPbcOn);

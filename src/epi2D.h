@@ -52,9 +52,6 @@ class epi2D : public dpm {
   // counter for number of deflected polarizations
   int polarizationCounter;
 
-  // boolean for whether cells execute CIL or not
-  bool boolCIL;
-
   // stores x length of box, used for tracking box size when appling tensile
   // strain set it after equilibrating before tensile strain, and never
   // otherwise.
@@ -140,7 +137,6 @@ class epi2D : public dpm {
     // att = attraction;
     l1 = att1;
     l2 = att2;
-    boolCIL = false;
     vector<double> temp(NCELLS, 0.0);
     vector<double> temp2(NCELLS, 1.0);
     // psi = temp;
@@ -296,7 +292,6 @@ class epi2D : public dpm {
     for (int ci = 0; ci < NCELLS; ci++)
       a0[ci] *= scaleFactor;
   }
-  void setboolCIL(bool val) { boolCIL = val; };
   void setInitialLx(double val) { initialLx = val; };
 
   // getters
