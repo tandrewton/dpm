@@ -56,7 +56,7 @@ let endSeed=$startSeed+$numSeeds-1
 basestr=ablate_A0"$calA0"_t_stress"$t_stress"k_l"$kl"_k_a"$ka"_kb_"$kb"_w_ps"$strainRate_ps"_dsq"$deltaSq"_k_ps"$k_ps"_k_lp"$k_lp"_d_flag"$d_flag"_bd"$bound"_sm"$smooth"
 
 # name of file (not unique, but is unique within its subdirectory)
-file_basename = _N"$NCELLS"_Dur"$duration"_att"$att"_sd"$startSeed"_sd"$endSeed"
+file_basename=_N"$NCELLS"_Dur"$duration"_att"$att"_sd"$startSeed"_sd"$endSeed"
 
 runstr="$basestr""$file_basename"
 
