@@ -3,7 +3,7 @@
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
 
-function drawCellSim(N, att, initialPressure, prate, adhrate, Duration)
+%function drawCellSim(N, att, initialPressure, prate, adhrate, Duration)
 isTestData = false; %uncomment if using function call to pipeline data
 
 %isTestData = true; %uncomment if using test data
@@ -13,15 +13,18 @@ addpath('C:\Users\atata\projects\dpm\bash')
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
 %CHANGE THESE PARAMETERS                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   NEEDED
 
-%psm/psm_calA01.05_t_maxwell25.0_v00.05_t_abp1.0_sm1/psm_calA01.05_
-%t_maxwell25.0_v00.05_t_abp1.0_sm1_NCELLS50_dur400_att0.0_startsd1_
-% endsd1_sd1.tissue
+%psm/psm_calA01.05_t_maxwell25.0_v00.05_t_abp1.0_sm1
+% /_NCELLS10_dur100_att0.1_startsd1_endsd1_sd1.tissue
 
 runType = "psm";
-%N="50";
+N="50";
 calA0="1.05";
-%att="0.2";
-%Duration="800";
+t_maxwell = "25.0";
+v0 = "0.05";
+t_abp = "1.0";
+sm = "1";
+att="0.1";
+Duration="400";
 FSKIP = 1;
 
 startSeed = 1;
@@ -65,17 +68,16 @@ for seed = startSeed:max_seed
         stressstr = pc_dir+'test'+testDataID+'.stress';
         tissuestr = pc_dir+'test'+testDataID+'.tissue';
     else
-        %psm/psm_calA01.05_t_maxwell25.0_v00.05_t_abp1.0_sm1/psm_calA01.05_
-        %t_maxwell25.0_v00.05_t_abp1.0_sm1_NCELLS50_dur400_att0.0_startsd1_
-        % endsd1_sd1.tissue
+        %psm/psm_calA01.05_t_maxwell25.0_v00.05_t_abp1.0_sm1
+        % /_NCELLS10_dur100_att0.1_startsd1_endsd1_sd1.tissue
         run_name =runType+"_calA0"+calA0+'_t_maxwell'+t_maxwell...
             +'_v0'+v0+'_t_abp'+t_abp+'_sm'+sm;
         pipeline_dir =  subdir_pipeline + run_name + "/";
         output_dir = subdir_output + run_name + "/";
         mkdir(pipeline_dir)
         mkdir(output_dir)
-        fileheader=run_name +"_NCELLS"+N+"_Duration"+Duration+"_att"+att+"_startseed"+ ...
-            startSeed+"_endseed"+max_seed+"_seed"+seed;
+        fileheader="_NCELLS"+N+"_dur"+Duration+"_att"+att+"_startsd"+ ...
+            startSeed+"_endsd"+max_seed+"_sd"+seed;
         nvestr = pipeline_dir+fileheader+'.pos';
         energystr = pipeline_dir+fileheader+'.energy';
         stressstr = pipeline_dir+fileheader+'.stress';

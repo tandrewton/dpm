@@ -85,13 +85,13 @@ module load dSQ
 #!/bin/bash
 numSeeds=10
 rm joblist_PS.txt
-for t_stress in 5.0 25.0 125.0 625.0
+for t_stress in 1.0 5.0 25.0 125.0 625.0
 do
   for att in 0.05 0.1 0.2 0.29
   do
-    for sm in 1
+    for om in 0.005
     do
-      echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 1.05 0.94 0.85 1.0 1.0 $att  0.005 4.0 4.0 4.0 1.0 0.0 $t_stress 0 0 $sm 500 pi_ohern,day,scavenge 0-2:00:00 $numSeeds 1 >> joblist_PS.txt
+      echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 1.05 0.94 0.85 1.0 1.0 $att $om 4.0 4.0 4.0 1.0 0.0 $t_stress 0 0 1 500 pi_ohern,day,scavenge 0-2:00:00 $numSeeds 1 >> joblist_PS.txt
     done
   done
 done
@@ -124,9 +124,9 @@ bash bash/cells/submit_psm.sh 50 25 1.05 0.01 25.0 0.05 1.0 1 400 pi_ohern,day,s
 bash bash/cells/submit_psm.sh 50 25 1.05 0.1 25.0 0.05 1.0 1 400 pi_ohern,day,scavenge 0-23:00:00 1 1
 
 #testing new script
-bash bash/cells/submit_psm.sh 10 25 1.05 0.0 25.0 0.05 1.0 1 100 pi_ohern,day,scavenge 0-23:00:00 1 1
-bash bash/cells/submit_psm.sh 10 25 1.05 0.01 25.0 0.05 1.0 1 100 pi_ohern,day,scavenge 0-23:00:00 1 1
-bash bash/cells/submit_psm.sh 10 25 1.05 0.1 25.0 0.05 1.0 1 100 pi_ohern,day,scavenge 0-23:00:00 1 1
+bash bash/cells/submit_psm.sh 50 25 1.05 0.0 25.0 0.05 1.0 1 400 pi_ohern,day,scavenge 0-23:00:00 1 1
+bash bash/cells/submit_psm.sh 50 25 1.05 0.01 25.0 0.05 1.0 1 400 pi_ohern,day,scavenge 0-23:00:00 1 1
+bash bash/cells/submit_psm.sh 50 25 1.05 0.1 25.0 0.05 1.0 1 400 pi_ohern,day,scavenge 0-23:00:00 1 1
 
 rsync -rav --inplace --progress at965@transfer-grace.hpc.yale.edu:/gpfs/gibbs/project/fas/ohern/at965/dpm/psm /mnt/c/Users/atata/projects/dpm/pipeline/cells/.
 
