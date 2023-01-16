@@ -76,8 +76,8 @@ bash bash/epi2D/submit_laserAblation.sh 60 20 6 1.10 0.94 0.85 1.0 1.0 0.2  0.00
 
 #debugging call:
 
-bash bash/epi2D/submit_laserAblation.sh 60 20 6 1.15 0.94 0.85 1.0 1.0 0.05  0.001 0.0 4.0 4.0 1.0 3.0 1.0 0.5 0 0 0 400 pi_ohern,day,scavenge 0-12:00:00 1 1
-./main/epi2D/laserAblation.o 60 20 6 1.15 0.94 0.85 1.0 1.0 0.05 0.001  0.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   0 1 200  test
+bash bash/epi2D/submit_laserAblation.sh 60 20 6 1.15 0.94 0.85 1.0 1.0 0.01 0.05  0.001 0.0 4.0 4.0 1.0 3.0 1.0 0.5 0 0 0 400 pi_ohern,day,scavenge 0-12:00:00 1 1
+./main/epi2D/laserAblation.o 60 20 6 1.15 0.94 0.85 1.0 1.0 0.01 0.05 0.001  0.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   0 1 200  test
 
 module load dSQ
 # testing stress relaxation, attraction, boundaries on
@@ -87,11 +87,20 @@ numSeeds=10
 rm joblist_PS.txt
 for t_stress in 1.0 5.0 25.0 125.0 625.0
 do
-  for att in 0.05 0.1 0.2 0.29
+  for att in 0.1
   do
     for om in 0.005
     do
-      echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 1.05 0.94 0.85 1.0 1.0 $att $om 4.0 4.0 4.0 1.0 0.0 $t_stress 0 0 1 500 pi_ohern,day,scavenge 0-2:00:00 $numSeeds 1 >> joblist_PS.txt
+      for kl in 1.0
+      do
+        for ka in 1.0
+        do
+          for kb in 0.0 0.001 0.01 0.1
+          do
+            echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 1.05 0.94 0.85 $kl $ka $kb $att $om 4.0 4.0 4.0 1.0 0.0 $t_stress 0 0 1 500 pi_ohern,day,scavenge 0-10:00:00 $numSeeds 1 >> joblist_PS.txt
+          done
+        done
+      done
     done
   done
 done

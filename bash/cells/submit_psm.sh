@@ -9,7 +9,7 @@ maindir=$cellsdir/main/cell
 # directory for all output for cell simulations
 outputdir=/gpfs/gibbs/project/fas/ohern/at965/dpm
 
-# directory for simulations specific to neuralTube
+# directory for simulations specific to psm
 simtypedir=$outputdir/psm
 
 # make directories, unless they already exist

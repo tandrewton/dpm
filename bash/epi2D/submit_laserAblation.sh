@@ -1,7 +1,7 @@
 #!/bin/bash
 # directories with code
 
-#example call: bash bash/epi2D/submit_laserAblation.sh 20 20 4 1.10 0.92 0.925 1.0 1.0 0.1 0.01 0.0 1.0 2.0 1.0 3.0 10.0 0 0 1 200 pi_ohern,day,scavenge 0-12:00:00 1 1
+#example call: bash bash/epi2D/submit_laserAblation.sh 20 20 4 1.10 0.92 0.925 1.0 1.0 0.01 0.1 0.01 0.0 1.0 2.0 1.0 3.0 10.0 0 0 1 200 pi_ohern,day,scavenge 0-12:00:00 1 1
 #weird bug with configFile
 cellsdir=~/dpm
 srcdir=$cellsdir/src
@@ -31,15 +31,15 @@ phiMin=$5
 phiMax=$6
 kl=$7
 ka=$8
-att=$9
-strainRate_ps="${10}"
-deltaSq="${11}"
-k_ps="${12}"
-k_lp="${13}"
-tau_lp="${14}"
-d_flag="${15}"
-t_stress="${16}"
-boolCIL="${17}"
+kb=$9
+att="${10}"
+strainRate_ps="${11}"
+deltaSq="${12}"
+k_ps="${13}"
+k_lp="${14}"
+tau_lp="${15}"
+d_flag="${16}"
+t_stress="${17}"
 bound="${18}"
 smooth="${19}"
 duration="${20}"
@@ -52,16 +52,20 @@ numSeedsPerRun=1
 let numSeeds=$numSeedsPerRun*$numRuns
 let endSeed=$startSeed+$numSeeds-1
 
-# name strings
-basestr=ablate_A0"$calA0"_t_stress"$t_stress"k_l"$kl"_k_a"$ka"_w_ps"$strainRate_ps"_dsq"$deltaSq"_k_ps"$k_ps"_k_lp"$k_lp"_d_flag"$d_flag"_bd"$bound"_sm"$smooth"
-runstr="$basestr"_N"$NCELLS"_Dur"$duration"_att"$att"_sd"$startSeed"_sd"$endSeed"
+# name strings 
+basestr=ablate_A0"$calA0"_t_stress"$t_stress"k_l"$kl"_k_a"$ka"_kb_"$kb"_w_ps"$strainRate_ps"_dsq"$deltaSq"_k_ps"$k_ps"_k_lp"$k_lp"_d_flag"$d_flag"_bd"$bound"_sm"$smooth"
+
+# name of file (not unique, but is unique within its subdirectory)
+file_basename = _N"$NCELLS"_Dur"$duration"_att"$att"_sd"$startSeed"_sd"$endSeed"
+
+runstr="$basestr""$file_basename"
 
 # make directory specific for this simulation
 simdatadir=$simtypedir/$basestr
 mkdir -p $simdatadir
 
 # write input parameters to a configuration file for organization
-configFile=$simdatadir/"$runstr"_config.txt
+configFile=$simdatadir/"$file_basename"_config.txt
 
 # compile into binary
 binf=bin/"$runstr".o
@@ -76,6 +80,7 @@ echo phiMin = "$phiMin" >> $configFile
 echo phiMax = "$phiMax" >> $configFile
 echo kl = "$kl" >> $configFile
 echo ka = "$ka" >> $configFile
+echo kb = "$kb" >> $configFile
 echo att = "$att" >> $configFile
 echo strainRate_ps = "$strainRate_ps" >> $configFile
 echo deltaSq = $deltaSq >> $configFile
@@ -129,13 +134,13 @@ for seed in `seq $startSeed $numSeedsPerRun $endSeed`; do
         let runseed=$seed+ss
 
         # get file str
-        filestr="$runstr"_sd"$seed"
+        filestr="$file_basename"_sd"$seed"
 
         # create output files
         outFileStem=$simdatadir/$filestr
 
         # append to runString
-        runString="$runString ; ./$binf $NCELLS $NV $ndelete $calA0 $phiMin $phiMax $kl $ka $att $strainRate_ps $deltaSq $k_ps $k_lp $tau_lp $d_flag $t_stress $boolCIL $bound $smooth $seed $duration $outFileStem"
+        runString="$runString ; ./$binf $NCELLS $NV $ndelete $calA0 $phiMin $phiMax $kl $ka $kb $att $strainRate_ps $deltaSq $k_ps $k_lp $tau_lp $d_flag $t_stress $bound $smooth $seed $duration $outFileStem"
     done
 
     # finish off run string
