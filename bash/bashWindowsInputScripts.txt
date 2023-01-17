@@ -40,6 +40,42 @@ end
 
 drawWoundSims(50, "1.05", "5.0", "1", "4.0", "0.0", "0.2")
 
+N_arr = ["50"];
+calA0_arr = ["1.05"];
+t_stress_arr = ["125.0"];
+att_arr = ["0.1"];
+om_arr = ["0.005"];
+kl_arr = ["1.0"];
+ka_arr = ["1.0"];
+kb_arr = ["0.01"];
+deltaSq_arr = ["4.0"];
+d_flag_arr = ["0.0"];
+
+for i=1:length(N_arr)
+  for ii=1:length(calA0_arr)
+    for iii=1:length(t_stress_arr)
+      for j=1:length(att_arr)
+        for jj=1:length(om_arr)
+          for jjj=1:length(kl_arr)
+            for k=1:length(ka_arr)
+              for kk=1:length(kb_arr)
+                for kkk=1:length(deltaSq_arr)
+                  for l=1:length(d_flag_arr)
+                    drawWoundSims(N_arr(i), calA0_arr(ii), t_stress_arr(iii),...
+                     att_arr(j), om_arr(jj), kl_arr(jjj), ka_arr(k), ...
+                     kb_arr(kk), deltaSq_arr(kkk), d_flag_arr(l))
+                  end
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+end
+
+
 profiling:
 valgrind --tool=callgrind --dump-instr=yes -v --instr-atstart=no ./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.925 1.0 1.0 0.1 0.01  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   1 1  200  test > tmp
 callgrind_control -i on

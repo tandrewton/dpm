@@ -105,8 +105,7 @@ do
   done
 done
 
-dsq --job-file joblist_PS.txt --mem-per-cpu 4g -t 10:00:00 --mail-type NONE --submit --suppress-stats-file -o /dev/null
-dsq --job-file joblist_PS.txt --mem-per-cpu 4g -t 10:00:00 --mail-type NONE --submit --suppress-stats-file -o /temp_log
+dsq --job-file joblist_PS.txt --mem-per-cpu 4g -t 10:00:00 --mail-type NONE --submit --suppress-stats-file  -o /dev/null
 
 
 bash/epi2D/submit_laserAblation.sh 50 30 3 1.05 0.94 0.85 1.0 1.0 0.01 0.1 0.005 4.0 4.0 4.0 1.0 0.0 125.0 0 0 1 500 pi_ohern,day,scavenge 0-10:00:00 1 1
