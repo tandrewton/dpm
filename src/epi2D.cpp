@@ -1635,7 +1635,7 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double dt0, double duration, double 
   }
 }
 
-// currently, dampedNP0 is my way of coding a simulation without boundaries, i.e. 0 pressure simulation
+// simulation without boundaries, i.e. 0 pressure simulation
 void epi2D::dampedNP0(dpmMemFn forceCall, double dt0, double duration, double printInterval, int purseStringOn, double relaxTime) {
   // make sure velocities exist or are already initialized before calling this
   // assuming zero temperature - ignore thermostat (not implemented)

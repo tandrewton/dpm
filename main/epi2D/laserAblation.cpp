@@ -169,18 +169,10 @@ int main(int argc, char const* argv[]) {
 
   const double phi0 = phiMin;
 
-  // double strainRate_ps = 0.01, k_ps = 1.0, k_LP = 2.0, tau_LP = 1.0, deltaSq = 2.0, maxProtrusionLength = 3.0;
-  // purse string (ps) strain rate (constant true strain rate)
-  // ps spring constant between wound vertex and ps vertex
-  // lamellipodia (lp) spring constant between protruded spring anchor (flag) and a colinear vertex
-  // lp timescale (10% chance of decaying per tau_LP)
-  // squared max distance for wound-ps vertex spring (units of vdiam)
-  // max length of lp (units of vdiam)
-
-  if (strainRate_ps < 1e-20) {  // auto set deltasq to 0 if pursestring is disabled, so that all ps springs break off
-    cout << "strain rate for pursestring is zero, setting deltaSq yield length to also be zero\n";
+  // auto set deltasq to 0 if pursestring is disabled, so that all ps springs break off
+  if (strainRate_ps < 1e-20)
     deltaSq = 0.0;
-  }
+
   epi2D epithelial(NCELLS, 0.0, 0.0, strainRate_ps, k_ps, k_LP, tau_LP, deltaSq, maxProtrusionLength, seed);
 
   epithelial.openPosObject(positionFile);
@@ -212,20 +204,18 @@ int main(int argc, char const* argv[]) {
   epithelial.setl1(att);
   epithelial.setl2(att_range);
   if (att > att_range) {
-    cout << "attraction stronger than attraction range; discontinuous adhesive potential; error, exiting!\n";
+    cout << "attraction longer than attraction range; discontinuous adhesive potential; error, exiting\n";
     return 1;
   }
   if (fabs(att - att_range) < 1e-5) {
-    cout << "or, adhesion lengthscales are the same, so we will divide by zero; error' exiting!\n";
+    cout << "adhesion lengthscales are the same, so we will divide by zero; error, exiting\n";
     return 1;
   }
 
   // set base dpm force, upcast derived epi2D forces
   dpmMemFn repulsiveForceUpdate = &dpm::repulsiveForceUpdate;
-  dpmMemFn repulsiveForceUpdateWithWalls = static_cast<void (dpm::*)()>(&epi2D::repulsiveForceUpdateWithWalls);
   dpmMemFn attractiveForceUpdate = static_cast<void (dpm::*)()>(&epi2D::attractiveForceUpdate_2);
   dpmMemFn crawlingWithPSForceUpdate = static_cast<void (dpm::*)()>(&epi2D::crawlingWithPurseString);
-  dpmMemFn repulsiveForceUpdateWithCircularAperture = static_cast<void (dpm::*)()>(&epi2D::repulsiveForceWithCircularApertureWall);
   dpmMemFn repulsiveForceUpdateWithCircularWalls = static_cast<void (dpm::*)()>(&epi2D::repulsiveForceUpdateWithPolyWall);
   dpmMemFn attractiveForceUpdateWithCircularWalls = static_cast<void (dpm::*)()>(&epi2D::attractiveForceUpdateWithPolyWall);
   dpmMemFn crawlingWithPSForceUpdateWithCircularWalls = static_cast<void (dpm::*)()>(&epi2D::crawlingWithPurseStringAndCircularWalls);
@@ -247,13 +237,11 @@ int main(int argc, char const* argv[]) {
 
   cout << "\n\nafter initialize, first print, and neighbor list construction\n\n";
 
-  // epithelial.vertexCompress2Target2D(repulsiveForceUpdateWithWalls, Ftol, dt0, phiMax, dphi0);
-  //  epithelial.vertexCompress2Target2D(repulsiveForceUpdateWithCircularAperture, Ftol, dt0, phiMax, dphi0);
   if (isPbcOn)
     epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdate, Ftol, dt0, phiMax, dphi0);
   else
     epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithCircularWalls, Ftol, dt0, phiMax, dphi0);
-  epithelial.moveSimulationToPositiveCoordinates();  // shift box so all coordinates are positive
+  epithelial.moveSimulationToPositiveCoordinates();  // positive coordinates make the neighbor list storage work
   epithelial.printConfiguration2D();
 
   // after FIRE, restore spring constants and stress relaxation time to specified value
@@ -264,7 +252,6 @@ int main(int argc, char const* argv[]) {
   // after compress, turn on damped NVE
   double T = 1e-10;
   double relaxTime = 25.0;
-  // assert(relaxTime <= 10.0);  // if relaxTime > 10.0, then dampedNP0 will run over the hardcoded limit. Could pass a parameter to dampedNP0 to tell it how long to wait, or just hardcode for now.
   double printInterval = relaxTime / 2.0;
   double runTime = 25.0;
   epithelial.drawVelocities2D(T);
@@ -314,7 +301,7 @@ int main(int argc, char const* argv[]) {
 
     epithelial.dampedNP0(customForceUpdate_active, dt0, time_dbl, printInterval, purseStringOn);
   }
-  cout << "about to end simulation : printing one last configuration\n";
+  cout << "ending simulation: printing one last configuration\n";
   epithelial.printConfiguration2D();
   cout << "\n** Finished laserAblation.cpp, ending. " << endl;
   return 0;
