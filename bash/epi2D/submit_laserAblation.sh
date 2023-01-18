@@ -88,11 +88,9 @@ echo k_ps = $k_ps >> $configFile
 echo k_lp = $k_lp >> $configFile
 echo tau_lp = $tau_lp >> $configFile
 echo d_flag = $d_flag >> $configFile
-echo t_stress = $t_sress >> $configFile
+echo t_stress = $t_stress >> $configFile
 echo bound = "$bound" >> $configFile
 echo smooth = "$smooth" >> $configFile
-echo Dr0 = "$Dr0" >> $configFile
-echo boolCIL = "$boolCIL" >> $configFile
 echo duration = "$duration" >> $configFile
 
 

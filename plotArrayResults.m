@@ -55,10 +55,10 @@ array_output_dir = subdir_output + "array_output_figures/";
 N_arr = ["50"];                 %i
 calA0_arr = ["1.05"];           %ii
 t_stress_arr = ["1.0" "5.0" "25.0" "125.0" "625.0"]; %iii
-%att_arr = ["0.05" "0.1" "0.15" "0.2" "0.25" "0.29"]; %j
-att_arr = ["0.1"]; % j
+att_arr = ["0.1" "0.15" "0.2" "0.25" "0.29"]; %j
+%att_arr = ["0.1"]; % j
 om_arr = ["0.005"];             %jj
-kl_arr = ["0.1" "1.0" "10.0" "100.0"];               %jjj
+kl_arr = ["1.0"];               %jjj
 ka_arr = ["1.0"];               %k
 kb_arr = ["0.01"]; %kk
 deltaSq_arr = ["4.0"];          %kkk
@@ -67,8 +67,8 @@ d_flag_arr = ["0.0"];           %l
 % fill with the parameters to be varied
 pm1 = t_stress_arr;
 pm1_str = 'tau';
-pm2 = kl_arr;
-pm2_str = 'kl';
+pm2 = att_arr;
+pm2_str = 'adhesion';
 
 % also need to fill pm1_ind and pm2_ind in the big nested loop
 %pm1_ind = 0;
@@ -125,7 +125,7 @@ for i=1:length(N_arr)
                                     for l=1:length(d_flag_arr)
                                         d_flag = d_flag_arr(l);
                                         pm1_ind = iii;
-                                        pm2_ind = jjj;
+                                        pm2_ind = j;
                                         % might also be looping over m=numSeeds to accumulate some results
                                         voidArea = zeros(0,2);
                                         meanInnerShapes = NaN(0,1);
