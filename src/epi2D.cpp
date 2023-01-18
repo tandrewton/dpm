@@ -3806,7 +3806,7 @@ void epi2D::purseStringContraction() {
   for (int psi = 0; psi < psContacts.size(); psi++) {
     if (l0_ps[psi] <= 0.01 * r[0]) {
       l0_ps[psi] = 0.01 * r[0];
-      cout << "l0_ps belonging to " << psContacts[psi] << " is less than the threshold, setting it to minimum!\n";
+      // cout << "l0_ps belonging to " << psContacts[psi] << " is less than the threshold, setting it to minimum!\n";
     } else {
       // l0_ps[psi] *= exp(-strainRate_ps * dt); // constant strain rate
       l0_ps[psi] -= strainRate_ps * dt;  // constantly increasing tension until length < r[0], the smallest physical lengthscale
