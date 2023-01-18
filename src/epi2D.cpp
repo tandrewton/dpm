@@ -1713,7 +1713,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double dt0, double duration, double pr
 
       // get max and min of x coords of purse-string; if max-min is near zero, then purse-string should be dissolved
       double max_ps = x_ps[0], min_ps = x_ps[0];
-      double min_allowed_ps_length = r[0];
+      double min_allowed_ps_length = 0.01 * r[0];
       // double min_allowed_ps_length = 0.0;
       for (int psi = 0; psi < x_ps.size(); psi += 2) {
         if (x_ps[psi] < min_ps)
