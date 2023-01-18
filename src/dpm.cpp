@@ -135,7 +135,7 @@ void dpm::cindices(int& ci, int& vi, int gi) {
 // get cell area
 double dpm::area(int ci) {
   // local variables
-  int vi, vip1, gi, gip1, nvtmp;
+  int vi, gi, gip1, nvtmp;
   double dx, dy, xi, yi, xip1, yip1, areaVal = 0.0;
 
   // initial position: vi = 0
@@ -221,7 +221,7 @@ double dpm::perimeter(int ci) {
 void dpm::com2D(int ci, double& cx, double& cy) {
   // local variables
   int vi, gi, gip1, nvtmp;
-  double dx, dy, xi, yi, xip1, yip1, l;
+  double dx, dy, xi, yi, xip1, yip1;
 
   // initial position: vi = 0
   nvtmp = nv.at(ci);
@@ -558,9 +558,9 @@ void dpm::moveSimulationToPositiveCoordinates() {
   }
 
   double xLow = *std::min_element(posX.begin(), posX.end());
-  double xHigh = *std::max_element(posX.begin(), posX.end());
+  // double xHigh = *std::max_element(posX.begin(), posX.end());
   double yLow = *std::min_element(posY.begin(), posY.end());
-  double yHigh = *std::max_element(posY.begin(), posY.end());
+  // double yHigh = *std::max_element(posY.begin(), posY.end());
 
   if (xLow < 0)
     for (int gi = 0; gi < NVTOT; gi++)
@@ -572,9 +572,7 @@ void dpm::moveSimulationToPositiveCoordinates() {
 
 // initialize monodisperse cell system, single calA0
 void dpm::monodisperse2D(double calA0, int n) {
-  // local variables
-  double calA0tmp, calAntmp, rtmp, areaSum;
-  int vim1, vip1, gi, ci, vi, nlarge, smallN, largeN, NVSMALL;
+  int ci;
 
   // print to console
   cout << "** initializing monodisperse DPM particles in 2D ..." << endl;
@@ -603,8 +601,7 @@ void dpm::monodisperse2D(double calA0, int n) {
 // initialize bidisperse cell system, single calA0
 void dpm::bidisperse2D(double calA0, int nsmall, double smallfrac, double sizefrac) {
   // local variables
-  double calA0tmp, calAntmp, rtmp, areaSum;
-  int vim1, vip1, gi, ci, vi, nlarge, smallN, largeN, NVSMALL;
+  int ci, nlarge, smallN, largeN, NVSMALL;
 
   // print to console
   cout << "** initializing bidisperse DPM particles in 2D ..." << endl;

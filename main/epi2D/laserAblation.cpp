@@ -75,7 +75,7 @@ bool isPbcOn = false;
 
 int main(int argc, char const* argv[]) {
   // local variables to be read in
-  int NCELLS, nsmall, seed, gi, ndelete;
+  int NCELLS, nsmall, seed, ndelete;
   double calA0, kl, ka = 1.0, kb, phiMin, phiMax, att, B = 1.0, t_stress, time_dbl;
   double ka_for_equilibration = 2.0, kb_for_equilibration = 0.0;
   bool boolBound, boolSmooth, purseStringOn = true;
@@ -164,11 +164,7 @@ int main(int argc, char const* argv[]) {
   seedss >> seed;
   timess >> time_dbl;
 
-  // number of time steps
-  int NT = int(time_dbl / dt0);
-
   const double phi0 = phiMin;
-
   // auto set deltasq to 0 if pursestring is disabled, so that all ps springs break off
   if (strainRate_ps < 1e-20)
     deltaSq = 0.0;
@@ -253,7 +249,6 @@ int main(int argc, char const* argv[]) {
   double T = 1e-10;
   double relaxTime = 25.0;
   double printInterval = relaxTime / 2.0;
-  double runTime = 25.0;
   epithelial.drawVelocities2D(T);
 
   dpmMemFn customForceUpdate_inactive;
