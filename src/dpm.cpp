@@ -641,8 +641,8 @@ void dpm::bidisperse2D(double calA0, int nsmall, double smallfrac, double sizefr
 // initialize gaussian polydisperse cell system, single calA0
 void dpm::gaussian2D(double dispersion, double calA0, int n1) {
   // local variables
-  double calA0tmp, calAntmp, rtmp, areaSum, r1, r2, grv;
-  int vim1, vip1, gi, ci, vi, nvtmp;
+  double r1, r2, grv;
+  int ci, nvtmp;
 
   // print to console
   cout << "** initializing gaussian DPM particles in 2D with size dispersion " << dispersion << " ..." << endl;
@@ -701,7 +701,7 @@ void dpm::sinusoidalPreferredAngle(double thA, double thK) {
 void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, double aspectRatio, bool setUpCircularBoundary) {
   // isFixedBoundary is an optional bool argument that tells cells to stay away from the boundary during initialization
   // aspectRatio is the ratio L[0] / L[1]
-  int i, d, ci, cj, vi, vj, gi, cellDOF = NDIM * NCELLS;
+  int i, d, ci, cj, vi, gi, cellDOF = NDIM * NCELLS;
   int numEdges = 20;  // number of edges in the polygonal walls to approximate a circle
   double areaSum, xtra = 1.1;
   std::vector<double> aspects = {1.0 * aspectRatio, 1.0 / aspectRatio};
