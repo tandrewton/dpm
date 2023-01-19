@@ -55,10 +55,11 @@ array_output_dir = subdir_output + "array_output_figures/";
 N_arr = ["50"];                 %i
 calA0_arr = ["1.05"];           %ii
 t_stress_arr = ["1.0" "5.0" "25.0" "125.0" "625.0"]; %iii
-att_arr = ["0.05" "0.1" "0.15" "0.2" "0.25" "0.29"]; %j
-%att_arr = ["0.1"]; % j
+%att_arr = ["0.05" "0.1" "0.15" "0.2" "0.25" "0.29"]; %j
+att_arr = ["0.1"]; % j
 om_arr = ["0.005"];             %jj
-kl_arr = ["1.0"];               %jjj
+%kl_arr = ["1.0"];               %jjj
+kl_arr = ["0.1" "0.5" "1.0" "5.0" "10.0"]; %jjj
 ka_arr = ["1.0"];               %k
 kb_arr = ["0.01"]; %kk
 deltaSq_arr = ["4.0"];          %kkk
@@ -69,6 +70,8 @@ pm1 = t_stress_arr;
 pm1_str = 'tau';
 pm2 = att_arr;
 pm2_str = 'adhesion';
+pm1pm2_folder = "cfg_"+pm1_str+"_"+pm2_str+"/";
+mkdir(array_output_dir+pm1pm2_folder);
 
 % also need to fill pm1_ind and pm2_ind in the big nested loop
 %pm1_ind = 0;
@@ -124,9 +127,10 @@ for i=1:length(N_arr)
                                     deltaSq = deltaSq_arr(kkk);
                                     for l=1:length(d_flag_arr)
                                         d_flag = d_flag_arr(l);
+
                                         pm1_ind = iii;
                                         pm2_ind = j;
-                                        % might also be looping over m=numSeeds to accumulate some results
+
                                         voidArea = zeros(0,2);
                                         meanInnerShapes = NaN(0,1);
                                         timeInnerShapes = zeros(0,1);
@@ -134,12 +138,15 @@ for i=1:length(N_arr)
                                         innerShapeArr = []; % fill with meanInnerShape and dynamically pad rows with nans
                                         healingTime = 0;
                                         rosetteNumber = 0;
+
                                         if (isCrawling)
                                             displayStr = "C__A0="+calA0+",att="+att+",sm="+sm+",t_{stress}="+t_stress;
                                         else
                                             displayStr = "P"+"N="+N+",tau="+t_stress+",att="+att+",om="+...
                                                 strainRate_ps+",kl="+k_l+",ka="+k_a+",kb="+k_b+",dsq="+deltaSq;
                                         end
+
+                                        numGoodSeeds = numSeeds;
                                         for m=1:numSeeds
                                             %for m=1:1
                                             % construct filenames to find the right simulation
@@ -173,7 +180,15 @@ for i=1:length(N_arr)
                                             woundPropertiesStr = pipeline_dir+fileheader+ '.woundProperties';
                                             innerAndBulkCellIDStr = pipeline_dir+fileheader+ '.cellID';
 
-                                            voidArea_sd = load(voidAreaStr);
+                                            % if load fails, go to next
+                                            % loop iteration
+                                            try 
+                                                voidArea_sd = load(voidAreaStr);
+                                            catch
+                                                disp('Did not load file: '+voidAreaStr);
+                                                numGoodSeeds = numGoodSeeds - 1;
+                                                continue;
+                                            end
                                             voidArea_sd(voidArea_sd == 1e10) = NaN;
                                             bulkCellShape_sd = load(bulkStr);
                                             woundProperties_sd = load(woundPropertiesStr);
@@ -229,13 +244,13 @@ for i=1:length(N_arr)
 
                                                 % show simulation
                                                 % parameters on the figure
-                                                ann = annotation('textbox', [.42 .8 0.1 0.1],'interpreter', 'latex',...
+                                                ann = annotation('textbox', [.1 .9 0.1 0.1],'interpreter', 'latex',...
                                                 'String', displayStr,'FitBoxToText','on','Edgecolor','none',...
                                                 'FaceAlpha', 0.5, 'backgroundcolor','white','interpreter', 'latex');
                                                 ann.FontSize = 10;
 
                                                 axis equal; axis off;
-                                                saveas(gcf, array_output_dir+displayStr+'.eps', 'epsc')
+                                                saveas(gcf, array_output_dir+'/'+pm1pm2_folder+displayStr+'.eps', 'epsc')
                                             end
 
                                             % pad shorter voidArea with zeros to add them together
@@ -278,10 +293,10 @@ for i=1:length(N_arr)
                                             innerShapeArr(end+1, :) = meanInnerShapes_sd;
                                         end
 
-                                        voidArea(:,2) = voidArea(:,2) / numSeeds;
-                                        healingTime = healingTime / numSeeds;
-                                        rosetteNumber = rosetteNumber / numSeeds;
-                                        %meanInnerShapes = meanInnerShapes / numSeeds;
+                                        voidArea(:,2) = voidArea(:,2) / numGoodSeeds;
+                                        healingTime = healingTime / numGoodSeeds;
+                                        rosetteNumber = rosetteNumber / numGoodSeeds;
+                                        %meanInnerShapes = meanInnerShapes / numGoodSeeds;
                                         meanInnerShapes = nanmean(innerShapeArr, 1);
 
                                         % plot area vs time 
