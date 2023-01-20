@@ -11,7 +11,6 @@ addpath('C:\Users\atata\projects\dpm\matlab_funcs')
 % ablate_A01.05_t_stress125.0k_l1.0_k_a1.0_kb_0.1_w_ps0.005_dsq4.0_k_ps4.0_k_lp4.0_d_flag0.0_bd0_sm1
 % / _N50_Dur500_att0.1_sd1_sd10_sd1.pos
 
-
 % simulation parameters go here
 runType = "ablate";
 N="50";
@@ -55,21 +54,25 @@ array_output_dir = subdir_output + "array_output_figures/";
 N_arr = ["50"];                 %i
 calA0_arr = ["1.05"];           %ii
 t_stress_arr = ["1.0" "5.0" "25.0" "125.0" "625.0"]; %iii
+%t_stress_arr = ["25.0"]; %iii
 %att_arr = ["0.05" "0.1" "0.15" "0.2" "0.25" "0.29"]; %j
 att_arr = ["0.1"]; % j
 om_arr = ["0.005"];             %jj
+%om_arr = ["0.001" "0.005" "0.01" "0.05"];             %jj
 %kl_arr = ["1.0"];               %jjj
 kl_arr = ["0.1" "0.5" "1.0" "5.0" "10.0"]; %jjj
 ka_arr = ["1.0"];               %k
+%ka_arr = ["0.1" "0.5" "1.0" "5.0" "10.0"];    %k
 kb_arr = ["0.01"]; %kk
+%kb_arr = ["0.0" "0.001" "0.01" "0.1"]; %kk
 deltaSq_arr = ["4.0"];          %kkk
 d_flag_arr = ["0.0"];           %l
 
 % fill with the parameters to be varied
 pm1 = t_stress_arr;
 pm1_str = 'tau';
-pm2 = att_arr;
-pm2_str = 'adhesion';
+pm2 = kl_arr;
+pm2_str = 'kl';
 pm1pm2_folder = "cfg_"+pm1_str+"_"+pm2_str+"/";
 mkdir(array_output_dir+pm1pm2_folder);
 
@@ -95,15 +98,17 @@ end
 
 heatmap_fig_num = numPlots*numPlotTypes+1;
 
-% 3 model outputs
-figure(heatmap_fig_num); clf; %shape_max/shape_bulk
+% 4 model outputs
+figure(heatmap_fig_num); clf; %shape_max(any time)/shape(starting) of rosette cells
 figure(heatmap_fig_num+1); clf;%healing time
 figure(heatmap_fig_num+2); clf; % rosette number
+figure(heatmap_fig_num+3); clf; % final shape parameters of rosette cells
 
-numHeatmaps = 3;
+numHeatmaps = 4;
 heatmap1 = zeros(length(pm1), length(pm2)); 
 heatmap2 = zeros(length(pm1), length(pm2));
-heatmap3 = zeros(length(pm1), length(pm2)); 
+heatmap3 = zeros(length(pm1), length(pm2));
+heatmap4 = zeros(length(pm1), length(pm2)); 
 
 numItsTotal = 1;
 
@@ -129,13 +134,14 @@ for i=1:length(N_arr)
                                         d_flag = d_flag_arr(l);
 
                                         pm1_ind = iii;
-                                        pm2_ind = j;
+                                        pm2_ind = jjj;
 
                                         voidArea = zeros(0,2);
                                         meanInnerShapes = NaN(0,1);
                                         timeInnerShapes = zeros(0,1);
                                         timestep = 0; % determine on the fly to pad with zeros
                                         innerShapeArr = []; % fill with meanInnerShape and dynamically pad rows with nans
+                                        stdMeanShapeArr = []; % fill with mean, std of shapes of rosette cells in last frame of each seed
                                         healingTime = 0;
                                         rosetteNumber = 0;
 
@@ -184,15 +190,15 @@ for i=1:length(N_arr)
                                             % loop iteration
                                             try 
                                                 voidArea_sd = load(voidAreaStr);
+                                                bulkCellShape_sd = load(bulkStr);
+                                                woundProperties_sd = load(woundPropertiesStr);
+                                                cellID = load(innerAndBulkCellIDStr);
                                             catch
-                                                disp('Did not load file: '+voidAreaStr);
+                                                disp('Did not load file: '+pipeline_dir+fileheader);
                                                 numGoodSeeds = numGoodSeeds - 1;
                                                 continue;
                                             end
                                             voidArea_sd(voidArea_sd == 1e10) = NaN;
-                                            bulkCellShape_sd = load(bulkStr);
-                                            woundProperties_sd = load(woundPropertiesStr);
-                                            cellID = load(innerAndBulkCellIDStr);
                                             innerShapes_sd = bulkCellShape_sd(:,[1; cellID(:,3)]==1);
                                             meanInnerShapes_sd = nanmean(innerShapes_sd(:,2:end),2);
                                             timeInnerShapes_sd = innerShapes_sd(:,1);
@@ -281,6 +287,9 @@ for i=1:length(N_arr)
                                             voidArea(:,2) = voidArea(:,2) + voidArea_sd(:,2);
                                             healingTime = healingTime + woundProperties_sd(1);
                                             rosetteNumber = rosetteNumber + woundProperties_sd(2);
+                                            % get the distribution quantities of the rosette cells in their last frame
+                                            [stdShapes_sd, meanShapes_sd] = std(innerShapes_sd(end, 2:end));
+
                                             %voidArea = voidArea + voidArea_sd;
                                             %meanInnerShapes = meanInnerShapes + meanInnerShapes_sd;
                                             sizeInnerShapeArr = size(innerShapeArr);
@@ -288,16 +297,21 @@ for i=1:length(N_arr)
                                             if (differenceSize < 0)
                                                 innerShapeArr = padarray(innerShapeArr, [0 -differenceSize], nan, 'post');
                                             elseif (differenceSize > 0)
-                                                meanInnerShapes_sd = padarray(meanInnerShapes_sd, [0 differenecSize], nan, 'post');
+                                                meanInnerShapes_sd = padarray(meanInnerShapes_sd, [0 differenceSize], nan, 'post');
                                             end
+                                            % add meanInnerShapes_sd as a
+                                            % new row to innerShapeArr
                                             innerShapeArr(end+1, :) = meanInnerShapes_sd;
+                                            stdMeanShapeArr(end+1,:) = [stdShapes_sd meanShapes_sd];
                                         end
 
                                         voidArea(:,2) = voidArea(:,2) / numGoodSeeds;
                                         healingTime = healingTime / numGoodSeeds;
                                         rosetteNumber = rosetteNumber / numGoodSeeds;
-                                        %meanInnerShapes = meanInnerShapes / numGoodSeeds;
-                                        meanInnerShapes = nanmean(innerShapeArr, 1);
+                                        minInnerShapes = mean(min(innerShapeArr, [], 2),'omitnan');
+                                        maxInnerShapes = mean(max(innerShapeArr, [], 2),'omitnan');
+                                        meanRosetteShape = mean(stdMeanShapeArr(:,2));
+                                        stdRosetteShape = mean(stdMeanShapeArr(:,1).^2);
 
                                         % plot area vs time 
                                         figure(pm1_ind)
@@ -331,10 +345,11 @@ for i=1:length(N_arr)
                                         %heatmap2(shapeii,j) = max(innerShapes_sd(:,1));
                                         %heatmap3(shapeii,j) = woundProperties_sd(2);
 
-                                        heatmap1(pm1_ind,pm2_ind) = max(meanInnerShapes)/min(meanInnerShapes);
+                                        heatmap1(pm1_ind,pm2_ind) = maxInnerShapes/minInnerShapes;
                                         %heatmap2(i,j) = max(innerShapes_sd(:,1));
                                         heatmap2(pm1_ind,pm2_ind) = healingTime;
                                         heatmap3(pm1_ind,pm2_ind) = rosetteNumber;
+                                        heatmap4(pm1_ind, pm2_ind) = meanRosetteShape;
 
                                         numItsTotal = numItsTotal + 1;
                                     end
@@ -374,7 +389,7 @@ else
 end
 
 %plot array results now : heatmaps
-heatmap_filepath = "output/cells/ablate/array_output_figures";
+heatmap_filepath = "output/cells/ablate/array_output_figures/heatmaps";
 mkdir(heatmap_filepath);
 
 figure(heatmap_fig_num + numHeatmaps)
@@ -416,5 +431,19 @@ h.NodeChildren(3).YAxis.Label.Interpreter = 'latex';
 h.NodeChildren(3).Title.Interpreter = 'latex';
 fontsize(gca, scale=1.5)
 saveas(gcf, heatmap_filepath+"/rosetteNumberSmooth" + ...
+             "PS"+~isCrawling+"-"+pm1_str+"-"+pm2_str+".eps", 'epsc')
+
+figure(heatmap_fig_num + numHeatmaps + 3)
+h = heatmap(pm2, pm1, heatmap4);
+h.YLabel = pm1_str;
+h.XLabel = pm2_str;
+
+%h.YLabel = '$\mathcal{A}_0$';
+h.Title = '$\langle\mathcal{A}_{rosette}\rangle$';
+h.NodeChildren(3).XAxis.Label.Interpreter = 'latex';
+h.NodeChildren(3).YAxis.Label.Interpreter = 'latex';
+h.NodeChildren(3).Title.Interpreter = 'latex';
+fontsize(gca, scale=1.5)
+saveas(gcf, heatmap_filepath+"/rosetteCellsFinalShape"+ ...
              "PS"+~isCrawling+"-"+pm1_str+"-"+pm2_str+".eps", 'epsc')
 
