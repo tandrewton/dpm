@@ -59,10 +59,10 @@ t_stress_arr = ["1.0" "5.0" "25.0" "125.0" "625.0"]; %iii
 att_arr = ["0.1"]; % j
 om_arr = ["0.005"];             %jj
 %om_arr = ["0.001" "0.005" "0.01" "0.05"];             %jj
-%kl_arr = ["1.0"];               %jjj
-kl_arr = ["0.1" "0.5" "1.0" "5.0" "10.0"]; %jjj
-ka_arr = ["1.0"];               %k
-%ka_arr = ["0.1" "0.5" "1.0" "5.0" "10.0"];    %k
+kl_arr = ["1.0"];               %jjj
+%kl_arr = ["0.1" "0.5" "1.0" "5.0" "10.0"]; %jjj
+%ka_arr = ["1.0"];               %k
+ka_arr = ["0.1" "0.5" "1.0" "5.0" "10.0"];    %k
 kb_arr = ["0.01"]; %kk
 %kb_arr = ["0.0" "0.001" "0.01" "0.1"]; %kk
 deltaSq_arr = ["4.0"];          %kkk
@@ -71,8 +71,8 @@ d_flag_arr = ["0.0"];           %l
 % fill with the parameters to be varied
 pm1 = t_stress_arr;
 pm1_str = 'tau';
-pm2 = kl_arr;
-pm2_str = 'kl';
+pm2 = ka_arr;
+pm2_str = 'ka';
 pm1pm2_folder = "cfg_"+pm1_str+"_"+pm2_str+"/";
 mkdir(array_output_dir+pm1pm2_folder);
 
@@ -134,7 +134,7 @@ for i=1:length(N_arr)
                                         d_flag = d_flag_arr(l);
 
                                         pm1_ind = iii;
-                                        pm2_ind = jjj;
+                                        pm2_ind = k;
 
                                         voidArea = zeros(0,2);
                                         meanInnerShapes = NaN(0,1);

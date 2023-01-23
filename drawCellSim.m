@@ -166,6 +166,7 @@ for seed = startSeed:max_seed
         l0 = trajectoryData.l0(ff,:);
         vrad = trajectoryData.vrad(ff,:);
         psi = trajectoryData.psi(ff,:);
+        cellarea = trajectoryData.area(ff,:);
         
 
         %if L is not constant, use the next 3 lines
@@ -185,10 +186,12 @@ for seed = startSeed:max_seed
             psitmp = psi(nn);
             costmp = cos(psitmp);
             sintmp = sin(psitmp);
+            areatmp = cellarea(nn);
 
             %clr = cellCLR(IC(nn),:);
             colors = ['r','g','b','c','m','y','k'];
-            clr = colors(cellIDtmp+1);
+            %clr = colors(cellIDtmp+1);
+            clr='k';
 
             cx = mean(xtmp);
             cy = mean(ytmp);
@@ -243,13 +246,23 @@ for seed = startSeed:max_seed
                 rads = sqrt(rx.^2 + ry.^2);
                 xtmp = xtmp + 0.4*l0tmp(1)*(rx./rads);
                 ytmp = ytmp + 0.4*l0tmp(1)*(ry./rads);
-                text(cx,cy,num2str(nn))
+                %text(cx,cy,num2str(nn)) % plot cell # on each cell
                 for xx = itLow:itHigh
                     for yy = itLow:itHigh
                         vpos = [xtmp + xx*Lx, ytmp + yy*Ly];
                         finfo = [1:nv(ff,nn) 1];
                         %disp("finfo is "+ finfo)
-                        patch('Faces',finfo,'vertices',vpos,'FaceColor',clr,'EdgeColor','k','linewidth',2);
+                        % if cellID is boundary, have it be black exterior
+                        % with white interior
+                        if (nn == NCELLS)
+                            % if cellID is a boundary, have it be black
+                            % exterior with white interior
+                            patch('Faces',finfo,'vertices',vpos,'FaceColor','w','EdgeColor','k','linewidth',0.001);
+                        else
+                            % if cellID is a real cell, have it be black
+                            % exterior with black interior
+                            patch('Faces',finfo,'vertices',vpos,'FaceColor','k','EdgeColor','k','linewidth',0.001);
+                        end
                     end
                 end
             end
@@ -295,8 +308,8 @@ for seed = startSeed:max_seed
         %annotationStr = "$$t/\tau$$ = "+time(ff);
         framenum = ff-1;
         annotationStr = "frame="+framenum;
-        annotation('textbox',[0.4, 0.4, 0, 0],...
-            'interpreter', 'latex', 'String', annotationStr, 'Edgecolor','none', 'FitBoxToText','on');
+        %annotation('textbox',[0.4, 0.4, 0, 0],...
+        %    'interpreter', 'latex', 'String', annotationStr, 'Edgecolor','none', 'FitBoxToText','on');
 
         % if making a movie, save frame
         if makeAMovie == 1
@@ -307,6 +320,10 @@ for seed = startSeed:max_seed
         %    disp("hi")
         %end
 
+        if (ff == FEND)
+            axis off;
+            exportgraphics(gcf, 'last_frame_PSM_sim.tiff', 'Resolution', 1000);
+        end
     end
 
 
