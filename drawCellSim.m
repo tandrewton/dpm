@@ -23,7 +23,7 @@ t_maxwell = "25.0";
 v0 = "0.05";
 t_abp = "1.0";
 sm = "1";
-att="0.1";
+att="0.01";
 Duration="400";
 FSKIP = 1;
 

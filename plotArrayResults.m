@@ -53,7 +53,7 @@ array_output_dir = subdir_output + "array_output_figures/";
 
 N_arr = ["50"];                 %i
 calA0_arr = ["1.05"];           %ii
-t_stress_arr = ["1.0" "5.0" "25.0" "125.0" "625.0"]; %iii
+t_stress_arr = ["1.0" "5.0"];% "25.0" "125.0" "625.0"]; %iii
 %t_stress_arr = ["25.0"]; %iii
 %att_arr = ["0.05" "0.1" "0.15" "0.2" "0.25" "0.29"]; %j
 att_arr = ["0.1"]; % j
@@ -62,7 +62,7 @@ om_arr = ["0.005"];             %jj
 kl_arr = ["1.0"];               %jjj
 %kl_arr = ["0.1" "0.5" "1.0" "5.0" "10.0"]; %jjj
 %ka_arr = ["1.0"];               %k
-ka_arr = ["0.1" "0.5" "1.0" "5.0" "10.0"];    %k
+ka_arr = ["0.1"];% "0.5" "1.0" "5.0" "10.0"];    %k
 kb_arr = ["0.01"]; %kk
 %kb_arr = ["0.0" "0.001" "0.01" "0.1"]; %kk
 deltaSq_arr = ["4.0"];          %kkk
@@ -109,6 +109,7 @@ heatmap1 = zeros(length(pm1), length(pm2));
 heatmap2 = zeros(length(pm1), length(pm2));
 heatmap3 = zeros(length(pm1), length(pm2));
 heatmap4 = zeros(length(pm1), length(pm2)); 
+heatmap4_std = zeros(length(pm1), length(pm2));
 
 numItsTotal = 1;
 
@@ -350,6 +351,7 @@ for i=1:length(N_arr)
                                         heatmap2(pm1_ind,pm2_ind) = healingTime;
                                         heatmap3(pm1_ind,pm2_ind) = rosetteNumber;
                                         heatmap4(pm1_ind, pm2_ind) = meanRosetteShape;
+                                        heatmap4_std(pm1_ind, pm2_ind) = stdRosetteShape;
 
                                         numItsTotal = numItsTotal + 1;
                                     end
@@ -434,7 +436,9 @@ saveas(gcf, heatmap_filepath+"/rosetteNumberSmooth" + ...
              "PS"+~isCrawling+"-"+pm1_str+"-"+pm2_str+".eps", 'epsc')
 
 figure(heatmap_fig_num + numHeatmaps + 3)
-h = heatmap(pm2, pm1, heatmap4);
+%convert matrices heatmap4, stdevs
+clabel = arrayfun(@(x,y){sprintf('%0.2f +/- %0.2f',x,y)}, heatmap4, heatmap4_std);
+h = heatmap_custom(heatmap4, pm2, pm1, clabel);
 h.YLabel = pm1_str;
 h.XLabel = pm2_str;
 
@@ -446,4 +450,3 @@ h.NodeChildren(3).Title.Interpreter = 'latex';
 fontsize(gca, scale=1.5)
 saveas(gcf, heatmap_filepath+"/rosetteCellsFinalShape"+ ...
              "PS"+~isCrawling+"-"+pm1_str+"-"+pm2_str+".eps", 'epsc')
-
