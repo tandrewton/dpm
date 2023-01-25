@@ -139,10 +139,10 @@ bash bash/cells/submit_psm.sh 50 25 1.05 0.1 25.0 0.05 1.0 1 400 pi_ohern,day,sc
 bash bash/cells/submit_psm.sh 50 25 1.05 0.0 25.0 0.05 1.0 1 400 pi_ohern,day,scavenge 0-23:00:00 1 1
 bash bash/cells/submit_psm.sh 50 25 1.05 0.01 25.0 0.05 1.0 1 400 pi_ohern,day,scavenge 0-23:00:00 1 1
 bash bash/cells/submit_psm.sh 50 25 1.05 0.1 25.0 0.05 1.0 1 400 pi_ohern,day,scavenge 0-23:00:00 1 1
-#testing new script, larger size
-bash bash/cells/submit_psm.sh 100 25 1.05 0.0 25.0 0.05 1.0 1 400 pi_ohern,day,scavenge 0-23:00:00 1 1
-bash bash/cells/submit_psm.sh 100 25 1.05 0.01 25.0 0.05 1.0 1 400 pi_ohern,day,scavenge 0-23:00:00 1 1
-bash bash/cells/submit_psm.sh 100 25 1.05 0.1 25.0 0.05 1.0 1 400 pi_ohern,day,scavenge 0-23:00:00 1 1
+#testing new script, larger size, 10 seeds
+bash bash/cells/submit_psm.sh 100 25 1.05 0.0 25.0 0.05 1.0 1 400 pi_ohern,day,scavenge 0-23:00:00 10 1
+bash bash/cells/submit_psm.sh 100 25 1.05 0.01 25.0 0.05 1.0 1 400 pi_ohern,day,scavenge 0-23:00:00 10 1
+bash bash/cells/submit_psm.sh 100 25 1.05 0.1 25.0 0.05 1.0 1 400 pi_ohern,day,scavenge 0-23:00:00 10 1
 
 rsync -rav --inplace --progress at965@transfer-grace.hpc.yale.edu:/gpfs/gibbs/project/fas/ohern/at965/dpm/psm /mnt/c/Users/atata/projects/dpm/pipeline/cells/.
 
@@ -169,5 +169,5 @@ bash bash/cells/submit_neuralTube.sh 10 20 1.0 0.01 0.002 0.002 3000 pi_ohern,da
 
 
 rsync -r at965@transfer-grace.hpc.yale.edu:/gpfs/gibbs/project/fas/ohern/at965/dpm/ablate /Users/AndrewTon/Documents/YalePhD/projects/dpm/pipeline/cells/.
-rsync -r at965@transfer-grace.hpc.yale.edu:/gpfs/gibbs/project/fas/ohern/at965/dpm/cell /mnt/c/Users/atata/projects/dpm/pipeline/cells/.
+rsync -r at965@transfer-grace.hpc.yale.edu:/gpfs/gibbs/project/fas/ohern/at965/dpm/psm /mnt/c/Users/atata/projects/dpm/pipeline/cells/.
 rsync -rav --inplace --progress at965@transfer-grace.hpc.yale.edu:/gpfs/gibbs/project/fas/ohern/at965/dpm/ablate /mnt/c/Users/atata/projects/dpm/pipeline/cells/.

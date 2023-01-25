@@ -49,36 +49,56 @@ array_output_dir = subdir_output + "array_output_figures/";
 
 % all possible parameter variations go here
 % for numPlots, just multiply the lengths of all the parameter arrays
-%  most will be 1, so they won't affect the number of plots
+
+% select 2 arrays to have length > 1. script will generate plots for
+% variations in these two parameters
 
 N_arr = ["50"];                 %i
 calA0_arr = ["1.05"];           %ii
-t_stress_arr = ["1.0" "5.0"];% "25.0" "125.0" "625.0"]; %iii
-%t_stress_arr = ["25.0"]; %iii
-%att_arr = ["0.05" "0.1" "0.15" "0.2" "0.25" "0.29"]; %j
-att_arr = ["0.1"]; % j
+t_stress_arr = ["1.0" "5.0" "25.0" "125.0" "625.0"]; %iii
+%t_stress_arr = ["125.0"]; %iii
+att_arr = ["0.05" "0.1" "0.15" "0.2" "0.25" "0.29"]; %j
+%att_arr = ["0.1"]; % j
 om_arr = ["0.005"];             %jj
 %om_arr = ["0.001" "0.005" "0.01" "0.05"];             %jj
 kl_arr = ["1.0"];               %jjj
 %kl_arr = ["0.1" "0.5" "1.0" "5.0" "10.0"]; %jjj
-%ka_arr = ["1.0"];               %k
-ka_arr = ["0.1"];% "0.5" "1.0" "5.0" "10.0"];    %k
+ka_arr = ["1.0"];               %k
+%ka_arr = ["0.1" "0.5" "1.0" "5.0" "10.0"];    %k
 kb_arr = ["0.01"]; %kk
-%kb_arr = ["0.0" "0.001" "0.01" "0.1"]; %kk
+%kb_arr = ["0" "0.001" "0.01" "0.1"]; %kk
 deltaSq_arr = ["4.0"];          %kkk
 d_flag_arr = ["0.0"];           %l
 
-% fill with the parameters to be varied
-pm1 = t_stress_arr;
-pm1_str = 'tau';
-pm2 = ka_arr;
-pm2_str = 'ka';
+
+% loop logic selects the 2 arrays above with length > 1.
+%  it then identifies the correct parameter name, and the iterator in the
+%  big nested loop that runs all of the plotting routines.
+pm1 = []; pm2 = [];
+param_cell_list = {t_stress_arr att_arr om_arr kl_arr ka_arr kb_arr};
+param_id_list = ["tau" "adhesion" "activity" "kl" "ka" "kb"];
+param_ind_list = [1 2 3 4 5 6];
+for i=1:length(param_cell_list)
+    if (length(param_cell_list{i}) > 1)
+        if (isempty(pm1))
+            pm1 = param_cell_list{i};
+            pm1_str = param_id_list(i);
+            pm1_ind_num = param_ind_list(i);
+        elseif (isempty(pm2))
+            pm2 = param_cell_list{i};
+            pm2_str = param_id_list(i);
+            pm2_ind_num = param_ind_list(i);
+        else
+            disp("error, more than 2 elements of cell list are nonempty");
+            assert(false);
+        end
+    end
+end
+
+assert(~isempty(pm1) && ~isempty(pm2));
+
 pm1pm2_folder = "cfg_"+pm1_str+"_"+pm2_str+"/";
 mkdir(array_output_dir+pm1pm2_folder);
-
-% also need to fill pm1_ind and pm2_ind in the big nested loop
-%pm1_ind = 0;
-%pm2_ind = 0;
 
 bigproduct = length(N_arr)*length(calA0_arr)*length(t_stress_arr)*...
     length(att_arr)*length(om_arr)*length(kl_arr)*...
@@ -134,8 +154,10 @@ for i=1:length(N_arr)
                                     for l=1:length(d_flag_arr)
                                         d_flag = d_flag_arr(l);
 
-                                        pm1_ind = iii;
-                                        pm2_ind = k;
+                                        iterator_arr = [iii j jj jjj k kk];
+
+                                        pm1_ind = iterator_arr(pm1_ind_num);
+                                        pm2_ind = iterator_arr(pm2_ind_num);
 
                                         voidArea = zeros(0,2);
                                         meanInnerShapes = NaN(0,1);
@@ -405,6 +427,7 @@ h.NodeChildren(3).XAxis.Label.Interpreter = 'latex';
 h.NodeChildren(3).YAxis.Label.Interpreter = 'latex';
 h.NodeChildren(3).Title.Interpreter = 'latex';
 fontsize(gca, scale=1.5)
+colormap parula
 saveas(gcf, heatmap_filepath+"/relativeMaxShapeDeformation"+ ...
              "PS"+~isCrawling+"-"+pm1_str+"-"+pm2_str+".eps", 'epsc')
 
@@ -418,6 +441,7 @@ h.NodeChildren(3).XAxis.Label.Interpreter = 'latex';
 h.NodeChildren(3).YAxis.Label.Interpreter = 'latex';
 h.NodeChildren(3).Title.Interpreter = 'latex';
 fontsize(gca, scale=1.5)
+colormap parula
 saveas(gcf, heatmap_filepath+"/healingTimesSmooth"+...
              "PS"+~isCrawling+"-"+pm1_str+"-"+pm2_str+".eps", 'epsc')
 
@@ -432,21 +456,18 @@ h.NodeChildren(3).XAxis.Label.Interpreter = 'latex';
 h.NodeChildren(3).YAxis.Label.Interpreter = 'latex';
 h.NodeChildren(3).Title.Interpreter = 'latex';
 fontsize(gca, scale=1.5)
+colormap parula
 saveas(gcf, heatmap_filepath+"/rosetteNumberSmooth" + ...
              "PS"+~isCrawling+"-"+pm1_str+"-"+pm2_str+".eps", 'epsc')
 
 figure(heatmap_fig_num + numHeatmaps + 3)
 %convert matrices heatmap4, stdevs
 clabel = arrayfun(@(x,y){sprintf('%0.2f +/- %0.2f',x,y)}, heatmap4, heatmap4_std);
-h = heatmap_custom(heatmap4, pm2, pm1, clabel);
-h.YLabel = pm1_str;
-h.XLabel = pm2_str;
-
-%h.YLabel = '$\mathcal{A}_0$';
-h.Title = '$\langle\mathcal{A}_{rosette}\rangle$';
-h.NodeChildren(3).XAxis.Label.Interpreter = 'latex';
-h.NodeChildren(3).YAxis.Label.Interpreter = 'latex';
-h.NodeChildren(3).Title.Interpreter = 'latex';
+heatmap_custom(heatmap4, pm2, pm1, clabel,'Colorbar',true,'FontSize', 6);
+ylabel(pm1_str);
+xlabel(pm2_str);
+title('$\langle\mathcal{A}_{rosette}\rangle$', 'Interpreter','latex');
 fontsize(gca, scale=1.5)
+colormap parula
 saveas(gcf, heatmap_filepath+"/rosetteCellsFinalShape"+ ...
              "PS"+~isCrawling+"-"+pm1_str+"-"+pm2_str+".eps", 'epsc')

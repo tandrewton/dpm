@@ -17,13 +17,13 @@ addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
 % /_NCELLS10_dur100_att0.1_startsd1_endsd1_sd1.tissue
 
 runType = "psm";
-N="50";
+N="100";
 calA0="1.05";
 t_maxwell = "25.0";
 v0 = "0.05";
 t_abp = "1.0";
 sm = "1";
-att="0.01";
+att="0.0";
 Duration="400";
 FSKIP = 1;
 
