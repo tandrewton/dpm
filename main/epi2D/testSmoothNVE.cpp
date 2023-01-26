@@ -2,7 +2,8 @@
 // Compilation command:
 // g++ -O3 --std=c++11 -g -I src main/epi2D/testSmoothNVE.cpp src/dpm.cpp src/epi2D.cpp -o main/epi2D/testSmoothNVE.o
 
-// ./main/epi2D/testSmoothNVE.o 2 20 4 1.0 0.2 0.0 1.0 1.0 0.2 0.013  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   0 1  200  test
+//                                                         att                                               sm
+// ./main/epi2D/testSmoothNVE.o 2 20 4 1.0 0.2 0.0 1.0 1.0 0.0 0.013  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   0 1  200  test
 
 // script to generate NVE simulations and check the energy. See file "energyNVETest.txt"
 // to set smooth or bumpy forces, change argument 20 to 1 or 0 in the arglist above.
@@ -198,7 +199,6 @@ int main(int argc, char const* argv[]) {
 
   // set base dpm force, upcast derived epi2D forces
   dpmMemFn repulsiveForceUpdate = &dpm::repulsiveForceUpdate;
-  dpmMemFn repulsiveSmoothForceUpdate = static_cast<void (dpm::*)()>(&epi2D::circuloLineRepulsiveForces);
   dpmMemFn attractiveForceUpdate = static_cast<void (dpm::*)()>(&epi2D::attractiveForceUpdate_2);
   dpmMemFn circuloLineAttraction = static_cast<void (dpm::*)()>(&epi2D::attractiveForceUpdate_circulo);
 
@@ -227,11 +227,9 @@ int main(int argc, char const* argv[]) {
   if (!boolSmooth) {
     cout << "bumpy forces\n";
     customAttractiveForce = attractiveForceUpdate;
-    customRepulsiveForce = repulsiveForceUpdate;
   } else {
     cout << "smooth forces\n";
     customAttractiveForce = circuloLineAttraction;
-    customRepulsiveForce = repulsiveSmoothForceUpdate;
   }
 
   epithelial.dampedNP0(customAttractiveForce, B, dt0, relaxTime, printInterval);
