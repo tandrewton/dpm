@@ -314,6 +314,7 @@ class epi2D : public dpm {
   // epi cell interactions
   void repulsiveForceUpdateWithWalls();
   void vertexAttractiveForces2D_2();
+  void circuloLineRepulsiveForces();
   void circuloLineAttractiveForces();
   void calculateSmoothInteraction(double& rx, double& ry, double& sij, double& shellij, double& cutij, double& kint, double& kc, int& gi, int& gj, double& contactType, int& ci, int& cj);
   void attractiveForceUpdate_circulo();

@@ -592,6 +592,11 @@ void epi2D::vertexAttractiveForces2D_2() {
   }
 }
 
+void epi2D::circuloLineRepulsiveForces() {
+  // simpler case for smooth forces: assume repulsive interactions (no complicated single or double overlaps)
+  //
+}
+
 void epi2D::circuloLineAttractiveForces() {
   // altered from vertexAttractiveForces2D_2, here we use vertex-vertex and vertex-line segment distances to make a smooth interaction
   // models sliding adhesion and repulsion.

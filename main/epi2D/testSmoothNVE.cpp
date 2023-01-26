@@ -198,17 +198,9 @@ int main(int argc, char const* argv[]) {
 
   // set base dpm force, upcast derived epi2D forces
   dpmMemFn repulsiveForceUpdate = &dpm::repulsiveForceUpdate;
-  dpmMemFn repulsiveForceUpdateWithWalls = static_cast<void (dpm::*)()>(&epi2D::repulsiveForceUpdateWithWalls);
+  dpmMemFn repulsiveSmoothForceUpdate = static_cast<void (dpm::*)()>(&epi2D::circuloLineRepulsiveForces);
   dpmMemFn attractiveForceUpdate = static_cast<void (dpm::*)()>(&epi2D::attractiveForceUpdate_2);
-  dpmMemFn crawlingWithPSForceUpdate = static_cast<void (dpm::*)()>(&epi2D::crawlingWithPurseString);
-  dpmMemFn repulsiveForceUpdateWithCircularAperture = static_cast<void (dpm::*)()>(&epi2D::repulsiveForceWithCircularApertureWall);
-  dpmMemFn repulsiveForceUpdateWithCircularWalls = static_cast<void (dpm::*)()>(&epi2D::repulsiveForceUpdateWithPolyWall);
-  dpmMemFn attractiveForceUpdateWithCircularWalls = static_cast<void (dpm::*)()>(&epi2D::attractiveForceUpdateWithPolyWall);
-  dpmMemFn crawlingWithPSForceUpdateWithCircularWalls = static_cast<void (dpm::*)()>(&epi2D::crawlingWithPurseStringAndCircularWalls);
   dpmMemFn circuloLineAttraction = static_cast<void (dpm::*)()>(&epi2D::attractiveForceUpdate_circulo);
-  dpmMemFn crawlingWithPSSmooth = static_cast<void (dpm::*)()>(&epi2D::crawlingWithPurseStringCirculo);
-  dpmMemFn crawlingWithPSSmooth_Walls = static_cast<void (dpm::*)()>(&epi2D::crawlingWithPurseStringCirculoWalls);
-  dpmMemFn circuloLineAttractionWithCircularWalls = static_cast<void (dpm::*)()>(&epi2D::circuloLineAttractionWithCircularWalls);
 
   epithelial.monodisperse2D(calA0, nsmall);
   epithelial.initializevnn();
@@ -220,10 +212,7 @@ int main(int argc, char const* argv[]) {
 
   epithelial.initializeNeighborLinkedList2D(boxLengthScale);
 
-  if (isPbcOn)
-    epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdate, Ftol, dt0, phiMax, dphi0);
-  else
-    epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithCircularWalls, Ftol, dt0, phiMax, dphi0);
+  epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdate, Ftol, dt0, phiMax, dphi0);
 
   // after compress, turn on damped NVE
   double T = 1e-10;
@@ -233,51 +222,32 @@ int main(int argc, char const* argv[]) {
   double runTime = 25.0;
   epithelial.drawVelocities2D(T);
 
-  dpmMemFn customForceUpdate_inactive;
-  dpmMemFn customForceUpdate_active;
-  dpmMemFn customForceUpdate_inactive_with_circular_walls;
-  dpmMemFn customForceUpdate_active_with_circular_walls;
+  dpmMemFn customAttractiveForce;
+  dpmMemFn customRepulsiveForce;
   if (!boolSmooth) {
     cout << "bumpy forces\n";
-    customForceUpdate_inactive = attractiveForceUpdate;
-    customForceUpdate_active = crawlingWithPSForceUpdate;
-    customForceUpdate_inactive_with_circular_walls = attractiveForceUpdateWithCircularWalls;
-    customForceUpdate_active_with_circular_walls = crawlingWithPSForceUpdateWithCircularWalls;
+    customAttractiveForce = attractiveForceUpdate;
+    customRepulsiveForce = repulsiveForceUpdate;
   } else {
     cout << "smooth forces\n";
-    customForceUpdate_inactive = circuloLineAttraction;
-    customForceUpdate_active = crawlingWithPSSmooth;
-    customForceUpdate_inactive_with_circular_walls = circuloLineAttractionWithCircularWalls;
-    customForceUpdate_active_with_circular_walls = crawlingWithPSSmooth_Walls;
+    customAttractiveForce = circuloLineAttraction;
+    customRepulsiveForce = repulsiveSmoothForceUpdate;
   }
 
-  if (isPbcOn)
-    epithelial.dampedNP0(customForceUpdate_inactive, B, dt0, relaxTime, printInterval);
-  else
-    epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, B, dt0, relaxTime, printInterval);
+  epithelial.dampedNP0(customAttractiveForce, B, dt0, relaxTime, printInterval);
 
   std::ofstream myenergy("energyNVETest.txt");
   int numIts = 2;
   for (int i = 0; i < numIts; i++) {  // try repeating this until relaxed
     epithelial.setkc(1.0);
     // equilibrate
-
     if (i == 0) {
-      /*cout << "zeroing velocity!\n";
-      epithelial.scaleVelocities(0);*/
       cout << "multiplying velocity!\n";
       epithelial.scaleVelocities(10.0);
-      // cout << "displacing cells!\n";
-      // epithelial.displaceCell(0, 1.0, 1.8); // cell 0 is above cell 1 and will not make contact
-      // epithelial.displaceCell(0, 1.0, 1.76);  // cell 0 is above cell 1 and will not make contact in repulsive case.will make contact in sticky case
-      // epithelial.displaceCell(0, 1.0, 1.6); // cells just barely make repulsive contact here, good for repulsive testing.
-      // epithelial.displaceCell(1, 0, 0);
-      epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 10000, 1000);
+      epithelial.vertexNVE(myenergy, customAttractiveForce, dt0, 10000, 1000);
     }
     if (i == 1) {
-      /*cout << "launching a cell!\n";
-      epithelial.setCellVelocity(0, 0.05, 0.0);*/
-      epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 50000, 1000);
+      epithelial.vertexNVE(myenergy, customAttractiveForce, dt0, 50000, 1000);
     }
   }
 
