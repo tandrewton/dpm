@@ -4,6 +4,10 @@
 
 // ./main/epi2D/testSmoothNVE.o 2 20 4 1.0 0.2 0.0 1.0 1.0 0.2 0.013  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   0 1  200  test
 
+// script to generate NVE simulations and check the energy. See file "energyNVETest.txt"
+// to set smooth or bumpy forces, change argument 20 to 1 or 0 in the arglist above.
+//    argument 20 is 4th from the end of the list, i.e. the 0 in "... 0 1 200 test"
+
 //
 // Parameter input list
 // 1. NCELLS: 			number of particles
@@ -154,7 +158,7 @@ int main(int argc, char const* argv[]) {
     cout << "strain rate for pursestring is zero, setting deltaSq yield length to also be zero\n";
     deltaSq = 0.0;
   }
-  epi2D epithelial(NCELLS, 0.0, 0.0, Dr0, strainRate_ps, k_ps, k_LP, tau_LP, deltaSq, maxProtrusionLength, seed);
+  epi2D epithelial(NCELLS, 0.0, 0.0, strainRate_ps, k_ps, k_LP, tau_LP, deltaSq, maxProtrusionLength, seed);
 
   epithelial.openPosObject(positionFile);
   epithelial.openEnergyObject(energyFile);
@@ -174,9 +178,6 @@ int main(int argc, char const* argv[]) {
   epithelial.setkb(kb);
   epithelial.setkc(kc);
   epithelial.setShapeRelaxationRate(shapeRelaxationRate);
-
-  // set CIL option
-  epithelial.setboolCIL(boolCIL);
 
   epithelial.setpbc(0, isPbcOn);
   epithelial.setpbc(1, isPbcOn);
@@ -216,17 +217,13 @@ int main(int argc, char const* argv[]) {
   bool setUpCircularBoundary = true;
   // initialize positions and setup polygonal boundary condition if setUpCircularBoundary is enabled
   epithelial.initializePositions2D(phi0, Ftol, false, boxAspectRatio, setUpCircularBoundary);
-  // epithelial.printConfiguration2D();
 
   epithelial.initializeNeighborLinkedList2D(boxLengthScale);
 
-  // epithelial.vertexCompress2Target2D(repulsiveForceUpdateWithWalls, Ftol, dt0, phiMax, dphi0);
-  //  epithelial.vertexCompress2Target2D(repulsiveForceUpdateWithCircularAperture, Ftol, dt0, phiMax, dphi0);
   if (isPbcOn)
     epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdate, Ftol, dt0, phiMax, dphi0);
   else
     epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithCircularWalls, Ftol, dt0, phiMax, dphi0);
-  // epithelial.printConfiguration2D();
 
   // after compress, turn on damped NVE
   double T = 1e-10;
@@ -235,14 +232,6 @@ int main(int argc, char const* argv[]) {
   double printInterval = relaxTime / 2.0;
   double runTime = 25.0;
   epithelial.drawVelocities2D(T);
-
-  // dpmMemFn customForceUpdate_inactive = attractiveForceUpdate;
-  //   dpmMemFn customForceUpdate_active = crawlingWithPSForceUpdate;
-  //   dpmMemFn customForceUpdate_inactive_with_circular_walls = attractiveForceUpdateWithCircularWalls;
-
-  /*dpmMemFn customForceUpdate_inactive = circuloLineAttraction;
-  dpmMemFn customForceUpdate_active = crawlingWithPSSmooth;
-  dpmMemFn customForceUpdate_inactive_with_circular_walls = circuloLineAttractionWithCircularWalls;*/
 
   dpmMemFn customForceUpdate_inactive;
   dpmMemFn customForceUpdate_active;
@@ -291,18 +280,6 @@ int main(int argc, char const* argv[]) {
       epithelial.vertexNVE(myenergy, customForceUpdate_inactive, dt0, 50000, 1000);
     }
   }
-
-  /*int loadingType = 0;
-  if (loadingType == 0 && att > 0.0) {
-    int numCellsToDelete = 0;
-    double strain = 0.8;
-    double strainRate = 0.01;
-    epithelial.notchTest(numCellsToDelete, strain, strainRate, boxLengthScale, sizeratio,
-                         nsmall, customForceUpdate_inactive, B, dt0, 0.99, "uniaxial");
-  } else {
-    cout << "loadingType not found. Closing.\n";
-    return 1;
-  }*/
 
   cout << "\n** Finished laserAblation.cpp, ending. " << endl;
   return 0;
