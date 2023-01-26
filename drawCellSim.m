@@ -23,13 +23,13 @@ t_maxwell = "25.0";
 v0 = "0.05";
 t_abp = "1.0";
 sm = "1";
-att="0.0";
+att="0.1";
 Duration="400";
 FSKIP = 1;
 
 startSeed = 1;
-max_seed = 1;
-makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately
+max_seed = 10;
+makeAMovie = 0; %if makeAMovie is 0, then plot every frame separately
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
 
@@ -39,8 +39,8 @@ walls = 0;
 att_range = 0.3;
  
 %PC directory
-%pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
-pc_dir="C:\Users\atata\projects\dpm\";
+pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
+%pc_dir="C:\Users\atata\projects\dpm\";
 %pipeline is the location of data generated during simulations
 subdir_pipeline = pc_dir + "pipeline/cells/"+runType+"/";
 
@@ -137,6 +137,8 @@ for seed = startSeed:max_seed
     end
 
     figure(fnum), clf, hold on, box on;
+
+    FSTART=FEND; % hack to skip to the last frame to save the boundary info
 
     for ff = FSTART:FSTEP:FEND
         %nv can change, so recompute color map each frame
@@ -316,13 +318,12 @@ for seed = startSeed:max_seed
             currframe = getframe(gcf);
             writeVideo(vobj,currframe);
         end
-        %while (ff == 77)
-        %    disp("hi")
-        %end
 
         if (ff == FEND)
             axis off;
-            exportgraphics(gcf, 'last_frame_PSM_sim.tiff', 'Resolution', 1000);
+            %exportgraphics(gcf, 'last_frame_PSM_sim_att'+att+'_sd'+seed+'.tiff', 'Resolution', 1000);
+            writematrix(vpos, "last_frame_PSM_images/" + ...
+                "last_frame_PSM_sim_att"+att+"_sd"+seed+".txt");
         end
     end
 

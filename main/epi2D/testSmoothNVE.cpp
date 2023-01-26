@@ -1,9 +1,3 @@
-// File to compress DPM into confluent epithelial layer, then laser ablate
-//
-//
-// Create bidisperse DPM particles, set constants, place particle centers,
-// relax shapes + positions, compress to target phi, delete cells, conduct
-// damped MD dynamics.
 //
 // Compilation command:
 // g++ -O3 --std=c++11 -g -I src main/epi2D/testSmoothNVE.cpp src/dpm.cpp src/epi2D.cpp -o main/epi2D/testSmoothNVE.o
@@ -155,14 +149,6 @@ int main(int argc, char const* argv[]) {
   int NT = int(time_dbl / dt0);
 
   const double phi0 = phiMin;
-
-  // double strainRate_ps = 0.01, k_ps = 1.0, k_LP = 2.0, tau_LP = 1.0, deltaSq = 2.0, maxProtrusionLength = 3.0;
-  // purse string (ps) strain rate (constant true strain rate)
-  // ps spring constant between wound vertex and ps vertex
-  // lamellipodia (lp) spring constant between protruded spring anchor (flag) and a colinear vertex
-  // lp timescale (10% chance of decaying per tau_LP)
-  // squared max distance for wound-ps vertex spring (units of vdiam)
-  // max length of lp (units of vdiam)
 
   if (strainRate_ps < 1e-20) {  // auto set deltasq to 0 if pursestring is disabled, so that all ps springs break off
     cout << "strain rate for pursestring is zero, setting deltaSq yield length to also be zero\n";
