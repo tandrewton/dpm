@@ -321,7 +321,7 @@ for seed = startSeed:max_seed
 
         if (ff == FEND)
             axis off;
-            %exportgraphics(gcf, 'last_frame_PSM_sim_att'+att+'_sd'+seed+'.tiff', 'Resolution', 1000);
+            %exportgraphics(gcf, 'last_frame_PSM_sim_att'+att+'_sd'+seed+'.tif', 'Resolution', 1000);
             writematrix(vpos, "last_frame_PSM_images/" + ...
                 "last_frame_PSM_sim_att"+att+"_sd"+seed+".txt");
         end
