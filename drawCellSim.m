@@ -23,7 +23,7 @@ t_maxwell = "25.0";
 v0 = "0.05";
 t_abp = "1.0";
 sm = "1";
-att="0.1";
+att="0.0";
 Duration="400";
 FSKIP = 1;
 
@@ -263,7 +263,7 @@ for seed = startSeed:max_seed
                         else
                             % if cellID is a real cell, have it be black
                             % exterior with black interior
-                            patch('Faces',finfo,'vertices',vpos,'FaceColor','k','EdgeColor','k','linewidth',0.001);
+                            %patch('Faces',finfo,'vertices',vpos,'FaceColor','k','EdgeColor','k','linewidth',0.001);
                         end
                     end
                 end
@@ -322,8 +322,9 @@ for seed = startSeed:max_seed
         if (ff == FEND)
             axis off;
             %exportgraphics(gcf, 'last_frame_PSM_sim_att'+att+'_sd'+seed+'.tif', 'Resolution', 1000);
-            writematrix(vpos, "last_frame_PSM_images/" + ...
-                "last_frame_PSM_sim_att"+att+"_sd"+seed+".txt");
+            %writematrix(vpos, "last_frame_PSM_images/" + ...
+            %    "last_frame_PSM_sim_att"+att+"_sd"+seed+".txt");
+            exportgraphics(gcf, 'last_frame_PSM_sim_att'+att+'_sd'+seed+'_bd.tif', 'Resolution', 1000);
         end
     end
 
