@@ -175,6 +175,7 @@ echo \#SBATCH --array=1-$arraynum >> $slurmf
 echo \#SBATCH -n 1 >> $slurmf
 echo \#SBATCH -p $partition >> $slurmf
 echo \#SBATCH -J $job_name >> $slurmf
+echo \#SBATCH --requeue
 echo \#SBATCH --mail-type=END,FAIL >> $slurmf
 echo \#SBATCH --mail-user=andrewtondata@gmail.com >> $slurmf
 echo \#SBATCH -o $runout >> $slurmf

@@ -31,7 +31,7 @@ boundaryType = "0";
 B="1.0";
 %bd = "1";
 boolCIL="0";
-Duration="500";
+Duration="1000";
 
 numSeeds = 10;
 startSeed = 1;
@@ -57,14 +57,14 @@ N_arr = ["50"];                 %i
 calA0_arr = ["1.05"];           %ii
 t_stress_arr = ["1.0" "5.0" "25.0" "125.0" "625.0"]; %iii
 %t_stress_arr = ["125.0"]; %iii
-att_arr = ["0.05" "0.1" "0.15" "0.2" "0.25" "0.29"]; %j
-%att_arr = ["0.1"]; % j
+%att_arr = ["0.05" "0.1" "0.15" "0.2" "0.25" "0.29"]; %j
+att_arr = ["0.1"]; % j
 om_arr = ["0.005"];             %jj
 %om_arr = ["0.001" "0.005" "0.01" "0.05"];             %jj
-kl_arr = ["1.0"];               %jjj
+kl_arr = ["1.0"]; %jjj
 %kl_arr = ["0.1" "0.5" "1.0" "5.0" "10.0"]; %jjj
-ka_arr = ["1.0"];               %k
-%ka_arr = ["0.1" "0.5" "1.0" "5.0" "10.0"];    %k
+%ka_arr = ["1.0"];               %k
+ka_arr = ["0.1" "0.5" "1.0" "5.0" "10.0"];    %k
 kb_arr = ["0.01"]; %kk
 %kb_arr = ["0" "0.001" "0.01" "0.1"]; %kk
 deltaSq_arr = ["4.0"];          %kkk
@@ -120,7 +120,7 @@ heatmap_fig_num = numPlots*numPlotTypes+1;
 
 % 4 model outputs
 figure(heatmap_fig_num); clf; %shape_max(any time)/shape(starting) of rosette cells
-figure(heatmap_fig_num+1); clf;%healing time
+figure(heatmap_fig_num+1); clf;%healing time  
 figure(heatmap_fig_num+2); clf; % rosette number
 figure(heatmap_fig_num+3); clf; % final shape parameters of rosette cells
 
@@ -460,14 +460,21 @@ colormap parula
 saveas(gcf, heatmap_filepath+"/rosetteNumberSmooth" + ...
              "PS"+~isCrawling+"-"+pm1_str+"-"+pm2_str+".eps", 'epsc')
 
-figure(heatmap_fig_num + numHeatmaps + 3)
-%convert matrices heatmap4, stdevs
-clabel = arrayfun(@(x,y){sprintf('%0.2f +/- %0.2f',x,y)}, heatmap4, heatmap4_std);
-heatmap_custom(heatmap4, pm2, pm1, clabel,'Colorbar',true,'FontSize', 6);
-ylabel(pm1_str);
-xlabel(pm2_str);
-title('$\langle\mathcal{A}_{rosette}\rangle$', 'Interpreter','latex');
-fontsize(gca, scale=1.5)
-colormap parula
-saveas(gcf, heatmap_filepath+"/rosetteCellsFinalShape"+ ...
-             "PS"+~isCrawling+"-"+pm1_str+"-"+pm2_str+".eps", 'epsc')
+for i=1:2
+    % hack - not sure why I need to reset figure to get right fontsize, but
+    % not going to try to fix it now. loop iterator i runs the same code
+    % twice, which gets around this fontsize problem.
+
+    figure(heatmap_fig_num + numHeatmaps + 3)
+    %convert matrices heatmap4, stdevs
+    clabel = arrayfun(@(x,y){sprintf('%0.2f +/- %0.2f',x,y)}, heatmap4, heatmap4_std);
+    
+    heatmap_custom(heatmap4, cellstr(pm2), cellstr(pm1), clabel,'Colorbar',true,'FontSize', 6);
+    ylabel(pm1_str);
+    xlabel(pm2_str);
+    title('$\langle\mathcal{A}_{rosette}\rangle$', 'Interpreter','latex');
+    fontsize(gca, scale=1.5)
+    colormap parula
+    saveas(gcf, heatmap_filepath+"/rosetteCellsFinalShape"+ ...
+                 "PS"+~isCrawling+"-"+pm1_str+"-"+pm2_str+".eps", 'epsc')
+end
