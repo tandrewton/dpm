@@ -1439,7 +1439,7 @@ void epi2D::dampedNVETest(dpmMemFn forceCall, double T, double dt0, int NT, int 
 }
 
 // for testing numerical stability
-void epi2D::vertexNVE(ofstream& enout, dpmMemFn forceCall, double dt0, int NT, int NPRINTSKIP) {
+void epi2D::vertexNVE(dpmMemFn forceCall, double dt0, int NT, int NPRINTSKIP) {
   // local variables
   int t, i;
   double K;

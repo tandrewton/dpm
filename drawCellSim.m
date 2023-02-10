@@ -23,7 +23,7 @@ t_maxwell = "25.0";
 v0 = "0.05";
 t_abp = "1.0";
 sm = "1";
-att="0.0";
+att="0.1";
 Duration="400";
 FSKIP = 1;
 
@@ -53,6 +53,7 @@ mkdir(subdir_output);
 %txt = 'N = '+N+', NV = '+NV+', calA_o='+calA+', att='+att+', B='+B;
 txt='test';
 
+phi_array = [];
 fnum = 1;
 figure(13), clf, hold on, box on;
 for seed = startSeed:max_seed
@@ -324,7 +325,8 @@ for seed = startSeed:max_seed
             %exportgraphics(gcf, 'last_frame_PSM_sim_att'+att+'_sd'+seed+'.tif', 'Resolution', 1000);
             %writematrix(vpos, "last_frame_PSM_images/" + ...
             %    "last_frame_PSM_sim_att"+att+"_sd"+seed+".txt");
-            exportgraphics(gcf, 'last_frame_PSM_sim_att'+att+'_sd'+seed+'_bd.tif', 'Resolution', 1000);
+            %exportgraphics(gcf, 'last_frame_PSM_sim_att'+att+'_sd'+seed+'_bd.tif', 'Resolution', 1000);
+            phi_array = [phi_array sum(cellarea(1:end-1))/cellarea(end)];
         end
     end
 
