@@ -11,7 +11,7 @@ ka_arr=(0.1 0.5 1.0 5.0 10.0)
 rm joblist_PS.txt
 for t_stress in ${t_stress_arr[@]}; do
   for att in ${att_arr[@]}; do
-    for om in 0.005; do
+    for om in 0.01; do
       for kl in 1.0; do
         for ka in 1.0; do
             echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 1.05 0.94 0.85 $kl $ka 0.01 $att $om 4.0 4.0 4.0 1.0 0.0 $t_stress 0 1 1000 pi_ohern,day,scavenge 0-24:00:00 $numSeeds 1 >> joblist_PS.txt
@@ -63,7 +63,7 @@ ka_arr=(0.1 0.5 1.0 5.0 10.0)
 rm joblist_PS.txt
 for t_stress in ${t_stress_arr[@]}; do
   for att in 0.1; do
-    for om in 0.005; do
+    for om in 0.01; do
       for kl in ${kl_arr[@]}; do
         for ka in 1.0; do
             echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 1.05 0.94 0.85 $kl $ka 0.01 $att $om 4.0 4.0 4.0 1.0 0.0 $t_stress 0 1 1000 pi_ohern,day,scavenge 0-24:00:00 $numSeeds 1 >> joblist_PS.txt
@@ -89,7 +89,7 @@ ka_arr=(0.1 0.5 1.0 5.0 10.0)
 rm joblist_PS.txt
 for t_stress in ${t_stress_arr[@]}; do
   for att in 0.1; do
-    for om in 0.005; do
+    for om in 0.01; do
       for kl in 1.0; do
         for ka in ${ka_arr[@]}; do
             echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 1.05 0.94 0.85 $kl $ka 0.01 $att $om 4.0 4.0 4.0 1.0 0.0 $t_stress 0 1 1000 pi_ohern,day,scavenge 0-24:00:00 $numSeeds 1 >> joblist_PS.txt
@@ -141,7 +141,7 @@ ka_arr=(0.1 0.5 1.0 5.0 10.0)
 rm joblist_PS.txt
 for t_stress in 125.0; do
   for att in ${att_arr[@]}; do
-    for om in 0.005; do
+    for om in 0.01; do
       for kl in ${kl_arr[@]}; do
         for ka in 1.0; do
             echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 1.05 0.94 0.85 $kl $ka 0.01 $att $om 4.0 4.0 4.0 1.0 0.0 $t_stress 0 1 1000 pi_ohern,day,scavenge 0-24:00:00 $numSeeds 1 >> joblist_PS.txt
@@ -167,7 +167,7 @@ ka_arr=(0.1 0.5 1.0 5.0 10.0)
 rm joblist_PS.txt
 for t_stress in 125.0; do
   for att in ${att_arr[@]}; do
-    for om in 0.005; do
+    for om in 0.01; do
       for kl in 1.0; do
         for ka in ${ka_arr[@]}; do
             echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 1.05 0.94 0.85 $kl $ka 0.01 $att $om 4.0 4.0 4.0 1.0 0.0 $t_stress 0 1 1000 pi_ohern,day,scavenge 0-24:00:00 $numSeeds 1 >> joblist_PS.txt
@@ -245,7 +245,7 @@ ka_arr=(0.1 0.5 1.0 5.0 10.0)
 rm joblist_PS.txt
 for t_stress in 125.0; do
   for att in 0.1; do
-    for om in 0.005; do
+    for om in 0.01; do
       for kl in ${kl_arr[@]}; do
         for ka in ${ka_arr[@]}; do
             echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 1.05 0.94 0.85 $kl $ka 0.01 $att $om 4.0 4.0 4.0 1.0 0.0 $t_stress 0 1 1000 pi_ohern,day,scavenge 0-24:00:00 $numSeeds 1 >> joblist_PS.txt

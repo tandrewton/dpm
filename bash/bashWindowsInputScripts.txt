@@ -40,11 +40,12 @@ end
 
 drawWoundSims(50, "1.05", "5.0", "1", "4.0", "0.0", "0.2")
 
+close all; clear;
 N_arr = ["50"];
 calA0_arr = ["1.05"];
-t_stress_arr = ["125.0"];
+t_stress_arr = ["1.0" "5.0" "25.0" "125.0" "625.0"];
 att_arr = ["0.1"];
-om_arr = ["0.005"];
+om_arr = ["0.001" "0.005" "0.01" "0.05"];
 kl_arr = ["1.0"];
 ka_arr = ["1.0"];
 kb_arr = ["0.01"];
@@ -61,6 +62,7 @@ for i=1:length(N_arr)
               for kk=1:length(kb_arr)
                 for kkk=1:length(deltaSq_arr)
                   for l=1:length(d_flag_arr)
+                    close all;
                     drawWoundSims(N_arr(i), calA0_arr(ii), t_stress_arr(iii),...
                      att_arr(j), om_arr(jj), kl_arr(jjj), ka_arr(k), ...
                      kb_arr(kk), deltaSq_arr(kkk), d_flag_arr(l))

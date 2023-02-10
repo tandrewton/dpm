@@ -2,9 +2,9 @@
 % output is a movie made from stitching the position file frames together
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
-
 function drawWoundSims(N, calA0, t_stress, att, strainRate_ps, ...
     k_l, k_a, k_b, deltaSq, d_flag) %uncomment if using function call to pipeline data
+
 isTestData = false; %uncomment if using function call to pipeline data
 
 %isTestData = true; %uncomment if using test data
@@ -209,14 +209,20 @@ for seed = startSeed:max_seed
         end
     
         if showArea
-            figure(15)
+            figure(999); hold on;
             voidArea = load(voidAreaStr);
-            plot(voidArea(:,1), voidArea(:,2), 'linewidth', 4)
+            if (seed < 5)
+                ls = '-';
+            else
+                ls = ':';
+            end
+            plot(voidArea(:,1), voidArea(:,2), 'linewidth', 4, 'linestyle', ls, 'DisplayName', "sd = "+seed)
             ylim([0 inf])
             xlabel('$t/\tau$','Interpreter','latex','fontsize', 24);
             ylabel('Area','Interpreter','latex','fontsize', 24);
             %set(gca,'Yscale','log')
             if seed == max_seed 
+                legend
                 saveas(gcf, 'VoidArea'+runType+fileheader_short+'_'+max_seed+'.eps', 'epsc')
             end
         end

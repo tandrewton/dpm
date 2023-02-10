@@ -57,14 +57,14 @@ N_arr = ["50"];                 %i
 calA0_arr = ["1.05"];           %ii
 t_stress_arr = ["1.0" "5.0" "25.0" "125.0" "625.0"]; %iii
 %t_stress_arr = ["125.0"]; %iii
-%att_arr = ["0.05" "0.1" "0.15" "0.2" "0.25" "0.29"]; %j
-att_arr = ["0.1"]; % j
+att_arr = ["0.05" "0.1" "0.15" "0.2" "0.25" "0.29"]; %j
+%att_arr = ["0.1"]; % j
 om_arr = ["0.005"];             %jj
 %om_arr = ["0.001" "0.005" "0.01" "0.05"];             %jj
 kl_arr = ["1.0"]; %jjj
 %kl_arr = ["0.1" "0.5" "1.0" "5.0" "10.0"]; %jjj
-%ka_arr = ["1.0"];               %k
-ka_arr = ["0.1" "0.5" "1.0" "5.0" "10.0"];    %k
+ka_arr = ["1.0"];               %k
+%ka_arr = ["0.1" "0.5" "1.0" "5.0" "10.0"];    %k
 kb_arr = ["0.01"]; %kk
 %kb_arr = ["0" "0.001" "0.01" "0.1"]; %kk
 deltaSq_arr = ["4.0"];          %kkk
@@ -345,6 +345,7 @@ for i=1:length(N_arr)
                                         %set(gca,'Yscale','log')
                                         ylim([0 inf])
                                         legend('location','northeast','fontsize', 8)
+                                        saveas(gcf, array_output_dir+"voidArea/"+pm1_str+"_"+pm2_str+"_"+pm1_ind+".png")
 
                                         %                     % plot shape vs time
                                         %                     figure(length(calA0_arr)+shapeii + 100*(k-1) + 1000*(j-1))
