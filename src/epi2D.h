@@ -128,6 +128,8 @@ class epi2D : public dpm {
   double shapeRelaxationRate;
   double U_crawling;
   double U_ps;
+  double purseStringTension;
+  double purseStringTransmittedTension;
 
  public:
   // constructor and destructor
@@ -168,6 +170,8 @@ class epi2D : public dpm {
     deltaSq = deltaSquared;
     maxProtrusionLength = maxCrawlLength;
     isPurseStringDoneShrinking = false;
+    purseStringTension = 0.0;
+    purseStringTransmittedTension = 0.0;
   };
 
   // File openers

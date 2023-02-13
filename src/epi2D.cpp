@@ -1703,7 +1703,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double dt0, double duration, double pr
 
         cout << "wound center before calculateWoundArea (initial wound detection) = " << woundCenterX << '\t' << woundCenterY << '\n';
         woundArea = calculateWoundArea(woundCenterX, woundCenterY);
-        vout << simclock - t0 << '\t' << woundArea << '\n';
+        vout << simclock - t0 << '\t' << woundArea << '\t' << purseStringTension << '\t' << purseStringTransmittedTension << '\n';
         // cout << simclock - t0 << '\t' << woundArea << '\n';
         cout << "wound center after calculateWoundArea (initial wound detection) = " << woundCenterX << '\t' << woundCenterY << '\n';
         initialWoundArea = woundArea;
@@ -1775,7 +1775,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double dt0, double duration, double pr
           assert(!std::isnan(woundArea));
         }
 
-        vout << simclock - t0 << '\t' << woundArea << '\n';
+        vout << simclock - t0 << '\t' << woundArea << '\t' << purseStringTension << '\t' << purseStringTransmittedTension << '\n';
         previousWoundArea = woundArea;
 
         // write shape information to files
@@ -3801,6 +3801,8 @@ void epi2D::updatePurseStringContacts() {
 }
 
 void epi2D::purseStringContraction() {
+  purseStringTension = 0.0;
+  purseStringTransmittedTension = 0.0;
   updatePurseStringContacts();
   integratePurseString();  // evaluate forces on and due to purse-string, and integrate its position
   for (int psi = 0; psi < psContacts.size(); psi++) {
@@ -3929,6 +3931,7 @@ void epi2D::evaluatePurseStringForces() {
     F_ps[psi * NDIM] -= fx;
     F_ps[psi * NDIM + 1] -= fy;
     // cout << "force on pursestring due to virtual-real bonds = " << -fx << '\t' << -fy << '\n';
+    purseStringTransmittedTension += sqrt(pow(fx, 2) + pow(fy, 2));
 
     if (std::isnan(F_ps[NDIM * psi])) {
       cout << "force components responsible for F_ps nan: " << '\n';
@@ -3994,6 +3997,7 @@ void epi2D::evaluatePurseStringForces() {
 
     F_ps[NDIM * psi] += fx;
     F_ps[NDIM * psi + 1] += fy;
+    purseStringTension += sqrt(pow(fx, 2) + pow(fy, 2));
     // cout << "F_ps_x due to segment length = " << fx << '\t' << fy << '\n';
     if (l0_ps.size() != psContacts.size()) {
       cout << "contradiction: l0_ps.size != psContacts.size() : " << l0_ps.size() << '\t' << psContacts.size() << '\n';
