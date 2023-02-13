@@ -2,12 +2,13 @@
 % output is a movie made from stitching the position file frames together
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
-function drawWoundSims(N, calA0, t_stress, att, strainRate_ps, ...
-    k_l, k_a, k_b, deltaSq, d_flag) %uncomment if using function call to pipeline data
 
-isTestData = false; %uncomment if using function call to pipeline data
+%function drawWoundSims(N, calA0, t_stress, att, strainRate_ps, ...
+%    k_l, k_a, k_b, deltaSq, d_flag) %uncomment if using function call to pipeline data
 
-%isTestData = true; %uncomment if using test data
+%isTestData = false; %uncomment if using function call to pipeline data
+
+isTestData = true; %uncomment if using test data
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('C:\Users\atata\projects\dpm\bash')
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
@@ -225,6 +226,11 @@ for seed = startSeed:max_seed
                 legend
                 saveas(gcf, 'VoidArea'+runType+fileheader_short+'_'+max_seed+'.eps', 'epsc')
             end
+
+            figure(1000); hold on;
+            plot(voidArea(:,1), voidArea(:,3), 'linewidth', 4, 'linestyle', ls)
+            figure(999); hold on;
+            plot(voidArea(:,1), voidArea(:,4), 'linewidth', 4, 'linestyle', ls)
         end
 
         if showWoundAndShapeProperties
