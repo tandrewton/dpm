@@ -1646,16 +1646,18 @@ void epi2D::dampedCompression(dpmMemFn forceCall, double dt0, double duration, d
   int NPRINTSKIP = printInterval / dt;
 
   // initial coordinate of walls
-  double lowerWallPos = 0, upperWallPos = L[1], leftWallPos = -1e10, rightWallPos = 1e-10;
+  double lowerWallPos = 0, upperWallPos = L[1], leftWallPos = -1e10, rightWallPos = 1e10;
 
   // loop over time, print energy
   while (simclock - t0 < duration) {
-    if (simclock - t0 < duration / 2 && upperWallPos - lowerWallPos > 10 * r[0]) {
-      upperWallPos -= r[0] * 1e-2;
-      lowerWallPos += r[0] * 1e-2;
-    } else {
-      upperWallPos = L[1];
-      lowerWallPos = 0;
+    if (int((simclock - t0) / dt) % 100 == 0) {
+      if (simclock - t0 < duration / 2 && upperWallPos - lowerWallPos > 10 * r[0]) {
+        upperWallPos -= r[0] * 1e-2;
+        lowerWallPos += r[0] * 1e-2;
+      } else {
+        upperWallPos = L[1];
+        lowerWallPos = 0;
+      }
     }
 
     // VV POSITION UPDATE
@@ -1677,6 +1679,7 @@ void epi2D::dampedCompression(dpmMemFn forceCall, double dt0, double duration, d
 
     // compute additional wall forces
     computeWallForce(lowerWallPos, upperWallPos, leftWallPos, rightWallPos);
+    printf("wall positions at %f, %f, %f, %f\n", lowerWallPos, upperWallPos, leftWallPos, rightWallPos);
 
     // VV VELOCITY UPDATE #2
     for (i = 0; i < vertDOF; i++) {
