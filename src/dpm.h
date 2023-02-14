@@ -214,6 +214,14 @@ class dpm {
       x[NDIM * gi + 1] += displaceY;
     }
   }
+  void displaceVertex(int ci, int vi, double displaceX, double displaceY) {
+    int firstIndex = szList[ci];
+    int gi = firstIndex + vi;
+    std::cout << "before displacement, vi gi = " << vi << '\t' << gi << '\t' << ", x y = " << x[NDIM * gi] << '\t' << x[NDIM * gi + 1] << '\n';
+    x[NDIM * gi] += displaceX;
+    x[NDIM * gi + 1] += displaceY;
+    std::cout << "after displacement, vi gi = " << vi << '\t' << gi << '\t' << ", x y = " << x[NDIM * gi] << '\t' << x[NDIM * gi + 1] << '\n';
+  }
   void setCellVelocity(int ci, double velocityX, double velocityY) {
     int firstIndex = szList[ci];
     for (int gi = firstIndex; gi < firstIndex + nv[ci]; gi++) {

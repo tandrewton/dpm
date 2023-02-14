@@ -15,7 +15,7 @@ addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
 
 %PC directory
 pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
-showverts = 1;
+showverts = 0;
 showSprings = 0;
 makeAMovie = 1;
 set(0,'DefaultFigureWindowStyle','docked')
@@ -144,13 +144,14 @@ for ff = FSTART:FSTEP:FEND
                         xtmp(mod(vv, nv(ff,nn))+1), ytmp(mod(vv, nv(ff,nn))+1)...
                         , 3, l0tmp(vv), vradtmp(vv)/2);
                     plot(xs,ys,'LineWidth', 1,'Color' ,'black');
-                    plot(xtmp(vv),ytmp(vv), '.r', 'color', 'black', 'markersize', 50)
+                    plot(xtmp(vv),ytmp(vv), '.r', 'color', 'blue', 'markersize', 50)
                 else 
                     for xx = itLow:itHigh
                         for yy = itLow:itHigh
                             rectangle('Position',[xplot+xx*Lx, yplot + yy*Ly, 2*vradtmp(vv), 2*vradtmp(vv)],'Curvature',[1 1],'EdgeColor','k','FaceColor',clr);
                             if showGlobalIndex
-                                text(xtmp(vv), ytmp(vv), num2str(gitmp(vv)), 'FontSize', 6);
+                                %text(xtmp(vv), ytmp(vv), num2str(gitmp(vv)), 'FontSize', 6);
+                                text(xtmp(vv)-0.02, ytmp(vv)+0.005, 'x', 'FontSize', 20,'color','red');
                             end
                         end
                     end
@@ -185,7 +186,8 @@ for ff = FSTART:FSTEP:FEND
                         xtmpnext+offsetx, xtmpnext-offsetx];
                     cornery = [ytmp(vv)-offsety, ytmp(vv)+offsety,...
                         ytmpnext+offsety, ytmpnext-offsety];
-                    patch(cornerx, cornery, cornerx./cornerx, 'black','EdgeColor','blue', 'LineWidth',2)
+                    %patch(cornerx, cornery, cornerx./cornerx, 'black','EdgeColor','blue', 'LineWidth',2)
+                    patch(cornerx, cornery, cornerx./cornerx, clr,'EdgeColor',' black', 'LineWidth',2)
                 end
             end
         else
@@ -199,7 +201,7 @@ for ff = FSTART:FSTEP:FEND
                     vpos = [xtmp + xx*Lx, ytmp + yy*Ly];
                     finfo = [1:nv(ff,nn) 1];
                     %disp("finfo is "+ finfo)
-                    patch('Faces',finfo,'vertices',vpos,'FaceColor',clr,'EdgeColor','k','linewidth',2);
+                    patch('Faces',finfo,'vertices',vpos,'FaceColor',clr,'EdgeColor','k','linewidth',1);
                 end
             end
         end
@@ -235,6 +237,17 @@ for ff = FSTART:FSTEP:FEND
         ax.XLim = [viewLeft viewRight];
         ax.YLim = [viewBottom viewTop];
     else
+        if (ff == 1)
+            xlimit = xlim;
+            ylimit = ylim;
+            diff = 0.1* (xlimit(2) - xlimit(1));
+            xlimit(1) = xlimit(1) - diff;
+            xlimit(2) = xlimit(2) + diff;
+            ylimit(1) = ylimit(1) - diff;
+            ylimit(2) = ylimit(2) + diff;
+        end
+        ax.XLim = xlimit;
+        ax.YLim = ylimit;
         axis off;
 %         viewScale = 1.2;
 %         viewLx = viewScale*Lx;
