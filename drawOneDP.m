@@ -15,7 +15,7 @@ addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
 
 %PC directory
 pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
-showverts = 0;
+showverts = 1;
 showSprings = 0;
 makeAMovie = 1;
 set(0,'DefaultFigureWindowStyle','docked')

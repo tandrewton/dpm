@@ -1635,6 +1635,137 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double dt0, double duration, double 
   }
 }
 
+void epi2D::dampedCompression(dpmMemFn forceCall, double dt0, double duration, double printInterval) {
+  // make sure velocities exist or are already initialized before calling this
+  int i;
+  double K, t0 = simclock;
+  double temp_simclock = simclock;
+
+  // set time step magnitude
+  setdt(dt0);
+  int NPRINTSKIP = printInterval / dt;
+
+  // initial coordinate of walls
+  double lowerWallPos = 0, upperWallPos = L[1], leftWallPos = -1e10, rightWallPos = 1e-10;
+
+  // loop over time, print energy
+  while (simclock - t0 < duration) {
+    if (simclock - t0 < duration / 2 && upperWallPos - lowerWallPos > 10 * r[0]) {
+      upperWallPos -= r[0] * 1e-2;
+      lowerWallPos += r[0] * 1e-2;
+    } else {
+      upperWallPos = L[1];
+      lowerWallPos = 0;
+    }
+
+    // VV POSITION UPDATE
+    for (i = 0; i < vertDOF; i++) {
+      // update position
+      x[i] += dt * v[i] + 0.5 * dt * dt * F[i];
+
+      // recenter in box
+      if (x[i] > L[i % NDIM] && pbc[i % NDIM])
+        x[i] -= L[i % NDIM];
+      else if (x[i] < 0 && pbc[i % NDIM])
+        x[i] += L[i % NDIM];
+    }
+    // FORCE UPDATE
+    boundaries();  // build vnn for void detection
+    std::vector<double> F_old = F;
+    CALL_MEMBER_FN(*this, forceCall)
+    ();
+
+    // compute additional wall forces
+    computeWallForce(lowerWallPos, upperWallPos, leftWallPos, rightWallPos);
+
+    // VV VELOCITY UPDATE #2
+    for (i = 0; i < vertDOF; i++) {
+      F[i] -= (B * v[i] + B * F_old[i] * dt / 2);
+      F[i] /= (1 + B * dt / 2);
+      v[i] += 0.5 * (F[i] + F_old[i]) * dt;
+    }
+
+    // update sim clock
+    simclock += dt;
+
+    // print to console and file
+    if (printInterval > dt) {
+      if (int((simclock - t0) / dt) % NPRINTSKIP == 0 &&
+          (simclock - temp_simclock) > printInterval / 2.0) {
+        temp_simclock = simclock;
+        // compute kinetic energy
+        K = vertexKineticEnergy();
+
+        // print to console
+        cout << endl
+             << endl;
+        cout << "===============================" << endl;
+        cout << "	D P M  						"
+             << endl;
+        cout << " 			 				"
+                "	"
+             << endl;
+        cout << "		N V E (DAMPED) 				"
+                "	"
+             << endl;
+        cout << "===============================" << endl;
+        cout << endl;
+        cout << "	** simclock - t0 / duration	= " << simclock - t0
+             << " / " << duration << endl;
+        cout << " **  dt   = " << setprecision(12) << dt << endl;
+        cout << "	** U 		= " << setprecision(12) << U << endl;
+        cout << "	** K 		= " << setprecision(12) << K << endl;
+        cout << "	** E 		= " << setprecision(12) << U + K
+             << endl;
+
+        if (enout.is_open()) {
+          // print to energy file
+          cout << "** printing energy" << endl;
+          enout << setw(wnum) << left << simclock;
+          enout << setw(wnum) << left << L[0] / initialLx - 1;
+          enout << setw(wnum) << setprecision(12) << U;
+          enout << setw(wnum) << setprecision(12) << K;
+          enout << setw(wnum) << setprecision(12) << U_ps;
+          enout << setw(wnum) << setprecision(12) << U_crawling;
+          enout << endl;
+        }
+
+        if (stressout.is_open()) {
+          double shapeStressXX = 0.0, shapeStressYY = 0.0, shapeStressXY = 0.0;
+          for (int ci = 0; ci < NCELLS; ci++) {
+            shapeStressXX += fieldShapeStressCells[ci][0];
+            shapeStressYY += fieldShapeStressCells[ci][1];
+            shapeStressXY += fieldShapeStressCells[ci][2];
+          }
+          // print to stress file
+          cout << "** printing stress" << endl;
+          cout << "field shape stresses: " << -shapeStressXX << '\t'
+               << -shapeStressYY << '\t' << -shapeStressXY << '\n';
+          stressout << setw(wnum) << left << simclock;
+          stressout << setw(wnum) << left << L[0] / initialLx - 1;
+          stressout << setw(wnum) << -stress[0];
+          stressout << setw(wnum) << -stress[1];
+          stressout << setw(wnum) << -stress[2];
+          stressout << setw(wnum) << -shapeStressXX;
+          stressout << setw(wnum) << -shapeStressYY;
+          stressout << setw(wnum) << -shapeStressXY;
+          stressout << endl;
+        }
+
+        // print to configuration only if position file is open
+        if (posout.is_open()) {
+          printConfiguration2D();
+          printBoundaries();
+          cout << "done printing in NVE\n";
+        }
+
+        cerr << "Number of polarization deflections: " << polarizationCounter
+             << '\n';
+      }
+    }
+  }
+}
+
 // simulation without boundaries, i.e. 0 pressure simulation
 void epi2D::dampedNP0(dpmMemFn forceCall, double dt0, double duration, double printInterval, int purseStringOn, double relaxTime) {
   // make sure velocities exist or are already initialized before calling this
@@ -2138,6 +2269,37 @@ void epi2D::wallForces(bool left, bool bottom, bool right, bool top, double& for
         forceRight -= f;
       if (i % NDIM == 1 && top)
         forceTop -= f;
+    }
+  }
+}
+
+void epi2D::computeWallForce(double lowerWall, double upperWall, double leftWall, double rightWall) {
+  // simple routine to compute the forces between all vertices and the coordinates making up a hollow rectangular wall
+  double sij, rij, ftmp, rho0 = sqrt(a0[0]);
+  double dx, dy, fx, fy, wall;
+  for (int i = 0; i < vertDOF; i++) {
+    sij = r[floor(i / 2)];
+    // calculate separations between particle degree of freedom and each wall.
+    for (int j = 0; j < 2; j++) {  // for each degree of freedom, check the two walls (behind and in front of) it
+      if (i % 2 == 0) {
+        if (j == 0)
+          wall = leftWall;
+        else
+          wall = rightWall;
+      } else {
+        if (j == 0)
+          wall = lowerWall;
+        else
+          wall = upperWall;
+      }
+      dx = x[i] - wall;
+      rij = fabs(dx);
+
+      if (rij < sij) {
+        ftmp = kc * (1 - (rij / sij)) * (rho0 / sij);
+        fx = ftmp * (dx / rij);
+        F[i] -= fx;
+      }
     }
   }
 }

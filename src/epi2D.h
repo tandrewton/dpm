@@ -345,8 +345,10 @@ class epi2D : public dpm {
   void dampedNVETest(dpmMemFn forceCall, double T, double dt0, int NT, int NPRINTSKIP);
   void vertexNVE(dpmMemFn forceCall, double dt0, int NT, int NPRINTSKIP);
   void dampedNVE2D(dpmMemFn forceCall, double dt0, double duration, double printInterval);
+  void dampedCompression(dpmMemFn forceCall, double dt0, double duration, double printInterval);
   void dampedNP0(dpmMemFn forceCall, double dt0, double duration, double printInterval, int purseStringOn = 0, double relaxTime = 10.0);
   void wallForces(bool left, bool bottom, bool right, bool top, double& forceLeft, double& forceBottom, double& forceRight, double& forceTop, int forceOption = 0);
+  void computeWallForce(double lowerWall, double upperWall, double leftWall, double rightWall);
   void circularApertureForces(double radius);
   void vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0);
 
