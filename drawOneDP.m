@@ -43,6 +43,16 @@ txt='test';
 figure(1), clf, hold on, box on;  
 
 nvestr = pc_dir + "oneDP.pos";
+
+figure(2); clf; hold on;
+wallPos = load("wallPositions.txt");
+plot(wallPos(:,1), wallPos(:,2), 'DisplayName', "lower");
+plot(wallPos(:,1), wallPos(:,3), 'DisplayName', "upper");
+%plot(wallPos(:,3), 'DisplayName', "left");
+%plot(wallPos(:,4), 'DisplayName', "right");
+legend
+
+
 %%
 [trajectoryData, cell_count] = readDPMClassPosOutput(nvestr);
 
@@ -114,7 +124,7 @@ for ff = FSTART:FSTEP:FEND
     l0 = trajectoryData.l0(ff,:);
     vrad = trajectoryData.vrad(ff,:);
     psi = trajectoryData.psi(ff,:);
-    
+    frame_time = trajectoryData.time(ff);
 
     %if L is not constant, use the next 3 lines
     L = trajectoryData.L(ff,:);
@@ -135,6 +145,7 @@ for ff = FSTART:FSTEP:FEND
 
         cx = mean(xtmp);
         cy = mean(ytmp);
+
         if showverts == 1
             for vv = 1:nv(ff,nn)
                 xplot = xtmp(vv) - vradtmp(vv);
@@ -328,6 +339,15 @@ for ff = FSTART:FSTEP:FEND
     % if making a movie, save frame
     if makeAMovie == 1
         set(gca,'visible','off')
+        set(gcf, 'color', 'white')
+
+        % plot walls
+        [~,time_idx_wall] = min(abs(wallPos(:,1)-frame_time));
+        yline(wallPos(time_idx_wall,2))
+        yline(wallPos(time_idx_wall,3))
+        xline(wallPos(time_idx_wall,4))
+        xline(wallPos(time_idx_wall,5))
+        
         currframe = getframe(gcf);
         writeVideo(vobj,currframe);
     end

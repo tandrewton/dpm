@@ -1647,16 +1647,29 @@ void epi2D::dampedCompression(dpmMemFn forceCall, double dt0, double duration, d
 
   // initial coordinate of walls
   double lowerWallPos = 0, upperWallPos = L[1], leftWallPos = -1e10, rightWallPos = 1e10;
+  double comx, comy;
+  com2D(0, comx, comy);
+  displaceCell(0, L[0] / 2 - comx, L[1] / 2 - comy);
+  // center the particle in the middle of the walls so the compression is symmetric
+
+  std::ofstream wallout("wallPositions.txt");
+  // print wall positions for easy debugging of wall locations
 
   // loop over time, print energy
   while (simclock - t0 < duration) {
     if (int((simclock - t0) / dt) % 100 == 0) {
-      if (simclock - t0 < duration / 2 && upperWallPos - lowerWallPos > 10 * r[0]) {
-        upperWallPos -= r[0] * 1e-2;
-        lowerWallPos += r[0] * 1e-2;
-      } else {
-        upperWallPos = L[1];
-        lowerWallPos = 0;
+      wallout << simclock - t0 << '\t' << lowerWallPos << '\t' << upperWallPos << '\t' << leftWallPos << '\t' << rightWallPos << '\n';
+      double increment = r[0] * 0.025;
+      if (simclock - t0 < 0.1 * duration) {
+        // bring the upper and lower walls toward each other
+        upperWallPos -= increment;
+        lowerWallPos += increment;
+      } else if (simclock - t0 < 0.6 * duration) {
+        // hold the wall at max displacement for a little bit
+      } else if (simclock - t0 >= 0.6 * duration) {
+        // release the wall
+        upperWallPos += r[0];
+        lowerWallPos -= r[0];
       }
     }
 
@@ -1679,7 +1692,6 @@ void epi2D::dampedCompression(dpmMemFn forceCall, double dt0, double duration, d
 
     // compute additional wall forces
     computeWallForce(lowerWallPos, upperWallPos, leftWallPos, rightWallPos);
-    printf("wall positions at %f, %f, %f, %f\n", lowerWallPos, upperWallPos, leftWallPos, rightWallPos);
 
     // VV VELOCITY UPDATE #2
     for (i = 0; i < vertDOF; i++) {
@@ -2280,8 +2292,9 @@ void epi2D::computeWallForce(double lowerWall, double upperWall, double leftWall
   // simple routine to compute the forces between all vertices and the coordinates making up a hollow rectangular wall
   double sij, rij, ftmp, rho0 = sqrt(a0[0]);
   double dx, dy, fx, fy, wall;
+  double forceMultiplier = 10;  // make walls more impenetrable than ordinary particles
   for (int i = 0; i < vertDOF; i++) {
-    sij = r[floor(i / 2)];
+    sij = 2 * r[floor(i / 2)];
     // calculate separations between particle degree of freedom and each wall.
     for (int j = 0; j < 2; j++) {  // for each degree of freedom, check the two walls (behind and in front of) it
       if (i % 2 == 0) {
@@ -2299,7 +2312,7 @@ void epi2D::computeWallForce(double lowerWall, double upperWall, double leftWall
       rij = fabs(dx);
 
       if (rij < sij) {
-        ftmp = kc * (1 - (rij / sij)) * (rho0 / sij);
+        ftmp = kc * forceMultiplier * (1 - (rij / sij)) * (rho0 / sij);
         fx = ftmp * (dx / rij);
         F[i] -= fx;
       }

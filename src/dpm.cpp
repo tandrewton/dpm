@@ -2118,7 +2118,7 @@ void dpm::maxwellRelaxationRestLengths(std::vector<double>& l) {
     // velocity verlet position update
     l0[i] += vl0[i] * dt + al0_old * dt * dt / 2;
 
-    // force on l0. kl/tau is the effective mass of the preferred length spring
+    // force on l0. tau is the effective mass of the preferred length spring
     Fl0[i] = kl / maxwellRelaxationTime * (li - l0[i]);
 
     // correction for velocity dependent force with damping
