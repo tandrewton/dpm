@@ -1659,17 +1659,17 @@ void epi2D::dampedCompression(dpmMemFn forceCall, double dt0, double duration, d
   while (simclock - t0 < duration) {
     if (int((simclock - t0) / dt) % 100 == 0) {
       wallout << simclock - t0 << '\t' << lowerWallPos << '\t' << upperWallPos << '\t' << leftWallPos << '\t' << rightWallPos << '\n';
-      double increment = r[0] * 0.025;
-      if (simclock - t0 < 0.1 * duration) {
+      double increment = r[0] * 0.01;
+      if (simclock - t0 < 0.3 * duration) {
         // bring the upper and lower walls toward each other
         upperWallPos -= increment;
         lowerWallPos += increment;
       } else if (simclock - t0 < 0.6 * duration) {
         // hold the wall at max displacement for a little bit
-      } else if (simclock - t0 >= 0.6 * duration) {
+      } else if (simclock - t0 >= 0.4 * duration) {
         // release the wall
-        upperWallPos += r[0];
-        lowerWallPos -= r[0];
+        upperWallPos += increment;
+        lowerWallPos -= increment;
       }
     }
 
@@ -2292,7 +2292,7 @@ void epi2D::computeWallForce(double lowerWall, double upperWall, double leftWall
   // simple routine to compute the forces between all vertices and the coordinates making up a hollow rectangular wall
   double sij, rij, ftmp, rho0 = sqrt(a0[0]);
   double dx, dy, fx, fy, wall;
-  double forceMultiplier = 10;  // make walls more impenetrable than ordinary particles
+  double forceMultiplier = 5.0;  // make walls more impenetrable than ordinary particles
   for (int i = 0; i < vertDOF; i++) {
     sij = 2 * r[floor(i / 2)];
     // calculate separations between particle degree of freedom and each wall.
@@ -2308,11 +2308,18 @@ void epi2D::computeWallForce(double lowerWall, double upperWall, double leftWall
         else
           wall = upperWall;
       }
-      dx = x[i] - wall;
+      dx = wall - x[i];
       rij = fabs(dx);
 
+      /*if (j == 0) {
+        assert(dx > 0);
+      } else {
+        assert(dx < 0);
+      }*/
+
       if (rij < sij) {
-        ftmp = kc * forceMultiplier * (1 - (rij / sij)) * (rho0 / sij);
+        // cout << "rij < sij in computeWallForces, rij, dx, x[i], wall, i, j = " << rij << '\t' << dx << '\t' << x[i] << '\t' << i << '\t' << j << '\n';
+        ftmp = kc * (1 - (rij / sij)) * (rho0 / sij);
         fx = ftmp * (dx / rij);
         F[i] -= fx;
       }
