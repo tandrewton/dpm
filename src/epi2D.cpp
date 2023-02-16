@@ -1659,15 +1659,13 @@ void epi2D::dampedCompression(dpmMemFn forceCall, double dt0, double duration, d
   while (simclock - t0 < duration) {
     if (int((simclock - t0) / dt) % 100 == 0) {
       wallout << simclock - t0 << '\t' << lowerWallPos << '\t' << upperWallPos << '\t' << leftWallPos << '\t' << rightWallPos << '\n';
-      double increment = r[0] * 0.01;
-      if (simclock - t0 < 0.3 * duration) {
-        // bring the upper and lower walls toward each other
+      double increment = r[0] * 0.018;
+      if (simclock - t0 < 0.2 * duration) {
+        // bring the upper and lower walls toward each other for 10% duration
         upperWallPos -= increment;
         lowerWallPos += increment;
-      } else if (simclock - t0 < 0.6 * duration) {
-        // hold the wall at max displacement for a little bit
-      } else if (simclock - t0 >= 0.4 * duration) {
-        // release the wall
+      } else if (simclock - t0 >= 0.2 * duration) {
+        // release the wall for 80% duration
         upperWallPos += increment;
         lowerWallPos -= increment;
       }

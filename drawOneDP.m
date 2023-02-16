@@ -22,7 +22,7 @@ set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
 fnum=1;
 showGlobalIndex = 0;
-showcirculoline = 0;
+showcirculoline = 1;
 showQuiver = 0;
 walls=0;
 
@@ -340,13 +340,15 @@ for ff = FSTART:FSTEP:FEND
     if makeAMovie == 1
         set(gca,'visible','off')
         set(gcf, 'color', 'white')
-
-        % plot walls
-        [~,time_idx_wall] = min(abs(wallPos(:,1)-frame_time));
-        yline(wallPos(time_idx_wall,2))
-        yline(wallPos(time_idx_wall,3))
-        xline(wallPos(time_idx_wall,4))
-        xline(wallPos(time_idx_wall,5))
+        
+        if (walls)
+            % plot walls
+            [~,time_idx_wall] = min(abs(wallPos(:,1)-frame_time));
+            yline(wallPos(time_idx_wall,2))
+            yline(wallPos(time_idx_wall,3))
+            xline(wallPos(time_idx_wall,4))
+            xline(wallPos(time_idx_wall,5))
+        end
         
         currframe = getframe(gcf);
         writeVideo(vobj,currframe);
@@ -355,5 +357,6 @@ end
     
 % close video object
 if makeAMovie == 1
+    writeVideo(vobj,currframe);
     close(vobj);
 end
