@@ -3,12 +3,12 @@
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
 
-%function drawWoundSims(N, calA0, t_stress, att, strainRate_ps, ...
-%    k_l, k_a, k_b, deltaSq, d_flag) %uncomment if using function call to pipeline data
+function drawWoundSims(N, calA0, t_stress, att, strainRate_ps, ...
+    k_l, k_a, k_b, deltaSq, d_flag) %uncomment if using function call to pipeline data
 
-%isTestData = false; %uncomment if using function call to pipeline data
+isTestData = false; %uncomment if using function call to pipeline data
 
-isTestData = true; %uncomment if using test data
+%isTestData = true; %uncomment if using test data
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('C:\Users\atata\projects\dpm\bash')
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
@@ -36,7 +36,7 @@ boundaryType = "0";
 %att="0.2";
 B="1.0";
 boolCIL="0";
-Duration="500";
+Duration="1000";
 FSKIP = 1;
 
 etaStr = " ";
@@ -227,10 +227,10 @@ for seed = startSeed:max_seed
                 saveas(gcf, 'VoidArea'+runType+fileheader_short+'_'+max_seed+'.eps', 'epsc')
             end
 
-            figure(1000); hold on;
-            plot(voidArea(:,1), voidArea(:,3), 'linewidth', 4, 'linestyle', ls)
-            figure(999); hold on;
-            plot(voidArea(:,1), voidArea(:,4), 'linewidth', 4, 'linestyle', ls)
+%             figure(1000); hold on;
+%             plot(voidArea(:,1), voidArea(:,3), 'linewidth', 4, 'linestyle', ls)
+%             figure(999); hold on;
+%             plot(voidArea(:,1), voidArea(:,4), 'linewidth', 4, 'linestyle', ls)
         end
 
         if showWoundAndShapeProperties
@@ -516,7 +516,7 @@ for seed = startSeed:max_seed
                     ax.XLim = [-(viewScale-1) viewScale]*Lx;
                     ax.YLim = [-(viewScale-1) viewScale]*Ly;
                     % plot box
-                    plot([viewLxLow viewLx viewLx viewLxLow viewLxLow], [viewLyLow viewLyLow viewLy viewLy viewLyLow], 'k-', 'linewidth', 1.5);
+                    %plot([viewLxLow viewLx viewLx viewLxLow viewLxLow], [viewLyLow viewLyLow viewLy viewLy viewLyLow], 'k-', 'linewidth', 1.5);
                 end
                 
                 annotationStr = "$$t/\tau$$ = "+time(ff);
@@ -587,6 +587,8 @@ for seed = startSeed:max_seed
                 % if making a movie, save frame
                 if makeAMovie == 1
                     set(gca,'visible','off')
+                    set(gcf,'color','white')
+                    axis off
                     currframe = getframe(gcf);
                     writeVideo(vobj,currframe);
                 end

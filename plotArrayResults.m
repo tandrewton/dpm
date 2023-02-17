@@ -16,7 +16,7 @@ runType = "ablate";
 N="50";
 %ndelete="6";
 %calA0="1.10";
-strainRate_ps="0.005";
+strainRate_ps="0.01";
 %deltaSq = "4.0";
 k_a = "1.0";
 k_l = "1.0";
@@ -56,15 +56,16 @@ array_output_dir = subdir_output + "array_output_figures/";
 N_arr = ["50"];                 %i
 calA0_arr = ["1.05"];           %ii
 %t_stress_arr = ["1.0" "5.0" "25.0" "125.0" "625.0"]; %iii
-t_stress_arr = ["125.0"]; %iii
-%att_arr = ["0.05" "0.1" "0.15" "0.2" "0.25" "0.29"]; %j
-att_arr = ["0.1"]; % j
-om_arr = ["0.01"];             %jj
-%om_arr = ["0.001" "0.005" "0.01" "0.05"];             %jj
-%kl_arr = ["1.0"]; %jjj
-kl_arr = ["0.1" "0.5" "1.0" "5.0" "10.0"]; %jjj
-%ka_arr = ["1.0"];               %k
-ka_arr = ["0.1" "0.5" "1.0" "5.0" "10.0"];    %k
+%t_stress_arr = ["125.0"]; %iii
+t_stress_arr = ["100000.0"]; %iii
+att_arr = ["0.05" "0.1" "0.15" "0.2" "0.25" "0.29"]; %j
+%att_arr = ["0.1"]; % j
+%om_arr = ["0.01"];             %jj
+om_arr = ["0.001" "0.005" "0.01" "0.05"];             %jj
+kl_arr = ["1.0"]; %jjj
+%kl_arr = ["0.1" "0.5" "1.0" "5.0" "10.0"]; %jjj
+ka_arr = ["1.0"];               %k
+%ka_arr = ["0.1" "0.5" "1.0" "5.0" "10.0"];    %k
 kb_arr = ["0.01"]; %kk
 %kb_arr = ["0" "0.001" "0.01" "0.1"]; %kk
 deltaSq_arr = ["4.0"];          %kkk
@@ -159,7 +160,7 @@ for i=1:length(N_arr)
                                         pm1_ind = iterator_arr(pm1_ind_num);
                                         pm2_ind = iterator_arr(pm2_ind_num);
 
-                                        voidArea = zeros(0,2);
+                                        voidArea = zeros(0,4);
                                         meanInnerShapes = NaN(0,1);
                                         timeInnerShapes = zeros(0,1);
                                         timestep = 0; % determine on the fly to pad with zeros
@@ -308,6 +309,7 @@ for i=1:length(N_arr)
                                             % adjust lengths
 
                                             voidArea(:,2) = voidArea(:,2) + voidArea_sd(:,2);
+                                            voidArea(:,4) = voidArea(:,4) + voidArea_sd(:,4);
                                             healingTime = healingTime + woundProperties_sd(1);
                                             rosetteNumber = rosetteNumber + woundProperties_sd(2);
                                             % get the distribution quantities of the rosette cells in their last frame
@@ -329,6 +331,8 @@ for i=1:length(N_arr)
                                         end
 
                                         voidArea(:,2) = voidArea(:,2) / numGoodSeeds;
+                                        voidArea(:,4) = voidArea(:,4) / numGoodSeeds;
+                                        voidArea(:,4) = voidArea(:,4) / max(voidArea(:,4));
                                         healingTime = healingTime / numGoodSeeds;
                                         rosetteNumber = rosetteNumber / numGoodSeeds;
                                         minInnerShapes = mean(min(innerShapeArr, [], 2),'omitnan');
@@ -340,6 +344,7 @@ for i=1:length(N_arr)
                                         figure(pm1_ind)
 
                                         plot(voidArea(:,1), voidArea(:,2), 'linewidth', 4, 'DisplayName', displayStr)
+                                        %plot(voidArea(:,1), voidArea(:,4), 'linewidth', 4, 'DisplayName', displayStr)
                                         xlabel('$t/\tau$','Interpreter','latex','fontsize', 24);
                                         ylabel('Area','Interpreter','latex','fontsize', 24);
                                         %set(gca,'Yscale','log')
