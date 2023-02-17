@@ -55,13 +55,14 @@ array_output_dir = subdir_output + "array_output_figures/";
 
 N_arr = ["50"];                 %i
 calA0_arr = ["1.05"];           %ii
-%t_stress_arr = ["1.0" "5.0" "25.0" "125.0" "625.0"]; %iii
+%t_stress_arr = ["1.0" "5.0" "25.0" "125.0" "625.0" "100000.0"]; %iii
+t_stress_arr = ["625.0" "100000.0"]; %iii
 %t_stress_arr = ["125.0"]; %iii
-t_stress_arr = ["100000.0"]; %iii
+%t_stress_arr = ["100000.0"]; %iii
 att_arr = ["0.05" "0.1" "0.15" "0.2" "0.25" "0.29"]; %j
 %att_arr = ["0.1"]; % j
-%om_arr = ["0.01"];             %jj
-om_arr = ["0.001" "0.005" "0.01" "0.05"];             %jj
+om_arr = ["0.01"];             %jj
+%om_arr = ["0.001" "0.005" "0.01" "0.05"];             %jj
 kl_arr = ["1.0"]; %jjj
 %kl_arr = ["0.1" "0.5" "1.0" "5.0" "10.0"]; %jjj
 ka_arr = ["1.0"];               %k
@@ -140,6 +141,9 @@ for i=1:length(N_arr)
         calA0 = calA0_arr(ii);
         for iii=1:length(t_stress_arr)
             t_stress = t_stress_arr(iii);
+            if (str2num(t_stress) >= 1e5)
+                pm1(end) = "\infty";
+            end
             for j=1:length(att_arr)
                 att = att_arr(j);
                 for jj=1:length(om_arr)
@@ -309,7 +313,7 @@ for i=1:length(N_arr)
                                             % adjust lengths
 
                                             voidArea(:,2) = voidArea(:,2) + voidArea_sd(:,2);
-                                            voidArea(:,4) = voidArea(:,4) + voidArea_sd(:,4);
+                                            %voidArea(:,4) = voidArea(:,4) + voidArea_sd(:,4);
                                             healingTime = healingTime + woundProperties_sd(1);
                                             rosetteNumber = rosetteNumber + woundProperties_sd(2);
                                             % get the distribution quantities of the rosette cells in their last frame
@@ -331,8 +335,8 @@ for i=1:length(N_arr)
                                         end
 
                                         voidArea(:,2) = voidArea(:,2) / numGoodSeeds;
-                                        voidArea(:,4) = voidArea(:,4) / numGoodSeeds;
-                                        voidArea(:,4) = voidArea(:,4) / max(voidArea(:,4));
+                                        %voidArea(:,4) = voidArea(:,4) / numGoodSeeds;
+                                        %voidArea(:,4) = voidArea(:,4) / max(voidArea(:,4));
                                         healingTime = healingTime / numGoodSeeds;
                                         rosetteNumber = rosetteNumber / numGoodSeeds;
                                         minInnerShapes = mean(min(innerShapeArr, [], 2),'omitnan');
@@ -475,9 +479,9 @@ for i=1:2
     %convert matrices heatmap4, stdevs
     clabel = arrayfun(@(x,y){sprintf('%0.2f +/- %0.2f',x,y)}, heatmap4, heatmap4_std);
     
-    heatmap_custom(heatmap4, cellstr(pm2), cellstr(pm1), clabel,'Colorbar',true,'FontSize', 6);
-    ylabel(pm1_str);
-    xlabel(pm2_str);
+    heatmap_custom(heatmap4, cellstr(pm2), cellstr(pm1), clabel,'Colorbar',true,'FontSize', 6, 'TickTexInterpreter', 1);
+    ylabel(pm1_str, 'interpreter', 'latex');
+    xlabel(pm2_str, 'interpreter', 'latex');
     title('$\langle\mathcal{A}_{rosette}\rangle$', 'Interpreter','latex');
     fontsize(gca, scale=1.5)
     colormap parula

@@ -243,6 +243,10 @@ int main(int argc, char const* argv[]) {
   // after FIRE, restore spring constants and stress relaxation time to specified value
   epithelial.setka(ka);
   epithelial.setkb(kb);
+  if (t_stress > 9e4) {
+    cout << "t_stress is large, setting to infinity\n";
+    t_stress = INFINITY;
+  }
   epithelial.setMaxwellRelaxationTime(t_stress);
 
   // after compress, turn on damped NVE
