@@ -17,7 +17,7 @@
 //./main/epi2D/laserAblation.o 50 30 3 1.05 0.94 0.85 1.0 1.0 0.01 0.2 0.005 0.0  1.0  4.0 1.0  3.0     25.0     0   0 1  500  test
 // ........................... N  NV Nd A0  pMin  pMax  kl ka  kb  att  om   dsq  kps  klp tau dflag  t_stress bound sm sd time file
 // below: purse-string, no crawling
-//./main/epi2D/laserAblation.o 50 30 3 1.05 0.94 0.85 1.0 1.0 0.01 0.2 0.005  4.0  1.0  4.0 1.0  0.0    25.0     0   0  1 500  test
+//./main/epi2D/laserAblation.o 50 30 3 1.05 0.94 0.85 1.0 1.0 0.01 0.1 0.01  4.0  1.0  4.0 1.0  0.0    25.0     0   1  1 500  test
 // ........................... N  NV Nd A0  pMin  pMax  kl ka  kb  att  om   dsq  kps  klp tau dflag  t_stress bound sm sd time file
 // below: purse-string, and crawling
 //./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.865 1.0 4.0 0.01 0.1 0.01  2.0  4.0  4.0 1.0  3.0     10.0    0   0 1 1  110  test
@@ -231,13 +231,11 @@ int main(int argc, char const* argv[]) {
 
   epithelial.initializeNeighborLinkedList2D(boxLengthScale);
 
-  cout << "\n\nafter initialize, first print, and neighbor list construction\n\n";
-
   if (isPbcOn)
     epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdate, Ftol, dt0, phiMax, dphi0);
   else
     epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithCircularWalls, Ftol, dt0, phiMax, dphi0);
-  epithelial.moveSimulationToPositiveCoordinates();  // positive coordinates make the neighbor list storage work
+  epithelial.moveSimulationToPositiveCoordinates();  // positive coordinates make the neighbor list storage work better
   epithelial.printConfiguration2D();
 
   // after FIRE, restore spring constants and stress relaxation time to specified value

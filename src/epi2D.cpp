@@ -3976,8 +3976,14 @@ void epi2D::updatePurseStringContacts() {
 
       // new l0 value is dist(x_ps(i + 1 + size % size), x[gi])
       // compute l0 last because it depends on new additions to x_ps
-      l0_insert = sqrt(pow(x_ps[NDIM * prev] - x[NDIM * gi], 2) + pow(x_ps[NDIM * prev + 1] - x[NDIM * gi + 1], 2));
-      l0_ps[insert_index] = sqrt(pow(x_ps[NDIM * next] - x[NDIM * gi], 2) + pow(x_ps[NDIM * next + 1] - x[NDIM * gi + 1], 2));
+      // this is equivalent to zeroing the tension locally whenever there's a break and regeneration event, which is interesting but not physical
+      // l0_insert = sqrt(pow(x_ps[NDIM * prev] - x[NDIM * gi], 2) + pow(x_ps[NDIM * prev + 1] - x[NDIM * gi + 1], 2));
+      // l0_ps[insert_index] = sqrt(pow(x_ps[NDIM * next] - x[NDIM * gi], 2) + pow(x_ps[NDIM * next + 1] - x[NDIM * gi + 1], 2));
+
+      // inserting into (prev, next) : we get (prev, gi, next)
+       // to maintain constant tension, divide the preferred length (prev-next) evenly into (prev-gi) and (gi-next)\
+      l0_ps[insert_index] /= 2.0;
+      l0_insert = l0_ps[insert_index];
       l0_ps.insert(l0_ps.begin() + insert_index, l0_insert);
     }
   }
