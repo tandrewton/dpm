@@ -203,6 +203,11 @@ class dpm {
   void setB(double val) { B = val; };
   void setMaxwellRelaxationTime(double val) { maxwellRelaxationTime = val; };
   void scaleL(int d, double val) { L.at(d) *= val; };
+  void scaleRadius(double scalefactor) {
+    for (int i = 0; i < NVTOT; i++) {
+      r[i] *= scalefactor;
+    }
+  }
   void scaleVelocities(double scalefactor) {
     for (int i = 0; i < vertDOF; i++)
       v[i] *= scalefactor;

@@ -236,6 +236,7 @@ int main(int argc, char const* argv[]) {
   else
     epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithCircularWalls, Ftol, dt0, phiMax, dphi0);
   epithelial.moveSimulationToPositiveCoordinates();  // positive coordinates make the neighbor list storage work better
+
   epithelial.printConfiguration2D();
 
   // after FIRE, restore spring constants and stress relaxation time to specified value

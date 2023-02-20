@@ -3,7 +3,7 @@ module load dSQ
 #bd0 P
 #!/bin/bash
 numSeeds=10
-t_stress_arr=(1.0 5.0 25.0 125.0 625.0)
+t_stress_arr=(1.0 5.0 25.0 125.0 625.0 100000.0)
 att_arr=(0.05 0.1 0.15 0.2 0.25 0.29)
 om_arr=(0.001 0.005 0.01 0.05)
 kl_arr=(0.1 0.5 1.0 5.0 10.0)
@@ -29,7 +29,7 @@ module load dSQ
 #bd0 P
 #!/bin/bash
 numSeeds=10
-t_stress_arr=(1.0 5.0 25.0 125.0 625.0)
+t_stress_arr=(1.0 5.0 25.0 125.0 625.0 100000.0)
 att_arr=(0.05 0.1 0.15 0.2 0.25 0.29)
 om_arr=(0.001 0.005 0.01 0.05)
 kl_arr=(0.1 0.5 1.0 5.0 10.0)
@@ -55,7 +55,7 @@ module load dSQ
 #bd0 P
 #!/bin/bash
 numSeeds=10
-t_stress_arr=(1.0 5.0 25.0 125.0 625.0)
+t_stress_arr=(1.0 5.0 25.0 125.0 625.0 100000.0)
 att_arr=(0.05 0.1 0.15 0.2 0.25 0.29)
 om_arr=(0.001 0.005 0.01 0.05)
 kl_arr=(0.1 0.5 1.0 5.0 10.0)
@@ -81,7 +81,7 @@ module load dSQ
 #bd0 P
 #!/bin/bash
 numSeeds=10
-t_stress_arr=(1.0 5.0 25.0 125.0 625.0)
+t_stress_arr=(1.0 5.0 25.0 125.0 625.0 100000.0)
 att_arr=(0.05 0.1 0.15 0.2 0.25 0.29)
 om_arr=(0.001 0.005 0.01 0.05)
 kl_arr=(0.1 0.5 1.0 5.0 10.0)
@@ -107,7 +107,7 @@ module load dSQ
 #bd0 P
 #!/bin/bash
 numSeeds=10
-t_stress_arr=(1.0 5.0 25.0 125.0 625.0)
+t_stress_arr=(1.0 5.0 25.0 125.0 625.0 100000.0)
 att_arr=(0.05 0.1 0.15 0.2 0.25 0.29)
 om_arr=(0.001 0.005 0.01 0.05)
 kl_arr=(0.1 0.5 1.0 5.0 10.0)
@@ -133,7 +133,7 @@ module load dSQ
 #bd0 P
 #!/bin/bash
 numSeeds=10
-t_stress_arr=(1.0 5.0 25.0 125.0 625.0)
+t_stress_arr=(1.0 5.0 25.0 125.0 625.0 100000.0)
 att_arr=(0.05 0.1 0.15 0.2 0.25 0.29)
 om_arr=(0.001 0.005 0.01 0.05)
 kl_arr=(0.1 0.5 1.0 5.0 10.0)
@@ -159,7 +159,7 @@ module load dSQ
 #bd0 P
 #!/bin/bash
 numSeeds=10
-t_stress_arr=(1.0 5.0 25.0 125.0 625.0)
+t_stress_arr=(1.0 5.0 25.0 125.0 625.0 100000.0)
 att_arr=(0.05 0.1 0.15 0.2 0.25 0.29)
 om_arr=(0.001 0.005 0.01 0.05)
 kl_arr=(0.1 0.5 1.0 5.0 10.0)
@@ -185,7 +185,7 @@ module load dSQ
 #bd0 P
 #!/bin/bash
 numSeeds=10
-t_stress_arr=(1.0 5.0 25.0 125.0 625.0)
+t_stress_arr=(1.0 5.0 25.0 125.0 625.0 100000.0)
 att_arr=(0.05 0.1 0.15 0.2 0.25 0.29)
 om_arr=(0.001 0.005 0.01 0.05)
 kl_arr=(0.1 0.5 1.0 5.0 10.0)
@@ -211,7 +211,7 @@ module load dSQ
 #bd0 P
 #!/bin/bash
 numSeeds=10
-t_stress_arr=(1.0 5.0 25.0 125.0 625.0)
+t_stress_arr=(1.0 5.0 25.0 125.0 625.0 100000.0)
 att_arr=(0.05 0.1 0.15 0.2 0.25 0.29)
 om_arr=(0.001 0.005 0.01 0.05)
 kl_arr=(0.1 0.5 1.0 5.0 10.0)
@@ -237,7 +237,7 @@ module load dSQ
 #bd0 P
 #!/bin/bash
 numSeeds=10
-t_stress_arr=(1.0 5.0 25.0 125.0 625.0)
+t_stress_arr=(1.0 5.0 25.0 125.0 625.0 100000.0)
 att_arr=(0.05 0.1 0.15 0.2 0.25 0.29)
 om_arr=(0.001 0.005 0.01 0.05)
 kl_arr=(0.1 0.5 1.0 5.0 10.0)
@@ -263,7 +263,7 @@ module load dSQ
 #bd0 P
 #!/bin/bash
 numSeeds=10
-t_stress_arr=(1.0 5.0 25.0 125.0 625.0)
+t_stress_arr=(1.0 5.0 25.0 125.0 625.0 100000.0)
 att_arr=(0.05 0.1 0.15 0.2 0.25 0.29)
 om_arr=(0.001 0.005 0.01 0.05)
 kl_arr=(0.1 0.5 1.0 5.0 10.0)
