@@ -3938,8 +3938,8 @@ void epi2D::updatePurseStringContacts() {
           if (numberOfSatisfiedConditions >= 2) {
             // cout << "first and second are in the same cell, and we've detected that gi is within 2 indices of first and second in " << numberOfSatisfiedConditions << " instances\n";
           } else {
-            cout << "first and second are in the same cell, and we haven't detected a good insertion point for gi. calling continue.\n";
-            cout << "gi, first_gi, second_gi = " << gi << '\t' << first_gi << '\t' << second_gi << '\n';
+            // cout << "first and second are in the same cell, and we haven't detected a good insertion point for gi. calling continue.\n";
+            // cout << "gi, first_gi, second_gi = " << gi << '\t' << first_gi << '\t' << second_gi << '\n';
             continue;
           }
         } else {
@@ -4219,7 +4219,7 @@ void epi2D::integratePurseString() {
   // first step: delete virtual vertices if the virtual-real bond has yielded.
   for (int i = 0; i < psContacts.size(); i++) {
     if (isSpringBroken[i]) {
-      cout << "spring broken on particle " << psContacts[i] << " with psContacts index " << i << '\n';
+      // cout << "spring broken on particle " << psContacts[i] << " with psContacts index " << i << '\n';
       int prev = (i - 1 + psContacts.size()) % psContacts.size();
       int next = (i + 1 + psContacts.size()) % psContacts.size();
       // cout << "marking a spring on gi = psContact[i] = " << psContacts[i] << " for deletion!\n";
