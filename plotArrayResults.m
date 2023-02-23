@@ -54,11 +54,11 @@ array_output_dir = subdir_output + "array_output_figures/";
 % variations in these two parameters
 
 N_arr = ["50"];                 %i
-calA0_arr = ["1.15"];           %ii
+calA0_arr = ["1.10"];           %ii
 t_stress_arr = ["1.0" "5.0" "25.0" "125.0" "100000.0"]; %iii
 %t_stress_arr = ["125.0"]; %iii
 %t_stress_arr = ["100000.0"]; %iii
-%att_arr = ["0.05" "0.1" "0.15" "0.2" "0.25" "0.29"]; %j
+%att_arr = ["0.05" "0.1" "0.15" "0.2" "0.25"]; %j
 att_arr = ["0.1"]; % j
 %om_arr = ["0.01"];             %jj
 om_arr = ["0.001" "0.005" "0.01" "0.05"];             %jj
@@ -515,7 +515,7 @@ for i=1:2
     %convert matrices heatmap5, stdevs
     clabel = arrayfun(@(x,y){sprintf('%0.2f +/- %0.2f',x,y)}, heatmap5, heatmap5_std);
     
-    heatmap_custom(heatmap4, cellstr(pm2), cellstr(pm1), clabel,'Colorbar',true,'FontSize', 6, 'TickTexInterpreter', 1);
+    heatmap_custom(heatmap5, cellstr(pm2), cellstr(pm1), clabel,'Colorbar',true,'FontSize', 6, 'TickTexInterpreter', 1);
     ylabel(pm1_str, 'interpreter', 'latex');
     xlabel(pm2_str, 'interpreter', 'latex');
     title('$\langle\mathcal{A}_{rosette}(t=0)\rangle$', 'Interpreter','latex');
