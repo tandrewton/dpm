@@ -22,13 +22,13 @@ set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
 fnum=1;
 showGlobalIndex = 0;
-showcirculoline = 1;
+showcirculoline = 0;
 showQuiver = 0;
-walls=0;
+walls=1;
 
 showCustomView = 0;
-viewLeft = 0.8;
-viewRight = 1.6;
+viewLeft = 0.2;
+viewRight = 2.2;
 viewTop = 1.8;
 viewBottom = 1.0;
 
@@ -240,10 +240,10 @@ for ff = FSTART:FSTEP:FEND
         % plot box
         plot([0 Lx Lx 0 0], [0 0 Ly Ly 0], 'k-', 'linewidth', 1.5);
     elseif walls == 1
-        ax.XLim = [0 1]*Lx;
-        ax.YLim = [0 1]*Ly;
+        ax.XLim = [-1 2]*Lx;
+        ax.YLim = [-1 2]*Ly;
         % plot box
-        plot([0 Lx Lx 0 0], [0 0 Ly Ly 0], 'k-', 'linewidth', 1.5);
+        % plot([0 Lx Lx 0 0], [0 0 Ly Ly 0], 'k-', 'linewidth', 1.5);
     elseif showCustomView == 1
         ax.XLim = [viewLeft viewRight];
         ax.YLim = [viewBottom viewTop];
