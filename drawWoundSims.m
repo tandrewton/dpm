@@ -27,7 +27,7 @@ end
 %k_a = "1.0";
 %k_l = "1.0";
 %k_b = "0.01";
-k_ps = "4.0"; %purse-string spring constant
+k_ps = "1.0"; %purse-string spring constant
 k_lp = "4.0"; %lamellipodia spring constant
 smooth = "1";
 tau_lp = "1.0"; %lamellipodia lifetime
@@ -41,7 +41,7 @@ FSKIP = 1;
 
 etaStr = " ";
 startSeed = 1;
-max_seed = 10;
+max_seed = 2;
 no_plots = 0;
 makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
 %plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether

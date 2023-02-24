@@ -3,12 +3,12 @@ module load dSQ
 #bd0 P
 #!/bin/bash
 numSeeds=2
-t_stress_arr=(1.0 5.0 25.0 125.0 100000.0)
-att_arr=(0.05 0.1 0.15 0.2 0.25)
+t_stress_arr=(1.0 25.0 125.0 100000.0)
+att_arr=(0.01 0.02 0.05 0.1 0.2)
 om_arr=(0.001 0.005 0.01 0.05)
 kl_arr=(0.1 0.5 1.0 5.0 10.0)
 ka_arr=(0.1 0.5 1.0 5.0 10.0)
-rm joblist_PS.txt
+rm joblist_PS_tau_att.txt
 for t_stress in ${t_stress_arr[@]}; do
   for att in ${att_arr[@]}; do
     for om in 0.01; do
@@ -29,12 +29,12 @@ module load dSQ
 #bd0 P
 #!/bin/bash
 numSeeds=2
-t_stress_arr=(1.0 5.0 25.0 125.0 100000.0)
-att_arr=(0.05 0.1 0.15 0.2 0.25)
+t_stress_arr=(1.0 25.0 125.0 100000.0)
+att_arr=(0.01 0.02 0.05 0.1 0.2)
 om_arr=(0.001 0.005 0.01 0.05)
 kl_arr=(0.1 0.5 1.0 5.0 10.0)
 ka_arr=(0.1 0.5 1.0 5.0 10.0)
-rm joblist_PS.txt
+rm joblist_PS_tau_om.txt
 for t_stress in ${t_stress_arr[@]}; do
   for att in 0.1; do
     for om in ${om_arr[@]}; do
@@ -55,12 +55,12 @@ module load dSQ
 #bd0 P
 #!/bin/bash
 numSeeds=2
-t_stress_arr=(1.0 5.0 25.0 125.0 100000.0)
-att_arr=(0.05 0.1 0.15 0.2 0.25)
+t_stress_arr=(1.0 25.0 125.0 100000.0)
+att_arr=(0.01 0.02 0.05 0.1 0.2)
 om_arr=(0.001 0.005 0.01 0.05)
 kl_arr=(0.1 0.5 1.0 5.0 10.0)
 ka_arr=(0.1 0.5 1.0 5.0 10.0)
-rm joblist_PS.txt
+rm joblist_PS_tau_ka.txt
 for t_stress in ${t_stress_arr[@]}; do
   for att in 0.1; do
     for om in 0.01; do
@@ -81,12 +81,12 @@ module load dSQ
 #bd0 P
 #!/bin/bash
 numSeeds=2
-t_stress_arr=(1.0 5.0 25.0 125.0 100000.0)
-att_arr=(0.05 0.1 0.15 0.2 0.25)
+t_stress_arr=(1.0 25.0 125.0 100000.0)
+att_arr=(0.01 0.02 0.05 0.1 0.2)
 om_arr=(0.001 0.005 0.01 0.05)
 kl_arr=(0.1 0.5 1.0 5.0 10.0)
 ka_arr=(0.1 0.5 1.0 5.0 10.0)
-rm joblist_PS.txt
+rm joblist_PS_att_om.txt
 for t_stress in 100000.0; do
   for att in ${att_arr[@]}; do
     for om in ${om_arr[@]}; do
@@ -106,12 +106,12 @@ module load dSQ
 #bd0 P
 #!/bin/bash
 numSeeds=2
-t_stress_arr=(1.0 5.0 25.0 125.0 100000.0)
-att_arr=(0.05 0.1 0.15 0.2 0.25)
+t_stress_arr=(1.0 25.0 125.0 100000.0)
+att_arr=(0.01 0.02 0.05 0.1 0.2)
 om_arr=(0.001 0.005 0.01 0.05)
 kl_arr=(0.1 0.5 1.0 5.0 10.0)
 ka_arr=(0.1 0.5 1.0 5.0 10.0)
-rm joblist_PS.txt
+rm joblist_PS_att_ka.txt
 for t_stress in 100000.0; do
   for att in ${att_arr[@]}; do
     for om in 0.01; do
@@ -131,12 +131,12 @@ module load dSQ
 #bd0 P
 #!/bin/bash
 numSeeds=2
-t_stress_arr=(1.0 5.0 25.0 125.0 100000.0)
-att_arr=(0.05 0.1 0.15 0.2 0.25)
+t_stress_arr=(1.0 25.0 125.0 100000.0)
+att_arr=(0.01 0.02 0.05 0.1 0.2)
 om_arr=(0.001 0.005 0.01 0.05)
 kl_arr=(0.1 0.5 1.0 5.0 10.0)
 ka_arr=(0.1 0.5 1.0 5.0 10.0)
-rm joblist_PS.txt
+rm joblist_PS_om_ka.txt
 for t_stress in 100000.0; do
   for att in 0.1; do
     for om in ${om_arr[@]}; do
@@ -157,12 +157,12 @@ module load dSQ
 #bd0 P
 #!/bin/bash
 numSeeds=2
-t_stress_arr=(1.0 5.0 25.0 125.0 100000.0)
-att_arr=(0.05 0.1 0.15 0.2 0.25)
+t_stress_arr=(1.0 25.0 125.0 100000.0)
+att_arr=(0.01 0.02 0.05 0.1 0.2)
 om_arr=(0.001 0.005 0.01 0.05)
 kl_arr=(0.1 0.5 1.0 5.0 10.0)
 ka_arr=(0.1 0.5 1.0 5.0 10.0)
-rm joblist_PS.txt
+rm joblist_PS_kl_ka.txt
 for t_stress in 100000.0; do
   for att in 0.1; do
     for om in 0.01; do
@@ -183,12 +183,12 @@ module load dSQ
 #bd0 P
 #!/bin/bash
 numSeeds=2
-t_stress_arr=(1.0 5.0 25.0 125.0 100000.0)
-att_arr=(0.05 0.1 0.15 0.2 0.25)
+t_stress_arr=(1.0 25.0 125.0 100000.0)
+att_arr=(0.01 0.02 0.05 0.1 0.2)
 om_arr=(0.001 0.005 0.01 0.05)
 kl_arr=(0.1 0.5 1.0 5.0 10.0)
 ka_arr=(0.1 0.5 1.0 5.0 10.0)
-rm joblist_PS.txt
+rm joblist_PS_att_om.txt
 for t_stress in 100000.0; do
   for att in ${att_arr[@]}; do
     for om in ${om_arr[@]}; do
