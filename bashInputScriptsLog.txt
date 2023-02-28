@@ -171,3 +171,4 @@ bash bash/cells/submit_neuralTube.sh 10 20 1.0 0.01 0.002 0.002 3000 pi_ohern,da
 rsync -r at965@transfer-grace.hpc.yale.edu:/gpfs/gibbs/project/fas/ohern/at965/dpm/ablate /Users/AndrewTon/Documents/YalePhD/projects/dpm/pipeline/cells/.
 rsync -r at965@transfer-grace.hpc.yale.edu:/gpfs/gibbs/project/fas/ohern/at965/dpm/psm /mnt/c/Users/atata/projects/dpm/pipeline/cells/.
 rsync -rav --inplace --progress at965@transfer-grace.hpc.yale.edu:/gpfs/gibbs/project/fas/ohern/at965/dpm/ablate /mnt/c/Users/atata/projects/dpm/pipeline/cells/.
+ 

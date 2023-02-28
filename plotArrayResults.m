@@ -20,7 +20,7 @@ strainRate_ps="0.01";
 %deltaSq = "4.0";
 k_a = "1.0";
 k_l = "1.0";
-k_b = "0.01";
+k_b = "0.001";
 k_ps = "1.0"; %purse-string spring constant
 k_lp = "4.0"; %lamellipodia spring constant
 sm = "1";
@@ -33,7 +33,7 @@ B="1.0";
 boolCIL="0";
 Duration="1000";
 
-numSeeds = 2;
+numSeeds = 10;
 startSeed = 1;
 max_seed = numSeeds;
 set(0,'DefaultFigureWindowStyle','docked')
@@ -55,19 +55,19 @@ array_output_dir = subdir_output + "array_output_figures/";
 
 N_arr = ["50"];                 %i
 calA0_arr = ["1.10"];           %ii
-t_stress_arr = ["1.0" "25.0" "125.0" "100000.0"]; %iii
+%t_stress_arr = ["1.0" "5.0" "25.0" "125.0" "250.0" "625.0" "100000.0"]; %iii
 %t_stress_arr = ["125.0"]; %iii
-%t_stress_arr = ["100000.0"]; %iii
-att_arr = ["0.01" "0.02" "0.05" "0.1" "0.2"]; %j
-%att_arr = ["0.1"]; % j
-om_arr = ["0.01"];             %jj
-%om_arr = ["0.001" "0.005" "0.01" "0.05"];             %jj
+t_stress_arr = ["100000.0"]; %iii
+%att_arr = ["0.01" "0.02" "0.05" "0.1" "0.2"]; %j
+att_arr = ["0.1"]; % j
+%om_arr = ["0.01"]; %jj
+om_arr = ["0.005" "0.01" "0.05"];             %jj
 kl_arr = ["1.0"]; %jjj
 %kl_arr = ["0.1" "0.5" "1.0" "5.0" "10.0"]; %jjj
-ka_arr = ["1.0"];               %k
-%ka_arr = ["0.1" "0.5" "1.0" "5.0" "10.0"];    %k
-kb_arr = ["0.001" "0.01"]; %kk
-%kb_arr = ["0" "0.001" "0.01" "0.1"]; %kk
+%ka_arr = ["1.0"];               %k
+ka_arr = ["0.1" "0.5" "1.0" "2.5" "5.0" "7.5" "10.0"];    %k
+%kb_arr = ["0.001" "0.01" "0.1"]; %kk
+kb_arr = ["0.001"]; %kk
 deltaSq_arr = ["4.0"];          %kkk
 d_flag_arr = ["0.0"];           %l
 
@@ -145,7 +145,7 @@ for i=1:length(N_arr)
         calA0 = calA0_arr(ii);
         for iii=1:length(t_stress_arr)
             t_stress = t_stress_arr(iii);
-            if (str2num(t_stress) >= 1e5)
+            if (str2num(t_stress) >= 1e5 && length(t_stress_arr) > 1)
                 pm1(end) = "\infty";
             end
             for j=1:length(att_arr)
