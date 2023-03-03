@@ -249,7 +249,7 @@ int main(int argc, char const* argv[]) {
   epithelial.setMaxwellRelaxationTime(t_stress);
 
   // after compress, turn on damped NVE
-  double T = 1e-10;
+  double T = 1e-2;
   double relaxTime = 25.0;
   double printInterval = relaxTime / 2.0;
   epithelial.drawVelocities2D(T);
@@ -273,14 +273,17 @@ int main(int argc, char const* argv[]) {
   }
 
   if (isPbcOn) {
-    epithelial.vertexNVE(customForceUpdate_inactive, dt0, relaxTime / dt0, 0);
-    epithelial.dampedNP0(customForceUpdate_inactive, dt0, relaxTime, 0);
+    epithelial.vertexNVE(customForceUpdate_inactive, dt0, 2.0 * relaxTime / dt0, 0);
+    epithelial.dampedNP0(customForceUpdate_inactive, dt0, 2.0 * relaxTime, 0);
   } else {
-    epithelial.vertexNVE(customForceUpdate_inactive, dt0, relaxTime / dt0, 0);
-    epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, dt0, relaxTime, 0);
+    epithelial.vertexNVE(customForceUpdate_inactive_with_circular_walls, dt0, 2.0 * relaxTime / dt0, 0);
+    epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, dt0, 2.0 * relaxTime, 0);
   }
 
   // epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, B, dt0, runTime, runTime/10.0);
+
+  // save image right before wounding
+  epithelial.printConfiguration2D();
 
   // LASER ABLATION SCHEME
   double xLoc = 0.0, yLoc = 0.0;

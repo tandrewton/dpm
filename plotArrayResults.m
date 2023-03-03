@@ -33,7 +33,7 @@ B="1.0";
 boolCIL="0";
 Duration="1000";
 
-numSeeds = 10;
+numSeeds = 4;
 startSeed = 1;
 max_seed = numSeeds;
 set(0,'DefaultFigureWindowStyle','docked')
@@ -54,18 +54,18 @@ array_output_dir = subdir_output + "array_output_figures/";
 % variations in these two parameters
 
 N_arr = ["50"];                 %i
-calA0_arr = ["1.10"];           %ii
-%t_stress_arr = ["1.0" "5.0" "25.0" "125.0" "250.0" "625.0" "100000.0"]; %iii
-%t_stress_arr = ["125.0"]; %iii
-t_stress_arr = ["100000.0"]; %iii
+calA0_arr = ["1.40"];           %ii
+t_stress_arr = ["1.0" "100000.0"];%"5.0" "25.0" "125.0" "250.0" "625.0"]; %iii
+%t_stress_arr = ["1.0"]; %iii
+%t_stress_arr = ["100000.0"]; %iii
 %att_arr = ["0.01" "0.02" "0.05" "0.1" "0.2"]; %j
 att_arr = ["0.1"]; % j
-%om_arr = ["0.01"]; %jj
-om_arr = ["0.005" "0.01" "0.05"];             %jj
+om_arr = ["0.01"]; %jj
+%om_arr = ["0.001" "0.005" "0.01" "0.05"];             %jj
 kl_arr = ["1.0"]; %jjj
 %kl_arr = ["0.1" "0.5" "1.0" "5.0" "10.0"]; %jjj
 %ka_arr = ["1.0"];               %k
-ka_arr = ["0.1" "0.5" "1.0" "2.5" "5.0" "7.5" "10.0"];    %k
+ka_arr = ["0.1" "0.5" "1.0" "2.5"];%"5.0" "7.5" "10.0"];    %k
 %kb_arr = ["0.001" "0.01" "0.1"]; %kk
 kb_arr = ["0.001"]; %kk
 deltaSq_arr = ["4.0"];          %kkk
@@ -226,13 +226,13 @@ for i=1:length(N_arr)
                                                 bulkCellShape_sd = load(bulkStr);
                                                 woundProperties_sd = load(woundPropertiesStr);
                                                 cellID = load(innerAndBulkCellIDStr);
+                                                voidArea_sd(voidArea_sd == 1e10) = NaN;
+                                            innerShapes_sd = bulkCellShape_sd(:,[1; cellID(:,3)]==1);
                                             catch
                                                 disp('Did not load file: '+pipeline_dir+fileheader);
                                                 numGoodSeeds = numGoodSeeds - 1;
                                                 continue;
                                             end
-                                            voidArea_sd(voidArea_sd == 1e10) = NaN;
-                                            innerShapes_sd = bulkCellShape_sd(:,[1; cellID(:,3)]==1);
                                             meanInnerShapes_sd = nanmean(innerShapes_sd(:,2:end),2);
                                             timeInnerShapes_sd = innerShapes_sd(:,1);
 
@@ -321,9 +321,17 @@ for i=1:length(N_arr)
                                             %voidArea(:,4) = voidArea(:,4) + voidArea_sd(:,4);
                                             healingTime = healingTime + woundProperties_sd(1);
                                             rosetteNumber = rosetteNumber + woundProperties_sd(2);
-                                            % get the distribution quantities of the rosette cells in their last frame
-                                            [stdRosetteShapesEnd_sd, meanRosetteShapesEnd_sd] = std(innerShapes_sd(end, 2:end));
-                                            [stdRosetteShapesInitial_sd, meanRosetteShapesInitial_sd] = std(innerShapes_sd(1, 2:end));
+
+                                            if (length(innerShapes_sd(end, 2:end)) > 0)
+                                                % get the distribution quantities of the rosette cells in their last frame
+                                                [stdRosetteShapesEnd_sd, meanRosetteShapesEnd_sd] = std(innerShapes_sd(end, 2:end));
+                                                [stdRosetteShapesInitial_sd, meanRosetteShapesInitial_sd] = std(innerShapes_sd(1, 2:end));
+                                            else
+                                                % wound did not close in this case, so just take the largest 6
+                                                % shapes for the end frame, and the average for the  initial frame
+                                                [stdRosetteShapesEnd_sd, meanRosetteShapesEnd_sd] = std(maxk(bulkCellShape_sd(end,2:end),6));
+                                                [stdRosetteShapesInitial_sd, meanRosetteShapesInitial_sd] = std(bulkCellShape_sd(1, 2:end));
+                                            end
 
                                             %voidArea = voidArea + voidArea_sd;
                                             %meanInnerShapes = meanInnerShapes + meanInnerShapes_sd;
@@ -348,6 +356,7 @@ for i=1:length(N_arr)
                                         rosetteNumber = rosetteNumber / numGoodSeeds;
                                         minInnerShapes = mean(min(innerShapeArr, [], 2),'omitnan');
                                         maxInnerShapes = mean(max(innerShapeArr, [], 2),'omitnan');
+
                                         meanRosetteInitialShape = mean(stdMeanShapeInitialArr(:,2));
                                         % to get average std, avg the
                                         % variances and take the sqrt
@@ -369,7 +378,7 @@ for i=1:length(N_arr)
                                         %set(gca,'Yscale','log')
                                         ylim([0 inf])
                                         legend('location','northeast','fontsize', 8)
-                                        saveas(gcf, array_output_dir+"voidArea/"+pm1_str+"_"+pm2_str+"_"+pm1_ind+".png")
+                                        saveas(gcf, array_output_dir+"voidArea/"+"calA0"+calA0+"_"+pm1_str+"_"+pm2_str+"_"+pm1_ind+".png")
 
                                         %                     % plot shape vs time
                                         %                     figure(length(calA0_arr)+shapeii + 100*(k-1) + 1000*(j-1))
@@ -460,7 +469,7 @@ h.NodeChildren(3).Title.Interpreter = 'latex';
 fontsize(gca, scale=1.5)
 colormap parula
 saveas(gcf, heatmap_filepath+"/relativeMaxShapeDeformation"+ ...
-             "PS"+~isCrawling+"-"+pm1_str+"-"+pm2_str+".eps", 'epsc')
+             "PS"+~isCrawling+"-"+"calA0"+calA0+"_"+pm1_str+"-"+pm2_str+".eps", 'epsc')
 
 figure(heatmap_fig_num + numHeatmaps + 1)
 h = heatmap(pm2, pm1, heatmap2);
@@ -474,7 +483,7 @@ h.NodeChildren(3).Title.Interpreter = 'latex';
 fontsize(gca, scale=1.5)
 colormap parula
 saveas(gcf, heatmap_filepath+"/healingTimesSmooth"+...
-             "PS"+~isCrawling+"-"+pm1_str+"-"+pm2_str+".eps", 'epsc')
+             "PS"+~isCrawling+"-"+"calA0"+calA0+"_"+pm1_str+"-"+pm2_str+".eps", 'epsc')
 
 figure(heatmap_fig_num + numHeatmaps + 2)
 heatmap3(heatmap3==0) = nan;
@@ -489,8 +498,23 @@ h.NodeChildren(3).Title.Interpreter = 'latex';
 fontsize(gca, scale=1.5)
 colormap parula
 saveas(gcf, heatmap_filepath+"/rosetteNumberSmooth" + ...
-             "PS"+~isCrawling+"-"+pm1_str+"-"+pm2_str+".eps", 'epsc')
+             "PS"+~isCrawling+"-"+"calA0"+calA0+"_"+pm1_str+"-"+pm2_str+".eps", 'epsc')
 
+
+figure(heatmap_fig_num + numHeatmaps + 3)
+% use the usual heatmap format for rosetteCellsFinalShape in order to save a heatmap object
+h = heatmap(pm2, pm1, heatmap4);
+h.YLabel = pm1_str;
+h.XLabel = pm2_str;
+h.Title = '$\langle\mathcal{A}_{rosette}\rangle$';
+h.NodeChildren(3).XAxis.Label.Interpreter = 'latex';
+h.NodeChildren(3).YAxis.Label.Interpreter = 'latex';
+h.NodeChildren(3).Title.Interpreter = 'latex';
+fontsize(gca, scale=1.5)
+colormap parula
+save(heatmap_filepath+"/rosetteCellsFinalShape"+ ...
+                 "PS"+~isCrawling+"-"+"calA0"+calA0+"_"+pm1_str+"-"+pm2_str+".mat", 'h')
+clf;
 for i=1:2
     % hack - not sure why I need to reset figure to get right fontsize, but
     % not going to try to fix it now. loop iterator i runs the same code
@@ -507,7 +531,7 @@ for i=1:2
     fontsize(gca, scale=1.5)
     colormap parula
     saveas(gcf, heatmap_filepath+"/rosetteCellsFinalShape"+ ...
-                 "PS"+~isCrawling+"-"+pm1_str+"-"+pm2_str+".eps", 'epsc')
+                 "PS"+~isCrawling+"-"+"calA0"+calA0+"_"+pm1_str+"-"+pm2_str+".eps", 'epsc')
 end
 
 for i=1:2
@@ -522,7 +546,7 @@ for i=1:2
     fontsize(gca, scale=1.5)
     colormap parula
     saveas(gcf, heatmap_filepath+"/rosetteCellsInitialShape"+ ...
-                 "PS"+~isCrawling+"-"+pm1_str+"-"+pm2_str+".eps", 'epsc')
+                 "PS"+~isCrawling+"-"+"calA0"+calA0+"_"+pm1_str+"-"+pm2_str+".eps", 'epsc')
 end
 
 figure(heatmap_fig_num + numHeatmaps + 5)
@@ -538,4 +562,6 @@ h.NodeChildren(3).Title.Interpreter = 'latex';
 fontsize(gca, scale=1.5)
 colormap parula
 saveas(gcf, heatmap_filepath+"/arealVelocity"+ ...
-             "PS"+~isCrawling+"-"+pm1_str+"-"+pm2_str+".eps", 'epsc')
+             "PS"+~isCrawling+"-"+"calA0"+calA0+"_"+pm1_str+"-"+pm2_str+".eps", 'epsc')
+save(heatmap_filepath+"/arealVelocity"+ ...
+             "PS"+~isCrawling+"-"+"calA0"+calA0+"_"+pm1_str+"-"+pm2_str+".mat", 'h')
