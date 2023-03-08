@@ -22,7 +22,7 @@ set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
 fnum=1;
 showGlobalIndex = 0;
-showcirculoline = 0;
+showcirculoline = 1;
 showQuiver = 0;
 walls=1;
 
@@ -146,6 +146,39 @@ for ff = FSTART:FSTEP:FEND
         cx = mean(xtmp);
         cy = mean(ytmp);
 
+        for vv = 1:nv(ff,nn)
+            xplot = xtmp(vv) - vradtmp(vv);
+            yplot = ytmp(vv) - vradtmp(vv);
+            if showcirculoline == 1% calculate coordinates of a rectangle representing the line segment between successive vertices in a DP
+                vnext = mod(vv, nv(ff,nn))+1;
+                xtmpnext = xtmp(vnext);
+                ytmpnext = ytmp(vnext);
+                rx = xtmpnext - xtmp(vv);
+                ry = ytmpnext - ytmp(vv);
+                if (rx == 0) % if line is vertical, perpendicular is <1,0>
+                   perp_x = 1;
+                   perp_y = 0;
+                else
+                     % dot product of r and perp = 0, so perp is perpendicular to r
+                    perp_x = -ry/rx;
+                    perp_y = 1;
+                end
+                norm = sqrt(perp_x^2 + perp_y^2);
+                perp_x = perp_x / norm;
+                perp_y = perp_y / norm;
+                % calculate 4 coordinates of a rectangle
+                % for the segment
+                offsetx = vradtmp(vv)*perp_x;
+                offsety = vradtmp(vv)*perp_y;
+                cornerx = [xtmp(vv)-offsetx, xtmp(vv)+offsetx, ...
+                    xtmpnext+offsetx, xtmpnext-offsetx];
+                cornery = [ytmp(vv)-offsety, ytmp(vv)+offsety,...
+                    ytmpnext+offsety, ytmpnext-offsety];
+                %patch(cornerx, cornery, cornerx./cornerx, 'black','EdgeColor','blue', 'LineWidth',2)
+                patch(cornerx, cornery, cornerx./cornerx, clr,'EdgeColor','black', 'LineWidth',1)
+            end
+        end
+
         if showverts == 1
             for vv = 1:nv(ff,nn)
                 xplot = xtmp(vv) - vradtmp(vv);
@@ -159,46 +192,14 @@ for ff = FSTART:FSTEP:FEND
                 else 
                     for xx = itLow:itHigh
                         for yy = itLow:itHigh
-                            rectangle('Position',[xplot+xx*Lx, yplot + yy*Ly, 2*vradtmp(vv), 2*vradtmp(vv)],'Curvature',[1 1],'EdgeColor','k','FaceColor',clr);
+                            %rectangle('Position',[xplot+xx*Lx, yplot + yy*Ly, 2*vradtmp(vv), 2*vradtmp(vv)],'Curvature',[1 1],'EdgeColor','k','FaceColor',[0 0.9 0.9], 'linewidth', 1);
+                            circle2(xplot+xx*Lx, yplot + yy*Ly, vradtmp(vv), [0 0.9 0.9]);
                             if showGlobalIndex
                                 %text(xtmp(vv), ytmp(vv), num2str(gitmp(vv)), 'FontSize', 6);
                                 text(xtmp(vv)-0.02, ytmp(vv)+0.005, 'x', 'FontSize', 20,'color','red');
                             end
                         end
                     end
-                end
-            end
-
-            for vv = 1:nv(ff,nn)
-                xplot = xtmp(vv) - vradtmp(vv);
-                yplot = ytmp(vv) - vradtmp(vv);
-                if showcirculoline == 1% calculate coordinates of a rectangle representing the line segment between successive vertices in a DP
-                    vnext = mod(vv, nv(ff,nn))+1;
-                    xtmpnext = xtmp(vnext);
-                    ytmpnext = ytmp(vnext);
-                    rx = xtmpnext - xtmp(vv);
-                    ry = ytmpnext - ytmp(vv);
-                    if (rx == 0) % if line is vertical, perpendicular is <1,0>
-                       perp_x = 1;
-                       perp_y = 0;
-                    else
-                         % dot product of r and perp = 0, so perp is perpendicular to r
-                        perp_x = -ry/rx;
-                        perp_y = 1;
-                    end
-                    norm = sqrt(perp_x^2 + perp_y^2);
-                    perp_x = perp_x / norm;
-                    perp_y = perp_y / norm;
-                    % calculate 4 coordinates of a rectangle
-                    % for the segment
-                    offsetx = vradtmp(vv)*perp_x;
-                    offsety = vradtmp(vv)*perp_y;
-                    cornerx = [xtmp(vv)-offsetx, xtmp(vv)+offsetx, ...
-                        xtmpnext+offsetx, xtmpnext-offsetx];
-                    cornery = [ytmp(vv)-offsety, ytmp(vv)+offsety,...
-                        ytmpnext+offsety, ytmpnext-offsety];
-                    %patch(cornerx, cornery, cornerx./cornerx, 'black','EdgeColor','blue', 'LineWidth',2)
-                    patch(cornerx, cornery, cornerx./cornerx, clr,'EdgeColor',' black', 'LineWidth',2)
                 end
             end
         else
@@ -212,7 +213,7 @@ for ff = FSTART:FSTEP:FEND
                     vpos = [xtmp + xx*Lx, ytmp + yy*Ly];
                     finfo = [1:nv(ff,nn) 1];
                     %disp("finfo is "+ finfo)
-                    patch('Faces',finfo,'vertices',vpos,'FaceColor',clr,'EdgeColor','k','linewidth',1);
+                    patch('Faces',finfo,'vertices',vpos,'FaceColor',clr,'EdgeColor','k','linewidth',1, 'opacity', 0.5);
                 end
             end
         end
@@ -339,7 +340,7 @@ for ff = FSTART:FSTEP:FEND
     % if making a movie, save frame
     if makeAMovie == 1
         set(gca,'visible','off')
-        set(gcf, 'color', 'white')
+        set(gcf,'color', 'white')
         
         if (walls)
             % plot walls
@@ -359,4 +360,16 @@ end
 if makeAMovie == 1
     writeVideo(vobj,currframe);
     close(vobj);
+end
+
+function h = circle2(x,y,r, color)
+    % plot a circle at x,y with radius r
+    d = r*2;
+    px = x+r;
+    py = y+r;
+    t = linspace(0, 2*pi);
+    %h = rectangle('Position',[px py d d],'Curvature',[1,1], 'FaceColor',...
+    %    color, 'LineWidth', 1);
+    patch(r*cos(t)+px, r*sin(t)+py, ones(size(t))*2, color, 'EdgeColor', 'black', 'LineWidth', 1)
+    daspect([1,1,1])
 end
