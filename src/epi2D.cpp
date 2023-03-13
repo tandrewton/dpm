@@ -1787,6 +1787,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double dt0, double duration, double pr
   // assuming zero temperature - ignore thermostat (not implemented)
   int i;
   double K, t0 = simclock, shape_ci;
+  cout << "entered NP0, simclock = " << simclock << '\n';
   double temp_simclock = simclock;
   double initialWoundArea = 1e10, healingTime = NAN;
   bool alreadyRecordedFinalCells = false;
@@ -1826,7 +1827,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double dt0, double duration, double pr
     CALL_MEMBER_FN(*this, forceCall)
     ();  // calls main force routine
 
-    if (simclock - t0 > relaxTime && purseStringOn == 1) {  // purseStringOn refers to whether it's been initialized, not its parameters. so dsq = 0 has a nonfunctional pursestring, but still has purseStringOn = 1
+    if (simclock - t0 >= relaxTime && purseStringOn == 1) {  // purseStringOn refers to whether it's been initialized, not its parameters. so dsq = 0 has a nonfunctional pursestring, but still has purseStringOn = 1
       if (psContacts.size() == 0 && std::isnan(woundArea)) {
         cout << "inside psContacts.size() == 0 and woundArea == NAN case, which should only occur once!\n";
         getWoundVertices(nthLargestCluster);
@@ -1855,6 +1856,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double dt0, double duration, double pr
         initialWoundArea = woundArea;
         assert(!std::isnan(initialWoundArea));
         initializePurseStringVariables();
+        cout << "purse-string assembled at simclock = " << simclock << '\n';
       }
 
       // get max and min of x coords of purse-string; if max-min is near zero, then purse-string should be dissolved
@@ -1960,7 +1962,8 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double dt0, double duration, double pr
     simclock += dt;
     // print to console and file
     if (int(printInterval) != 0) {
-      if (int((simclock - t0) / dt) % NPRINTSKIP == 0) {
+      if (int((simclock - t0 - 2 * dt) / dt) % NPRINTSKIP == 0) {
+        cout << "time of print inside NP0 = " << simclock << '\n';
         temp_simclock = simclock;
         // compute kinetic energy
         K = vertexKineticEnergy();
