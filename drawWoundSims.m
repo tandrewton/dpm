@@ -221,16 +221,10 @@ for seed = startSeed:max_seed
             ylim([0 inf])
             xlabel('$t/\tau$','Interpreter','latex','fontsize', 24);
             ylabel('Area','Interpreter','latex','fontsize', 24);
-            %set(gca,'Yscale','log')
             if seed == max_seed 
                 legend
                 saveas(gcf, 'VoidArea'+runType+fileheader_short+'_'+max_seed+'.eps', 'epsc')
             end
-
-%             figure(1000); hold on;
-%             plot(voidArea(:,1), voidArea(:,3), 'linewidth', 4, 'linestyle', ls)
-%             figure(999); hold on;
-%             plot(voidArea(:,1), voidArea(:,4), 'linewidth', 4, 'linestyle', ls)
         end
 
         if showWoundAndShapeProperties
@@ -389,7 +383,6 @@ for seed = startSeed:max_seed
                 vrad = trajectoryData.vrad(ff,:);
                 psi = trajectoryData.psi(ff,:);
                 
-        
                 %if L is not constant, use the next 3 lines
                 L = trajectoryData.L(ff,:);
                 Lx = L(1);
@@ -469,8 +462,6 @@ for seed = startSeed:max_seed
                             end
                         end
                     end
-                    
-    
     
                     %plot arrows representing directors
                     if (showQuiver == 1)
@@ -569,6 +560,50 @@ for seed = startSeed:max_seed
                         %    ,purseLocs(lowOdd+1,1), purseLocs(lowOdd+1,2)...
                         %    ,2, 0, 0.1);
                         %plot(xs,ys,'LineWidth', 1,'Color' ,'black');
+                    end
+                    if (ff == 7)
+                        % plot purse-string in a new figure on its own for the
+                        % paper
+                        figure(10001); clf; hold on;
+    
+                        for nn = 1:NCELLS
+                            xtmp = xpos{nn};
+                            ytmp = ypos{nn};
+                            l0tmp = l0{nn};
+                            vradtmp = vrad{nn};
+                
+                            clr = cellCLR(IC(nn),:);
+                
+                            cx = mean(xtmp);
+                            cy = mean(ytmp);
+                            rx = xtmp - cx;
+                            ry = ytmp - cy;
+                            rads = sqrt(rx.^2 + ry.^2);
+                            xtmp = xtmp + 0.4*l0tmp(1)*(rx./rads);
+                            ytmp = ytmp + 0.4*l0tmp(1)*(ry./rads);
+                            vpos = [xtmp, ytmp];
+                            finfo = [1:nv(ff,nn) 1];
+                            %disp("finfo is "+ finfo)
+                            patch('Faces',finfo,'vertices',vpos,'FaceColor',clr,'EdgeColor','k','linewidth',2);
+                        end
+    
+                        woundVertices = purseLocs(1:2:end,:);
+                        purseVertices = purseLocs(2:2:end,:);
+                        % scale pursestring vertices to emulate their shrinkage in simulation
+                        A = 0.95;
+                        purseShrink = [A*purseVertices(:,1) + (1-A)*mean(purseVertices(:,1)) A*purseVertices(:,2) + (1-A)*mean(purseVertices(:,2))];
+                        % plot wound vertices
+                        scatter(purseShrink(:,1), purseShrink(:,2), 150, ...
+                            'blue', 'o','MarkerFaceColor','blue','linewidth', 1,'markeredgecolor', 'k');
+                        % plot purse vertices
+                        scatter(woundVertices(:,1), woundVertices(:,2), 50, 'red', 'o', 'MarkerFaceColor', 'red', 'markeredgecolor', 'k');
+                        % plot a line between wound and purse vertices
+                        for ii=1:length(woundVertices(:,1))
+                            % line betw woundVertices(ii,:) and purseShrink(ii,:)
+                        end
+    
+                        axis equal;
+                        axis off;
                     end
                 end
         

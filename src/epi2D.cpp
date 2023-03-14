@@ -837,6 +837,10 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
   bool isConcaveInteraction, isInverseInteraction;
   double d_arg, y21, x21, y20, x20, y10, x10, norm_P12, prefix, prefix2;  // for calculating 3-body forces for projection 1 (vertex-line-segment)
   int sign = 1;
+  int left = gj;             // i
+  int middle = im1[gj];      // i-1
+  int right = im1[im1[gj]];  // i-2
+  bool contactWithLeft = false, contactWithMiddle = false;
 
   dx = -rx;
   if (pbc[0])
@@ -862,9 +866,6 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
         }
         // endEndAngle is the angle between the separation between interacting vertices and the endcap edge closest to the circulo-line.
         // endCapAngle is the angle between the far edge of the endcap and the near edge of the endcap
-        int left = gj;             // i
-        int middle = im1[gj];      // i-1
-        int right = im1[im1[gj]];  // i-2
 
         double drx = x[left * NDIM] - x[middle * NDIM];
         double dry = x[left * NDIM + 1] - x[middle * NDIM + 1];
@@ -927,8 +928,8 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
           // Force on particle 0,1,2 is determined by F = - dU/dr = (partials) dU/dr * <dr/dxi , dr/dyi>
           // 3-body contact, 6 forces (3 pairs of forces)
           // y21, x21, y20, x20, y10, x10, norm_P12, d_arg
-          int g2 = im1[gj];
-          int g2_ind = NDIM * g2;
+          int g2 = middle;
+          int g2_ind = NDIM * middle;
           int g1_ind = NDIM * gj;
           x21 = x[g2_ind] - x[g1_ind];
           y21 = x[g2_ind + 1] - x[g1_ind + 1];
@@ -964,6 +965,8 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
           cellU[cj] += energytmp / 2;
           U += energytmp;
 
+          contactWithLeft = true;
+          contactWithMiddle = true;
           // add to virial stress - not including this code now because I haven't worked out the stress of a 3-body interaction
         }
         // projection is either on the endpoint or outside the endpoint, i.e. not on the line segment
@@ -1015,6 +1018,8 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
           cellU[ci] += sign * energytmp / 2;
           cellU[cj] += sign * energytmp / 2;
           U += sign * energytmp;
+
+          contactWithMiddle = true;
 
           // add to virial stress
           // note: 4/7/22 I'm using -dx/2 instead of dx and same for dy for stress calculation, since
@@ -1851,12 +1856,13 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double dt0, double duration, double pr
         cout << "wound center before calculateWoundArea (initial wound detection) = " << woundCenterX << '\t' << woundCenterY << '\n';
         woundArea = calculateWoundArea(woundCenterX, woundCenterY);
         vout << simclock - t0 << '\t' << woundArea << '\t' << purseStringTension << '\t' << purseStringTransmittedTension << '\n';
-        // cout << simclock - t0 << '\t' << woundArea << '\n';
         cout << "wound center after calculateWoundArea (initial wound detection) = " << woundCenterX << '\t' << woundCenterY << '\n';
         initialWoundArea = woundArea;
         assert(!std::isnan(initialWoundArea));
+        // after initializing PS variables, run calculateArea to set up wound adjacent vertices, then updatePSContacts to add any undetected vertices from the initial segmentation
         initializePurseStringVariables();
-        cout << "purse-string assembled at simclock = " << simclock << '\n';
+        calculateWoundArea(woundCenterX, woundCenterY);
+        updatePurseStringContacts();  // run one instance of updatePSContacts to fill in any missing wound vertices
       }
 
       // get max and min of x coords of purse-string; if max-min is near zero, then purse-string should be dissolved
