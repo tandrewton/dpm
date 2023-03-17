@@ -1862,7 +1862,13 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double dt0, double duration, double pr
         // after initializing PS variables, run calculateArea to set up wound adjacent vertices, then updatePSContacts to add any undetected vertices from the initial segmentation
         initializePurseStringVariables();
         calculateWoundArea(woundCenterX, woundCenterY);
-        updatePurseStringContacts();  // run one instance of updatePSContacts to fill in any missing wound vertices
+        // run one instance of updatePSContacts to fill in any missing wound vertices
+        updatePurseStringContacts();
+        // NOTE: to get a constriction rate of omega, P(t) = P(0) - omega*t = sum(l0_ps - omega/numverts * t)
+        // so I scale here by psContacts.size() to split the constriction rate evenly to each vertex
+        // but I keep the constriction rate constant even if we lose or gain vertices for simplicity
+        // this is equivalent to assuming the constriction force density is constant in the PS regardless of size
+        strainRate_ps /= psContacts.size();
       }
 
       // get max and min of x coords of purse-string; if max-min is near zero, then purse-string should be dissolved

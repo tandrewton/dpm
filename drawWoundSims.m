@@ -41,7 +41,7 @@ FSKIP = 1;
 
 etaStr = " ";
 startSeed = 1;
-max_seed = 4;
+max_seed = 1;
 no_plots = 0;
 makeAMovie = 0; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
 %plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
@@ -56,7 +56,7 @@ showBoundaries = 0;
 showcirculoline = 0; % show line segments of circulo-lines
 isReadAndPlotTrajectoryQualities = 1; % read nvestr and plot associated quantities
 att_range = 0.0;
-showArea = 1;
+showArea = 0;
 showQuiver = 0;
 walls = 0;
 showCustomView = 0; % specific choice of coordinates to zoom in on for movie
