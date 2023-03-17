@@ -17,7 +17,7 @@
 //./main/epi2D/laserAblation.o 50 30 3 1.05 0.94 0.85 1.0 1.0 0.01 0.2 0.005 0.0  1.0  4.0 1.0  3.0     25.0     0   0 1  500  test
 // ........................... N  NV Nd A0  pMin  pMax  kl ka  kb  att  om   dsq  kps  klp tau dflag  t_stress bound sm sd time file
 // below: purse-string, no crawling
-//./main/epi2D/laserAblation.o 50 30  4 1.10 0.94 0.85 1.0 1.0 0.01 0.1 0.01  4.0  1.0  4.0 1.0  0.0   100000.0  0  1  1 30  test
+//./main/epi2D/laserAblation.o 50 30  5 1.20 0.94 0.85 1.0 1.0 0.01 0.1 0.01  4.0  1.0  4.0 1.0  0.0   1.0  0  1  1 30  test
 // ........................... N  NV Nd A0  pMin  pMax  kl ka  kb  att  om   dsq  kps  klp tau dflag  t_stress bound sm sd time file
 // below: purse-string, and crawling
 //./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.865 1.0 4.0 0.01 0.1 0.01  2.0  4.0  4.0 1.0  3.0     10.0    0   0 1 1  110  test
@@ -277,10 +277,10 @@ int main(int argc, char const* argv[]) {
     epithelial.vertexNVE(customForceUpdate_inactive, dt0, 2.0 * relaxTime / dt0, 0);
     epithelial.dampedNP0(customForceUpdate_inactive, dt0, 2.0 * relaxTime, 0);
   } else {
-    epithelial.vertexNVE(customForceUpdate_inactive_with_circular_walls, dt0, 0.5 * relaxTime / dt0, 0);
+    epithelial.vertexNVE(customForceUpdate_inactive_with_circular_walls, dt0, 1.0 * relaxTime / dt0, 0);
     // epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, dt0, 2.0 * relaxTime, 0);
     // energy minimize without walls to get proper cell shapes
-    epithelial.dampedNP0(customForceUpdate_inactive, dt0, 2.0 * relaxTime, 0);
+    epithelial.dampedNP0(customForceUpdate_inactive, dt0, 1.0 * relaxTime, 0);
   }
 
   // save image right before wounding

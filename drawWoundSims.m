@@ -27,7 +27,7 @@ end
 %k_a = "1.0";
 %k_l = "1.0";
 %k_b = "0.01";
-k_ps = "1.0"; %purse-string spring constant
+k_ps = "4.0"; %purse-string spring constant
 k_lp = "4.0"; %lamellipodia spring constant
 smooth = "1";
 tau_lp = "1.0"; %lamellipodia lifetime
@@ -36,12 +36,12 @@ boundaryType = "0";
 %att="0.2";
 B="1.0";
 boolCIL="0";
-Duration="1000";
+Duration="1400";
 FSKIP = 1;
 
 etaStr = " ";
 startSeed = 1;
-max_seed = 1;
+max_seed = 4;
 no_plots = 0;
 makeAMovie = 0; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
 %plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
@@ -73,7 +73,7 @@ showVoidBlack = 0; % print void in larger black circles to see easier
 showVoidLite = 1; % print void, but in a way that works with printConfiguration on its own
 showCornersOrEdges = 0;
 if (str2num(deltaSq) > 0.0 && ~no_plots)
-    showPurseString = 1;
+    showPurseString = 0;
 else
     showPurseString = 0;
 end
@@ -590,16 +590,18 @@ for seed = startSeed:max_seed
                         woundVertices = purseLocs(1:2:end,:);
                         purseVertices = purseLocs(2:2:end,:);
                         % scale pursestring vertices to emulate their shrinkage in simulation
-                        A = 0.95;
+                        A = 0.9;
                         purseShrink = [A*purseVertices(:,1) + (1-A)*mean(purseVertices(:,1)) A*purseVertices(:,2) + (1-A)*mean(purseVertices(:,2))];
                         % plot wound vertices
                         scatter(purseShrink(:,1), purseShrink(:,2), 150, ...
                             'blue', 'o','MarkerFaceColor','blue','linewidth', 1,'markeredgecolor', 'k');
                         % plot purse vertices
-                        scatter(woundVertices(:,1), woundVertices(:,2), 50, 'red', 'o', 'MarkerFaceColor', 'red', 'markeredgecolor', 'k');
+                        scatter(woundVertices(:,1), woundVertices(:,2), 150, 'red', 'o', 'MarkerFaceColor', 'red', 'markeredgecolor', 'k');
                         % plot a line between wound and purse vertices
                         for ii=1:length(woundVertices(:,1))
                             % line betw woundVertices(ii,:) and purseShrink(ii,:)
+                            plot([woundVertices(ii,1) purseShrink(ii,1)],[woundVertices(ii,2) purseShrink(ii,2)],'color', 'k', 'linewidth', 3)
+                            plot([purseShrink(ii,1) purseShrink(mod(ii,length(woundVertices(:,1)))+1,1)], [purseShrink(ii,2) purseShrink(mod(ii,length(woundVertices(:,1)))+1,2)],'color', 'blue', 'linewidth', 2);
                         end
     
                         axis equal;

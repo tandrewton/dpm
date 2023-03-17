@@ -2568,7 +2568,7 @@ void dpm::vertexAttractiveForces2D() {
 void dpm::evaluatePolygonalWallForces(const std::vector<double>& poly_x, const std::vector<double>& poly_y, bool attractionOn) {
   // evaluates particle-wall forces for a polygonal boundary specified by poly_x,poly_y. Does not compute stress yet.
   int n = poly_x.size();
-  double distanceParticleWall, scaledDistParticleWall, Rx, Ry, dw, K = 10;
+  double distanceParticleWall, scaledDistParticleWall, Rx, Ry, dw, K = 5;
   double kint = (kc * l1) / (l2 - l1);
   double bound_x1, bound_x2, bound_y1, bound_y2;
   double shellij, cutij, ftmp;

@@ -14,7 +14,7 @@ for t_stress in ${t_stress_arr[@]}; do
     for om in 0.01; do
       for kl in 1.0; do
         for ka in 1.0; do
-            echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 1.10 0.94 0.85 $kl $ka 0.001 $att $om 4.0 1.0 4.0 1.0 0.0 $t_stress 0 1 1000 day 0-24:00:00 $numSeeds 1 >> joblist_PS_tau_att.txt
+            echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 1.20 0.94 0.85 $kl $ka 0.001 $att $om 4.0 1.0 4.0 1.0 0.0 $t_stress 0 1 1000 day 0-24:00:00 $numSeeds 1 >> joblist_PS_tau_att.txt
         done
       done
     done
@@ -40,7 +40,7 @@ for t_stress in ${t_stress_arr[@]}; do
     for om in ${om_arr[@]}; do
       for kl in 1.0; do
         for ka in 1.0; do
-            echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 1.10 0.94 0.85 $kl $ka 0.001 $att $om 4.0 1.0 4.0 1.0 0.0 $t_stress 0 1 1000 day 0-24:00:00 $numSeeds 1 >> joblist_PS_tau_om.txt
+            echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 1.20 0.94 0.85 $kl $ka 0.001 $att $om 4.0 1.0 4.0 1.0 0.0 $t_stress 0 1 1000 day 0-24:00:00 $numSeeds 1 >> joblist_PS_tau_om.txt
         done
       done
     done
@@ -56,8 +56,8 @@ module load dSQ
 #!/bin/bash
 numSeeds=10
 # t_stress_arr=(1.0 2.0 4.0 8.0 16.0 32.0 64.0 128.0 256.0 512.0 1024.0 100000.0)
-# t_stress_arr=(2.0 8.0 32.0 128.0 512.0 100000.0)
-t_stress_arr=(1.0 4.0 16.0 64.0 256.0 1024.0)
+t_stress_arr=(2.0 8.0 32.0 128.0 512.0 100000.0)
+#t_stress_arr=(1.0 4.0 16.0 64.0 256.0 1024.0)
 att_arr=(0.01 0.02 0.05 0.1 0.2)
 om_arr=(0.001 0.005 0.01 0.05)
 kl_arr=(0.1 0.5 1.0 5.0 10.0)
@@ -68,7 +68,7 @@ for t_stress in ${t_stress_arr[@]}; do
     for om in 0.01; do
       for kl in 1.0; do
         for ka in ${ka_arr[@]}; do
-            echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 1.10 0.94 0.85 $kl $ka 0.001 $att $om 4.0 1.0 4.0 1.0 0.0 $t_stress 0 1 1400 day 0-24:00:00 $numSeeds 1 >> joblist_PS_tau_ka.txt
+            echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 1.20 0.94 0.85 $kl $ka 0.001 $att $om 4.0 1.0 4.0 1.0 0.0 $t_stress 0 1 1400 day 0-24:00:00 $numSeeds 1 >> joblist_PS_tau_ka.txt
         done
       done
     done
@@ -94,7 +94,7 @@ for t_stress in 100000.0; do
     for om in ${om_arr[@]}; do
       for kl in 1.0; do
         for ka in 1.0; do
-            echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 1.10 0.94 0.85 $kl $ka 0.001 $att $om 4.0 1.0 4.0 1.0 0.0 $t_stress 0 1 1000 day 0-24:00:00 $numSeeds 1 >> joblist_PS_att_om.txt
+            echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 1.20 0.94 0.85 $kl $ka 0.001 $att $om 4.0 1.0 4.0 1.0 0.0 $t_stress 0 1 1000 day 0-24:00:00 $numSeeds 1 >> joblist_PS_att_om.txt
         done
       done
     done
@@ -119,7 +119,7 @@ for t_stress in 100000.0; do
     for om in 0.01; do
       for kl in 1.0; do
         for ka in ${ka_arr[@]}; do
-            echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 1.10 0.94 0.85 $kl $ka 0.001 $att $om 4.0 1.0 4.0 1.0 0.0 $t_stress 0 1 1000 day 0-24:00:00 $numSeeds 1 >> joblist_PS_att_ka.txt
+            echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 1.20 0.94 0.85 $kl $ka 0.001 $att $om 4.0 1.0 4.0 1.0 0.0 $t_stress 0 1 1000 day 0-24:00:00 $numSeeds 1 >> joblist_PS_att_ka.txt
         done
       done
     done
@@ -144,7 +144,7 @@ for t_stress in 100000.0; do
     for om in ${om_arr[@]}; do
       for kl in 1.0; do
         for ka in ${ka_arr[@]}; do
-            echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 1.10 0.94 0.85 $kl $ka 0.001 $att $om 4.0 1.0 4.0 1.0 0.0 $t_stress 0 1 1000 day 0-24:00:00 $numSeeds 1 >> joblist_PS_att_ka.txt
+            echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 1.20 0.94 0.85 $kl $ka 0.001 $att $om 4.0 1.0 4.0 1.0 0.0 $t_stress 0 1 1000 day 0-24:00:00 $numSeeds 1 >> joblist_PS_att_ka.txt
         done
       done
     done
@@ -169,7 +169,7 @@ for t_stress in 100000.0; do
     for om in 0.01; do
       for kl in ${kl_arr[@]}; do
         for ka in ${ka_arr[@]}; do
-            echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 1.10 0.94 0.85 $kl $ka 0.001 $att $om 4.0 1.0 4.0 1.0 0.0 $t_stress 0 1 1000 day 0-24:00:00 $numSeeds 1 >> joblist_PS_kl_ka.txt
+            echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 1.20 0.94 0.85 $kl $ka 0.001 $att $om 4.0 1.0 4.0 1.0 0.0 $t_stress 0 1 1000 day 0-24:00:00 $numSeeds 1 >> joblist_PS_kl_ka.txt
         done
       done
     done
@@ -194,7 +194,7 @@ for t_stress in ${t_stress_arr[@]}; do
     for om in 0.01; do
       for kl in 1.0; do
         for ka in 1.0; do
-            echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 1.10 0.94 0.85 $kl $ka 0.001 $att $om 4.0 1.0 4.0 1.0 0.0 $t_stress 0 1 1000 day 0-24:00:00 $numSeeds 1 >> joblist_PS_tau_att.txt
+            echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 1.20 0.94 0.85 $kl $ka 0.001 $att $om 4.0 1.0 4.0 1.0 0.0 $t_stress 0 1 1000 day 0-24:00:00 $numSeeds 1 >> joblist_PS_tau_att.txt
         done
       done
     done
@@ -221,7 +221,7 @@ for t_stress in ${t_stress_arr[@]}; do
       for kl in 1.0; do
         for ka in 1.0; do
           for kb in ${kb_arr[@]}; do
-            echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 1.10 0.94 0.85 $kl $ka $kb $att $om 4.0 1.0 4.0 1.0 0.0 $t_stress 0 1 1000 day 0-24:00:00 $numSeeds 1 >> joblist_PS_tau_kb.txt
+            echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 1.20 0.94 0.85 $kl $ka $kb $att $om 4.0 1.0 4.0 1.0 0.0 $t_stress 0 1 1000 day 0-24:00:00 $numSeeds 1 >> joblist_PS_tau_kb.txt
           done
         done
       done
@@ -250,7 +250,7 @@ for t_stress in 100000.0; do
       for kl in 1.0; do
         for ka in 1.0; do
           for kb in ${kb_arr[@]}; do
-            echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 1.10 0.94 0.85 $kl $ka $kb $att $om 4.0 1.0 4.0 1.0 0.0 $t_stress 0 1 1000 day 0-24:00:00 $numSeeds 1 >> joblist_PS_att_kb.txt
+            echo bash bash/epi2D/submit_laserAblation.sh 50 30 3 1.20 0.94 0.85 $kl $ka $kb $att $om 4.0 1.0 4.0 1.0 0.0 $t_stress 0 1 1000 day 0-24:00:00 $numSeeds 1 >> joblist_PS_att_kb.txt
           done
         done
       done
@@ -259,3 +259,31 @@ for t_stress in 100000.0; do
 done
 
 dsq --job-file joblist_PS_att_kb.txt --mem-per-cpu 4g -t 1:00:00 --mail-type NONE --submit --partition scavenge --suppress-stats-file  -o /dev/null
+
+# for wing disc and embryo production simulations
+# but first trying out Nd = 5, yield length = infinity, k_ps increased
+module load dSQ
+# testing stress relaxation, attraction, boundaries on
+#bd0 P
+#!/bin/bash
+numSeeds=4
+t_stress_arr=(1.0 100.0 100000.0)
+att_arr=(0.01 0.02 0.05 0.1 0.2)
+om_arr=(0.001 0.005 0.01 0.05)
+kl_arr=(0.1 0.5 1.0 5.0 10.0)
+ka_arr=(0.2 1.0 5.0 ) 
+k_ps=(4.0)
+rm joblist_PS_tau_ka.txt
+for t_stress in ${t_stress_arr[@]}; do
+  for att in 0.1; do
+    for om in 1.0; do
+      for kl in 1.0; do
+        for ka in ${ka_arr[@]}; do
+            echo bash bash/epi2D/submit_laserAblation.sh 50 30 5 1.20 0.94 0.85 $kl $ka 0.001 $att $om 4.0 $k_ps 4.0 1.0 0.0 $t_stress 0 1 600 day 0-24:00:00 $numSeeds 1 >> joblist_PS_tau_ka.txt
+        done
+      done
+    done
+  done
+done
+
+dsq --job-file joblist_PS_tau_ka.txt --mem-per-cpu 4g -t 1:00:00 --mail-type NONE --submit --partition scavenge --suppress-stats-file  -o /dev/null
