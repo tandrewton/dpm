@@ -21,7 +21,7 @@ strainRate_ps="0.01";
 k_a = "1.0";
 k_l = "1.0";
 k_b = "0.001";
-k_ps = "1.0"; %purse-string spring constant
+k_ps = "4.0"; %purse-string spring constant
 k_lp = "4.0"; %lamellipodia spring constant
 sm = "1";
 tau_lp = "1.0"; %lamellipodia lifetime
@@ -31,7 +31,7 @@ boundaryType = "0";
 B="1.0";
 %bd = "1";
 boolCIL="0";
-Duration="1400";
+Duration="600";
 
 numSeeds = 4;
 startSeed = 1;
@@ -57,17 +57,17 @@ N_arr = ["50"];                 %i
 calA0_arr = ["1.20"];           %ii
 %t_stress_arr = ["1.0" "2.0" "4.0" "8.0" "16.0" "32.0" "64.0" "128.0" "256.0" "512.0" "1024.0" "100000.0"]; %iii
 %t_stress_arr = ["1.0"]; %iii
-t_stress_arr=["1.0" "10.0" "100.0" "100000.0"]; %iii
+t_stress_arr=["1.0" "100.0" "100000.0"]; %iii
 %att_arr = ["0.01" "0.02" "0.05" "0.1" "0.2"]; %j
 att_arr = ["0.1"]; % j
-om_arr = ["0.01"]; %jj
+om_arr = ["1.0"]; %jj
 %om_arr = ["0.001" "0.005" "0.01" "0.05"];             %jj
 kl_arr = ["1.0"]; %jjj
 %kl_arr = ["0.1" "0.5" "1.0" "5.0" "10.0"]; %jjj
 %ka_arr = ["1.0"];               %k
 %ka_arr = ["0.1" "0.5" "1.0" "2.5"];%"5.0" "7.5" "10.0"];    %k
 %ka_arr = ["0.2" "0.6" "1.0" "1.4" "1.8" "2.2" "2.6" "3.0" "3.4" "3.8" "4.2" "10.0"];
-ka_arr=["0.2" "1.0" "2.5" "5.0" "10.0"]; %k
+ka_arr=["0.2" "1.0" "5.0"]; %k
 kb_arr = ["0.001"]; %kk
 deltaSq_arr = ["4.0"];          %kkk
 d_flag_arr = ["0.0"];           %l
@@ -108,7 +108,9 @@ bigproduct = length(N_arr)*length(calA0_arr)*length(t_stress_arr)*...
 numPlots = bigproduct;
 
 showLastFrameOfSimulations = true;
+showPhysicalUnits = 1;
 isCrawling = false;
+
 % set up plotting windows
 
 numPlotTypes = 2; % parameter 1 (t_stress), parameter 2 (kb)

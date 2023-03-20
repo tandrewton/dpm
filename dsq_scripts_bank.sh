@@ -261,7 +261,6 @@ done
 dsq --job-file joblist_PS_att_kb.txt --mem-per-cpu 4g -t 1:00:00 --mail-type NONE --submit --partition scavenge --suppress-stats-file  -o /dev/null
 
 # for wing disc and embryo production simulations
-# but first trying out Nd = 5, yield length = infinity, k_ps increased
 module load dSQ
 # testing stress relaxation, attraction, boundaries on
 #bd0 P
@@ -271,7 +270,7 @@ t_stress_arr=(1.0 100.0 100000.0)
 att_arr=(0.01 0.02 0.05 0.1 0.2)
 om_arr=(0.1 0.5 1.0 5.0)
 kl_arr=(0.1 0.5 1.0 5.0 10.0)
-ka_arr=(0.2 1.0 5.0 ) 
+ka_arr=(0.2 1.0 5.0) 
 k_ps=(4.0)
 rm joblist_PS_tau_ka.txt
 for t_stress in ${t_stress_arr[@]}; do

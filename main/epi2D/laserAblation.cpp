@@ -11,19 +11,19 @@
 //  note: if using circular boundaries via polyWall, try pmin = 0.9 and pmax = 0.85 because pmin is soft disk density and pmax is DP preferred density
 //
 // below: no purse-string, no crawling (inactive simulation)
-//./main/epi2D/laserAblation.o 20 20 0 1.10 0.92 0.925 1.0 4.0 0.01 0.0 0.01  0.0  4.0  4.0 1.0  0.0   10.0     0    0 1  100  test
+//./main/epi2D/laserAblation.o 20 20 0 1.10 0.92 0.925 1.0 4.0 0.01 0.0 1.0  0.0  4.0  4.0 1.0  0.0   10.0     0    0 1  100  test
 // ........................... N  NV Nd A0  pMin  pMax  kl  ka  kb  att  om   dsq  kps  klp tau dflag t_stress bound sm sd time file
 // below: no purse-string, only crawling
-//./main/epi2D/laserAblation.o 50 30 3 1.05 0.94 0.85 1.0 1.0 0.01 0.2 0.005 0.0  1.0  4.0 1.0  3.0     25.0     0   0 1  500  test
+//./main/epi2D/laserAblation.o 50 30 3 1.05 0.94 0.85 1.0 1.0 0.01 0.2 1.0  0.0  1.0  4.0 1.0  3.0     25.0     0   0 1  500  test
 // ........................... N  NV Nd A0  pMin  pMax  kl ka  kb  att  om   dsq  kps  klp tau dflag  t_stress bound sm sd time file
 // below: purse-string, no crawling
-//./main/epi2D/laserAblation.o 40 24  3 1.20 0.94 0.85 1.0 1.0 0.01 0.1 1.0  4.0  1.0  4.0 1.0  0.0   1.0  0  1  1 300  test
+//./main/epi2D/laserAblation.o 36 24  2 1.20 0.94 0.85 1.0 1.0 0.01 0.1 1.0  4.0  1.0  4.0 1.0  0.0   1.0  0  1  1 30  test
 // ........................... N  NV Nd A0  pMin  pMax  kl ka  kb  att  om   dsq  kps  klp tau dflag  t_stress bound sm sd time file
 // below: purse-string, and crawling
-//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.865 1.0 4.0 0.01 0.1 0.01  2.0  4.0  4.0 1.0  3.0     10.0    0   0 1 1  110  test
+//./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.865 1.0 4.0 0.01 0.1 1.0   2.0  4.0  4.0 1.0  3.0     10.0    0   0 1 1  110  test
 // ........................... N  NV Nd A0  pMin  pMax  kl ka  kb  att  om   dsq  kps  klp tau dflag  t_stress bound sm sd time file
 
-// bash bash/epi2D/submit_laserAblation.sh 40 20 6 1.10 0.92 0.925 1.0 1.0 0.2 0.01 0.0 4.0 4.0 1.0 3.0 1.0 0.5 0 0 400 pi_ohern,day,scavenge 0-24:00:00 1 1
+// bash bash/epi2D/submit_laserAblation.sh 40 20 6 1.10 0.92 0.925 1.0 1.0 0.2 1.0  0.0 4.0 4.0 1.0 3.0 1.0 0.5 0 0 400 pi_ohern,day,scavenge 0-24:00:00 1 1
 
 //
 // Parameter input list
@@ -246,7 +246,6 @@ int main(int argc, char const* argv[]) {
     cout << "t_stress is large, setting to infinity\n";
     t_stress = INFINITY;
   }
-  epithelial.setMaxwellRelaxationTime(t_stress);
 
   // after compress, turn on damped NVE
   double T = 1e-2;
@@ -275,11 +274,14 @@ int main(int argc, char const* argv[]) {
   // run at temperature to get cells to adhere, then relax.
   if (isPbcOn) {
     epithelial.vertexNVE(customForceUpdate_inactive, dt0, 2.0 * relaxTime / dt0, 0);
+    epithelial.setMaxwellRelaxationTime(t_stress);
     epithelial.dampedNP0(customForceUpdate_inactive, dt0, 2.0 * relaxTime, 0);
   } else {
-    epithelial.vertexNVE(customForceUpdate_inactive_with_circular_walls, dt0, 1.0 * relaxTime / dt0, 0);
+    // rigidify cell areas before running NVE dynamics
+    epithelial.vertexNVE(customForceUpdate_inactive, dt0, 1.0 * relaxTime / dt0, 0);
     // epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, dt0, 2.0 * relaxTime, 0);
     // energy minimize without walls to get proper cell shapes
+    epithelial.setMaxwellRelaxationTime(t_stress);
     epithelial.dampedNP0(customForceUpdate_inactive, dt0, 1.0 * relaxTime, 0);
   }
 
