@@ -42,6 +42,84 @@ void cell::printInteractionMatrix() {
   }
 }
 
+// initialize monodisperse cell system, single calA0, with r << l0 to have smooth interactions
+void cell::monodisperseSmooth(double calA0, int n) {
+  int ci;
+
+  // print to console
+  cout << "** initializing monodisperse DPM particles in 2D ..." << endl;
+
+  // total number of vertices
+  NVTOT = n * NCELLS;
+  vertDOF = NDIM * NVTOT;
+
+  // szList and nv (keep track of global vertex indices)
+  nv.resize(NCELLS);
+  szList.resize(NCELLS);
+
+  nv.at(0) = n;
+  for (ci = 1; ci < NCELLS; ci++) {
+    nv.at(ci) = n;
+    szList.at(ci) = szList.at(ci - 1) + nv.at(ci - 1);
+  }
+
+  // initialize vertex shape parameters
+  initializeVertexShapeParametersSmooth(calA0, n);
+
+  // initialize vertex indexing
+  initializeVertexIndexing2D();
+}
+
+void cell::initializeVertexShapeParametersSmooth(double calA0, int nref) {
+  // local variables
+  int gi, ci, vi, nvtmp;
+  double rtmp, calA0tmp, calAntmp;
+
+  // check that vertDOF has been assigned
+  if (NVTOT <= 0) {
+    cerr << "	** ERROR: in initializeVertexShapeParameters, NVTOT not assigned. Ending here." << endl;
+    exit(1);
+  }
+  if (vertDOF <= 0) {
+    cerr << "	** ERROR: in initializeVertexShapeParameters, vertDOF not assigned. Ending here." << endl;
+    exit(1);
+  } else if (nv.size() == 0) {
+    cerr << "	** ERROR: in initializeVertexShapeParameters, nv vector not assigned. Ending here." << endl;
+    exit(1);
+  }
+
+  // resize shape paramters
+  l0.resize(NVTOT);
+  vl0.resize(NVTOT);
+  Fl0.resize(NVTOT);
+  t0.resize(NVTOT);
+  r.resize(NVTOT);
+
+  // loop over cells, determine shape parameters
+  for (ci = 0; ci < NCELLS; ci++) {
+    // number of vertices on cell ci
+    nvtmp = nv.at(ci);
+
+    // a0 based on nv
+    rtmp = (double)nvtmp / nref;
+    a0.at(ci) = rtmp * rtmp;
+
+    // shape parameter
+    calAntmp = nvtmp * tan(PI / nvtmp) / PI;
+    calA0tmp = calA0 * calAntmp;
+
+    // l0 and vertex radii
+    gi = szList.at(ci);
+    for (vi = 0; vi < nv.at(ci); vi++) {
+      l0.at(gi + vi) = 2.0 * sqrt(PI * calA0tmp * a0.at(ci)) / nvtmp;
+      vl0.at(gi + vi) = 0.0;
+      Fl0.at(gi + vi) = 0.0;
+      t0.at(gi + vi) = 0.0;
+      r.at(gi + vi) = 0.1 * l0.at(gi + vi);
+    }
+  }
+}
+
 void cell::maxwellRelaxationRestLengths(std::vector<double>& l, std::vector<int> viscoelasticCellTypes) {
   // overloaded version of dpm function. only makes certain cellTypes viscoelastic
   // we are integrating a 1D equation of motion for rest lengths
@@ -573,7 +651,10 @@ void cell::circuloLineAttractiveForces() {
         // rx, ry = x,y components of d
         // projection = parametrization value of the projection of gi onto the line segment.
 
-        for (int swapii = 0; swapii < 2; swapii++) {
+        for (int swapii = 0; swapii < 2; swapii++) {  // calculate gi-gj and gj-gi
+          // d is the distance from gi to line segment gj-im1[gj]
+          // rx, ry are components of d
+          // projection p < 0 if gi is closest to im1[gj], 0 < p < 1 if gi is closest to the line segment, p > 1 if gi is closest to gj
           d = linePointDistancesAndProjection(x[NDIM * im1[gj]], x[NDIM * im1[gj] + 1], x[NDIM * gj], x[NDIM * gj + 1], x[NDIM * gi], x[NDIM * gi + 1], rx, ry, projection, x10, y10);
           if (!isSelfInteraction) {
             if (projection < 1 || d < shellij) {

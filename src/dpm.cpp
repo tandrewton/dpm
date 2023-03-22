@@ -1737,7 +1737,6 @@ double dpm::distanceLinePointComponents(double x1, double y1, double x2, double 
   return distance;
 }
 
-// old name: distLinePointComponentsAndContactType
 double dpm::linePointDistancesAndProjection(double x1, double y1, double x2, double y2, double x0, double y0, double& xcomp, double& ycomp, double& projection, double& dx10, double& dy10) {
   // get the distance from a line SEGMENT (ending at its endpoints) going through (x1,y1), (x2,y2) and a
   // point located at (x0,y0), and extract x and y components of the distance

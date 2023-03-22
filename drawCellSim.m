@@ -4,10 +4,10 @@
 %pwd should give ~/Documents/YalePhd/projects/dpm
 
 %function drawCellSim(N, att, initialPressure, prate, adhrate, Duration)
-isTestData = false; %uncomment if using function call to pipeline data
+%isTestData = false; %uncomment if using function call to pipeline data
 
-%isTestData = true; %uncomment if using test data
-%testDataID = num2str(testDataii);
+isTestData = true; %uncomment if using test data
+testDataID = num2str(testDataii);
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('C:\Users\atata\projects\dpm\bash')
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
@@ -28,8 +28,8 @@ Duration="400";
 FSKIP = 1;
 
 startSeed = 1;
-max_seed = 10;
-makeAMovie = 0; %if makeAMovie is 0, then plot every frame separately
+max_seed = 1;
+makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
 
@@ -39,8 +39,8 @@ walls = 0;
 att_range = 0.3;
  
 %PC directory
-pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
-%pc_dir="C:\Users\atata\projects\dpm\";
+%pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
+pc_dir="C:\Users\atata\projects\dpm\";
 %pipeline is the location of data generated during simulations
 subdir_pipeline = pc_dir + "pipeline/cells/"+runType+"/";
 
@@ -139,7 +139,7 @@ for seed = startSeed:max_seed
 
     figure(fnum), clf, hold on, box on;
 
-    FSTART=FEND; % hack to skip to the last frame to save the boundary info
+    %FSTART=FEND; % hack to skip to the last frame to save the boundary info
 
     for ff = FSTART:FSTEP:FEND
         %nv can change, so recompute color map each frame
@@ -264,7 +264,7 @@ for seed = startSeed:max_seed
                         else
                             % if cellID is a real cell, have it be black
                             % exterior with black interior
-                            %patch('Faces',finfo,'vertices',vpos,'FaceColor','k','EdgeColor','k','linewidth',0.001);
+                            patch('Faces',finfo,'vertices',vpos,'FaceColor','k','EdgeColor','k','linewidth',0.001);
                         end
                     end
                 end

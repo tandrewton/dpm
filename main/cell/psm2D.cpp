@@ -26,7 +26,7 @@
 ./main/cell/psm2D.o   12   25 1.05 0.01  25.0   0.1   1.0    1   1      400    test9
 ./main/cell/psm2D.o   12   25 1.05 0.05  25.0   0.1   1.0    1   1      400    test10
 ./main/cell/psm2D.o   12   25 1.05 0.1   25.0   0.1   1.0    1   1      400    test11
-./main/cell/psm2D.o   12   25 1.05 0.2   25.0   0.1   1.0    1   1      400    test12
+./main/cell/psm2D.o   12   25 1.05 0.2   0.0   0.0   1.0    1   1      5    test12
 
 ./main/cell/psm2D.o   12   25 1.05 0.0  25.0   0.05   1.0    1   1      400    test1
 ./main/cell/psm2D.o   12   25 1.05 0.01 25.0   0.05   1.0    1   1      400    test2
@@ -52,7 +52,7 @@ const double phi0 = 0.91;           // initial packing fraction
 const double phiMax = 0.8;
 const double smallfrac = 1.0;  // fraction of small particles
 const double sizeratio = 1.0;  // size ratio between small and large particles
-const double dt0 = 0.1;        // initial magnitude of time step in units of MD time
+const double dt0 = 0.005;      // initial magnitude of time step in units of MD time
 const double Ptol = 1e-8;
 const double Ftol = 1e-12;
 const double att_range = 0.3;
@@ -162,6 +162,7 @@ int main(int argc, char const* argv[]) {
 
   // initialize particles with the same number of vertices and the same preferred shape parameter calA0
   cell2D.monodisperse2D(calA0, nv);
+  // cell2D.monodisperseSmooth(calA0, nv);
   // initialize particle positions
   cell2D.initializeTransverseTissue(phi0, Ftol);
   cell2D.printConfiguration2D();
@@ -199,17 +200,17 @@ int main(int argc, char const* argv[]) {
       cell2D.setActiveBrownianParameters(v0_abp, tau_abp);
     }
   }
-  cell2D.dampedVertexNVE(attractiveForceUpdateWithPolyWalls, dt0, relaxTimeShort, relaxTimeShort / 2);
-  cell2D.replacePolyWallWithDP(numCellTypes);
+  // cell2D.dampedVertexNVE(attractiveForceUpdateWithPolyWalls, dt0, relaxTimeShort, relaxTimeShort / 2);
+  // cell2D.replacePolyWallWithDP(numCellTypes);
   cout << "after replacePolyWallWithDP, about to run NVE for duration " << runTime << "\n";
   cell2D.resizeNeighborLinkedList2D();
   // cell2D.dampedVertexNVE(customForceUpdate, dt0, relaxTime, relaxTime / 15);
   if (v0_abp <= 0.0) {
     // thermal simulation, no activity, no damping
-    cell2D.vertexNVE(customForceUpdate, 1e-2, dt0, runTime, runTime / 50.0);
+    cell2D.vertexNVE(customForceUpdate, 1e-2, dt0, runTime, runTime / 20.0);
   } else {
     // active simulation, damping
-    cell2D.dampedVertexNVE(customForceUpdate, dt0, runTime, runTime / 50.0);
+    cell2D.dampedVertexNVE(customForceUpdate, dt0, runTime, runTime / 100.0);
   }
   // cell2D.saveConfiguration(savedPositions);
   // cell2D.loadConfiguration(savedPositions);

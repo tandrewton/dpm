@@ -127,6 +127,8 @@ class cell : public dpm {
   void printInteractionMatrix();
   // consider writing a function that uses cell IDs
 
+  void monodisperseSmooth(double calA0, int n);
+  void initializeVertexShapeParametersSmooth(double calA0, int nref);
   // cell interactions
   void maxwellRelaxationRestLengths(std::vector<double>& l, std::vector<int> cellTypes);
   void shapeForces2D();
