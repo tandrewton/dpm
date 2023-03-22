@@ -149,7 +149,7 @@ class cell : public dpm {
   void vertexAttractiveForces2D_2();
   void vertexAttractiveForces2D_test(double& energy);
   void circuloLineAttractiveForces();
-  void calculateSmoothInteraction(double& rx, double& ry, double& sij, double& shellij, double& cutij, double& kint, double& kc, int& gi, int& gj, double& projection, int& ci, int& cj);
+  void calculateSmoothInteraction(double rx, double ry, double& sij, double& shellij, double& cutij, double& kint, double& kc, int& gi, int& gj, double& projection, int& ci, int& cj);
   void wallForces(bool left, bool bottom, bool right, bool top, double& forceLeft, double& forceBottom, double& forceRight, double& forceTop, double appliedUniaxialPressure = 0.0);
   void wallCrawlingForces();
   void cellPolarityForces(int ci, double k_polarity, std::string direction = "y");
