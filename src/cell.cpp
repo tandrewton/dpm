@@ -655,7 +655,7 @@ void cell::circuloLineAttractiveForces() {
           // d is the distance from gi to line segment gj-im1[gj]
           // rx, ry are components of d
           // projection p < 0 if gi is closest to im1[gj], 0 < p < 1 if gi is closest to the line segment, p > 1 if gi is closest to gj
-          d = linePointDistancesAndProjection(x[NDIM * im1[gj]], x[NDIM * im1[gj] + 1], x[NDIM * gj], x[NDIM * gj + 1], x[NDIM * gi], x[NDIM * gi + 1], rx, ry, projection, x10, y10);
+          d = linePointDistancesAndProjection(x[NDIM * im1[gj]], x[NDIM * im1[gj] + 1], x[NDIM * gj], x[NDIM * gj + 1], x[NDIM * gi], x[NDIM * gi + 1], rx, ry, projection);
           if (!isSelfInteraction) {
             if (projection < 1 || d < shellij) {
               // check that the projection falls within the interacting portion of vertex i
@@ -746,7 +746,7 @@ void cell::circuloLineAttractiveForces() {
           // projection = parametrization value of the projection of gi onto the line segment.
 
           for (int swapii = 0; swapii < 2; swapii++) {
-            d = linePointDistancesAndProjection(x[NDIM * im1[gj]], x[NDIM * im1[gj] + 1], x[NDIM * gj], x[NDIM * gj + 1], x[NDIM * gi], x[NDIM * gi + 1], rx, ry, projection, x10, y10);
+            d = linePointDistancesAndProjection(x[NDIM * im1[gj]], x[NDIM * im1[gj] + 1], x[NDIM * gj], x[NDIM * gj + 1], x[NDIM * gi], x[NDIM * gi + 1], rx, ry, projection);
             if (!isSelfInteraction) {
               if (projection < 1 || d < shellij) {
                 // check that the projection falls within the interacting portion of vertex i
