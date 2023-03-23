@@ -548,7 +548,7 @@ void dpm::initializeVertexShapeParameters(std::vector<double> calA0, int nref) {
 }
 
 // calculate smallest x and y values and then shift simulation so they're both positive
-void dpm::moveSimulationToPositiveCoordinates() {
+void dpm::moveSimulationToPositiveCoordinates(double xshift, double yshift) {
   std::vector<double> posX(NVTOT / 2), posY(NVTOT / 2);
   for (int i = 0; i < NVTOT; i++) {
     if (i % 2 == 0)
@@ -1817,6 +1817,64 @@ void dpm::generateCircle(int numEdges, double cx, double cy, double r, std::vect
   }
   px = poly_x_temp;
   py = poly_y_temp;
+}
+
+void dpm::generateRectangularBoundary(double radius, double cx, double cy, std::vector<double>& poly_x, std::vector<double>& poly_y) {
+  // place a rectangular boundary, then fix L[0] and L[1] just outside the circle for plotting purposes.
+  // in initializePositions2D, isCircle flag is chosen to ensure that particles fall within L/2 (radius) of L/2 (center of box)
+  // cx cy are the center of the boundary polygon
+  cout << "in generateRectangularBoundary\n";
+  cout << L[0] << '\t' << L[1] << '\n';
+  // generateCircle(numEdges, cx, cy, radius, poly_x, poly_y);
+  double aspectRatio = 2;
+  std::vector<double> x_pos = {cx + radius, cx - radius, cx - radius, cx + radius},
+                      y_pos = {cy + radius * aspectRatio, cy + radius * aspectRatio, cy - radius * aspectRatio, cy - radius * aspectRatio};
+  for (int i = 0; i < 4; i++) {
+    poly_x.push_back(x_pos[i]);
+    poly_y.push_back(y_pos[i]);
+  }
+
+  cout << "after generating the polygon boundary, set L[0] and L[1] to be outside this boundary\n";
+  L[0] = 1.0 * *max_element(std::begin(poly_x), std::end(poly_x));
+  L[1] = 1.0 * *max_element(std::begin(poly_y), std::end(poly_y));
+  cout << L[0] << '\t' << L[1] << '\n';
+
+  // plot final polygonal boundary, make sure to clear the file when running a new simulation (should be run with ofstream polyBoundary.txt without app before generateCircularBoundary is called)
+  ofstream boundaryStream("polyBoundary.txt", std::ios_base::app);
+  for (int i = 0; i < poly_x.size(); i++) {
+    boundaryStream << poly_x[i] << '\t' << poly_y[i] << '\t';
+  }
+  boundaryStream << '\n';
+}
+
+void dpm::replaceCircularBoundary(int polyShapeID, double aspectRatio) {
+  int numBoundaryElements = poly_bd_x.size();
+  // calculate bounding box for the poly_bd
+  if (polyShapeID == 1) {
+    double top, bottom, left, right;
+    top = 1.0 * *max_element(std::begin(poly_bd_y[0]), std::end(poly_bd_y[0]));
+    bottom = 1.0 * *min_element(std::begin(poly_bd_y[0]), std::end(poly_bd_y[0]));
+    left = 1.0 * *min_element(std::begin(poly_bd_x[0]), std::end(poly_bd_x[0]));
+    right = 1.0 * *max_element(std::begin(poly_bd_x[0]), std::end(poly_bd_x[0]));
+    double height = top - bottom;
+    top += (aspectRatio - 1.0) * height;
+    std::vector<double> x_pos = {right, left, left, right},
+                        y_pos = {top, top, bottom, bottom};
+    // clear existing poly_bd
+    poly_bd_x[0].clear();
+    poly_bd_y[0].clear();
+    // assuming only one tissue, so use poly_bd[0]
+    for (int i = 0; i < 4; i++) {
+      poly_bd_x[0].push_back(x_pos[i]);
+      poly_bd_y[0].push_back(y_pos[i]);
+    }
+
+    cout << "after generating the polygon boundary, set L[0] and L[1] to be outside this boundary\n";
+    L[0] = right;
+    L[1] = top;
+    cout << L[0] << '\t' << L[1] << '\n';
+  } else
+    assert(false);
 }
 
 std::vector<double> dpm::resample_polygon(std::vector<double> px, std::vector<double> py, double perimeter, int numPoints) {

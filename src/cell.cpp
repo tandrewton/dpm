@@ -1910,10 +1910,11 @@ void cell::addDP(int numVerts, vector<double>& dp_x, vector<double>& dp_y, int c
 // routines
 
 // eventually, call this 4x in order to replace initializeFourTransverseTissues
-void cell::initializeTransverseTissue(double phi0, double Ftol) {
+void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID) {
   // initialize starting positions and all related data for a large DP (ECM) and numCellsInside smaller DPs
   // isFixedBoundary is an optional bool argument that tells cells to stay away from boundary during initialization
   // aspect ratio is L[0]/L[1]
+  // polyShapeID = 0 corresponds to a circle, 1 corresponds to a rectangle
   int i, d, ci, cj, vi, vj, gi, cellDOF = NDIM * NCELLS, cumNumCells = 0;
   int numEdges = 10;  // number of edges in the polygonal walls to approximate a circle
   double areaSum, xtra = 1.1;
@@ -1977,7 +1978,13 @@ void cell::initializeTransverseTissue(double phi0, double Ftol) {
     double scale_radius = 1.1;                   // make the polygon radius slightly larger so that it encompasses the circle that points are initialized in
     poly_bd_x.push_back(std::vector<double>());  // make new data for generateCircularBoundary to write a polygon
     poly_bd_y.push_back(std::vector<double>());
-    generateCircularBoundary(numEdges, scale_radius * tissueRadii[n], cx[n], cy[n], poly_bd_x[n], poly_bd_y[n]);
+
+    if (polyShapeID == 0)
+      generateCircularBoundary(numEdges, scale_radius * tissueRadii[n], cx[n], cy[n], poly_bd_x[n], poly_bd_y[n]);
+    else if (polyShapeID == 1)
+      generateRectangularBoundary(scale_radius * tissueRadii[n], cx[n], cy[n], poly_bd_x[n], poly_bd_y[n]);
+    else
+      assert(false);
 
     for (i = cumNumCells; i < cumNumCells + numCellsInTissue[n]; i++) {
       cout << "i = " << i << "\t, dpos.size() = " << dpos.size() << ", cumNumCells = " << cumNumCells << "\t, numCellsInTissue[n] = " << numCellsInTissue[n] << '\n';

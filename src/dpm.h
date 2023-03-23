@@ -235,7 +235,7 @@ class dpm {
     }
   }
 
-  void moveSimulationToPositiveCoordinates();
+  void moveSimulationToPositiveCoordinates(double xshift = 0, double yshift = 0);
 
   // File openers
   void openPosObject(std::string& str) {
@@ -271,6 +271,8 @@ class dpm {
   double linePointDistancesAndProjection(double x1, double y1, double x2, double y2, double x0, double y0, double& xcomp, double& ycomp, double& contactType);
   void generateCircularBoundary(int numEdges, double radius, double cx, double cy, std::vector<double>& poly_x, std::vector<double>& poly_y);
   void generateCircle(int numEdges, double cx, double cy, double r, std::vector<double>& poly_x, std::vector<double>& poly_y);
+  void generateRectangularBoundary(double radius, double cx, double cy, std::vector<double>& poly_x, std::vector<double>& poly_y);
+  void replaceCircularBoundary(int polyShapeID, double aspectRatio);
   std::vector<double> resample_polygon(std::vector<double> px, std::vector<double> py, double perimeter, int numPoints);
 
   // force definitions

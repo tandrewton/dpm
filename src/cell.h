@@ -198,7 +198,7 @@ class cell : public dpm {
 
   // routines
   void initializeFourTransverseTissues(double phi0, double Ftol);
-  void initializeTransverseTissue(double phi0, double Ftol);
+  void initializeTransverseTissue(double phi0, double Ftol, int polyShapeID = 0);
   void vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0);
   void vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0);
   void shrinkCellVertices(dpmMemFn forceCall, double dt0, double shrinkRatio);

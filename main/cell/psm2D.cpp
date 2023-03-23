@@ -164,19 +164,16 @@ int main(int argc, char const* argv[]) {
 
   // initialize particles with the same number of vertices and the same preferred shape parameter calA0
   cell2D.monodisperse2D(calA0, nv);
-  // cell2D.monodisperseSmooth(calA0, nv);
-  //  initialize particle positions
-  cell2D.initializeTransverseTissue(phi0, Ftol);
+  //  initialize particle positions initially in a circle configuration
+  int circleID = 0, rectangleID = 1;
+  cell2D.initializeTransverseTissue(phi0, Ftol, circleID);
   cell2D.printConfiguration2D();
 
   cell2D.initializeNeighborLinkedList2D(boxLengthScale);
   cell2D.printConfiguration2D();
 
   // compress to target packing fraction
-  // if (!sm)
   cell2D.vertexCompress2Target2D_polygon(attractiveForceUpdateWithPolyWalls, Ftol, dt0, phiMax, dphi0);
-  // else
-  //   cell2D.vertexCompress2Target2D_polygon(attractiveSmoothForceUpdateWithPolyWalls, Ftol, dt0, phiMax, dphi0);
   cout << "done compressing to target packing fraction\n";
   cell2D.printConfiguration2D();
 
@@ -192,10 +189,15 @@ int main(int argc, char const* argv[]) {
     if (v0_abp <= 0.0)
       customForceUpdate = attractiveSmoothForceUpdate;
     else {
-      // assert(false);  // don't have this yet
       customForceUpdate = attractionSmoothWithActiveBrownianUpdate;
       cell2D.setActiveBrownianParameters(v0_abp, tau_abp);
     }
+    cell2D.dampedVertexNVE(attractiveSmoothForceUpdateWithPolyWalls, dt0, relaxTimeShort, relaxTimeShort / 2);
+    cell2D.replaceCircularBoundary(rectangleID, 2.0);
+    cell2D.replacePolyWallWithDP(numCellTypes);
+    cout << "after replacePolyWallWithDP, about to run NVE for duration " << runTime << "\n";
+    cell2D.resizeNeighborLinkedList2D();
+
     cout << "shrinking vertices!\n";
     cell2D.shrinkCellVertices(customForceUpdate, dt0, 2.5);
   } else {
@@ -206,20 +208,19 @@ int main(int argc, char const* argv[]) {
       customForceUpdate = attractionWithActiveBrownianUpdate;
       cell2D.setActiveBrownianParameters(v0_abp, tau_abp);
     }
+    cell2D.dampedVertexNVE(attractiveForceUpdateWithPolyWalls, dt0, relaxTimeShort, relaxTimeShort / 2);
+    cell2D.replacePolyWallWithDP(numCellTypes);
+    cout << "after replacePolyWallWithDP, about to run NVE for duration " << runTime << "\n";
+    cell2D.resizeNeighborLinkedList2D();
   }
-  // cell2D.dampedVertexNVE(attractiveForceUpdateWithPolyWalls, dt0, relaxTimeShort, relaxTimeShort / 2);
-  cell2D.dampedVertexNVE(attractiveSmoothForceUpdateWithPolyWalls, dt0, relaxTimeShort, relaxTimeShort / 2);
-  cell2D.replacePolyWallWithDP(numCellTypes);
-  cout << "after replacePolyWallWithDP, about to run NVE for duration " << runTime << "\n";
-  cell2D.resizeNeighborLinkedList2D();
+
   // cell2D.dampedVertexNVE(customForceUpdate, dt0, relaxTime, relaxTime / 15);
-  if (v0_abp <= 0.0) {
-    // thermal simulation, no activity, no damping
+
+  if (v0_abp <= 0.0)  // thermal, no activity, no damping
     cell2D.vertexNVE(customForceUpdate, 1e-2, dt0, runTime, runTime / 20.0);
-  } else {
-    // active simulation, damping
+  else  // active simulation, damping
     cell2D.dampedVertexNVE(customForceUpdate, dt0, runTime, runTime / 25.0);
-  }
+
   // cell2D.saveConfiguration(savedPositions);
   // cell2D.loadConfiguration(savedPositions);
 
