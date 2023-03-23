@@ -33,7 +33,7 @@ makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
 
-showverts = 0;
+showverts = 1;
 showcirculoline = 0;
 walls = 0;
 att_range = 0.3;

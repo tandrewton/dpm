@@ -484,6 +484,21 @@ void cell::attractiveForceUpdateWithCrawling() {
   brownianCrawlingUpdate();
 }
 
+void cell::attractiveSmoothForceUpdate() {
+  resetForcesAndEnergy();
+  shapeForces2D();
+  circuloLineAttractiveForces();
+}
+
+void cell::attractiveSmoothForceUpdateWithPolyWall() {
+  resetForcesAndEnergy();
+  shapeForces2D();
+  circuloLineAttractiveForces();
+  for (int i = 0; i < poly_bd_x.size(); i++) {
+    evaluatePolygonalWallForces(poly_bd_x[i], poly_bd_y[i]);
+  }
+}
+
 void cell::attractiveSmoothForceUpdateWithCrawling() {
   resetForcesAndEnergy();
   shapeForces2D();
@@ -532,12 +547,6 @@ void cell::attractiveForceUpdatePrint(double& forceX, double& forceY, double& en
   vertexAttractiveForces2D_test(energy);
   forceX = F[0];
   forceY = F[1];
-}
-
-void cell::attractiveSmoothForceUpdate() {
-  resetForcesAndEnergy();
-  shapeForces2D();
-  circuloLineAttractiveForces();
 }
 
 /*void cell::attractiveForceUpdateSmoothPrint(double& forceX, double& forceY, double& energy) {
@@ -2688,6 +2697,56 @@ void cell::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, doub
   }
 }
 
+void cell::shrinkCellVertices(dpmMemFn forceCall, double dt0, double shrinkRatio) {
+  // quasistatically shrink r while keeping l0 fixed. this will give more sliding room for laterally mobile adhesion
+  int it = 0, itmax = 1e4;
+  // local variables
+  int t, i, relaxTime = 1;
+
+  int NPRINTSKIP = 10;  // every 10 iterations, save the configuration to check
+
+  // set time step magnitude
+  setdt(dt0);
+
+  double initialRadius = r[0];
+
+  while (initialRadius / r[0] < shrinkRatio && it < itmax) {
+    if (posout.is_open() && it % NPRINTSKIP == 0)
+      printConfiguration2D();
+
+    // shrink vertices
+    for (int gi = 0; gi < NVTOT; gi++) {
+      r[gi] *= 0.95;
+    }
+
+    // run NVE for relaxTime to be quasistatic
+    for (int time = 0; i < relaxTime / dt0; i++) {
+      // VV VELOCITY UPDATE #1
+      for (i = 0; i < vertDOF; i++)
+        v[i] += 0.5 * dt * F[i];
+
+      // VV POSITION UPDATE
+      for (i = 0; i < vertDOF; i++) {
+        // update position
+        x[i] += dt * v[i];
+
+        // recenter in box
+        if (x[i] > L[i % NDIM] && pbc[i % NDIM])
+          x[i] -= L[i % NDIM];
+        else if (x[i] < 0 && pbc[i % NDIM])
+          x[i] += L[i % NDIM];
+      }
+
+      // FORCE UPDATE
+      CALL_MEMBER_FN(*this, forceCall)
+      ();
+
+      // VV VELOCITY UPDATE #2
+      for (i = 0; i < vertDOF; i++)
+        v[i] += 0.5 * F[i] * dt;
+    }
+  }
+}
 // used for running MD on neuralTube simulation
 void cell::simulateDampedWithWalls(dpmMemFn forceCall, double dt0, double duration, double printInterval, double pressureRate, double adhesionRate, bool wallsOn, bool leftOpen, bool bottomOpen, bool rightOpen, bool topOpen, double trueStrainRateX, double trueStrainRateY, double appliedUniaxialPressure) {
   // make sure velocities exist or are already initialized before calling this
