@@ -564,10 +564,10 @@ void dpm::moveSimulationToPositiveCoordinates(double xshift, double yshift) {
 
   if (xLow < 0)
     for (int gi = 0; gi < NVTOT; gi++)
-      x[NDIM * gi] += fabs(xLow);
+      x[NDIM * gi] += fabs(xLow) + xshift;
   if (yLow < 0)
     for (int gi = 0; gi < NVTOT; gi++)
-      x[NDIM * gi + 1] += fabs(yLow);
+      x[NDIM * gi + 1] += fabs(yLow) + yshift;
 }
 
 // initialize monodisperse cell system, single calA0
@@ -1856,7 +1856,9 @@ void dpm::replaceCircularBoundary(int polyShapeID, double aspectRatio) {
     bottom = 1.0 * *min_element(std::begin(poly_bd_y[0]), std::end(poly_bd_y[0]));
     left = 1.0 * *min_element(std::begin(poly_bd_x[0]), std::end(poly_bd_x[0]));
     right = 1.0 * *max_element(std::begin(poly_bd_x[0]), std::end(poly_bd_x[0]));
+    double xshift = 0.0, yshift = (top - bottom) / 2;
     double height = top - bottom;
+    // extend the rectangle only in the y-direction. this leaves the cluster of cells in the bottom of the rectangle
     top += (aspectRatio - 1.0) * height;
     std::vector<double> x_pos = {right, left, left, right},
                         y_pos = {top, top, bottom, bottom};
@@ -1868,6 +1870,9 @@ void dpm::replaceCircularBoundary(int polyShapeID, double aspectRatio) {
       poly_bd_x[0].push_back(x_pos[i]);
       poly_bd_y[0].push_back(y_pos[i]);
     }
+
+    // move cells to the center of the rectangle
+    moveSimulationToPositiveCoordinates(0.0, (top - bottom) / 2 - yshift);
 
     cout << "after generating the polygon boundary, set L[0] and L[1] to be outside this boundary\n";
     L[0] = right;
