@@ -152,8 +152,11 @@ int main(int argc, char const* argv[]) {
   // cellTypeIntMat = ones to begin with
   for (int i = 0; i < numCellTypes; i++) {
     for (int j = 0; j < numCellTypes; j++) {
-      if (i == numCellTypes - 1 || j == numCellTypes - 1) {  // boundaries interact with everyone
-        cell2D.setCellTypeAttractionModifiers(i, j, 1.0);
+      if (i == numCellTypes - 1 || j == numCellTypes - 1) {
+        // boundaries attract everyone
+        // cell2D.setCellTypeAttractionModifiers(i, j, 1.0);
+        // boundaries are only repulsive
+        cell2D.setCellTypeAttractionModifiers(i, j, 0.0);
       } else if (i != j) {  // other than boundaries, off diagonals are zero (only cells of same type interact)
                             // else // no cells interact
         cell2D.setCellTypeAttractionModifiers(i, j, 1.0);

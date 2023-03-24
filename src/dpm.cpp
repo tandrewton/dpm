@@ -1332,14 +1332,15 @@ void dpm::resizeNeighborLinkedList2D() {
   int i, d, nntmp, scx;
 
   // print to console
-  // double boxLengthScale = *std::max_element(x.begin(), x.end());
   double boxLengthScale = 2.5;
   cout << "** resizing neighbor linked list, lengthscale = " << boxLengthScale << '\n';
 
   if (!pbc[0] && !pbc[1]) {
-    cout << "assigning max particle dimensions to be the new box length to size the neighbor list properly\n";
-    L[0] = boxLengthScale;
-    L[1] = boxLengthScale;
+    double currentBoxLength = *std::max_element(x.begin(), x.end());
+    cout
+        << "assigning max particle dimensions to be the new box length to size the neighbor list properly\n";
+    L[0] = currentBoxLength;
+    L[1] = currentBoxLength;
   }
 
   // get largest diameter times attraction shell (let buffer be larger than attraction range would ever be) as llscale
