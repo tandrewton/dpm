@@ -1230,7 +1230,7 @@ void dpm::initializeNeighborLinkedList2D(double boxLengthScale) {
   cout << "** initializing neighbor linked list, boxLengthScale = " << boxLengthScale << '\n';
 
   // get largest diameter times attraction shell (let buffer be larger than attraction range would ever be) as llscale
-  double buffer = 2.5;
+  double buffer = 1.5;
   llscale = buffer * 2 * (*max_element(r.begin(), r.end()));
   cout << "llscale = " << llscale << '\n';
 
@@ -1332,7 +1332,8 @@ void dpm::resizeNeighborLinkedList2D() {
   int i, d, nntmp, scx;
 
   // print to console
-  double boxLengthScale = *std::max_element(x.begin(), x.end());
+  // double boxLengthScale = *std::max_element(x.begin(), x.end());
+  double boxLengthScale = 2.5;
   cout << "** resizing neighbor linked list, lengthscale = " << boxLengthScale << '\n';
 
   if (!pbc[0] && !pbc[1]) {
@@ -1510,7 +1511,8 @@ void dpm::sortNeighborLinkedList2D() {
     } else {
       if (boxid >= last.size()) {
         cout << "gi " << gi << ", boxid out of range : " << boxid << '\t' << last.size() << '\n';
-        cout << x[NDIM * gi] << '\t' << x[NDIM * gi + 1] << '\n';
+        cout << "x out of range = " << x[NDIM * gi] << '\t' << x[NDIM * gi + 1] << '\n';
+        cout << "L = " << L[0] << '\t' << L[1] << '\n';
       }
       if (last[boxid] >= list.size()) {
         cout << "gi " << gi << ", last[boxid] out of range : " << last[boxid] << '\t' << list.size() << '\n';
@@ -1835,8 +1837,8 @@ void dpm::generateRectangularBoundary(double radius, double cx, double cy, std::
   }
 
   cout << "after generating the polygon boundary, set L[0] and L[1] to be outside this boundary\n";
-  L[0] = 1.0 * *max_element(std::begin(poly_x), std::end(poly_x));
-  L[1] = 1.0 * *max_element(std::begin(poly_y), std::end(poly_y));
+  L[0] = 1.05 * *max_element(std::begin(poly_x), std::end(poly_x));
+  L[1] = 1.05 * *max_element(std::begin(poly_y), std::end(poly_y));
   cout << L[0] << '\t' << L[1] << '\n';
 
   // plot final polygonal boundary, make sure to clear the file when running a new simulation (should be run with ofstream polyBoundary.txt without app before generateCircularBoundary is called)
