@@ -515,6 +515,8 @@ void cell::brownianCrawlingUpdate() {
   for (int ci = 0; ci < NCELLS; ci++) {
     if (cellID[ci] != 0)  // only cell types are allowed to crawl, boundaries are not allowed to crawl
       continue;
+    if (ci != 0)  // testing: only 1 cell moving (streaming)
+      continue;
     double director = psi[ci];
     for (int vi = 0; vi < nv[ci]; vi++) {
       gi = gindex(ci, vi);

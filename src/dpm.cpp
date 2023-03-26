@@ -1336,11 +1336,17 @@ void dpm::resizeNeighborLinkedList2D() {
   cout << "** resizing neighbor linked list, lengthscale = " << boxLengthScale << '\n';
 
   if (!pbc[0] && !pbc[1]) {
-    double currentBoxLength = *std::max_element(x.begin(), x.end());
-    cout
-        << "assigning max particle dimensions to be the new box length to size the neighbor list properly\n";
-    L[0] = currentBoxLength;
-    L[1] = currentBoxLength;
+    double maxX = 0, maxY = 0;
+    for (int i = 0; i < x.size(); i += 2) {
+      if (x[i] > maxX)
+        maxX = x[i];
+      if (x[i + 1] > maxY)
+        maxY = x[i + 1];
+    }
+    // double currentBoxLength = *std::max_element(x.begin(), x.end());
+    cout << "assigning max particle dimensions to be the new box length to size the neighbor list properly\n";
+    L[0] = maxX * 1.05;
+    L[1] = maxY * 1.05;
   }
 
   // get largest diameter times attraction shell (let buffer be larger than attraction range would ever be) as llscale
@@ -1878,8 +1884,8 @@ void dpm::replaceCircularBoundary(int polyShapeID, double aspectRatio) {
     moveSimulationToPositiveCoordinates(0.0, (top - bottom) / 2 - yshift);
 
     cout << "after generating the polygon boundary, set L[0] and L[1] to be outside this boundary\n";
-    L[0] = right;
-    L[1] = top;
+    L[0] = right * 1.05;
+    L[1] = top * 1.05;
     cout << L[0] << '\t' << L[1] << '\n';
   } else
     assert(false);

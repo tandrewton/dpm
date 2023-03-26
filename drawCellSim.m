@@ -251,8 +251,8 @@ for seed = startSeed:max_seed
                 rx = xtmp - cx;
                 ry = ytmp - cy;
                 rads = sqrt(rx.^2 + ry.^2);
-                xtmp = xtmp + 0.4*l0tmp(1)*(rx./rads);
-                ytmp = ytmp + 0.4*l0tmp(1)*(ry./rads);
+                %xtmp = xtmp + 0.4*l0tmp(1)*(rx./rads);
+                %ytmp = ytmp + 0.4*l0tmp(1)*(ry./rads);
                 %text(cx,cy,num2str(nn)) % plot cell # on each cell
                 for xx = itLow:itHigh
                     for yy = itLow:itHigh
@@ -268,7 +268,10 @@ for seed = startSeed:max_seed
                         else
                             % if cellID is a real cell, have it be black
                             % exterior with black interior
-                            patch('Faces',finfo,'vertices',vpos,'FaceColor','k','EdgeColor','k','linewidth',0.001);
+                            %patch('Faces',finfo,'vertices',vpos,'FaceColor','k','EdgeColor','k','linewidth',0.001);
+                            patch('Faces',finfo,'vertices',vpos,'FaceColor',clr, ...
+                                'FaceAlpha', 'flat','FaceVertexAlphaData', 0, 'EdgeColor','k',...
+                                'linewidth',0.001);
                         end
                     end
                 end
