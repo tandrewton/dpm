@@ -267,7 +267,8 @@ void cell::shapeForces2D() {
       rip1y -= L[1] * round(rip1y / L[1]);
 
     // -- Area force (comes from a cross product) only applies to cellID 0 = ordinary cells, not boundaries
-    if (cellID[ci_real] == 0) {
+    // letting both cellID = 0 and = 1 have area and bending forces. ignore the above comment for now.
+    if (cellID[ci_real] == 0 || cellID[ci_real] == 1) {
       forceX = 0.5 * fa * (rim1y - rip1y);
       forceY = 0.5 * fa * (rip1x - rim1x);
 
@@ -311,7 +312,7 @@ void cell::shapeForces2D() {
     cellU[ci_real] += 0.5 * kl * (dli * dli);
 
     // -- Bending force
-    if (kb > 0 && cellID[ci_real] == 0) {
+    if (kb > 0 && (cellID[ci_real] == 0 || cellID[ci_real] == 1)) {
       // if (kb > 0) {
       //  get ip2 for third angle
       rip2x = x[NDIM * ip1[ip1[gi]]] - cx;
@@ -574,6 +575,10 @@ void cell::circuloLineAttractiveForces() {
 
   // attraction shell parameters
   double shellij, cutij, xij, kint = (kc * l1) / (l2 - l1);
+  // kint and cutij will be redefined if cellTypeIntModifier != 1.0
+
+  // cell type interaction specificity parameters
+  double cellTypeIntModifier = 1.0, cellTypeIntModifier_repulsion = 1.0;
 
   // sort particles
   sortNeighborLinkedList2D();
@@ -608,6 +613,12 @@ void cell::circuloLineAttractiveForces() {
         // cell index of j
         cindices(cj, vj, gj);
 
+        // check if cellType changes the attraction definition. If it does, modify the force function by changing only l1 and kint which depends on l1.
+        cellTypeIntModifier = cellTypeIntMat[cellID[ci]][cellID[cj]];
+        kint = (kc * l1 * cellTypeIntModifier) / (l2 - l1 * cellTypeIntModifier);
+        // make sure cellTypeIntModifier does not change the adhesive force function outside of its defined range
+        assert(l1 * cellTypeIntModifier <= l2 && cellTypeIntModifier >= 0.0);
+
         if (gj == ip1[gi] || gj == im1[gi]) {
           pj = list[pj];
           continue;
@@ -618,7 +629,7 @@ void cell::circuloLineAttractiveForces() {
 
         // attraction distances
         shellij = (1.0 + l2) * sij;
-        cutij = (1.0 + l1) * sij;
+        cutij = (1.0 + l1 * cellTypeIntModifier) * sij;
 
         isSelfInteraction = false;
         // calculate self-penetration: if self penetrating, compute self-repulsion and move on
@@ -696,6 +707,12 @@ void cell::circuloLineAttractiveForces() {
           // cell index of j
           cindices(cj, vj, gj);
 
+          // check if cellType changes the attraction definition. If it does, modify the force function by changing only l1 and kint which depends on l1.
+          cellTypeIntModifier = cellTypeIntMat[cellID[ci]][cellID[cj]];
+          kint = (kc * l1 * cellTypeIntModifier) / (l2 - l1 * cellTypeIntModifier);
+          // make sure cellTypeIntModifier does not change the adhesive force function outside of its defined range
+          assert(l1 * cellTypeIntModifier <= l2 && cellTypeIntModifier >= 0.0);
+
           if (gj == ip1[gi] || gj == im1[gi]) {
             pj = list[pj];
             continue;
@@ -706,7 +723,7 @@ void cell::circuloLineAttractiveForces() {
 
           // attraction distances
           shellij = (1.0 + l2) * sij;
-          cutij = (1.0 + l1) * sij;
+          cutij = (1.0 + l1 * cellTypeIntModifier) * sij;
 
           isSelfInteraction = false;
           // calculate self-penetration: if self penetrating, compute self-repulsion and move on
@@ -801,7 +818,7 @@ void cell::circuloLineAttractiveForces() {
   projection p: p<0, 0<p<1, p>1 for gi-im1[gj], gi-linesegment, gi-gj respectively
 */
 
-void cell::calculateSmoothInteraction(double rx, double ry, double& sij, double& shellij, double& cutij, double& kint, double& kc, int& gi, int& gj, double& projection, int& ci, int& cj) {
+void cell::calculateSmoothInteraction(double rx, double ry, double sij, double shellij, double cutij, double kint, double kc, int gi, int gj, double& projection, int& ci, int& cj) {
   double rij, xij, ftmp, energytmp;
   double dx, dy, fx, fy;
   double endEndAngle, endCapAngle, endEndAngle2;
@@ -1794,7 +1811,7 @@ void cell::cellPolarityForces(int ci, double k_polarity, std::string direction) 
 
 // boundary routines
 void cell::replacePolyWallWithDP(int numCellTypes) {
-  // take a polyWall in poly_bd_x and poly_bd_y, create data to replace the polywall with a DP of the same size and shape, then delete the polywall.
+  // take a polyWall in poly_bd_x and poly_bd_y, create data to replace the polywall with a DP of the same size and shape, then delete the polywall. Assign the new DP a cellTypeIndex of numCellTypes - 1.
   // must account for and modify all vectors with size dependent on NCELLS and NVTOT, such as szList
   double polyPerimeter = 0.0;
   vector<double> dp_x, dp_y;

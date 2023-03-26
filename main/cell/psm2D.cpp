@@ -157,6 +157,7 @@ int main(int argc, char const* argv[]) {
         // cell2D.setCellTypeAttractionModifiers(i, j, 1.0);
         // boundaries are only repulsive
         cell2D.setCellTypeAttractionModifiers(i, j, 0.0);
+        cout << "in set cell type attraction modifiers, i, j = " << i << '\t' << j << '\n';
       } else if (i != j) {  // other than boundaries, off diagonals are zero (only cells of same type interact)
                             // else // no cells interact
         cell2D.setCellTypeAttractionModifiers(i, j, 1.0);

@@ -33,7 +33,8 @@ makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
 
-showverts = 1;
+showverts = 0;
+showGlobalIndex = 0;
 showcirculoline = 0;
 walls = 0;
 att_range = 0.3;
@@ -206,6 +207,9 @@ for seed = startSeed:max_seed
                         for yy = itLow:itHigh
                             rectangle('Position',[xplot+xx*Lx, yplot + yy*Ly, 2*vradtmp(vv), 2*vradtmp(vv)],'Curvature',[1 1],'EdgeColor','k','FaceColor',clr);
                             %text(xplot-0.25,yplot-0.25,num2str(vv-1))
+                            if showGlobalIndex
+                                text(xtmp(vv), ytmp(vv), num2str(gitmp(vv)), 'FontSize', 6);
+                            end
                         end
                     end
                 end
