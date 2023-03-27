@@ -1651,7 +1651,14 @@ void epi2D::dampedCompression(dpmMemFn forceCall, double dt0, double duration, d
   int NPRINTSKIP = printInterval / dt;
 
   // initial coordinate of walls
-  double lowerWallPos = 0, upperWallPos = L[1], leftWallPos = -1e10, rightWallPos = 1e10;
+  double maxX = 0.0, maxY = 0.0;
+  for (int i = 0; i < x.size(); i += 2) {
+    if (x[i] > maxX)
+      maxX = x[i];
+    if (x[i + 1] > maxY)
+      maxY = x[i + 1];
+  }
+  double lowerWallPos = 0, upperWallPos = maxY + r[0], leftWallPos = -1e10, rightWallPos = 1e10;
   double comx, comy;
   com2D(0, comx, comy);
   displaceCell(0, L[0] / 2 - comx, L[1] / 2 - comy);
@@ -1659,6 +1666,7 @@ void epi2D::dampedCompression(dpmMemFn forceCall, double dt0, double duration, d
 
   std::ofstream wallout("wallPositions.txt");
   // print wall positions for easy debugging of wall locations
+  wallout << simclock - t0 << '\t' << lowerWallPos << '\t' << upperWallPos << '\t' << leftWallPos << '\t' << rightWallPos << '\n';
 
   // loop over time, print energy
   while (simclock - t0 < duration) {

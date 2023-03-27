@@ -17,7 +17,7 @@ addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
 pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
 showverts = 1;
 showSprings = 0;
-makeAMovie = 1;
+makeAMovie = 0;
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
 fnum=1;
@@ -40,17 +40,17 @@ showShapeHistogram = 0;
 %txt = 'N = '+N+', NV = '+NV+', calA_o='+calA+', att='+att+', B='+B;
 txt='test';
 
-figure(1), clf, hold on, box on;  
+%figure(1), clf, hold on, box on;  
 
 nvestr = pc_dir + "oneDP.pos";
 
-figure(2); clf; hold on;
+%figure(2); clf; hold on;
 wallPos = load("wallPositions.txt");
-plot(wallPos(:,1), wallPos(:,2), 'DisplayName', "lower");
-plot(wallPos(:,1), wallPos(:,3), 'DisplayName', "upper");
+%plot(wallPos(:,1), wallPos(:,2), 'DisplayName', "lower");
+%plot(wallPos(:,1), wallPos(:,3), 'DisplayName', "upper");
 %plot(wallPos(:,3), 'DisplayName', "left");
 %plot(wallPos(:,4), 'DisplayName', "right");
-legend
+%legend
 
 
 %%
@@ -114,6 +114,15 @@ for ff = FSTART:FSTEP:FEND
         fnum = fnum+1;
     end
     figure(fnum), clf, hold on, box on;
+
+    if (walls)
+        % plot walls
+        [~,time_idx_wall] = min(abs(wallPos(:,1)-trajectoryData.time(ff)));
+        yline(wallPos(time_idx_wall,2), 'linewidth', 4, 'color', 'k')
+        yline(wallPos(time_idx_wall,3), 'linewidth', 4, 'color', 'k')
+        xline(wallPos(time_idx_wall,4), 'linewidth', 4, 'color', 'k')
+        xline(wallPos(time_idx_wall,5), 'linewidth', 4, 'color', 'k')
+    end
 
     fprintf('printing frame ff = %d/%d\n',ff,FEND);
 
@@ -345,10 +354,10 @@ for ff = FSTART:FSTEP:FEND
         if (walls)
             % plot walls
             [~,time_idx_wall] = min(abs(wallPos(:,1)-frame_time));
-            yline(wallPos(time_idx_wall,2))
-            yline(wallPos(time_idx_wall,3))
-            xline(wallPos(time_idx_wall,4))
-            xline(wallPos(time_idx_wall,5))
+            yline(wallPos(time_idx_wall,2), 'linewidth', 4, 'color', 'k')
+            yline(wallPos(time_idx_wall,3), 'linewidth', 4, 'color', 'k')
+            xline(wallPos(time_idx_wall,4), 'linewidth', 4, 'color', 'k')
+            xline(wallPos(time_idx_wall,5), 'linewidth', 4, 'color', 'k')
         end
         
         currframe = getframe(gcf);
