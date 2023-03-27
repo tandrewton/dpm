@@ -33,7 +33,7 @@ makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
 
-showverts = 0;
+showverts = 1;
 showGlobalIndex = 0;
 showcirculoline = 0;
 walls = 0;
@@ -304,7 +304,7 @@ for seed = startSeed:max_seed
             % plot box
             plot([L_left Lx Lx L_left L_left], [L_bottom L_bottom Ly Ly L_bottom], 'k-', 'linewidth', 1.5);
         else
-            viewScale = 1.5;
+            viewScale = 1.3;
             viewLx = viewScale*Lx;
             viewLxLow = -(viewScale-1)*Lx;
             viewLy = viewScale*Ly;
@@ -323,6 +323,7 @@ for seed = startSeed:max_seed
 
         % if making a movie, save frame
         if makeAMovie == 1
+            axis off;
             currframe = getframe(gcf);
             writeVideo(vobj,currframe);
         end

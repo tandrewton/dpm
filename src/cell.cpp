@@ -313,6 +313,7 @@ void cell::shapeForces2D() {
 
     // -- Bending force
     if (kb > 0 && (cellID[ci_real] == 0 || cellID[ci_real] == 1)) {
+      // if boundary type, make it 10x as bending rigid
       // if (kb > 0) {
       //  get ip2 for third angle
       rip2x = x[NDIM * ip1[ip1[gi]]] - cx;
@@ -514,8 +515,6 @@ void cell::brownianCrawlingUpdate() {
   // printf("v0_ABP = %f, kc * rho0 / 2*r = %f \n", v0_ABP, kc * sqrt(a0[0]) / (2 * r[0]));
   for (int ci = 0; ci < NCELLS; ci++) {
     if (cellID[ci] != 0)  // only cell types are allowed to crawl, boundaries are not allowed to crawl
-      continue;
-    if (ci != 0)  // testing: only 1 cell moving (streaming)
       continue;
     double director = psi[ci];
     for (int vi = 0; vi < nv[ci]; vi++) {
@@ -2737,9 +2736,9 @@ void cell::shrinkCellVertices(dpmMemFn forceCall, double dt0, double shrinkRatio
   double initialRadius = r[0];
 
   while (initialRadius / r[0] < shrinkRatio && it < itmax) {
-    if (posout.is_open() && it % NPRINTSKIP == 0)
+    /*if (posout.is_open() && it % NPRINTSKIP == 0)
       printConfiguration2D();
-
+    */
     // shrink vertices
     for (int gi = 0; gi < NVTOT; gi++) {
       r[gi] *= 0.95;

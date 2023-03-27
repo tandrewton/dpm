@@ -26,7 +26,7 @@
 ./main/cell/psm2D.o   12   25 1.05 0.01  25.0   0.1   1.0    1   1      400    test9
 ./main/cell/psm2D.o   12   25 1.05 0.05  25.0   0.1   1.0    1   1      400    test10
 ./main/cell/psm2D.o   12   25 1.05 0.1   25.0   0.1   1.0    1   1      400    test11
-./main/cell/psm2D.o   12   25 1.05 0.2   0.0   0.1   1.0    1   1      50    test12
+./main/cell/psm2D.o   24   16 1.05 0.2   0.0   0.1   1.0    1   1       100    test12
 
 ./main/cell/psm2D.o   12   25 1.05 0.0  25.0   0.05   1.0    1   1      400    test1
 ./main/cell/psm2D.o   12   25 1.05 0.01 25.0   0.05   1.0    1   1      400    test2
@@ -44,18 +44,18 @@ using namespace std;
 const bool plotCompression = 0;     // whether or not to plot configuration during compression protocol (0 saves memory)
 const double dphi0 = 0.005;         // packing fraction increment
 const double ka = 1.0;              // area force spring constant (should be unit)
-const double kc = 5.0;              // interaction force spring constant (should be unit)
+const double kc = 10.0;             // interaction force spring constant (should be unit)
 const double kb = 0.1;              // bending energy spring constant (should be zero)
 const double kl = 1.0;              // segment length interaction force (should be unit)
 const double boxLengthScale = 2.5;  // neighbor list box size in units of initial l0
 const double phi0 = 0.91;           // initial packing fraction
-const double phiMax = 0.8;
+const double phiMax = 0.85;
 const double smallfrac = 1.0;  // fraction of small particles
 const double sizeratio = 1.0;  // size ratio between small and large particles
 const double dt0 = 0.01;       // initial magnitude of time step in units of MD time
 const double Ptol = 1e-8;
 const double Ftol = 1e-12;
-const double att_range = 0.3;
+const double att_range = 0.5;
 const double maxwellRelaxationTime = 10.0;
 
 int main(int argc, char const* argv[]) {
@@ -177,7 +177,7 @@ int main(int argc, char const* argv[]) {
   cell2D.printConfiguration2D();
 
   // compress to target packing fraction
-  cell2D.vertexCompress2Target2D_polygon(attractiveForceUpdateWithPolyWalls, Ftol, dt0, phiMax, dphi0);
+  cell2D.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithPolyWalls, Ftol, dt0, phiMax, dphi0);
   cout << "done compressing to target packing fraction\n";
   cell2D.printConfiguration2D();
 
@@ -196,14 +196,15 @@ int main(int argc, char const* argv[]) {
       customForceUpdate = attractionSmoothWithActiveBrownianUpdate;
       cell2D.setActiveBrownianParameters(v0_abp, tau_abp);
     }
-    cell2D.dampedVertexNVE(attractiveSmoothForceUpdateWithPolyWalls, dt0, relaxTimeShort, relaxTimeShort / 2);
+    // cell2D.dampedVertexNVE(attractiveSmoothForceUpdateWithPolyWalls, dt0, relaxTimeShort, relaxTimeShort / 2);
+    cell2D.dampedVertexNVE(repulsiveForceUpdateWithPolyWalls, dt0, relaxTimeShort, relaxTimeShort / 2);
     cell2D.replaceCircularBoundary(rectangleID, 2.0);
     cell2D.replacePolyWallWithDP(numCellTypes);
     cout << "after replacePolyWallWithDP, about to run NVE for duration " << runTime << "\n";
     cell2D.resizeNeighborLinkedList2D();
-
+    cell2D.dampedVertexNVE(repulsiveForceUpdate, dt0, relaxTimeShort, relaxTimeShort / 2);
     cout << "shrinking vertices!\n";
-    cell2D.shrinkCellVertices(customForceUpdate, dt0, 2.5);
+    cell2D.shrinkCellVertices(customForceUpdate, dt0, 20.0);
   } else {
     // bumpy
     if (v0_abp <= 0.0)
@@ -223,7 +224,7 @@ int main(int argc, char const* argv[]) {
   if (v0_abp <= 0.0)  // thermal, no activity, no damping
     cell2D.vertexNVE(customForceUpdate, 1e-2, dt0, runTime, runTime / 20.0);
   else  // active simulation, damping
-    cell2D.dampedVertexNVE(customForceUpdate, dt0, runTime, runTime / 25.0);
+    cell2D.dampedVertexNVE(customForceUpdate, dt0, runTime, runTime / 15.0);
 
   // cell2D.saveConfiguration(savedPositions);
   // cell2D.loadConfiguration(savedPositions);
