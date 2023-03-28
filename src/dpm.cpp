@@ -2197,9 +2197,6 @@ void dpm::maxwellRelaxationRestLengths(std::vector<double>& l) {
 
     // velocity verlet velocity update
     vl0[i] += (al0_old + al0) * dt / 2;
-    if (fabs(Fl0[i]) > 1e-10 || fabs(vl0[i]) > 1e-10){
-      cout << "warning: t_stress, Fl0, vl0 = " << maxwellRelaxationTime << '\t' << Fl0[i] << '\t' << vl0[i] << '\n';
-    }
   }
 }
 
