@@ -1659,6 +1659,7 @@ void epi2D::dampedCompression(dpmMemFn forceCall, double dt0, double duration, d
       maxY = x[i + 1];
   }
   double lowerWallPos = 0, upperWallPos = maxY + r[0], leftWallPos = -1e10, rightWallPos = 1e10;
+  double initialHeight = upperWallPos - lowerWallPos;
   double comx, comy;
   com2D(0, comx, comy);
   displaceCell(0, L[0] / 2 - comx, L[1] / 2 - comy);
@@ -1672,18 +1673,19 @@ void epi2D::dampedCompression(dpmMemFn forceCall, double dt0, double duration, d
   while (simclock - t0 < duration) {
     if (int((simclock - t0) / dt) % 100 == 0) {
       wallout << simclock - t0 << '\t' << lowerWallPos << '\t' << upperWallPos << '\t' << leftWallPos << '\t' << rightWallPos << '\n';
+      double currentHeight = upperWallPos - lowerWallPos;
       double increment = r[0] * 0.007;
-      if (simclock - t0 < 0.2 * duration) {
-        // bring the upper and lower walls toward each other for 20% duration
+      if (simclock - t0 < 0.4 * duration && currentHeight > 0.5*initialHeight) {
+        // bring the upper and lower walls toward each other until 50% of initial height
         upperWallPos -= increment;
         lowerWallPos += increment;
       } else if (simclock - t0 < 0.4 * duration) {
-        // hold the wall there for 20% duration
-      } else if (simclock - t0 >= 0.4 * duration) {
+        // hold the wall there until 40% duration has passed (total)
+      } else if (simclock - t0 >= 0.4 * duration && currentHeight < initialHeight) {
         // release the wall for 60% duration
         upperWallPos += increment;
         lowerWallPos -= increment;
-      }
+      } 
     }
 
     // VV POSITION UPDATE
