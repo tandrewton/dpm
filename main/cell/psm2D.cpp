@@ -200,7 +200,7 @@ int main(int argc, char const* argv[]) {
     cell2D.dampedVertexNVE(repulsiveForceUpdateWithPolyWalls, dt0, relaxTimeShort, relaxTimeShort / 2);
     cell2D.replaceCircularBoundary(rectangleID, 2.0);
     cell2D.replacePolyWallWithDP(numCellTypes);
-    cout << "after replacePolyWallWithDP, about to run NVE for duration " << runTime << "\n";
+    cout << "after replacePolyWallWithDP, about to run NVE for duration " << relaxTimeShort << "\n";
     cell2D.resizeNeighborLinkedList2D();
     cell2D.dampedVertexNVE(repulsiveForceUpdate, dt0, relaxTimeShort, relaxTimeShort / 2);
     cout << "shrinking vertices!\n";
@@ -220,11 +220,12 @@ int main(int argc, char const* argv[]) {
   }
 
   // cell2D.dampedVertexNVE(customForceUpdate, dt0, relaxTime, relaxTime / 15);
-
+  cout << "\n\nmain simulation begins!\n\n";
   if (v0_abp <= 0.0)  // thermal, no activity, no damping
     cell2D.vertexNVE(customForceUpdate, 1e-2, dt0, runTime, runTime / 20.0);
   else  // active simulation, damping
     cell2D.dampedVertexNVE(customForceUpdate, dt0, runTime, runTime / 15.0);
+  // cell2D.dampedVertexNVE(customForceUpdate, dt0, runTime, runTime / 15.0);
 
   // cell2D.saveConfiguration(savedPositions);
   // cell2D.loadConfiguration(savedPositions);

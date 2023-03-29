@@ -390,6 +390,8 @@ void cell::shapeForces2D() {
   for (int ci = 0; ci < NCELLS; ci++) {
     for (int vi = 0; vi < nv[ci]; vi++) {
       int gi = gindex(ci, vi);
+      if (gi > fieldShapeStress.size())
+        cout << "gi, ci, vi = " << gi << '\t' << ci << '\t' << vi << '\n';
       fieldShapeStressCells[ci][0] += fieldShapeStress[gi][0];
       fieldShapeStressCells[ci][1] += fieldShapeStress[gi][1];
       fieldShapeStressCells[ci][2] += fieldShapeStress[gi][2];
@@ -3073,7 +3075,7 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double dt0, double duration, doub
     // print to console and file
     if (int(printInterval) != 0) {
       if (int((simclock - t0) / dt) % NPRINTSKIP == 0 &&
-          (simclock - temp_simclock) > printInterval / 2) {
+          (simclock - temp_simclock) > printInterval / 2.0) {
         temp_simclock = simclock;
         // compute kinetic energy
         K = vertexKineticEnergy();
@@ -3094,6 +3096,7 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double dt0, double duration, doub
         cout << endl;
         cout << "	** simclock - t0 / duration	= " << simclock - t0
              << " / " << duration << endl;
+
         cout << " **  dt   = " << setprecision(12) << dt << endl;
         cout << "	** U 		= " << setprecision(12) << U << endl;
         cout << "	** K 		= " << setprecision(12) << K << endl;
