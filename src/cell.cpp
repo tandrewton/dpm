@@ -2008,19 +2008,16 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
       cout << "i = " << i << "\t, dpos.size() = " << dpos.size() << ", cumNumCells = " << cumNumCells << "\t, numCellsInTissue[n] = " << numCellsInTissue[n] << '\n';
       double dpos_x = tissueRadii[n] * (2 * drand48() - 1) + cx[n], dpos_y = tissueRadii[n] * (2 * drand48() - 1) + cy[n];
       while (pow(dpos_x - cx[n], 2) + pow(dpos_y - cy[n], 2) > pow(tissueRadii[n] / (scale_radius), 2)) {
-        dpos_x = tissueRadii[n] * (2 * drand48() - 1) + cx[n];
-        dpos_y = tissueRadii[n] * (2 * drand48() - 1) + cy[n];
+        dpos_x = tissueRadii[n] / scale_radius * (2 * drand48() - 1) + cx[n];
+        dpos_y = tissueRadii[n] / scale_radius * (2 * drand48() - 1) + cy[n];
       }
       dpos.at(i * NDIM) = dpos_x;
       dpos.at(i * NDIM + 1) = dpos_y;
       ipStream << dpos[i * NDIM] << '\t' << dpos[i * NDIM + 1] << '\n';
       cellID[i] = n;
-      cout << "cell " << i << " is in tissue number " << n << "with cell type = " << cellID[i] << '\n';
-      cout << " with position " << dpos_x << '\t' << dpos_y << '\n';
+      cout << "cell " << i << " is in tissue number " << n << "with cell type = " << cellID[i] << " with position " << dpos_x << '\t' << dpos_y << '\n';
     }
-    cout << "before adding to cumNumCells\n";
     cumNumCells += numCellsInTissue[n];
-    cout << "just after adding to cumNumCells\n";
   }
 
   cout << "setting radii of SP disks\n";
@@ -2176,7 +2173,7 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
       std::vector<double> poly_x = poly_bd_x[k];
       std::vector<double> poly_y = poly_bd_y[k];
       int n = poly_x.size();
-      double distanceParticleWall, Rx, Ry, dw, K = 1;
+      double distanceParticleWall, Rx, Ry, dw, K = 10;
       double bound_x1, bound_x2, bound_y1, bound_y2;
       // loop over boundary bars
       // loop over particles
