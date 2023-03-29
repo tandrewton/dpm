@@ -359,7 +359,7 @@ void cell::shapeForces2D() {
 
       // update potential energy
       U += 0.5 * kb * (dti * dti);
-      cellU[ci] += 0.5 * kb * (dti * dti);
+      cellU[ci_real] += 0.5 * kb * (dti * dti);
     }
 
     // update old coordinates
