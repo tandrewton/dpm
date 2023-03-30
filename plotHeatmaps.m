@@ -1,6 +1,6 @@
 clear;close all;
 set(0,'DefaultFigureWindowStyle','docked')
-isPlottingAreaVelocity = false;
+isPlottingAreaVelocity = true;
 isPlottingShapes = ~isPlottingAreaVelocity;
 assert((isPlottingAreaVelocity && isPlottingShapes) == false);
 %%
@@ -110,6 +110,15 @@ xlim([min(xpoints) max(xpoints)]*bulkModulusConvert);
 ylim([min(ypoints) max(ypoints)]*timeConvert);
 set(gca, 'YScale', 'log', 'XScale', 'log')
 set(gca,'FontSize', 20)
+
+parameterSelectionB = [0.64 0.64];
+parameterSelectionTau = [5.33 2730.67];
+
+scatter(parameterSelectionB(1), parameterSelectionTau(1), 240, "black", ...
+    "square",'filled','MarkerFaceColor', 'black', 'MarkerEdgeColor', 'white', 'linewidth', 1);
+scatter(parameterSelectionB(2), parameterSelectionTau(2), 240, "red", ...
+    "square",'filled','MarkerFaceColor', 'red', 'MarkerEdgeColor', 'white', 'linewidth', 1);
+
 % 
 % %integer format for x and y ticks
 % yt = get(gca,'ytick');
