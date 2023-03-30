@@ -56,20 +56,17 @@ array_output_dir = subdir_output + "array_output_figures/";
 N_arr = ["50"];                 %i
 calA0_arr = ["1.20"];           %ii
 %t_stress_arr = ["1.0" "2.0" "4.0" "8.0" "16.0" "32.0" "64.0" "128.0" "256.0" "512.0" "1024.0" "100000.0"]; %iii
-%t_stress_arr = ["1.0"]; %iii
-%t_stress_arr=["1.0" "100.0" "100000.0"]; %iii
-%t_stress_arr = ["2.0" "8.0" "32.0" "128.0" "512.0" "100000.0"];
-t_stress_arr=["1.2" "2.4" "4.8" "9.6" "19.2" "76.8" "307.2" "1228.8" "4915.2" "9830.4"];
+t_stress_arr = ["19.2" "9830.4"]; %iii
+%t_stress_arr=["2.4" "4.8" "9.6" "19.2" "76.8" "307.2" "1228.8" "4915.2" "9830.4"];
+%t_stress_arr=["4915.2" "9830.4"];
 %att_arr = ["0.01" "0.02" "0.05" "0.1" "0.2"]; %j
 att_arr = ["0.1"]; % j
 om_arr = ["1.0"]; %jj
 %om_arr = ["0.001" "0.005" "0.01" "0.05"];             %jj
 kl_arr = ["1.0"]; %jjj
 %kl_arr = ["0.1" "0.5" "1.0" "5.0" "10.0"]; %jjj
-%ka_arr = ["1.0"];               %k
-%ka_arr = ["0.1" "0.5" "1.0" "2.5"];%"5.0" "7.5" "10.0"];    %k
-%ka_arr = ["0.2" "0.6" "1.0" "1.4" "1.8" "2.2" "2.6" "3.0" "3.4" "3.8" "4.2" "10.0"];
-ka_arr=["0.25" "0.5" "1.0" "2.0" "4.0" "8.0" "16.0" "32.0" "64.0" "128.0"]; %k
+ka_arr = ["0.25" "16.0"];               %k
+%ka_arr=["0.25" "0.5" "1.0" "2.0" "4.0" "8.0" "16.0" "32.0" "64.0" "128.0" "256.0"]; %k
 kb_arr = ["0.001"]; %kk
 deltaSq_arr = ["4.0"];          %kkk
 d_flag_arr = ["0.0"];           %l
@@ -101,6 +98,25 @@ end
 
 assert(~isempty(pm1) && ~isempty(pm2));
 
+if (length(pm1) == length(pm2) && length(pm1) == 2)
+    disp("comparing parameter pair! for publication")
+    isProductionRun = true;
+    isUsePhysicalQuantites = true;
+    
+    % physical units here
+    cellArea = [25,16]; % microns^2
+    constrictionRate = 0.3; % micron/sec
+    adhesionForce = 1e-9; % Newton
+    
+    % simulation to real unit conversion
+    bulkModulusConvert = adhesionForce./cellArea*1e12/1000; %kPa
+    timeConvert = sqrt(cellArea)./constrictionRate/60; % minutes
+    areaVelocityConvert = constrictionRate.*sqrt(cellArea)*60; %micron^2/min
+else
+    isUsePhysicalQuantities = false;
+    isProductionRun=false;
+end
+
 pm1pm2_folder = "cfg_"+pm1_str+"_"+pm2_str+"/";
 mkdir(array_output_dir+pm1pm2_folder);
 
@@ -109,7 +125,8 @@ bigproduct = length(N_arr)*length(calA0_arr)*length(t_stress_arr)*...
     length(ka_arr)*length(kb_arr)*length(deltaSq_arr)*length(d_flag_arr);
 numPlots = bigproduct;
 
-showLastFrameOfSimulations = true;
+showLastFrameOfSimulations = false;
+showPlots = true; % if false, don't show area vs time
 showPhysicalUnits = 1;
 isCrawling = false;
 
@@ -232,13 +249,13 @@ for i=1:length(N_arr)
                                                 woundProperties_sd = load(woundPropertiesStr);
                                                 cellID = load(innerAndBulkCellIDStr);
                                                 voidArea_sd(voidArea_sd == 1e10) = NaN;
-                                            innerShapes_sd = bulkCellShape_sd(:,[1; cellID(:,3)]==1);
+                                                innerShapes_sd = bulkCellShape_sd(:,[1; cellID(:,3)]==1);
                                             catch
                                                 disp('Did not load file: '+pipeline_dir+fileheader);
                                                 numGoodSeeds = numGoodSeeds - 1;
                                                 continue;
                                             end
-                                            meanInnerShapes_sd = nanmean(innerShapes_sd(:,2:end),2);
+                                            meanInnerShapes_sd = mean(innerShapes_sd(:,2:end),2, 'omitnan');
                                             timeInnerShapes_sd = innerShapes_sd(:,1);
 
                                             if (showLastFrameOfSimulations && seed == 1)
@@ -355,10 +372,11 @@ for i=1:length(N_arr)
                                         end
 
                                         voidArea(:,2) = voidArea(:,2) / numGoodSeeds;
-                                        %voidArea(:,4) = voidArea(:,4) / numGoodSeeds;
-                                        %voidArea(:,4) = voidArea(:,4) / max(voidArea(:,4));
                                         healingTime = healingTime / numGoodSeeds;
                                         rosetteNumber = rosetteNumber / numGoodSeeds;
+                                        % get the minimum/maximum shape of each
+                                        % cell, and take the mean over the
+                                        % cells
                                         minInnerShapes = mean(min(innerShapeArr, [], 2),'omitnan');
                                         maxInnerShapes = mean(max(innerShapeArr, [], 2),'omitnan');
 
@@ -369,40 +387,54 @@ for i=1:length(N_arr)
                                         meanRosetteShape = mean(stdMeanShapeArr(:,2));
                                         stdRosetteShape = sqrt(mean(stdMeanShapeArr(:,1).^2));
                                         [maxVoidArea, argmaxVoidArea ]= max(voidArea(:,2));
-                                        [~,timeFivePercent] = min(voidArea(:,2) - 0.05*maxVoidArea);
+                                        [~,timeFivePercent] = min(abs(voidArea(:,2) - 0.05*maxVoidArea));
                                         arealVelocity = (1-0.05) * maxVoidArea / (voidArea(timeFivePercent,1) - voidArea(argmaxVoidArea,1));
-                                        
+                                        % fprintf('%f %f %f %f %f\n', maxVoidArea, 0.05*maxVoidArea, timeFivePercent, voidArea(timeFivePercent,1), arealVelocity)
 
-                                        % plot area vs time 
-                                        figure(pm1_ind)
+                                        if (showPlots)
+                                            % plot area vs time 
+                                            figure(pm1_ind) 
+                                            colorList = ['r', 'k'];
+                                            if (isProductionRun)
+                                                figure(pm2_ind)
+                                                % want (tau1, B1) and (tau2, B1). 
+                                                plot(voidArea(:,1)*timeConvert(pm1_ind), voidArea(:,2)*cellArea(pm1_ind),...
+                                                    'linewidth',5, 'Color', colorList(pm1_ind),'DisplayName', displayStr)
+                                                legend off
+                                                xlabel('Time (min)','Interpreter','latex','fontsize', 24);
+                                                ylabel('Wound area $(\mu m^2)$','Interpreter','latex','fontsize', 24);
 
-                                        plot(voidArea(:,1), voidArea(:,2), 'linewidth', 4, 'DisplayName', displayStr)
-                                        %plot(voidArea(:,1), voidArea(:,4), 'linewidth', 4, 'DisplayName', displayStr)
-                                        xlabel('$t/\tau$','Interpreter','latex','fontsize', 24);
-                                        ylabel('Area','Interpreter','latex','fontsize', 24);
-                                        %set(gca,'Yscale','log')
-                                        ylim([0 inf])
-                                        legend('location','northeast','fontsize', 8)
-                                        saveas(gcf, array_output_dir+"voidArea/"+"calA0"+calA0+"_"+pm1_str+"_"+pm2_str+"_"+pm1_ind+".png")
+                                                % plot shape vs time
+                                                %figure(length(calA0_arr)+shapeii + 100*(k-1) + 1000*(j-1))
+                                                figure(pm2_ind+2);
+                            
+                                                % cellID row = [ci inInitialWoundNeighbors inFinalWoundNeighbors]
+                                                % we want to access inFinalWoundNeighbors of bulkCellShape
+                                                % bulkCellShape row = [time shape(0) shape(1) ... shape(NCELLS)]
+                                                %innerShapes = bulkCellShape(:,[1; cellID(:,3)]==1);
+                                                %outerShapes = bulkCellShape(:,[1; ~cellID(:,3)]==1);
+%                                                 plot(innerShapes(:,1), nanmean(innerShapes(:,2:end),2),  ...
+%                                                     'linewidth', 4, 'DisplayName', "inner shapes",...
+%                                                      'Color', color_array(l),'LineStyle', style_array(j))
+                                                %plot(timeAndOuterShapes(:,1),nanmean(timeAndOuterShapes(:,2:end),2), ...
+                                                %    'linewidth', 4, 'DisplayName', "bulk shapes")
+                                                plot(timeInnerShapes*timeConvert(pm1_ind), mean(innerShapeArr,'omitnan'),...
+                                                    'linewidth',5, 'Color', colorList(pm1_ind),'DisplayName', displayStr)
+                                                xlabel('Time (min)','Interpreter','latex','fontsize', 24);
+                                                ylabel('$\mathcal{A}$','Interpreter','latex','fontsize', 24);
+                                                %legend('location','southeast','fontsize', 6)
+                                                legend off
+                                                ylim([1.0,1.8])
+                                            else
+                                                plot(voidArea(:,1), voidArea(:,2), 'linewidth', 4, 'DisplayName', displayStr)
+                                                xlabel('$t/\tau$','Interpreter','latex','fontsize', 24);
+                                                ylabel('Area','Interpreter','latex','fontsize', 24);
+                                            end
 
-                                        %                     % plot shape vs time
-                                        %                     figure(length(calA0_arr)+shapeii + 100*(k-1) + 1000*(j-1))
-                                        %
-                                        %                     % cellID row = [ci inInitialWoundNeighbors inFinalWoundNeighbors]
-                                        %                     % we want to access inFinalWoundNeighbors of bulkCellShape
-                                        %                     % bulkCellShape row = [time shape(0) shape(1) ... shape(NCELLS)]
-                                        %                     %innerShapes = bulkCellShape(:,[1; cellID(:,3)]==1);
-                                        %                     %outerShapes = bulkCellShape(:,[1; ~cellID(:,3)]==1);
-                                        %                     %plot(innerShapes(:,1), nanmean(innerShapes(:,2:end),2),  ...
-                                        %                     %    'linewidth', 4, 'DisplayName', "inner shapes",...
-                                        %                     %     'Color', color_array(l),'LineStyle', style_array(j))
-                                        %                     %plot(timeAndOuterShapes(:,1),nanmean(timeAndOuterShapes(:,2:end),2), ...
-                                        %                     %    'linewidth', 4, 'DisplayName', "bulk shapes")
-                                        %                     plot(timeInnerShapes, meanInnerShapes, 'linewidth', 4, 'DisplayName', "A0="+calA0+",att="+att+",sm="+sm+",dsq="+deltaSq)
-                                        %                     xlabel('$t/\tau$','Interpreter','latex','fontsize', 24);
-                                        %                     ylabel('Shape','Interpreter','latex','fontsize', 24);
-                                        %                     legend('location','southeast','fontsize', 6)
-
+                                            ylim([0 inf])
+                                            legend('location','northeast','fontsize', 8)
+                                            saveas(gcf, array_output_dir+"voidArea/"+"calA0"+calA0+"_"+pm1_str+"_"+pm2_str+"_"+pm1_ind+".png")
+                                        end
                                         %heatmap1(shapeii,j) = max(meanInnerShapes)/min(meanInnerShapes);
                                         %heatmap2(shapeii,j) = max(innerShapes_sd(:,1));
                                         %heatmap3(shapeii,j) = woundProperties_sd(2);
