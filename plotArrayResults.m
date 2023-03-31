@@ -16,7 +16,7 @@ runType = "ablate";
 N="50";
 %ndelete="6";
 %calA0="1.10";
-strainRate_ps="1.0";
+strainRate_ps="1.0  ";
 %deltaSq = "4.0";
 k_a = "1.0";
 k_l = "1.0";
@@ -395,36 +395,69 @@ for i=1:length(N_arr)
                                             % plot area vs time 
                                             figure(pm1_ind) 
                                             colorList = ['r', 'k'];
+                                            % if plotting reduced number of
+                                            % parameters, then it's for a
+                                            % production run and we're
+                                            % going to also plot fits and
+                                            % moving averages, and color
+                                            % coordinate
                                             if (isProductionRun)
                                                 figure(pm2_ind)
                                                 % want (tau1, B1) and (tau2, B1). 
-                                                plot(voidArea(:,1)*timeConvert(pm1_ind), voidArea(:,2)*cellArea(pm1_ind),...
-                                                    'linewidth',5, 'Color', colorList(pm1_ind),'DisplayName', displayStr)
+                                                % plot void area vs time
+                                                %plot(voidArea(:,1)*timeConvert(pm1_ind), voidArea(:,2)*cellArea(pm1_ind),...
+                                                %    'linewidth',5, 'Color', colorList(pm1_ind),'DisplayName', displayStr)
+                                                n = 50;
+                                                skipInt = length(voidArea(:,1))/n; % keep n points to plot 
+                                                scatter(voidArea(1:skipInt:end,1)*timeConvert(pm1_ind), voidArea(1:skipInt:end,2)*cellArea(pm1_ind),...
+                                                    10, colorList(pm1_ind))
                                                 legend off
                                                 xlabel('Time (min)','Interpreter','latex','fontsize', 24);
                                                 ylabel('Wound area $(\mu m^2)$','Interpreter','latex','fontsize', 24);
 
+                                                % plot void area vs time,
+                                                % experimental fit
+                                                F = @(x,xdata)x(1)*exp(-x(2)*xdata) + x(3)*exp(-x(4)*xdata);
+                                                if (pm1_ind == 1)
+                                                    fit_params = [4977.2 0.0836 -4684.1 0.0825];
+                                                    tlist = linspace(min(voidArea(:,1)*timeConvert(pm1_ind)), max(voidArea(:,1)*timeConvert(pm1_ind)), 20);
+                                                    plot(tlist, F(fit_params, tlist), '--', 'Color', colorList(pm1_ind), 'linewidth', 2)
+                                                elseif (pm1_ind == 2)
+                                                    fit_params = [29.9753 0.0108 83.4336 0.0704];
+                                                    tlist = linspace(min(voidArea(:,1)*timeConvert(pm1_ind)), max(voidArea(:,1)*timeConvert(pm1_ind)), 20);
+                                                    plot(tlist, F(fit_params, tlist), '--', 'Color', colorList(pm1_ind), 'linewidth', 2)
+                                                end
                                                 % plot shape vs time
-                                                %figure(length(calA0_arr)+shapeii + 100*(k-1) + 1000*(j-1))
+                                               
                                                 figure(pm2_ind+2);
                             
-                                                % cellID row = [ci inInitialWoundNeighbors inFinalWoundNeighbors]
-                                                % we want to access inFinalWoundNeighbors of bulkCellShape
-                                                % bulkCellShape row = [time shape(0) shape(1) ... shape(NCELLS)]
-                                                %innerShapes = bulkCellShape(:,[1; cellID(:,3)]==1);
-                                                %outerShapes = bulkCellShape(:,[1; ~cellID(:,3)]==1);
-%                                                 plot(innerShapes(:,1), nanmean(innerShapes(:,2:end),2),  ...
-%                                                     'linewidth', 4, 'DisplayName', "inner shapes",...
-%                                                      'Color', color_array(l),'LineStyle', style_array(j))
-                                                %plot(timeAndOuterShapes(:,1),nanmean(timeAndOuterShapes(:,2:end),2), ...
-                                                %    'linewidth', 4, 'DisplayName', "bulk shapes")
-                                                plot(timeInnerShapes*timeConvert(pm1_ind), mean(innerShapeArr,'omitnan'),...
-                                                    'linewidth',5, 'Color', colorList(pm1_ind),'DisplayName', displayStr)
+                                                skipInt = length(meanInnerShapes)/n;
+                                                meanInnerShapes = mean(innerShapeArr,'omitnan');
+                                                %plot(timeInnerShapes*timeConvert(pm1_ind),meanInnerShapes,...
+                                                %    'linewidth',5, 'Color', colorList(pm1_ind),'DisplayName', displayStr)
+                                                scatter(timeInnerShapes(1:skipInt:end)*timeConvert(pm1_ind),meanInnerShapes(1:skipInt:end),...
+                                                     10, colorList(pm1_ind))
                                                 xlabel('Time (min)','Interpreter','latex','fontsize', 24);
                                                 ylabel('$\mathcal{A}$','Interpreter','latex','fontsize', 24);
                                                 %legend('location','southeast','fontsize', 6)
                                                 legend off
                                                 ylim([1.0,1.8])
+
+                                                % look for files called
+                                                % shapeAll.mat, which
+                                                % contain the fits of the
+                                                % experimental data
+                                                if (pm1_ind == 1)
+                                                    load("shapeAllEmbryo.mat");
+                                                    y=shapeAll(:,2);
+                                                    t=shapeAll(:,1);
+                                                    plot(t,movmean(y,6),'--','linewidth',2,'Color', colorList(pm1_ind))
+                                                elseif (pm1_ind == 2)
+                                                    load("shapeAllWing.mat");
+                                                    y=shapeAll(:,2);
+                                                    t=shapeAll(:,1);
+                                                    plot(t,movmean(y,6),'--','linewidth',2,'Color', colorList(pm1_ind))
+                                                end
                                             else
                                                 plot(voidArea(:,1), voidArea(:,2), 'linewidth', 4, 'DisplayName', displayStr)
                                                 xlabel('$t/\tau$','Interpreter','latex','fontsize', 24);
