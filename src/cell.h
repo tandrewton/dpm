@@ -23,9 +23,10 @@ typedef void (cell::*cellMemFn)(void);
 class cell : public dpm {
  protected:
   // specific output objects
-  std::ofstream enout;      // output stream for energy data
-  std::ofstream stressout;  // output stream for stress data
-  std::ofstream tissueout;  // output stream for tissue measurements over time
+  std::ofstream enout;         // output stream for energy data
+  std::ofstream stressout;     // output stream for stress data
+  std::ofstream tissueout;     // output stream for tissue measurements over time
+  std::ofstream catchBondOut;  // output stream for catch bond positions
 
   // simulation-scale stored quantities
   double simclock;         // accumulator for simulation time
@@ -44,6 +45,10 @@ class cell : public dpm {
   // active brownian variables and parameters
   std::vector<double> psi;  // directors
   double v0_ABP, tau_ABP;   // velocity parameter, rotation time constant
+
+  // catch bonds for substrate adhesion parameters
+  std::vector<bool> isGiCatchBonded;
+  std::vector<std::vector<double>> catchBondPosition;
 
  public:
   cell(int n, double att1, double att2, int seed, int numCellTypes)
@@ -137,6 +142,7 @@ class cell : public dpm {
   void attractiveForceUpdate();
   void attractiveForceUpdateWithCrawling();
   void attractiveSmoothForceUpdateWithCrawling();
+  void attractiveSmoothActiveCatchBonds();
   void attractiveSmoothForceUpdate();
   void attractiveSmoothForceUpdateWithPolyWall();
   void repulsiveWithPolarityForceUpdate();
@@ -160,6 +166,8 @@ class cell : public dpm {
   }
   void brownianCrawlingUpdate();
   void directorDiffusion();
+  void catchBondsUpdate();
+  void resizeCatchBonds();
 
   // File openers
   void openEnergyObject(std::string& str) {
@@ -185,6 +193,16 @@ class cell : public dpm {
   void openTissueObject(std::string& str) {
     tissueout.open(str.c_str());
     if (!tissueout.is_open()) {
+      std::cout << "	ERROR: file could not open " << str << "..."
+                << std::endl;
+      exit(1);
+    } else
+      std::cout << "** Opening file " << str << " ..." << std::endl;
+  }
+
+  void openCatchBondObject(std::string& str) {
+    catchBondOut.open(str.c_str());
+    if (!catchBondOut.is_open()) {
       std::cout << "	ERROR: file could not open " << str << "..."
                 << std::endl;
       exit(1);

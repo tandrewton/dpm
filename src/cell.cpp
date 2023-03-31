@@ -495,19 +495,19 @@ void cell::attractiveSmoothForceUpdate() {
 }
 
 void cell::attractiveSmoothForceUpdateWithPolyWall() {
-  resetForcesAndEnergy();
-  shapeForces2D();
-  circuloLineAttractiveForces();
-  for (int i = 0; i < poly_bd_x.size(); i++) {
+  attractiveSmoothForceUpdate();
+  for (int i = 0; i < poly_bd_x.size(); i++)
     evaluatePolygonalWallForces(poly_bd_x[i], poly_bd_y[i]);
-  }
 }
 
 void cell::attractiveSmoothForceUpdateWithCrawling() {
-  resetForcesAndEnergy();
-  shapeForces2D();
-  circuloLineAttractiveForces();
+  attractiveSmoothForceUpdate();
   brownianCrawlingUpdate();
+}
+
+void cell::attractiveSmoothActiveCatchBonds() {
+  attractiveSmoothForceUpdateWithCrawling();
+  catchBondsUpdate();
 }
 
 void cell::brownianCrawlingUpdate() {
@@ -542,6 +542,46 @@ void cell::directorDiffusion() {
     psi[ci] += sqrt(dt * 2.0 * Dr0) * grv;
     psi[ci] -= 2 * PI * round(psi[ci] / (2 * PI));
   }
+}
+
+void cell::catchBondsUpdate() {
+  double k_on = 100.0, k_off = 10.0, temp_koff;
+  double f_off = 1.0;  // mechanosensitivity parameter of catch bonds]
+  double bond_stiffness = 1.0;
+  double dx, dy, distance;
+  assert(isGiCatchBonded.size() == NVTOT);
+  // evaluate switching states from bonded to non-bonded depending on k_on or k_off values
+  for (int gi = 0; gi < NVTOT; gi++) {
+    // settle the binding and unbinding events on each vertex gi
+    if (isGiCatchBonded[gi]) {
+      // if gi is adhered to another vertex, increase k_off to infinity
+      dx = catchBondPosition[gi][0] - x[NDIM * gi];
+      dy = catchBondPosition[gi][1] - x[NDIM * gi + 1];
+      distance = sqrt(pow(dx, 2) + pow(dy, 2));
+      temp_koff = k_off * exp(-sqrt(distance) / f_off);
+      cout << "temp_koff = " << temp_koff << ", k_off = " << k_off << '\n';
+      // attempt dissociate
+      if (rand() < k_off * dt)
+        isGiCatchBonded[gi] = false;
+    } else {
+      // attempt associate
+      // if (rand() < k_on * dt) {
+      if (rand() < 1) {
+        isGiCatchBonded[gi] = true;
+        catchBondPosition[gi] = {x[NDIM * gi], x[NDIM * gi + 1]};
+      }
+    }
+    // for all existing bonds, calculate the force on the cell
+    if (isGiCatchBonded[gi]) {
+      F[NDIM * gi] += bond_stiffness * dx;
+      F[NDIM * gi + 1] += bond_stiffness * dy;
+    }
+  }
+}
+
+void cell::resizeCatchBonds() {
+  isGiCatchBonded.resize(NVTOT, false);
+  catchBondPosition.resize(NVTOT, std::vector<double>(2));
 }
 
 void cell::attractiveForceUpdatePrint(double& forceX, double& forceY, double& energy) {
@@ -3327,6 +3367,16 @@ void cell::printConfiguration2D() {
       posout << endl;
     }
   }
+
+  if (isGiCatchBonded.size() > 0) {
+    for (int gi = 0; gi < NVTOT; gi++) {
+      if (isGiCatchBonded[gi])
+        // cout << "isGiCatchBonded[" << gi << "] = " << isGiCatchBonded[gi] << '\n';
+        catchBondOut << catchBondPosition[gi][0] << '\t' << catchBondPosition[gi][1] << '\t' << x[NDIM * gi] << '\t' << x[NDIM * gi + 1] << '\n';
+    }
+  }
+
+  catchBondOut << "*EOB\n";
 
   // print end frame
   posout << setw(w) << left << "ENDFR"

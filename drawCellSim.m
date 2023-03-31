@@ -2,11 +2,12 @@
 % output is a movie made from stitching the position file frames together
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
-
+close all; clear
 %function drawCellSim(N, att, initialPressure, prate, adhrate, Duration)
 %isTestData = false; %uncomment if using function call to pipeline data
 
 isTestData = true; %uncomment if using test data
+testDataii = 12;
 testDataID = num2str(testDataii);
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('C:\Users\atata\projects\dpm\bash')
@@ -32,6 +33,7 @@ max_seed = 1;
 makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
+showCatchBonds = true;
 
 showverts = 0;
 showGlobalIndex = 0;
@@ -69,6 +71,7 @@ for seed = startSeed:max_seed
         energystr = pc_dir+'test'+testDataID+'.energy';
         stressstr = pc_dir+'test'+testDataID+'.stress';
         tissuestr = pc_dir+'test'+testDataID+'.tissue';
+        catchBondStr = pc_dir+'test'+testDataID+'.catchBond';
     else
         %psm/psm_calA01.05_t_maxwell25.0_v00.05_t_abp1.0_sm1
         % /_NCELLS10_dur100_att0.1_startsd1_endsd1_sd1.tissue
@@ -138,6 +141,10 @@ for seed = startSeed:max_seed
         boxAxHigh = 1;
     end
 
+    if showCatchBonds
+        catchBondLocations = readDataBlocks(catchBondStr, 2);
+    end
+
     figure(fnum), clf, hold on, box on;
 
     %FSTART=FEND; % hack to skip to the last frame to save the boundary info
@@ -179,6 +186,13 @@ for seed = startSeed:max_seed
         L_bottom = L(2);
         Lx = L(3);
         Ly = L(4);
+
+        if (showCatchBonds)
+            scatter(catchBondLocations{ff}(1:2:end,1),...
+                catchBondLocations{ff}(1:2:end,2), 20, 'blue', 'o','MarkerFaceColor','blue');
+            scatter(catchBondLocations{ff}(2:2:end,1),...
+                catchBondLocations{ff}(2:2:end,2), 10, 'red', 'x');
+        end
 
         for nn = 1:NCELLS
             cellIDtmp = cellID(nn);

@@ -26,7 +26,7 @@
 ./main/cell/psm2D.o   12   25 1.05 0.01  25.0   0.1   1.0    1   1      400    test9
 ./main/cell/psm2D.o   12   25 1.05 0.05  25.0   0.1   1.0    1   1      400    test10
 ./main/cell/psm2D.o   12   25 1.05 0.1   25.0   0.1   1.0    1   1      400    test11
-./main/cell/psm2D.o   24   16 1.05 0.2   0.0   0.1   1.0    1   1       100    test12
+./main/cell/psm2D.o   12   16 1.05 0.2   0.0   0.1   1.0    1   1       100    test12
 
 ./main/cell/psm2D.o   12   25 1.05 0.0  25.0   0.05   1.0    1   1      400    test1
 ./main/cell/psm2D.o   12   25 1.05 0.01 25.0   0.05   1.0    1   1      400    test2
@@ -80,6 +80,7 @@ int main(int argc, char const* argv[]) {
 
   string positionFile = outFileStem + ".pos";
   string tissueFile = outFileStem + ".tissue";
+  string catchBondFile = outFileStem + ".catchBond";
 
   // using sstreams to get parameters
   stringstream NCELLSss(NCELLS_str);
@@ -109,6 +110,7 @@ int main(int argc, char const* argv[]) {
   cell cell2D(NCELLS, 0.0, 0.0, seed, numCellTypes);
   cell2D.openPosObject(positionFile);
   cell2D.openTissueObject(tissueFile);
+  cell2D.openCatchBondObject(catchBondFile);
 
   // set spring constants
   cell2D.setka(ka);
@@ -142,6 +144,7 @@ int main(int argc, char const* argv[]) {
   dpmMemFn attractiveForceUpdate = static_cast<void (dpm::*)()>(&cell::attractiveForceUpdate);
   dpmMemFn attractionWithActiveBrownianUpdate = static_cast<void (dpm::*)()>(&cell::attractiveForceUpdateWithCrawling);
   dpmMemFn attractionSmoothWithActiveBrownianUpdate = static_cast<void (dpm::*)()>(&cell::attractiveSmoothForceUpdateWithCrawling);
+  dpmMemFn attractionSmoothActiveBrownianCatchBondsUpdate = static_cast<void (dpm::*)()>(&cell::attractiveSmoothActiveCatchBonds);
   dpmMemFn attractiveSmoothForceUpdate = static_cast<void (dpm::*)()>(&cell::attractiveSmoothForceUpdate);
   dpmMemFn attractiveSmoothForceUpdateWithPolyWalls = static_cast<void (dpm::*)()>(&cell::attractiveSmoothForceUpdateWithPolyWall);
   dpmMemFn repulsivePolarityForceUpdate = static_cast<void (dpm::*)()>(&cell::repulsiveWithPolarityForceUpdate);
@@ -200,10 +203,8 @@ int main(int argc, char const* argv[]) {
     cell2D.dampedVertexNVE(repulsiveForceUpdateWithPolyWalls, dt0, relaxTimeShort, relaxTimeShort / 2);
     cell2D.replaceCircularBoundary(rectangleID, 2.0);
     cell2D.replacePolyWallWithDP(numCellTypes);
-    cout << "after replacePolyWallWithDP, about to run NVE for duration " << relaxTimeShort << "\n";
     cell2D.resizeNeighborLinkedList2D();
     cell2D.dampedVertexNVE(repulsiveForceUpdate, dt0, relaxTimeShort, relaxTimeShort / 2);
-    cout << "shrinking vertices!\n";
     cell2D.shrinkCellVertices(customForceUpdate, dt0, 20.0);
   } else {
     // bumpy
@@ -215,18 +216,19 @@ int main(int argc, char const* argv[]) {
     }
     cell2D.dampedVertexNVE(attractiveForceUpdateWithPolyWalls, dt0, relaxTimeShort, relaxTimeShort / 2);
     cell2D.replacePolyWallWithDP(numCellTypes);
-    cout << "after replacePolyWallWithDP, about to run NVE for duration " << runTime << "\n";
     cell2D.resizeNeighborLinkedList2D();
   }
 
   // cell2D.dampedVertexNVE(customForceUpdate, dt0, relaxTime, relaxTime / 15);
   cout << "\n\nmain simulation begins!\n\n";
+  cell2D.resizeCatchBonds();
+
   if (v0_abp <= 0.0)  // thermal, no activity, no damping
     cell2D.vertexNVE(customForceUpdate, 1e-2, dt0, runTime, runTime / 20.0);
-  else  // active simulation, damping
-    cell2D.dampedVertexNVE(customForceUpdate, dt0, runTime, runTime / 15.0);
-  // cell2D.dampedVertexNVE(customForceUpdate, dt0, runTime, runTime / 15.0);
-
+  else {  // active simulation, damping
+    // cell2D.dampedVertexNVE(customForceUpdate, dt0, runTime, runTime / 15.0);
+    cell2D.dampedVertexNVE(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, runTime / 15.0);
+  }
   // cell2D.saveConfiguration(savedPositions);
   // cell2D.loadConfiguration(savedPositions);
 
