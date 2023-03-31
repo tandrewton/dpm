@@ -1675,7 +1675,7 @@ void epi2D::dampedCompression(dpmMemFn forceCall, double dt0, double duration, d
       wallout << simclock - t0 << '\t' << lowerWallPos << '\t' << upperWallPos << '\t' << leftWallPos << '\t' << rightWallPos << '\n';
       double currentHeight = upperWallPos - lowerWallPos;
       double increment = r[0] * 0.007;
-      if (simclock - t0 < 0.4 * duration && currentHeight > 0.5*initialHeight) {
+      if (simclock - t0 < 0.4 * duration && currentHeight > 0.5 * initialHeight) {
         // bring the upper and lower walls toward each other until 50% of initial height
         upperWallPos -= increment;
         lowerWallPos += increment;
@@ -1685,7 +1685,7 @@ void epi2D::dampedCompression(dpmMemFn forceCall, double dt0, double duration, d
         // release the wall for 60% duration
         upperWallPos += increment;
         lowerWallPos -= increment;
-      } 
+      }
     }
 
     // VV POSITION UPDATE
@@ -1884,7 +1884,6 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double dt0, double duration, double pr
       // get max and min of x coords of purse-string; if max-min is near zero, then purse-string should be dissolved
       double max_ps = x_ps[0], min_ps = x_ps[0];
       double min_allowed_ps_length = 0.01 * r[0];
-      // double min_allowed_ps_length = 0.0;
       for (int psi = 0; psi < x_ps.size(); psi += 2) {
         if (x_ps[psi] < min_ps)
           min_ps = x_ps[psi];

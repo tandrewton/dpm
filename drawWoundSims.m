@@ -3,12 +3,12 @@
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
 
-%function drawWoundSims(N, calA0, t_stress, att, strainRate_ps, ...
-%    k_l, k_a, k_b, deltaSq, d_flag) %uncomment if using function call to pipeline data
+function drawWoundSims(N, calA0, t_stress, att, strainRate_ps, ...
+    k_l, k_a, k_b, deltaSq, d_flag) %uncomment if using function call to pipeline data
 
-%isTestData = false; %uncomment if using function call to pipeline data
+isTestData = false; %uncomment if using function call to pipeline data
 
-isTestData = true; %uncomment if using test data
+%isTestData = true; %uncomment if using test data
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('C:\Users\atata\projects\dpm\bash')
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
@@ -18,7 +18,7 @@ addpath('C:\Users\atata\projects\dpm\matlab_funcs')
 
 runType = "ablate";
 %N="40";
-ndelete="3";
+ndelete="5";
 %calA0="1.10";
 %strainRate_ps="0.005";
 if (isTestData)
@@ -36,13 +36,13 @@ boundaryType = "0";
 %att="0.2";
 B="1.0";
 boolCIL="0";
-Duration="1400";
+Duration="1600";
 FSKIP = 1;
 
 etaStr = " ";
 startSeed = 1;
-max_seed = 1;
-no_plots = 0;
+max_seed = 25;
+no_plots = 1;
 makeAMovie = 0; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
 %plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
 plotCells = 1;
@@ -97,7 +97,8 @@ txt='test';
 
 fnum = 1;
 figure(13), clf, hold on, box on;
-for seed = startSeed:max_seed
+for seed = startSeed+7:max_seed
+    seed
     if (isTestData)
         run_name = runType+txt;     
         pipeline_dir =  subdir_pipeline + run_name + "/";
@@ -510,10 +511,11 @@ for seed = startSeed:max_seed
                     %plot([viewLxLow viewLx viewLx viewLxLow viewLxLow], [viewLyLow viewLyLow viewLy viewLy viewLyLow], 'k-', 'linewidth', 1.5);
                 end
                 
-                annotationStr = "$$t/\tau$$ = "+time(ff);
+                %annotationStr = "$$t/\tau$$ = "+time(ff);
                 %annotationStr = "frame = "+ff;
-                %annotation('textbox',[0.48, 0.5, 0, 0],...
+                %annotation('textbox',[0.7, 0.7, 0, 0],...
                 %    'interpreter', 'latex', 'String', annotationStr, 'Edgecolor','none', 'FitBoxToText','on');
+                disp("t/tau = "+time(ff)+", frame = "+ff)
                 if showVoid
                     if showVoidBlack 
                         scatter(voidLocations{ff}(:,1), voidLocations{ff}(:,2),...
