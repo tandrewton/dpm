@@ -189,9 +189,10 @@ for seed = startSeed:max_seed
 
         if (showCatchBonds)
             scatter(catchBondLocations{ff}(1:2:end,1),...
-                catchBondLocations{ff}(1:2:end,2), 20, 'blue', 'o','MarkerFaceColor','blue');
+                catchBondLocations{ff}(1:2:end,2), 40, 'blue', '.','MarkerFaceColor','blue');
             scatter(catchBondLocations{ff}(2:2:end,1),...
-                catchBondLocations{ff}(2:2:end,2), 10, 'red', 'x');
+                catchBondLocations{ff}(2:2:end,2), 40, 'red', '.');
+            
         end
 
         for nn = 1:NCELLS

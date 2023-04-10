@@ -546,35 +546,36 @@ void cell::directorDiffusion() {
 
 void cell::catchBondsUpdate() {
   double k_on = 100.0, k_off = 10.0, temp_koff;
-  double f_off = 1.0;  // mechanosensitivity parameter of catch bonds]
+  double f_off = 1.0;  // mechanosensitivity parameter of catch bonds
   double bond_stiffness = 1.0;
   double dx, dy, distance;
   assert(isGiCatchBonded.size() == NVTOT);
   // evaluate switching states from bonded to non-bonded depending on k_on or k_off values
   for (int gi = 0; gi < NVTOT; gi++) {
     // settle the binding and unbinding events on each vertex gi
+    double randNum = (float)(rand()) / (float)(RAND_MAX);  // random number between 0 and 1
     if (isGiCatchBonded[gi]) {
       // if gi is adhered to another vertex, increase k_off to infinity
       dx = catchBondPosition[gi][0] - x[NDIM * gi];
       dy = catchBondPosition[gi][1] - x[NDIM * gi + 1];
       distance = sqrt(pow(dx, 2) + pow(dy, 2));
       temp_koff = k_off * exp(-sqrt(distance) / f_off);
-      cout << "temp_koff = " << temp_koff << ", k_off = " << k_off << '\n';
       // attempt dissociate
-      if (rand() < k_off * dt)
+      // if (randNum < k_off * dt)
+      if (randNum < 0.01)
         isGiCatchBonded[gi] = false;
     } else {
       // attempt associate
-      // if (rand() < k_on * dt) {
-      if (rand() < 1) {
+      // if (randNum < k_on * dt) {
+      if (randNum < 1) {
         isGiCatchBonded[gi] = true;
         catchBondPosition[gi] = {x[NDIM * gi], x[NDIM * gi + 1]};
       }
     }
     // for all existing bonds, calculate the force on the cell
     if (isGiCatchBonded[gi]) {
-      F[NDIM * gi] += bond_stiffness * dx;
-      F[NDIM * gi + 1] += bond_stiffness * dy;
+      F[NDIM * gi] -= bond_stiffness * dx;
+      F[NDIM * gi + 1] -= bond_stiffness * dy;
     }
   }
 }
