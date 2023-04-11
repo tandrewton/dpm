@@ -433,10 +433,10 @@ for i=1:length(N_arr)
                             
                                                 skipInt = length(meanInnerShapes)/n;
                                                 meanInnerShapes = mean(innerShapeArr,'omitnan');
-                                                %plot(timeInnerShapes*timeConvert(pm1_ind),meanInnerShapes,...
-                                                %    'linewidth',5, 'Color', colorList(pm1_ind),'DisplayName', displayStr)
-                                                scatter(timeInnerShapes(1:skipInt:end)*timeConvert(pm1_ind),meanInnerShapes(1:skipInt:end),...
-                                                     10, colorList(pm1_ind))
+                                                plot(timeInnerShapes(1:skipInt:end)*timeConvert(pm1_ind),meanInnerShapes(1:skipInt:end),...
+                                                    '-','linewidth',4, 'Color', colorList(pm1_ind),'DisplayName', displayStr)
+                                                %scatter(timeInnerShapes(1:skipInt:end)*timeConvert(pm1_ind),meanInnerShapes(1:skipInt:end),...
+                                                %     10, colorList(pm1_ind))
                                                 xlabel('Time (min)','Interpreter','latex','fontsize', 24);
                                                 ylabel('$\mathcal{A}$','Interpreter','latex','fontsize', 24);
                                                 %legend('location','southeast','fontsize', 6)
@@ -449,23 +449,25 @@ for i=1:length(N_arr)
                                                 % experimental data
                                                 if (pm1_ind == 1)
                                                     load("shapeAllEmbryo.mat");
-                                                    y=shapeAll(:,2);
-                                                    t=shapeAll(:,1);
-                                                    plot(t,movmean(y,6),'--','linewidth',2,'Color', colorList(pm1_ind))
                                                 elseif (pm1_ind == 2)
                                                     load("shapeAllWing.mat");
-                                                    y=shapeAll(:,2);
-                                                    t=shapeAll(:,1);
-                                                    plot(t,movmean(y,6),'--','linewidth',2,'Color', colorList(pm1_ind))
                                                 end
+                                                y=shapeAll(:,2);
+                                                t=shapeAll(:,1);
+                                                %sma = movmean(y,20); % simple moving average
+                                                sma = distanceSMA(t, y, 10.0);
+                                                skipInt = length(sma)/n;
+                                                %plot(t,movmean(y,20),'-','linewidth',2,'Color', colorList(pm1_ind))
+                                                %scatter(t(1:skipInt:end), sma(1:skipInt:end), 5, colorList(pm1_ind), 'filled')
+                                                scatter(t, sma, 5, colorList(pm1_ind), 'filled')
                                             else
                                                 plot(voidArea(:,1), voidArea(:,2), 'linewidth', 4, 'DisplayName', displayStr)
                                                 xlabel('$t/\tau$','Interpreter','latex','fontsize', 24);
                                                 ylabel('Area','Interpreter','latex','fontsize', 24);
                                             end
 
-                                            ylim([0 inf])
-                                            legend('location','northeast','fontsize', 8)
+                                            %ylim([0 inf])
+                                            %legend('location','northeast','fontsize', 8)
                                             saveas(gcf, array_output_dir+"voidArea/"+"calA0"+calA0+"_"+pm1_str+"_"+pm2_str+"_"+pm1_ind+".png")
                                         end
                                         %heatmap1(shapeii,j) = max(meanInnerShapes)/min(meanInnerShapes);
@@ -635,3 +637,16 @@ saveas(gcf, heatmap_filepath+"/arealVelocity"+ ...
              "PS"+~isCrawling+"-"+"calA0"+calA0+"_"+pm1_str+"-"+pm2_str+".eps", 'epsc')
 save(heatmap_filepath+"/arealVelocity"+ ...
              "PS"+~isCrawling+"-"+"calA0"+calA0+"_"+pm1_str+"-"+pm2_str+".mat", 'h')
+
+function movingMean = distanceSMA(t, y, deltaT) 
+    % calculate the moving average of points y corresponding to the
+    % distance deltaT in units of t
+    movingMean = zeros(size(y));
+    for ii=1:length(y)
+        dataInRange = y(abs(t - t(ii)) < deltaT);
+        %y(t - t(ii) < deltaT)
+        %t(ii)
+        %t - t(ii) < deltaT
+        movingMean(ii) = mean(dataInRange);
+    end
+end
