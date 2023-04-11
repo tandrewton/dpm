@@ -596,6 +596,8 @@ void dpm::monodisperse2D(double calA0, int n) {
 
   // initialize vertex indexing
   initializeVertexIndexing2D();
+
+  numVertexContacts.resize(NVTOT, std::vector<int>(NVTOT, 0.0));
 }
 
 // initialize bidisperse cell system, single calA0

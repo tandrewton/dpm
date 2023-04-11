@@ -555,13 +555,25 @@ void cell::catchBondsUpdate() {
     // settle the binding and unbinding events on each vertex gi
     double randNum = (float)(rand()) / (float)(RAND_MAX);  // random number between 0 and 1
     if (isGiCatchBonded[gi]) {
-      // if gi is adhered to another vertex, increase k_off to infinity
       dx = catchBondPosition[gi][0] - x[NDIM * gi];
       dy = catchBondPosition[gi][1] - x[NDIM * gi + 1];
+
+      // modify k_off depending on pulling force (mechanosensitivity) and disable catch bonds if cadherin is present
       distance = sqrt(pow(dx, 2) + pow(dy, 2));
       temp_koff = k_off * exp(-sqrt(distance) / f_off);
+
+      // count up number of contacts between gi and other vertices
+      int colSumGi = 0, rowSumGi = 0;
+      for (int i = 0; i < NVTOT; i++) {
+        colSumGi += numVertexContacts[gi][i];
+        rowSumGi += numVertexContacts[i][gi];
+      }
+
+      if (colSumGi + rowSumGi >= 1)
+        temp_koff = 1e10;
+
       // attempt dissociate
-      if (randNum < k_off * dt)
+      if (randNum < temp_koff * dt)
         isGiCatchBonded[gi] = false;
     } else {
       // attempt associate
@@ -632,6 +644,7 @@ void cell::circuloLineAttractiveForces() {
 
   // reset contact network
   fill(cij.begin(), cij.end(), 0);
+  fill(numVertexContacts.begin(), numVertexContacts.end(), std::vector<int>(NVTOT, 0.0));
 
   // loop over boxes in neighbor linked list
   for (bi = 0; bi < NBX; bi++) {
@@ -1001,6 +1014,9 @@ void cell::calculateSmoothInteraction(double rx, double ry, double sij, double s
           U += energytmp;
 
           // add to virial stress - not including this code now because I haven't worked out the stress of a 3-body interaction
+          numVertexContacts[gi][gj]++;
+          numVertexContacts[gi][g2]++;
+          numVertexContacts[gj][g2]++;
         }
 
         if (projection <= 0 && isCapInteraction) {
@@ -1068,6 +1084,10 @@ void cell::calculateSmoothInteraction(double rx, double ry, double sij, double s
           cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2]++;
         else if (ci < cj)
           cij[NCELLS * ci + cj - (ci + 1) * (ci + 2) / 2]++;
+
+        if (sign > 0) {
+          numVertexContacts[gi][middle]++;
+        }
       }
     }
   }
@@ -1880,6 +1900,8 @@ void cell::replacePolyWallWithDP(int numCellTypes) {
     dp_x = {};
     dp_y = {};
   }
+
+  numVertexContacts.resize(NVTOT, std::vector<int>(NVTOT, 0.0));
 }
 
 void cell::addDP(int numVerts, vector<double>& dp_x, vector<double>& dp_y, int cellTypeIndex, int numCellTypes) {
