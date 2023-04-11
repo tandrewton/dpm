@@ -434,7 +434,7 @@ for i=1:length(N_arr)
                                                 skipInt = length(meanInnerShapes)/n;
                                                 meanInnerShapes = mean(innerShapeArr,'omitnan');
                                                 plot(timeInnerShapes(1:skipInt:end)*timeConvert(pm1_ind),meanInnerShapes(1:skipInt:end),...
-                                                    '-','linewidth',4, 'Color', colorList(pm1_ind),'DisplayName', displayStr)
+                                                    '-','linewidth',3, 'Color', colorList(pm1_ind),'DisplayName', displayStr)
                                                 %scatter(timeInnerShapes(1:skipInt:end)*timeConvert(pm1_ind),meanInnerShapes(1:skipInt:end),...
                                                 %     10, colorList(pm1_ind))
                                                 xlabel('Time (min)','Interpreter','latex','fontsize', 24);
@@ -459,7 +459,8 @@ for i=1:length(N_arr)
                                                 skipInt = length(sma)/n;
                                                 %plot(t,movmean(y,20),'-','linewidth',2,'Color', colorList(pm1_ind))
                                                 %scatter(t(1:skipInt:end), sma(1:skipInt:end), 5, colorList(pm1_ind), 'filled')
-                                                scatter(t, sma, 5, colorList(pm1_ind), 'filled')
+                                                %scatter(t, sma, 10, colorList(pm1_ind), 'filled')
+                                                plot(t, sma, '--','Color', colorList(pm1_ind), 'linewidth', 3)
                                             else
                                                 plot(voidArea(:,1), voidArea(:,2), 'linewidth', 4, 'DisplayName', displayStr)
                                                 xlabel('$t/\tau$','Interpreter','latex','fontsize', 24);
