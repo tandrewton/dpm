@@ -545,7 +545,7 @@ void cell::directorDiffusion() {
 }
 
 void cell::catchBondsUpdate() {
-  double k_on = 100.0, k_off = 10.0, temp_koff;
+  double k_on = 100.0, k_off = 1.0, temp_koff;
   double f_off = 1.0;  // mechanosensitivity parameter of catch bonds
   double bond_stiffness = 1.0;
   double dx, dy, distance;
@@ -561,21 +561,21 @@ void cell::catchBondsUpdate() {
       distance = sqrt(pow(dx, 2) + pow(dy, 2));
       temp_koff = k_off * exp(-sqrt(distance) / f_off);
       // attempt dissociate
-      // if (randNum < k_off * dt)
-      if (randNum < 0.01)
+      if (randNum < k_off * dt)
         isGiCatchBonded[gi] = false;
     } else {
       // attempt associate
-      // if (randNum < k_on * dt) {
-      if (randNum < 1) {
+      if (randNum < k_on * dt) {
         isGiCatchBonded[gi] = true;
         catchBondPosition[gi] = {x[NDIM * gi], x[NDIM * gi + 1]};
       }
     }
-    // for all existing bonds, calculate the force on the cell
+    //  for all existing bonds, calculate the force on the cell
     if (isGiCatchBonded[gi]) {
-      F[NDIM * gi] -= bond_stiffness * dx;
-      F[NDIM * gi + 1] -= bond_stiffness * dy;
+      dx = catchBondPosition[gi][0] - x[NDIM * gi];
+      dy = catchBondPosition[gi][1] - x[NDIM * gi + 1];
+      F[NDIM * gi] += bond_stiffness * dx;
+      F[NDIM * gi + 1] += bond_stiffness * dy;
     }
   }
 }

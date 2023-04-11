@@ -188,11 +188,18 @@ for seed = startSeed:max_seed
         Ly = L(4);
 
         if (showCatchBonds)
-            scatter(catchBondLocations{ff}(1:2:end,1),...
-                catchBondLocations{ff}(1:2:end,2), 40, 'blue', '.','MarkerFaceColor','blue');
-            scatter(catchBondLocations{ff}(2:2:end,1),...
-                catchBondLocations{ff}(2:2:end,2), 40, 'red', '.');
-            
+%             scatter(catchBondLocations{ff}(1:2:end,1),...
+%                 catchBondLocations{ff}(1:2:end,2), 40, 'blue', '.','MarkerFaceColor','blue');
+%             scatter(catchBondLocations{ff}(2:2:end,1),...
+%                 catchBondLocations{ff}(2:2:end,2), 40, 'red', '.');
+            % calculate line between catch bond anchor points
+            catchBond = catchBondLocations{ff};
+            for ii=1:2:length(catchBond(:,1))
+
+                plot([catchBond(ii,1) catchBond(ii+1,1)],...
+                    [catchBond(ii,2) catchBond(ii+1,2)], 'r', 'Linewidth', 1)
+
+            end
         end
 
         for nn = 1:NCELLS
@@ -276,7 +283,7 @@ for seed = startSeed:max_seed
                         %disp("finfo is "+ finfo)
                         % if cellID is boundary, have it be black exterior
                         % with white interior
-                        if (nn == NCELLS)
+                        if (cellID(nn) == 1)
                             % if cellID is a boundary, have it be black
                             % exterior with white interior
                             patch('Faces',finfo,'vertices',vpos,'FaceColor','w','EdgeColor','k','linewidth',0.001);
