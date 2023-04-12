@@ -80,7 +80,7 @@ class dpm {
 
   // rheological parameters
   double maxwellRelaxationTime;
-  std::vector<double> vl0, Fl0;
+  std::vector<double> vl0, Fl0, l00;
 
   // particle attraction constants
   double l1, l2;

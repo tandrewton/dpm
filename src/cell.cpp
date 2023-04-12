@@ -90,6 +90,7 @@ void cell::initializeVertexShapeParametersSmooth(double calA0, int nref) {
 
   // resize shape paramters
   l0.resize(NVTOT);
+  l00.resize(NVTOT);
   vl0.resize(NVTOT);
   Fl0.resize(NVTOT);
   t0.resize(NVTOT);

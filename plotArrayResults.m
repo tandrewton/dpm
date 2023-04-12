@@ -56,8 +56,8 @@ array_output_dir = subdir_output + "array_output_figures/";
 N_arr = ["50"];                 %i
 calA0_arr = ["1.20"];           %ii
 %t_stress_arr = ["1.0" "2.0" "4.0" "8.0" "16.0" "32.0" "64.0" "128.0" "256.0" "512.0" "1024.0" "100000.0"]; %iii
-t_stress_arr = ["19.2" "9830.4"]; %iii
-%t_stress_arr=["2.4" "4.8" "9.6" "19.2" "76.8" "307.2" "1228.8" "4915.2" "9830.4"];
+%t_stress_arr = ["19.2" "9830.4"]; %iii
+t_stress_arr=["2.4" "4.8" "9.6" "19.2" "76.8" "307.2" "1228.8" "4915.2" "9830.4"];
 %t_stress_arr=["4915.2" "9830.4"];
 %att_arr = ["0.01" "0.02" "0.05" "0.1" "0.2"]; %j
 att_arr = ["0.1"]; % j
@@ -65,9 +65,9 @@ om_arr = ["1.0"]; %jj
 %om_arr = ["0.001" "0.005" "0.01" "0.05"];             %jj
 kl_arr = ["1.0"]; %jjj
 %kl_arr = ["0.1" "0.5" "1.0" "5.0" "10.0"]; %jjj
-ka_arr = ["0.25" "16.0"];               %k
-%ka_arr=["0.25" "0.5" "1.0" "2.0" "4.0" "8.0" "16.0" "32.0" "64.0" "128.0" "256.0"]; %k
-kb_arr = ["0.001"]; %kk
+%ka_arr = ["0.25" "16.0"];               %k
+ka_arr=["0.25" "0.5" "1.0" "2.0" "4.0" "8.0" "16.0" "32.0" "64.0" "128.0" "256.0"]; %k
+kb_arr = ["0.01"]; %kk
 deltaSq_arr = ["4.0"];          %kkk
 d_flag_arr = ["0.0"];           %l
 
@@ -125,7 +125,7 @@ bigproduct = length(N_arr)*length(calA0_arr)*length(t_stress_arr)*...
     length(ka_arr)*length(kb_arr)*length(deltaSq_arr)*length(d_flag_arr);
 numPlots = bigproduct;
 
-showLastFrameOfSimulations = false;
+showLastFrameOfSimulations = true;
 showPlots = true; % if false, don't show area vs time
 showPhysicalUnits = 1;
 isCrawling = false;
@@ -468,8 +468,18 @@ for i=1:length(N_arr)
                                             end
 
                                             %ylim([0 inf])
-                                            %legend('location','northeast','fontsize', 8)
+                                            legend('location','northeast','fontsize', 8)
                                             saveas(gcf, array_output_dir+"voidArea/"+"calA0"+calA0+"_"+pm1_str+"_"+pm2_str+"_"+pm1_ind+".png")
+                                        
+                                            % plot shape vs time
+                                            figure(pm1_ind+max(5,length(pm1)))
+                                            meanInnerShapes = mean(innerShapeArr,'omitnan');
+                                            plot(timeInnerShapes,meanInnerShapes,...
+                                                '-','linewidth',3,'DisplayName', displayStr)
+                                            xlabel('Time','Interpreter','latex','fontsize', 24);
+                                            ylabel('$\mathcal{A}$','Interpreter','latex','fontsize', 24);
+                                            legend('location','southeast','fontsize', 6)
+                                            ylim([1.0,inf])
                                         end
                                         %heatmap1(shapeii,j) = max(meanInnerShapes)/min(meanInnerShapes);
                                         %heatmap2(shapeii,j) = max(innerShapes_sd(:,1));

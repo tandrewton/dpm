@@ -2538,6 +2538,8 @@ void epi2D::deleteCell(double sizeRatio, int nsmall, double xLoc, double yLoc) {
           r.begin() + deleteIndexGlobal + numVertsDeleted);
   l0.erase(l0.begin() + deleteIndexGlobal,
            l0.begin() + deleteIndexGlobal + numVertsDeleted);
+  l00.erase(l00.begin() + deleteIndexGlobal,
+            l00.begin() + deleteIndexGlobal + numVertsDeleted);
   vl0.erase(vl0.begin() + deleteIndexGlobal,
             vl0.begin() + deleteIndexGlobal + numVertsDeleted);
   Fl0.erase(Fl0.begin() + deleteIndexGlobal,
@@ -2618,6 +2620,7 @@ void epi2D::deleteVertex(std::vector<int>& deleteList) {
     list.erase(list.begin() + i);
     r.erase(r.begin() + i);
     l0.erase(l0.begin() + i);
+    l00.erase(l00.begin() + i);
     vl0.erase(vl0.begin() + i);
     Fl0.erase(Fl0.begin() + i);
     vnn.erase(vnn.begin() + i);
