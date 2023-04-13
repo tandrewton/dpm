@@ -198,6 +198,7 @@ class dpm {
   void setdt(double val);
   void setka(double val) { ka = val; };
   void setkl(double val) { kl = val; };
+  void setl00() { l00 = l0; };
   void setkb(double val) { kb = val; };
   void setkc(double val) { kc = val; };
   void setl1(double val) { l1 = val; };

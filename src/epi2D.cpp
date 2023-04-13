@@ -1815,6 +1815,10 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double dt0, double duration, double pr
   // set purse-string spring breaking distance
   double vertDiameterSq = pow(2 * r[0], 2);
 
+  // set variables used for calculating a cell's wound-edge adjacency
+  double cx, cy, typicalDiameterSq = 4 * a0[0] / PI;
+  bool isCiWoundAdjacent = false;
+
   initialRadius = r;
   initiall0 = l0;
   initialPreferredPerimeter = 0;
@@ -1952,13 +1956,19 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double dt0, double duration, double pr
         bulkout << simclock - t0 << '\t';
         for (int ci = 0; ci < NCELLS; ci++) {
           shape_ci = pow(perimeter(ci), 2) / (4 * PI * area(ci));
-          // if ci is an initial wound-edge cell
-          /*if (std::find(initialWoundCellIndices.begin(), initialWoundCellIndices.end(), ci) != initialWoundCellIndices.end()) {
+          // check if ci is a wound-edge cell - determined by distance from any PS vertex
+          com2D(ci, cx, cy);
+          isCiWoundAdjacent = false;
+          for (int psi = 0; psi < psContacts.size(); psi++) {
+            if (pow(cx - x_ps[psi * NDIM], 2) + pow(cy - x_ps[psi * NDIM + 1], 2) < typicalDiameterSq) {
+              // if center of ci is within a diameter of PS (use center and diameter for computational efficiency, as opposed to any vertex and radius), consider it to be wound-edge to be consistent with experimental analysis
+              isCiWoundAdjacent = true;
+            }
+          }
+          if (isCiWoundAdjacent)
             innerout << shape_ci << '\t';
-          } else {
-            bulkout << shape_ci << '\t';
-          }*/
-          innerout << shape_ci << '\t';
+          else
+            innerout << NAN << '\t';
           bulkout << shape_ci << '\t';
         }
         innerout << '\n';

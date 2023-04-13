@@ -3,12 +3,12 @@
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
 
-function drawWoundSims(N, calA0, t_stress, att, strainRate_ps, ...
-    k_l, k_a, k_b, deltaSq, d_flag) %uncomment if using function call to pipeline data
+%function drawWoundSims(N, calA0, t_stress, att, strainRate_ps, ...
+%    k_l, k_a, k_b, deltaSq, d_flag) %uncomment if using function call to pipeline data
 
-isTestData = false; %uncomment if using function call to pipeline data
+%isTestData = false; %uncomment if using function call to pipeline data
 
-%isTestData = true; %uncomment if using test data
+isTestData = true; %uncomment if using test data
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('C:\Users\atata\projects\dpm\bash')
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
@@ -42,13 +42,13 @@ FSKIP = 1;
 etaStr = " ";
 startSeed = 1;
 max_seed = 25;
-no_plots = 1;
+no_plots = 0;
 makeAMovie = 0; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
 %plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
 plotCells = 1;
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
-showWoundAndShapeProperties = 0; 
+showWoundAndShapeProperties = 1; 
 
 
 showverts = 0;
@@ -241,11 +241,12 @@ for seed = startSeed+7:max_seed
             % cellID row = [ci inInitialWoundNeighbors inFinalWoundNeighbors]
             % we want to access inFinalWoundNeighbors of bulkCellShape
             % bulkCellShape row = [time shape(0) shape(1) ... shape(NCELLS)]
-            timeAndInnerShapes = bulkCellShape(:,[1; cellID(:,3)]==1);
+            %timeAndInnerShapes = bulkCellShape(:,[1; cellID(:,3)]==1);
+            timeAndInnerShapes = innerCellShape;
             timeAndOuterShapes = bulkCellShape(:,[1; ~cellID(:,3)]==1);
-            plot(timeAndInnerShapes(:,1), mean(timeAndInnerShapes(:,2:end),2),  ...
+            plot(timeAndInnerShapes(:,1), mean(timeAndInnerShapes(:,2:end),2,"omitnan"),  ...
                 'linewidth', 4, 'DisplayName', "inner shapes")
-            plot(timeAndOuterShapes(:,1),mean(timeAndOuterShapes(:,2:end),2), ...
+            plot(timeAndOuterShapes(:,1),mean(timeAndOuterShapes(:,2:end),2, "omitnan"), ...
                 'linewidth', 4, 'DisplayName', "bulk shapes")
             xlabel('$t/\tau$','Interpreter','latex','fontsize', 24);
             ylabel('Shape','Interpreter','latex','fontsize', 24);
