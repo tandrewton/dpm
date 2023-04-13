@@ -2195,7 +2195,8 @@ void dpm::maxwellRelaxationRestLengths(std::vector<double>& l) {
     l0[i] += vl0[i] * dt + al0_old * dt * dt / 2;
 
     // force on l0. tau is the effective mass of the preferred length spring
-    Fl0[i] = kl / maxwellRelaxationTime * (li - l0[i] + li - l00[i]);
+    // Fl0[i] = kl / maxwellRelaxationTime * (li - l0[i] + li - l00[i]);
+    Fl0[i] = kl / maxwellRelaxationTime * (li - l0[i]);
 
     // correction for velocity dependent force with damping
     Fl0[i] = (Fl0[i] - B * (vl0[i] + al0_old * dt / 2)) / (1 + B * dt / 2);

@@ -246,10 +246,11 @@ for i=1:length(N_arr)
                                             try 
                                                 voidArea_sd = load(voidAreaStr);
                                                 bulkCellShape_sd = load(bulkStr);
+                                                innerCellShape_sd = load(innerStr);
                                                 woundProperties_sd = load(woundPropertiesStr);
                                                 cellID = load(innerAndBulkCellIDStr);
                                                 voidArea_sd(voidArea_sd == 1e10) = NaN;
-                                                innerShapes_sd = bulkCellShape_sd(:,[1; cellID(:,3)]==1);
+                                                innerShapes_sd = innerCellShape_sd;
                                             catch
                                                 disp('Did not load file: '+pipeline_dir+fileheader);
                                                 numGoodSeeds = numGoodSeeds - 1;
@@ -344,10 +345,13 @@ for i=1:length(N_arr)
                                             healingTime = healingTime + woundProperties_sd(1);
                                             rosetteNumber = rosetteNumber + woundProperties_sd(2);
 
-                                            if (length(innerShapes_sd(end, 2:end)) > 0)
+                                            innerShapes_sd_no_nan = innerShapes_sd(end, 2:end);
+                                            innerShapes_sd_no_nan = innerShapes_sd_no_nan(~isnan(innerShapes_sd_no_nan));
+
+                                            if (length(innerShapes_sd_no_nan) > 0)
                                                 % get the distribution quantities of the rosette cells in their last frame
-                                                [stdRosetteShapesEnd_sd, meanRosetteShapesEnd_sd] = std(innerShapes_sd(end, 2:end));
-                                                [stdRosetteShapesInitial_sd, meanRosetteShapesInitial_sd] = std(innerShapes_sd(1, 2:end));
+                                                [stdRosetteShapesEnd_sd, meanRosetteShapesEnd_sd] = std(innerShapes_sd_no_nan);
+                                                [stdRosetteShapesInitial_sd, meanRosetteShapesInitial_sd] = std(innerShapes_sd_no_nan);
                                             else
                                                 % wound did not close in this case, so just take the largest 6
                                                 % shapes for the end frame, and the average for the  initial frame
