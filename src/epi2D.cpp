@@ -1963,6 +1963,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double dt0, double duration, double pr
             if (pow(cx - x_ps[psi * NDIM], 2) + pow(cy - x_ps[psi * NDIM + 1], 2) < typicalDiameterSq) {
               // if center of ci is within a diameter of PS (use center and diameter for computational efficiency, as opposed to any vertex and radius), consider it to be wound-edge to be consistent with experimental analysis
               isCiWoundAdjacent = true;
+              break;
             }
           }
           if (isCiWoundAdjacent)
