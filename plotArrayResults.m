@@ -127,7 +127,7 @@ bigproduct = length(N_arr)*length(calA0_arr)*length(t_stress_arr)*...
     length(ka_arr)*length(kb_arr)*length(deltaSq_arr)*length(d_flag_arr);
 numPlots = bigproduct;
 
-showLastFrameOfSimulations = false;
+showLastFrameOfSimulations = true;
 showPlots = true; % if false, don't show area vs time
 showPhysicalUnits = 1;
 isCrawling = false;
