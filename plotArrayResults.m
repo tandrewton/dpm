@@ -31,9 +31,9 @@ boundaryType = "0";
 B="1.0";
 %bd = "1";
 boolCIL="0";
-Duration="1600";
+Duration="1000";
 
-numSeeds = 25;
+numSeeds = 3;
 startSeed = 1;
 max_seed = numSeeds;
 set(0,'DefaultFigureWindowStyle','docked')
@@ -57,8 +57,8 @@ N_arr = ["50"];                 %i
 calA0_arr = ["1.20"];           %ii
 %t_stress_arr = ["1.0" "2.0" "4.0" "8.0" "16.0" "32.0" "64.0" "128.0" "256.0" "512.0" "1024.0" "100000.0"]; %iii
 %t_stress_arr = ["19.2" "9830.4"]; %iii
-t_stress_arr=["2.4" "4.8" "9.6" "19.2" "76.8" "307.2" "1228.8" "4915.2" "9830.4"];
-%t_stress_arr=["4915.2" "9830.4"];
+%t_stress_arr=["2.4" "4.8" "9.6" "19.2" "76.8" "307.2" "1228.8" "4915.2" "9830.4"];
+t_stress_arr=["19.2" "76.8" "307.2" "1228.8" "9830.4"];
 %att_arr = ["0.01" "0.02" "0.05" "0.1" "0.2"]; %j
 att_arr = ["0.1"]; % j
 om_arr = ["1.0"]; %jj
@@ -66,7 +66,8 @@ om_arr = ["1.0"]; %jj
 kl_arr = ["1.0"]; %jjj
 %kl_arr = ["0.1" "0.5" "1.0" "5.0" "10.0"]; %jjj
 %ka_arr = ["0.25" "16.0"];               %k
-ka_arr=["0.25" "0.5" "1.0" "2.0" "4.0" "8.0" "16.0" "32.0" "64.0" "128.0" "256.0"]; %k
+%ka_arr=["0.25" "0.5" "1.0" "2.0" "4.0" "8.0" "16.0" "32.0" "64.0" "128.0" "256.0"]; %k
+ka_arr=["0.5" "1.0" "2.5" "5.0" "12.5" "25.0" "50.0"];
 kb_arr = ["0.01"]; %kk
 deltaSq_arr = ["4.0"];          %kkk
 d_flag_arr = ["0.0"];           %l
@@ -423,7 +424,7 @@ for i=1:length(N_arr)
                                                 % experimental fit
                                                 F = @(x,xdata)x(1)*exp(-x(2)*xdata) + x(3)*exp(-x(4)*xdata);
                                                 if (pm1_ind == 1)
-                                                    fit_params = [4977.2 0.0836 -4684.1 0.0825];
+                                                    fit_params = [5181.5 0.0839 -4888.9 0.0829];
                                                     tlist = linspace(min(voidArea(:,1)*timeConvert(pm1_ind)), max(voidArea(:,1)*timeConvert(pm1_ind)), 20);
                                                     plot(tlist, F(fit_params, tlist), '--', 'Color', colorList(pm1_ind), 'linewidth', 2)
                                                 elseif (pm1_ind == 2)
@@ -484,6 +485,7 @@ for i=1:length(N_arr)
                                             ylabel('$\mathcal{A}$','Interpreter','latex','fontsize', 24);
                                             legend('location','southeast','fontsize', 6)
                                             ylim([1.0,inf])
+                                            saveas(gcf, array_output_dir+"innerShapes/"+"calA0"+calA0+"_"+pm1_str+"_"+pm2_str+"_"+pm1_ind+".png")
                                         end
                                         %heatmap1(shapeii,j) = max(meanInnerShapes)/min(meanInnerShapes);
                                         %heatmap2(shapeii,j) = max(innerShapes_sd(:,1));
