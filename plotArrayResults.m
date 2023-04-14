@@ -58,14 +58,15 @@ calA0_arr = ["1.20"];           %ii
 %t_stress_arr = ["1.0" "2.0" "4.0" "8.0" "16.0" "32.0" "64.0" "128.0" "256.0" "512.0" "1024.0" "100000.0"]; %iii
 %t_stress_arr = ["19.2" "9830.4"]; %iii
 %t_stress_arr=["2.4" "4.8" "9.6" "19.2" "76.8" "307.2" "1228.8" "4915.2" "9830.4"];
-t_stress_arr=["19.2" "76.8" "307.2" "1228.8" "9830.4"];
+%t_stress_arr=["19.2" "76.8" "307.2" "1228.8" "9830.4"];
+t_stress_arr=["307.2" "1228.8" "9830.4"];
 %att_arr = ["0.01" "0.02" "0.05" "0.1" "0.2"]; %j
 att_arr = ["0.1"]; % j
 om_arr = ["1.0"]; %jj
 %om_arr = ["0.001" "0.005" "0.01" "0.05"];             %jj
 kl_arr = ["1.0"]; %jjj
 %kl_arr = ["0.1" "0.5" "1.0" "5.0" "10.0"]; %jjj
-%ka_arr = ["0.25" "16.0"];               %k
+%ka_arr = ["1.0" "50.0"];               %k
 %ka_arr=["0.25" "0.5" "1.0" "2.0" "4.0" "8.0" "16.0" "32.0" "64.0" "128.0" "256.0"]; %k
 ka_arr=["0.5" "1.0" "2.5" "5.0" "12.5" "25.0" "50.0"];
 kb_arr = ["0.01"]; %kk
@@ -126,7 +127,7 @@ bigproduct = length(N_arr)*length(calA0_arr)*length(t_stress_arr)*...
     length(ka_arr)*length(kb_arr)*length(deltaSq_arr)*length(d_flag_arr);
 numPlots = bigproduct;
 
-showLastFrameOfSimulations = true;
+showLastFrameOfSimulations = false;
 showPlots = true; % if false, don't show area vs time
 showPhysicalUnits = 1;
 isCrawling = false;
@@ -410,12 +411,12 @@ for i=1:length(N_arr)
                                                 figure(pm2_ind)
                                                 % want (tau1, B1) and (tau2, B1). 
                                                 % plot void area vs time
-                                                %plot(voidArea(:,1)*timeConvert(pm1_ind), voidArea(:,2)*cellArea(pm1_ind),...
-                                                %    'linewidth',5, 'Color', colorList(pm1_ind),'DisplayName', displayStr)
+                                                plot(voidArea(:,1)*timeConvert(pm1_ind), voidArea(:,2)*cellArea(pm1_ind),...
+                                                    'linewidth',5, 'Color', colorList(pm1_ind),'DisplayName', displayStr)
                                                 n = 50;
                                                 skipInt = length(voidArea(:,1))/n; % keep n points to plot 
-                                                scatter(voidArea(1:skipInt:end,1)*timeConvert(pm1_ind), voidArea(1:skipInt:end,2)*cellArea(pm1_ind),...
-                                                    10, colorList(pm1_ind))
+                                                %scatter(voidArea(1:skipInt:end,1)*timeConvert(pm1_ind), voidArea(1:skipInt:end,2)*cellArea(pm1_ind),...
+                                                %    10, colorList(pm1_ind))
                                                 legend off
                                                 xlabel('Time (min)','Interpreter','latex','fontsize', 24);
                                                 ylabel('Wound area $(\mu m^2)$','Interpreter','latex','fontsize', 24);
