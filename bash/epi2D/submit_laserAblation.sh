@@ -8,7 +8,7 @@ srcdir=$cellsdir/src
 maindir=$cellsdir/main/epi2D
 
 # directory for all output for cell simulations
-outputdir=/gpfs/gibbs/project/fas/ohern/at965/dpm
+outputdir=/gpfs/gibbs/pi/ohern/at965/dpm
 
 # directory for simulations specific to laserAblation
 simtypedir=$outputdir/ablate

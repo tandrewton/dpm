@@ -56,7 +56,8 @@ array_output_dir = subdir_output + "array_output_figures/";
 N_arr = ["50"];                 %i
 calA0_arr = ["1.20"];           %ii
 %t_stress_arr = ["1.0" "2.0" "4.0" "8.0" "16.0" "32.0" "64.0" "128.0" "256.0" "512.0" "1024.0" "100000.0"]; %iii
-t_stress_arr = ["19.2"];% "9830.4"]; %iii
+%t_stress_arr = ["19.2" "9830.4"]; %iii
+t_stress_arr = ["9830.40"];
 %t_stress_arr=["2.4" "4.8" "9.6" "19.2" "76.8" "307.2" "1228.8" "4915.2" "9830.4"];
 %t_stress_arr=["19.2" "76.8" "307.2" "1228.8" "9830.4"];
 %t_stress_arr=["307.2" "1228.8" "9830.4"];
@@ -218,7 +219,7 @@ for i=1:length(N_arr)
                                             run_name=runType+"_A0"+calA0+"_t_stress"+t_stress+"k_l"+...
                                                 k_l+"_k_a"+k_a+"_k_b"+k_b+"_w_ps"+strainRate_ps+ ...
                                                 "_dsq"+deltaSq+"_k_ps"+k_ps+"_k_lp"+k_lp+...
-                                                "_d_flag"+d_flag+"_tau2"+tau_r+"_sm"+sm;
+                                                "_d_flag"+d_flag+"_taur"+tau_r+"_sm"+sm;
                                             pipeline_dir =  subdir_pipeline + run_name + "/";
                                             output_dir = subdir_output + run_name + "/";
 
