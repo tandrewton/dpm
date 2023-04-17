@@ -12,16 +12,16 @@
 //
 // below: no purse-string, no crawling (inactive simulation)
 //./main/epi2D/laserAblation.o 20 20 0 1.10 0.92 0.925 1.0 4.0 0.01 0.0 1.0  0.0  4.0  4.0 1.0  0.0   10.0     0    0 1  100  test
-// ........................... N  NV Nd A0  pMin  pMax  kl  ka  kb  att  om   dsq  kps  klp tau dflag t_stress tau2 sm sd time file
+// ........................... N  NV Nd A0  pMin  pMax  kl  ka  kb  att  om   dsq  kps  klp tau dflag t_stress taur sm sd time file
 // below: no purse-string, only crawling
 //./main/epi2D/laserAblation.o 50 30 3 1.05 0.94 0.85 1.0 1.0 0.01 0.2 1.0  0.0  1.0  4.0 1.0  3.0     25.0     0   0 1  500  test
-// ........................... N  NV Nd A0  pMin  pMax  kl ka  kb  att  om   dsq  kps  klp tau dflag  t_stress tau2 sm sd time file
+// ........................... N  NV Nd A0  pMin  pMax  kl ka  kb  att  om   dsq  kps  klp tau dflag  t_stress taur sm sd time file
 // below: purse-string, no crawling
 //./main/epi2D/laserAblation.o 30 24  5 1.05 0.94 0.85 1.0 10.0 0.01 0.1 1.0  4.0  4.0  4.0 1.0  0.0   9830.4  0  1  1 500  test
-// ........................... N  NV Nd A0  pMin  pMax  kl  ka   kb  att  om  dsq  kps  klp tau dflag t_stress tau2 sm sd time file
+// ........................... N  NV Nd A0  pMin  pMax  kl  ka   kb  att  om  dsq  kps  klp tau dflag t_stress taur sm sd time file
 // below: purse-string, and crawling
 //./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.865 1.0 4.0 0.01 0.1 1.0   2.0  4.0  4.0 1.0  3.0     10.0    0   0 1 1  110  test
-// ........................... N  NV Nd A0  pMin  pMax  kl ka  kb  att  om   dsq  kps  klp tau dflag  t_stress tau2 sm sd time file
+// ........................... N  NV Nd A0  pMin  pMax  kl ka  kb  att  om   dsq  kps  klp tau dflag  t_stress taur sm sd time file
 
 // bash bash/epi2D/submit_laserAblation.sh 40 20 6 1.10 0.92 0.925 1.0 1.0 0.2 1.0  0.0 4.0 4.0 1.0 3.0 1.0 0.5 0 0 400 pi_ohern,day,scavenge 0-24:00:00 1 1
 
@@ -44,7 +44,7 @@
 // 15. tau_lp:      protrusion time constant (controls stochastic lifetime of a protrusion)
 // 16. d_flag:      protrusion distance from cell edge in units of vertex diameter
 // 17. tau_maxwell: stress relaxation timescale for preferred lengths
-// 18. tau2         ad-hoc parameter to achieve relaxation of cell shapes in the wing disc case.
+// 18. taur         ad-hoc parameter to achieve relaxation of cell shapes in the wing disc case.
 // 19. smooth       choice of smooth or bumpy forces (0 = bumpy, 1 = smooth)
 // 20. seed: 			  seed for random number generator
 // 21. time:        amount of time (tau) to simulate
@@ -76,7 +76,7 @@ bool isPbcOn = false;
 int main(int argc, char const* argv[]) {
   // local variables to be read in
   int NCELLS, nsmall, seed, ndelete;
-  double calA0, kl, ka = 1.0, kb, phiMin, phiMax, att, B = 1.0, t_stress, time_dbl, tau2;
+  double calA0, kl, ka = 1.0, kb, phiMin, phiMax, att, B = 1.0, t_stress, time_dbl, taur;
   double ka_for_equilibration = 2.0, kb_for_equilibration = 0.0;
   bool boolSmooth, purseStringOn = true;
   double strainRate_ps, k_ps, k_LP, tau_LP, deltaSq, maxProtrusionLength;
@@ -99,7 +99,7 @@ int main(int argc, char const* argv[]) {
   string tau_lp_str = argv[15];
   string d_flag_str = argv[16];
   string t_stress_str = argv[17];
-  string tau2_str = argv[18];
+  string taur_str = argv[18];
   string smooth_str = argv[19];
   string seed_str = argv[20];
   string time_str = argv[21];
@@ -136,7 +136,7 @@ int main(int argc, char const* argv[]) {
   stringstream tau_lpss(tau_lp_str);
   stringstream d_flagss(d_flag_str);
   stringstream t_stressss(t_stress_str);
-  stringstream tau2ss(tau2_str);
+  stringstream taurss(taur_str);
   stringstream smoothss(smooth_str);
   stringstream seedss(seed_str);
   stringstream timess(time_str);
@@ -159,7 +159,7 @@ int main(int argc, char const* argv[]) {
   tau_lpss >> tau_LP;
   d_flagss >> maxProtrusionLength;
   t_stressss >> t_stress;
-  tau2ss >> tau2;
+  taurss >> taur;
   smoothss >> boolSmooth;
   seedss >> seed;
   timess >> time_dbl;
@@ -245,8 +245,8 @@ int main(int argc, char const* argv[]) {
   if (t_stress > 9e4)  //     cout << "t_stress is large, setting to infinity\n";
     t_stress = INFINITY;
 
-  if (tau2 > 9e4 || tau2 < 1e-10)  // cout << "tau2 is large, setting to infinity\n";
-    tau2 = INFINITY;
+  if (taur > 9e4 || taur < 1e-10)  // cout << "taur is large, setting to infinity\n";
+    taur = INFINITY;
 
   // after compress, turn on damped NVE
   double T = 1e-2;
@@ -278,7 +278,7 @@ int main(int argc, char const* argv[]) {
   // epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, dt0, 2.0 * relaxTime, 0);
   // energy minimize without walls to get proper cell shapes
   epithelial.setMaxwellRelaxationTime(t_stress);
-  epithelial.setTau2(tau2);
+  epithelial.setTaur(taur);
   epithelial.dampedNP0(customForceUpdate_inactive, dt0, 1.0 * relaxTime, 0);
 
   // save image right before wounding
