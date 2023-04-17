@@ -56,7 +56,7 @@ array_output_dir = subdir_output + "array_output_figures/";
 N_arr = ["50"];                 %i
 calA0_arr = ["1.20"];           %ii
 %t_stress_arr = ["1.0" "2.0" "4.0" "8.0" "16.0" "32.0" "64.0" "128.0" "256.0" "512.0" "1024.0" "100000.0"]; %iii
-t_stress_arr = ["19.2" "9830.4"]; %iii
+t_stress_arr = ["19.2"];% "9830.4"]; %iii
 %t_stress_arr=["2.4" "4.8" "9.6" "19.2" "76.8" "307.2" "1228.8" "4915.2" "9830.4"];
 %t_stress_arr=["19.2" "76.8" "307.2" "1228.8" "9830.4"];
 %t_stress_arr=["307.2" "1228.8" "9830.4"];
@@ -70,16 +70,18 @@ ka_arr = ["1.0" "50.0"];               %k
 %ka_arr=["0.5" "1.0" "2.5" "5.0" "12.5" "25.0" "50.0"];
 kb_arr = ["0.01"]; %kk
 deltaSq_arr = ["4.0"];          %kkk
-d_flag_arr = ["0.0"];           %l
+%d_flag_arr = ["0.0"];           %l
+tau_r_arr=["0" "76.8" "307.2" "1228.8" "9830.4"]; %l
 
- 
+d_flag = "0.0"; 
+
 % loop logic selects the 2 arrays above with length > 1.
 %  it then identifies the correct parameter name, and the iterator in the
 %  big nested loop that runs all of the plotting routines.
 pm1 = []; pm2 = [];
-param_cell_list = {t_stress_arr att_arr om_arr kl_arr ka_arr kb_arr};
-param_id_list = ["tau" "adhesion" "activity" "kl" "ka" "kb"];
-param_ind_list = [1 2 3 4 5 6];
+param_cell_list = {t_stress_arr att_arr om_arr kl_arr ka_arr kb_arr tau_r_arr};
+param_id_list = ["tau" "adhesion" "activity" "kl" "ka" "kb" "tau_r"];
+param_ind_list = [1 2 3 4 5 6 7];
 for i=1:length(param_cell_list)
     if (length(param_cell_list{i}) > 1)
         if (isempty(pm1))
@@ -123,7 +125,7 @@ mkdir(array_output_dir+pm1pm2_folder);
 
 bigproduct = length(N_arr)*length(calA0_arr)*length(t_stress_arr)*...
     length(att_arr)*length(om_arr)*length(kl_arr)*...
-    length(ka_arr)*length(kb_arr)*length(deltaSq_arr)*length(d_flag_arr);
+    length(ka_arr)*length(kb_arr)*length(deltaSq_arr)*length(tau_r_arr);
 numPlots = bigproduct;
 
 showLastFrameOfSimulations = true;
@@ -183,10 +185,10 @@ for i=1:length(N_arr)
                                 k_b = kb_arr(kk);
                                 for kkk=1:length(deltaSq_arr)
                                     deltaSq = deltaSq_arr(kkk);
-                                    for l=1:length(d_flag_arr)
-                                        d_flag = d_flag_arr(l);
+                                    for l=1:length(tau_r_arr)
+                                        tau_r = tau_r_arr(l);
 
-                                        iterator_arr = [iii j jj jjj k kk];
+                                        iterator_arr = [iii j jj jjj k kk l];
 
                                         pm1_ind = iterator_arr(pm1_ind_num);
                                         pm2_ind = iterator_arr(pm2_ind_num);
@@ -216,7 +218,7 @@ for i=1:length(N_arr)
                                             run_name=runType+"_A0"+calA0+"_t_stress"+t_stress+"k_l"+...
                                                 k_l+"_k_a"+k_a+"_k_b"+k_b+"_w_ps"+strainRate_ps+ ...
                                                 "_dsq"+deltaSq+"_k_ps"+k_ps+"_k_lp"+k_lp+...
-                                                "_d_flag"+d_flag+"_bd"+boundaryType+"_sm"+sm;
+                                                "_d_flag"+d_flag+"_tau2"+tau_r+"_sm"+sm;
                                             pipeline_dir =  subdir_pipeline + run_name + "/";
                                             output_dir = subdir_output + run_name + "/";
 
@@ -409,7 +411,7 @@ for i=1:length(N_arr)
                                             % coordinate
                                             if (isProductionRun)
                                                 figure(pm2_ind)
-                                                % want (tau1, B1) and (tau2, B1). 
+                                                % want (tau_1, B1) and (tau_2, B1). 
                                                 % plot void area vs time
                                                 plot(voidArea(:,1)*timeConvert(pm1_ind), voidArea(:,2)*cellArea(pm1_ind),...
                                                     'linewidth',5, 'Color', colorList(pm1_ind),'DisplayName', displayStr)

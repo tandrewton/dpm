@@ -43,7 +43,7 @@ dpm::dpm(int n, int ndim, int seed) {
   kc = 0.0;
 
   maxwellRelaxationTime = INFINITY;
-  tau2 = INFINITY;
+  taur = INFINITY;
   B = 0.0;
 
   l1 = 0.0;
@@ -2198,8 +2198,8 @@ void dpm::maxwellRelaxationRestLengths(std::vector<double>& l) {
     // force on l0. tau is the effective mass of the preferred length spring
     // Fl0[i] = kl / maxwellRelaxationTime * (li - l0[i] + li - l00[i]);
     Fl0[i] = kl / maxwellRelaxationTime * (li - l0[i]);
-    // Fl0[i] += kl / tau2 * (l00[i] - l0[i]);
-    Fl0[i] += kl / tau2 * (l00[i] - li);
+    // Fl0[i] += kl / taur * (l00[i] - l0[i]);
+    Fl0[i] += kl / taur * (l00[i] - li);
 
     // correction for velocity dependent force with damping
     Fl0[i] = (Fl0[i] - B * (vl0[i] + al0_old * dt / 2)) / (1 + B * dt / 2);
