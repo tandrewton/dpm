@@ -17,8 +17,8 @@
 //./main/epi2D/laserAblation.o 50 30 3 1.05 0.94 0.85 1.0 1.0 0.01 0.2 1.0  0.0  1.0  4.0 1.0  3.0     25.0     0   0 1  500  test
 // ........................... N  NV Nd A0  pMin  pMax  kl ka  kb  att  om   dsq  kps  klp tau dflag  t_stress tau2 sm sd time file
 // below: purse-string, no crawling
-//./main/epi2D/laserAblation.o 30 24  5 1.05 0.94 0.85 1.0 1.0 0.01 0.1 1.0  4.0  1.0  4.0 1.0  0.0   100.0  0  1  1 200  test
-// ........................... N  NV Nd A0  pMin  pMax  kl ka  kb  att  om  dsq  kps  klp tau dflag t_stress tau2 sm sd time file
+//./main/epi2D/laserAblation.o 30 24  5 1.05 0.94 0.85 1.0 10.0 0.01 0.1 1.0  4.0  4.0  4.0 1.0  0.0   9830.4  0  1  1 500  test
+// ........................... N  NV Nd A0  pMin  pMax  kl  ka   kb  att  om  dsq  kps  klp tau dflag t_stress tau2 sm sd time file
 // below: purse-string, and crawling
 //./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.865 1.0 4.0 0.01 0.1 1.0   2.0  4.0  4.0 1.0  3.0     10.0    0   0 1 1  110  test
 // ........................... N  NV Nd A0  pMin  pMax  kl ka  kb  att  om   dsq  kps  klp tau dflag  t_stress tau2 sm sd time file
@@ -67,7 +67,7 @@ const double boxLengthScale = 2.5;  // neighbor list box size in units of initia
 // const double phi0 = 0.5;            // initial packing fraction
 const double smallfrac = 0.5;  // fraction of small particles
 const double sizeratio = 1.4;  // size ratio between small and large particles
-const double dt0 = 0.05;       // initial magnitude of time step in units of MD time
+const double dt0 = 0.1;        // initial magnitude of time step in units of MD time
 const double Ptol = 1e-8;
 const double Ftol = 1e-12;
 const double att_range = 0.3;
@@ -242,10 +242,11 @@ int main(int argc, char const* argv[]) {
   // after FIRE, restore spring constants and stress relaxation time to specified value
   epithelial.setka(ka);
   epithelial.setkb(kb);
-  if (t_stress > 9e4) {
-    cout << "t_stress is large, setting to infinity\n";
+  if (t_stress > 9e4)  //     cout << "t_stress is large, setting to infinity\n";
     t_stress = INFINITY;
-  }
+
+  if (tau2 > 9e4 || tau2 < 1e-10)  // cout << "tau2 is large, setting to infinity\n";
+    tau2 = INFINITY;
 
   // after compress, turn on damped NVE
   double T = 1e-2;
