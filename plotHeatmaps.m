@@ -1,6 +1,8 @@
+% to use this, copy paste some heat map files called heatmapFile into the
+% directory
 clear;close all;
 set(0,'DefaultFigureWindowStyle','docked')
-isPlottingAreaVelocity = true;
+isPlottingAreaVelocity = false;
 isPlottingShapes = ~isPlottingAreaVelocity;
 assert((isPlottingAreaVelocity && isPlottingShapes) == false);
 %%
@@ -104,12 +106,24 @@ inputCombos = combvec((xpoints*bulkModulusConvert)', (ypoints*timeConvert)');
 
 scatter(inputCombos(1,:), inputCombos(2,:),30, 'k', 'o', 'filled', 'MarkerFaceColor', 'white', 'MarkerEdgeColor', 'k', 'linewidth', 1);
 
-xlabel('B (kPa)', 'FontSize', 20, 'interpreter','latex')
-ylabel('$\tau$ (minutes)', 'FontSize', 20, 'Interpreter', 'latex')
+xlabel('B (kPa)', 'FontSize', 20)
+ylabel('\tau (min)', 'FontSize', 20)
 xlim([min(xpoints) max(xpoints)]*bulkModulusConvert);
 ylim([min(ypoints) max(ypoints)]*timeConvert);
 set(gca, 'YScale', 'log', 'XScale', 'log')
-set(gca,'FontSize', 20)
+set(gca,'FontSize', 28)
+xticks([0.01 0.1 1 10])
+yticks([1 10 100 1000])
+a = colorbar;
+if (isPlottingAreaVelocity)
+    a.Label.String = 'μm^2/min';
+    a.Label.Position(1) = 2;
+else 
+    a.Label.String = '$\mathcal{A}$';
+    a.Label.Interpreter = 'latex';
+    a.Label.Position(1) = 3.8;
+    a.Ticks=[1.5 1.7 1.9 2.1]
+end
 
 parameterSelectionB = [0.64 0.64];
 parameterSelectionTau = [5.33 2730.67];
