@@ -31,9 +31,9 @@ boundaryType = "0";
 B="1.0";
 %bd = "1";
 boolCIL="0";
-Duration="1000";
+Duration="2000";
 
-numSeeds = 3;
+numSeeds = 10;
 startSeed = 1;
 max_seed = numSeeds;
 set(0,'DefaultFigureWindowStyle','docked')
@@ -55,24 +55,25 @@ array_output_dir = subdir_output + "array_output_figures/";
 
 N_arr = ["50"];                 %i
 calA0_arr = ["1.20"];           %ii
-%t_stress_arr = ["1.0" "2.0" "4.0" "8.0" "16.0" "32.0" "64.0" "128.0" "256.0" "512.0" "1024.0" "100000.0"]; %iii
-%t_stress_arr = ["19.2" "9830.4"]; %iii
-t_stress_arr = ["9830.40"];
+%t_stress_arr = ["9830.4" "39321.6"]; %iii
+t_stress_arr = ["19.2" "39321.6"];
 %t_stress_arr=["2.4" "4.8" "9.6" "19.2" "76.8" "307.2" "1228.8" "4915.2" "9830.4"];
 %t_stress_arr=["19.2" "76.8" "307.2" "1228.8" "9830.4"];
 %t_stress_arr=["307.2" "1228.8" "9830.4"];
 att_arr = ["0.1"]; % j
 om_arr = ["1.0"]; %jj
-%om_arr = ["0.001" "0.005" "0.01" "0.05"];             %jj
 kl_arr = ["1.0"]; %jjj
-%kl_arr = ["0.1" "0.5" "1.0" "5.0" "10.0"]; %jjj
-ka_arr = ["1.0" "50.0"];               %k
+%ka_arr = ["0.25" "1.0" "5.0" "10.0" "50.0"];               %k
 %ka_arr=["0.25" "0.5" "1.0" "2.0" "4.0" "8.0" "16.0" "32.0" "64.0" "128.0" "256.0"]; %k
 %ka_arr=["0.5" "1.0" "2.5" "5.0" "12.5" "25.0" "50.0"];
+%ka_arr=["1.0" "5.0" "12.5" "25.0" "50.0"];
+ka_arr=["1.0" "12.5"];
 kb_arr = ["0.01"]; %kk
 deltaSq_arr = ["4.0"];          %kkk
 %d_flag_arr = ["0.0"];           %l
-tau_r_arr=["0" "76.8" "307.2" "1228.8" "9830.4"]; %l
+%tau_r_arr=["19.2" "76.8" "307.2" "1228.8" "4915.2" "9830.4"]; %l
+%tau_r_arr=["153.6" "307.2" "614.4" "1228.8"];
+tau_r_arr=["1228.8"];
 
 d_flag = "0.0"; 
 
@@ -109,7 +110,7 @@ if (length(pm1) == length(pm2) && length(pm1) == 2)
     
     % physical units here
     cellArea = [25,16]; % microns^2
-    constrictionRate = 0.3; % micron/sec
+    constrictionRate = 0.3; % micron/sec 
     adhesionForce = 1e-9; % Newton
     
     % simulation to real unit conversion
@@ -129,7 +130,7 @@ bigproduct = length(N_arr)*length(calA0_arr)*length(t_stress_arr)*...
     length(ka_arr)*length(kb_arr)*length(deltaSq_arr)*length(tau_r_arr);
 numPlots = bigproduct;
 
-showLastFrameOfSimulations = true;
+showLastFrameOfSimulations = false;
 showPlots = true; % if false, don't show area vs time
 showPhysicalUnits = 1;
 isCrawling = false;
@@ -188,6 +189,18 @@ for i=1:length(N_arr)
                                     deltaSq = deltaSq_arr(kkk);
                                     for l=1:length(tau_r_arr)
                                         tau_r = tau_r_arr(l);
+                                        if (isProductionRun)
+                                            % hardcoding some things
+                                            % depending on if its for
+                                            % production
+                                            if (t_stress == "19.2")
+                                                tau_r = "0";
+                                                k_a = "1.0";
+                                                Duration = "1000";
+                                            else
+                                                Duration = "2000";
+                                            end
+                                        end
 
                                         iterator_arr = [iii j jj jjj k kk l];
 
@@ -207,8 +220,8 @@ for i=1:length(N_arr)
                                         if (isCrawling)
                                             displayStr = "C__A0="+calA0+",att="+att+",sm="+sm+",t_{stress}="+t_stress;
                                         else
-                                            displayStr = "P"+"N="+N+",tau="+t_stress+",att="+att+",om="+...
-                                                strainRate_ps+",kl="+k_l+",ka="+k_a+",kb="+k_b+",dsq="+deltaSq;
+                                            displayStr = "P"+"N="+N+",tau="+t_stress+",att="+att+...
+                                                ",kl="+k_l+",ka="+k_a+",kb="+k_b+",taur="+tau_r;
                                         end
 
                                         numGoodSeeds = numSeeds;
@@ -414,15 +427,23 @@ for i=1:length(N_arr)
                                                 figure(pm2_ind)
                                                 % want (tau_1, B1) and (tau_2, B1). 
                                                 % plot void area vs time
-                                                plot(voidArea(:,1)*timeConvert(pm1_ind), voidArea(:,2)*cellArea(pm1_ind),...
-                                                    'linewidth',5, 'Color', colorList(pm1_ind),'DisplayName', displayStr)
-                                                n = 50;
+                                                %plot(voidArea(:,1)*timeConvert(pm1_ind), voidArea(:,2)*cellArea(pm1_ind),...
+                                                %    'linewidth',5, 'Color', colorList(pm1_ind),'DisplayName', displayStr)
+                                                n = 100;
                                                 skipInt = length(voidArea(:,1))/n; % keep n points to plot 
-                                                %scatter(voidArea(1:skipInt:end,1)*timeConvert(pm1_ind), voidArea(1:skipInt:end,2)*cellArea(pm1_ind),...
-                                                %    10, colorList(pm1_ind))
+                                                scatter(voidArea(1:skipInt:end,1)*timeConvert(pm1_ind), voidArea(1:skipInt:end,2)*cellArea(pm1_ind),...
+                                                    20, colorList(pm1_ind), "^")
                                                 legend off
-                                                xlabel('Time (min)','Interpreter','latex','fontsize', 24);
-                                                ylabel('Wound area $(\mu m^2)$','Interpreter','latex','fontsize', 24);
+                                                xlabel('Time (min)','Interpreter', 'tex','fontsize', 24);
+                                                ylabel('Area (μm^2)','Interpreter', 'tex','fontsize', 24);
+                                                box on
+                                                ax = gca;
+                                                ax.TickLength = [0.025 0.025];
+                                                ax.LineWidth = 1;
+                                                fontsize(gcf, 20, "points")
+                                                xlim([0 inf])
+                                                ylim([0 inf])
+                                                pbaspect([1 1.3 1])
 
                                                 % plot void area vs time,
                                                 % experimental fit
@@ -430,11 +451,11 @@ for i=1:length(N_arr)
                                                 if (pm1_ind == 1)
                                                     fit_params = [5181.5 0.0839 -4888.9 0.0829];
                                                     tlist = linspace(min(voidArea(:,1)*timeConvert(pm1_ind)), max(voidArea(:,1)*timeConvert(pm1_ind)), 20);
-                                                    plot(tlist, F(fit_params, tlist), '--', 'Color', colorList(pm1_ind), 'linewidth', 2)
+                                                    plot(tlist, F(fit_params, tlist), '-', 'Color', colorList(pm1_ind), 'linewidth', 2)
                                                 elseif (pm1_ind == 2)
                                                     fit_params = [29.9753 0.0108 83.4336 0.0704];
                                                     tlist = linspace(min(voidArea(:,1)*timeConvert(pm1_ind)), max(voidArea(:,1)*timeConvert(pm1_ind)), 20);
-                                                    plot(tlist, F(fit_params, tlist), '--', 'Color', colorList(pm1_ind), 'linewidth', 2)
+                                                    plot(tlist, F(fit_params, tlist), '-', 'Color', colorList(pm1_ind), 'linewidth', 2)
                                                 end
                                                 % plot shape vs time
                                                
@@ -442,15 +463,22 @@ for i=1:length(N_arr)
                             
                                                 skipInt = length(meanInnerShapes)/n;
                                                 meanInnerShapes = mean(innerShapeArr,'omitnan');
-                                                plot(timeInnerShapes(1:skipInt:end)*timeConvert(pm1_ind),meanInnerShapes(1:skipInt:end),...
-                                                    '-','linewidth',3, 'Color', colorList(pm1_ind),'DisplayName', displayStr)
-                                                %scatter(timeInnerShapes(1:skipInt:end)*timeConvert(pm1_ind),meanInnerShapes(1:skipInt:end),...
-                                                %     10, colorList(pm1_ind))
-                                                xlabel('Time (min)','Interpreter','latex','fontsize', 24);
+                                                %plot(timeInnerShapes(1:skipInt:end)*timeConvert(pm1_ind),meanInnerShapes(1:skipInt:end),...
+                                                %    '-','linewidth',3, 'Color', colorList(pm1_ind),'DisplayName', displayStr)
+                                                scatter(timeInnerShapes(1:skipInt:end)*timeConvert(pm1_ind),meanInnerShapes(1:skipInt:end),...
+                                                     10, colorList(pm1_ind), "^") 
+                                                xlabel('Time (min)','Interpreter','tex','fontsize', 24);
                                                 ylabel('$\mathcal{A}$','Interpreter','latex','fontsize', 24);
                                                 %legend('location','southeast','fontsize', 6)
                                                 legend off
-                                                ylim([1.0,1.8])
+                                                box on
+                                                ax = gca;
+                                                ax.TickLength = [0.025 0.025];
+                                                ax.LineWidth = 1;
+                                                fontsize(gcf, 20, "points")
+                                                xlim([0 inf])
+                                                ylim([-inf inf])
+                                                pbaspect([1 1.2 1])
 
                                                 % look for files called
                                                 % shapeAll.mat, which
@@ -469,7 +497,7 @@ for i=1:length(N_arr)
                                                 %plot(t,movmean(y,20),'-','linewidth',2,'Color', colorList(pm1_ind))
                                                 %scatter(t(1:skipInt:end), sma(1:skipInt:end), 5, colorList(pm1_ind), 'filled')
                                                 %scatter(t, sma, 10, colorList(pm1_ind), 'filled')
-                                                plot(t, sma, '--','Color', colorList(pm1_ind), 'linewidth', 3)
+                                                plot(t, sma, '-','Color', colorList(pm1_ind), 'linewidth', 3)
                                             else
                                                 plot(voidArea(:,1), voidArea(:,2), 'linewidth', 4, 'DisplayName', displayStr)
                                                 xlabel('$t/\tau$','Interpreter','latex','fontsize', 24);

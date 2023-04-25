@@ -3,12 +3,12 @@
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
 
-%function drawWoundSims(N, calA0, t_stress, att, strainRate_ps, ...
-%    k_l, k_a, k_b, deltaSq, d_flag) %uncomment if using function call to pipeline data
+function drawWoundSims(N, calA0, t_stress, att, strainRate_ps, ...
+    k_l, k_a, k_b, deltaSq, d_flag) %uncomment if using function call to pipeline data
 
-%isTestData = false; %uncomment if using function call to pipeline data
+isTestData = false; %uncomment if using function call to pipeline data
 
-isTestData = true; %uncomment if using test data
+%isTestData = true; %uncomment if using test data
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('C:\Users\atata\projects\dpm\bash')
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
@@ -34,16 +34,17 @@ tau_lp = "1.0"; %lamellipodia lifetime
 %d_flag = "0.0"; %lamellipodia max length
 boundaryType = "0"; 
 %att="0.2";
+tau_r = "0";
 B="1.0";
 boolCIL="0";
-Duration="1600";
+Duration="1000";
 FSKIP = 1;
 
 etaStr = " ";
 startSeed = 1;
-max_seed = 1;
+max_seed = 3;
 no_plots = 0;
-makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
+makeAMovie = 0; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
 %plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
 plotCells = 1;
 set(0,'DefaultFigureWindowStyle','docked')
@@ -73,7 +74,7 @@ showVoidBlack = 0; % print void in larger black circles to see easier
 showVoidLite = 1; % print void, but in a way that works with printConfiguration on its own
 showCornersOrEdges = 0;
 if (str2num(deltaSq) > 0.0 && ~no_plots)
-    showPurseString = 1;
+    showPurseString = 0;
 else
     showPurseString = 0;
 end
@@ -97,7 +98,7 @@ txt='test';
 
 fnum = 1;
 figure(13), clf, hold on, box on;
-for seed = startSeed:max_seed
+for seed = startSeed+1:max_seed
     seed
     if (isTestData)
         run_name = runType+txt;     
@@ -122,7 +123,7 @@ for seed = startSeed:max_seed
         run_name=runType+"_A0"+calA0+"_t_stress"+t_stress+"k_l"+...
             k_l+"_k_a"+k_a+"_k_b"+k_b+"_w_ps"+strainRate_ps+ ...
             "_dsq"+deltaSq+"_k_ps"+k_ps+"_k_lp"+k_lp+...
-            "_d_flag"+d_flag+"_bd"+boundaryType+"_sm"+smooth
+            "_d_flag"+d_flag+"_taur"+tau_r+"_sm"+smooth;
         pipeline_dir =  subdir_pipeline + run_name + "/";
         output_dir = subdir_output + run_name + "/";
         mkdir(pipeline_dir)

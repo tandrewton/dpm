@@ -228,8 +228,8 @@ int main(int argc, char const* argv[]) {
   // initialize positions and setup polygonal boundary condition if setUpCircularBoundary is enabled
   epithelial.initializePositions2D(phi0, Ftol, false, boxAspectRatio, setUpCircularBoundary);
   epithelial.printConfiguration2D();
-
-  epithelial.initializeNeighborLinkedList2D(boxLengthScale);
+  n
+      epithelial.initializeNeighborLinkedList2D(boxLengthScale);
 
   if (isPbcOn)
     epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdate, Ftol, dt0, phiMax, dphi0);
@@ -277,8 +277,6 @@ int main(int argc, char const* argv[]) {
   epithelial.vertexNVE(customForceUpdate_inactive, dt0, 1.0 * relaxTime / dt0, 0);
   // epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, dt0, 2.0 * relaxTime, 0);
   // energy minimize without walls to get proper cell shapes
-  epithelial.setMaxwellRelaxationTime(t_stress);
-  epithelial.setTaur(taur);
   epithelial.dampedNP0(customForceUpdate_inactive, dt0, 1.0 * relaxTime, 0);
 
   // save image right before wounding
@@ -293,6 +291,9 @@ int main(int argc, char const* argv[]) {
   //  dampedNP0 runs simulation with purse-string integration and crawling
   for (int i = 0; i < 2; i++)
     epithelial.dampedNP0(customForceUpdate_inactive, dt0, relaxTime, 0);
+
+  epithelial.setMaxwellRelaxationTime(t_stress);
+  epithelial.setTaur(taur);
   epithelial.dampedNP0(customForceUpdate_active, dt0, time_dbl, printInterval, purseStringOn);
 
   cout << "ending simulation: printing one last configuration\n";
