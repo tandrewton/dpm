@@ -228,8 +228,8 @@ int main(int argc, char const* argv[]) {
   // initialize positions and setup polygonal boundary condition if setUpCircularBoundary is enabled
   epithelial.initializePositions2D(phi0, Ftol, false, boxAspectRatio, setUpCircularBoundary);
   epithelial.printConfiguration2D();
-  n
-      epithelial.initializeNeighborLinkedList2D(boxLengthScale);
+
+  epithelial.initializeNeighborLinkedList2D(boxLengthScale);
 
   if (isPbcOn)
     epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdate, Ftol, dt0, phiMax, dphi0);
