@@ -183,6 +183,7 @@ int main(int argc, char const* argv[]) {
   cell2D.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithPolyWalls, Ftol, dt0, phiMax, dphi0);
   cout << "done compressing to target packing fraction\n";
   cell2D.printConfiguration2D();
+  cell2D.setl00();  // set l00 to be l0 before setting maxwell relaxation time
 
   bool wallsBool = true;
   double relaxTimeShort = 5.0;
@@ -218,6 +219,7 @@ int main(int argc, char const* argv[]) {
     cell2D.replacePolyWallWithDP(numCellTypes);
     cell2D.resizeNeighborLinkedList2D();
   }
+  cell2D.setl00();  // set l00 to be l0 before setting maxwell relaxation time, after resizing from replacePolyWallWithDP
 
   // cell2D.dampedVertexNVE(customForceUpdate, dt0, relaxTime, relaxTime / 15);
   cout << "\n\nmain simulation begins!\n\n";

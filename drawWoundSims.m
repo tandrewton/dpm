@@ -34,21 +34,22 @@ tau_lp = "1.0"; %lamellipodia lifetime
 %d_flag = "0.0"; %lamellipodia max length
 boundaryType = "0"; 
 %att="0.2";
+tau_r = "0";
 B="1.0";
 boolCIL="0";
-Duration="1600";
+Duration="1000";
 FSKIP = 1;
 
 etaStr = " ";
 startSeed = 1;
-max_seed = 25;
-no_plots = 1;
+max_seed = 3;
+no_plots = 0;
 makeAMovie = 0; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
 %plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
 plotCells = 1;
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
-showWoundAndShapeProperties = 0; 
+showWoundAndShapeProperties = 1; 
 
 
 showverts = 0;
@@ -73,7 +74,7 @@ showVoidBlack = 0; % print void in larger black circles to see easier
 showVoidLite = 1; % print void, but in a way that works with printConfiguration on its own
 showCornersOrEdges = 0;
 if (str2num(deltaSq) > 0.0 && ~no_plots)
-    showPurseString = 1;
+    showPurseString = 0;
 else
     showPurseString = 0;
 end
@@ -97,7 +98,7 @@ txt='test';
 
 fnum = 1;
 figure(13), clf, hold on, box on;
-for seed = startSeed+7:max_seed
+for seed = startSeed+1:max_seed
     seed
     if (isTestData)
         run_name = runType+txt;     
@@ -122,7 +123,7 @@ for seed = startSeed+7:max_seed
         run_name=runType+"_A0"+calA0+"_t_stress"+t_stress+"k_l"+...
             k_l+"_k_a"+k_a+"_k_b"+k_b+"_w_ps"+strainRate_ps+ ...
             "_dsq"+deltaSq+"_k_ps"+k_ps+"_k_lp"+k_lp+...
-            "_d_flag"+d_flag+"_bd"+boundaryType+"_sm"+smooth
+            "_d_flag"+d_flag+"_taur"+tau_r+"_sm"+smooth;
         pipeline_dir =  subdir_pipeline + run_name + "/";
         output_dir = subdir_output + run_name + "/";
         mkdir(pipeline_dir)
@@ -241,11 +242,12 @@ for seed = startSeed+7:max_seed
             % cellID row = [ci inInitialWoundNeighbors inFinalWoundNeighbors]
             % we want to access inFinalWoundNeighbors of bulkCellShape
             % bulkCellShape row = [time shape(0) shape(1) ... shape(NCELLS)]
-            timeAndInnerShapes = bulkCellShape(:,[1; cellID(:,3)]==1);
+            %timeAndInnerShapes = bulkCellShape(:,[1; cellID(:,3)]==1);
+            timeAndInnerShapes = innerCellShape;
             timeAndOuterShapes = bulkCellShape(:,[1; ~cellID(:,3)]==1);
-            plot(timeAndInnerShapes(:,1), mean(timeAndInnerShapes(:,2:end),2),  ...
+            plot(timeAndInnerShapes(:,1), mean(timeAndInnerShapes(:,2:end),2,"omitnan"),  ...
                 'linewidth', 4, 'DisplayName', "inner shapes")
-            plot(timeAndOuterShapes(:,1),mean(timeAndOuterShapes(:,2:end),2), ...
+            plot(timeAndOuterShapes(:,1),mean(timeAndOuterShapes(:,2:end),2, "omitnan"), ...
                 'linewidth', 4, 'DisplayName', "bulk shapes")
             xlabel('$t/\tau$','Interpreter','latex','fontsize', 24);
             ylabel('Shape','Interpreter','latex','fontsize', 24);

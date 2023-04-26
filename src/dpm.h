@@ -79,8 +79,8 @@ class dpm {
   double kc;
 
   // rheological parameters
-  double maxwellRelaxationTime;
-  std::vector<double> vl0, Fl0;
+  double maxwellRelaxationTime, taur;
+  std::vector<double> vl0, Fl0, l00;
 
   // particle attraction constants
   double l1, l2;
@@ -198,12 +198,14 @@ class dpm {
   void setdt(double val);
   void setka(double val) { ka = val; };
   void setkl(double val) { kl = val; };
+  void setl00() { l00 = l0; };
   void setkb(double val) { kb = val; };
   void setkc(double val) { kc = val; };
   void setl1(double val) { l1 = val; };
   void setl2(double val) { l2 = val; };
   void setB(double val) { B = val; };
   void setMaxwellRelaxationTime(double val) { maxwellRelaxationTime = val; };
+  void setTaur(double val) { taur = val; };
   void scaleL(int d, double val) { L.at(d) *= val; };
   void scaleRadius(double scalefactor) {
     for (int i = 0; i < NVTOT; i++) {

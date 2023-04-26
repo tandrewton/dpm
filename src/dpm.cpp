@@ -43,6 +43,7 @@ dpm::dpm(int n, int ndim, int seed) {
   kc = 0.0;
 
   maxwellRelaxationTime = INFINITY;
+  taur = INFINITY;
   B = 0.0;
 
   l1 = 0.0;
@@ -466,6 +467,7 @@ void dpm::initializeVertexShapeParameters(double calA0, int nref) {
 
   // resize shape paramters
   l0.resize(NVTOT);
+  l00.resize(NVTOT);
   vl0.resize(NVTOT);
   Fl0.resize(NVTOT);
   t0.resize(NVTOT);
@@ -517,6 +519,7 @@ void dpm::initializeVertexShapeParameters(std::vector<double> calA0, int nref) {
 
   // resize shape paramters
   l0.resize(NVTOT);
+  l00.resize(NVTOT);
   vl0.resize(NVTOT);
   Fl0.resize(NVTOT);
   t0.resize(NVTOT);
@@ -1086,6 +1089,7 @@ void dpm::initializeFromConfigurationFile(std::string vertexPositionFile, double
 
   // resize shape paramters
   l0.resize(NVTOT);
+  l00.resize(NVTOT);
   vl0.resize(NVTOT);
   Fl0.resize(NVTOT);
   t0.resize(NVTOT);
@@ -2192,7 +2196,10 @@ void dpm::maxwellRelaxationRestLengths(std::vector<double>& l) {
     l0[i] += vl0[i] * dt + al0_old * dt * dt / 2;
 
     // force on l0. tau is the effective mass of the preferred length spring
+    // Fl0[i] = kl / maxwellRelaxationTime * (li - l0[i] + li - l00[i]);
     Fl0[i] = kl / maxwellRelaxationTime * (li - l0[i]);
+    // Fl0[i] += kl / taur * (l00[i] - l0[i]);
+    Fl0[i] += kl / taur * (l00[i] - li);
 
     // correction for velocity dependent force with damping
     Fl0[i] = (Fl0[i] - B * (vl0[i] + al0_old * dt / 2)) / (1 + B * dt / 2);

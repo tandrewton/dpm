@@ -8,7 +8,7 @@ srcdir=$cellsdir/src
 maindir=$cellsdir/main/epi2D
 
 # directory for all output for cell simulations
-outputdir=/gpfs/gibbs/project/fas/ohern/at965/dpm
+outputdir=/gpfs/gibbs/pi/ohern/at965/dpm
 
 # directory for simulations specific to laserAblation
 simtypedir=$outputdir/ablate
@@ -40,7 +40,7 @@ k_lp="${14}"
 tau_lp="${15}"
 d_flag="${16}"
 t_stress="${17}"
-bound="${18}"
+taur="${18}"
 smooth="${19}"
 duration="${20}"
 partition="${21}"
@@ -53,7 +53,7 @@ let numSeeds=$numSeedsPerRun*$numRuns
 let endSeed=$startSeed+$numSeeds-1
 
 # name strings 
-basestr=ablate_A0"$calA0"_t_stress"$t_stress"k_l"$kl"_k_a"$ka"_k_b"$kb"_w_ps"$strainRate_ps"_dsq"$deltaSq"_k_ps"$k_ps"_k_lp"$k_lp"_d_flag"$d_flag"_bd"$bound"_sm"$smooth"
+basestr=ablate_A0"$calA0"_t_stress"$t_stress"k_l"$kl"_k_a"$ka"_k_b"$kb"_w_ps"$strainRate_ps"_dsq"$deltaSq"_k_ps"$k_ps"_k_lp"$k_lp"_d_flag"$d_flag"_taur"$taur"_sm"$smooth"
 
 # name of file (not unique, but is unique within its subdirectory)
 file_basename=_N"$NCELLS"_Dur"$duration"_att"$att"_sd"$startSeed"_sd"$endSeed"
@@ -89,7 +89,7 @@ echo k_lp = $k_lp >> $configFile
 echo tau_lp = $tau_lp >> $configFile
 echo d_flag = $d_flag >> $configFile
 echo t_stress = $t_stress >> $configFile
-echo bound = "$bound" >> $configFile
+echo taur = "$taur" >> $configFile
 echo smooth = "$smooth" >> $configFile
 echo duration = "$duration" >> $configFile
 
@@ -138,7 +138,7 @@ for seed in `seq $startSeed $numSeedsPerRun $endSeed`; do
         outFileStem=$simdatadir/$filestr
 
         # append to runString
-        runString="$runString ; ./$binf $NCELLS $NV $ndelete $calA0 $phiMin $phiMax $kl $ka $kb $att $strainRate_ps $deltaSq $k_ps $k_lp $tau_lp $d_flag $t_stress $bound $smooth $seed $duration $outFileStem"
+        runString="$runString ; ./$binf $NCELLS $NV $ndelete $calA0 $phiMin $phiMax $kl $ka $kb $att $strainRate_ps $deltaSq $k_ps $k_lp $tau_lp $d_flag $t_stress $taur $smooth $seed $duration $outFileStem"
     done
 
     # finish off run string
