@@ -2221,6 +2221,142 @@ void epi2D::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, dou
   }
 }
 
+void epi2D::dampedForceDipoleExperiment(dpmMemFn forceCall, double forceMoment, double dt0, double duration, double printInterval, std::string filename) {
+  // make sure velocities exist or are already initialized before calling this
+  // function evaluates dampedNVE on a single cell, but establishes a force dipole on the cell
+  assert(NCELLS == 1);
+  int i;
+  double K, t0 = simclock;
+  double temp_simclock = simclock;
+  double comx, comy;
+
+  // set time step magnitude
+  setdt(dt0);
+  int NPRINTSKIP = printInterval / dt;
+
+  std::ofstream wallout(filename);
+  // print area, perimeter vs time for proving that hard plastic cells extend more than others
+  wallout << simclock - t0 << '\t' << area(0) << '\t' << perimeter(0) << '\n';
+
+  // loop over time, print energy
+  while (simclock - t0 < duration) {
+    if (int((simclock - t0) / dt) % 100 == 0)
+      wallout << simclock - t0 << '\t' << area(0) << '\t' << perimeter(0) << '\n';
+
+    // VV POSITION UPDATE
+    for (i = 0; i < vertDOF; i++) {
+      // update position
+      x[i] += dt * v[i] + 0.5 * dt * dt * F[i];
+
+      // recenter in box
+      if (x[i] > L[i % NDIM] && pbc[i % NDIM])
+        x[i] -= L[i % NDIM];
+      else if (x[i] < 0 && pbc[i % NDIM])
+        x[i] += L[i % NDIM];
+    }
+    // FORCE UPDATE
+    boundaries();  // build vnn for void detection
+    std::vector<double> F_old = F;
+    CALL_MEMBER_FN(*this, forceCall)
+    ();
+
+    // evaluate forces due to the force moment
+    com2D(0, comx, comy);
+    for (i = 0; i < NVTOT; i++) {  // x component force dipole only
+      if (x[i * NDIM] < comx)
+        F[i * NDIM] -= forceMoment * kl * sqrt(a0[0]);
+      else
+        F[i * NDIM] += forceMoment * kl * sqrt(a0[0]);
+    }
+
+    // VV VELOCITY UPDATE #2
+    for (i = 0; i < vertDOF; i++) {
+      F[i] -= (B * v[i] + B * F_old[i] * dt / 2);
+      F[i] /= (1 + B * dt / 2);
+      v[i] += 0.5 * (F[i] + F_old[i]) * dt;
+    }
+
+    // update sim clock
+    simclock += dt;
+
+    // print to console and file
+    if (printInterval > dt) {
+      if (int((simclock - t0) / dt) % NPRINTSKIP == 0 &&
+          (simclock - temp_simclock) > printInterval / 2.0) {
+        temp_simclock = simclock;
+        // compute kinetic energy
+        K = vertexKineticEnergy();
+
+        // print to console
+        cout << endl
+             << endl;
+        cout << "===============================" << endl;
+        cout << "	D P M  						"
+             << endl;
+        cout << " 			 				"
+                "	"
+             << endl;
+        cout << "		N V E (DAMPED) 				"
+                "	"
+             << endl;
+        cout << "===============================" << endl;
+        cout << endl;
+        cout << "	** simclock - t0 / duration	= " << simclock - t0
+             << " / " << duration << endl;
+        cout << " **  dt   = " << setprecision(12) << dt << endl;
+        cout << "	** U 		= " << setprecision(12) << U << endl;
+        cout << "	** K 		= " << setprecision(12) << K << endl;
+        cout << "	** E 		= " << setprecision(12) << U + K
+             << endl;
+
+        if (enout.is_open()) {
+          // print to energy file
+          cout << "** printing energy" << endl;
+          enout << setw(wnum) << left << simclock;
+          enout << setw(wnum) << left << L[0] / initialLx - 1;
+          enout << setw(wnum) << setprecision(12) << U;
+          enout << setw(wnum) << setprecision(12) << K;
+          enout << setw(wnum) << setprecision(12) << U_ps;
+          enout << setw(wnum) << setprecision(12) << U_crawling;
+          enout << endl;
+        }
+
+        if (stressout.is_open()) {
+          double shapeStressXX = 0.0, shapeStressYY = 0.0, shapeStressXY = 0.0;
+          for (int ci = 0; ci < NCELLS; ci++) {
+            shapeStressXX += fieldShapeStressCells[ci][0];
+            shapeStressYY += fieldShapeStressCells[ci][1];
+            shapeStressXY += fieldShapeStressCells[ci][2];
+          }
+          // print to stress file
+          cout << "** printing stress" << endl;
+          cout << "field shape stresses: " << -shapeStressXX << '\t'
+               << -shapeStressYY << '\t' << -shapeStressXY << '\n';
+          stressout << setw(wnum) << left << simclock;
+          stressout << setw(wnum) << left << L[0] / initialLx - 1;
+          stressout << setw(wnum) << -stress[0];
+          stressout << setw(wnum) << -stress[1];
+          stressout << setw(wnum) << -stress[2];
+          stressout << setw(wnum) << -shapeStressXX;
+          stressout << setw(wnum) << -shapeStressYY;
+          stressout << setw(wnum) << -shapeStressXY;
+          stressout << endl;
+        }
+
+        // print to configuration only if position file is open
+        if (posout.is_open()) {
+          printConfiguration2D();
+          printBoundaries();
+          cout << "done printing in NVE\n";
+        }
+
+        cerr << "Number of polarization deflections: " << polarizationCounter
+             << '\n';
+      }
+    }
+  }
+}
+
 void epi2D::wallForces(bool left, bool bottom, bool right, bool top, double& forceLeft, double& forceBottom, double& forceRight, double& forceTop, int forceOption) {
   // compute particle-wall forces and wall-particle forces. Only the latter
   // exists, unless bool is

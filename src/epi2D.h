@@ -352,6 +352,8 @@ class epi2D : public dpm {
   void circularApertureForces(double radius);
   void vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0);
 
+  void dampedForceDipoleExperiment(dpmMemFn forceCall, double forceMoment, double dt0, double duration, double printInterval, std::string filename);
+
   int getIndexOfCellLocatedHere(double xLoc, double yLoc);
   // note: whenever adding member-level data structures that depend on
   // NVTOT/NCELLS, need to make sure to modify the size in deleteCell

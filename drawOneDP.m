@@ -24,7 +24,7 @@ fnum=1;
 showGlobalIndex = 0;
 showcirculoline = 1;
 showQuiver = 0;
-walls=1;
+walls=0;
 
 showCustomView = 0;
 viewLeft = 0.2;
