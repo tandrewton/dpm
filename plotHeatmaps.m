@@ -2,7 +2,7 @@
 % directory
 clear;close all;
 set(0,'DefaultFigureWindowStyle','docked')
-isPlottingAreaVelocity = true;
+isPlottingAreaVelocity = false;
 isPlottingShapes = ~isPlottingAreaVelocity;
 assert((isPlottingAreaVelocity && isPlottingShapes) == false);
 %%
@@ -93,14 +93,17 @@ h.GridVisible = 'off';
 figure(3); clf; hold on;
 
 % interpolate between points to determine an underlying color
-interpX = interpn(xpoints*bulkModulusConvert, 3);
-interpY = interpn(ypoints*timeConvert, 3);
-[interpMeshX, interpMeshY] = meshgrid(interpX, interpY);
-interpData = interp2(im', 3);
+%interpX = interpn(xpoints*bulkModulusConvert, 3);
+%interpY = interpn(ypoints*timeConvert, 3);
+%[interpMeshX, interpMeshY] = meshgrid(interpX, interpY);
+%interpData = interp2(im', 3);
 
 % after setting up interpData, use it as a heatmap underlying the real data
 %imagesc(interpX, interpY, interpData); colormap jet(16); axis xy;
-contourf(interpX,interpY, interpData, 12, 'LineStyle', 'none'); colormap jet(20);
+%contourf(interpX,interpY, interpData, 12, 'LineStyle', 'none'); colormap jet(20);
+
+% avoid all of the above by using contourf, which already interpolates
+contourf(xpoints*bulkModulusConvert, ypoints*timeConvert, im', 12, 'LineStyle', 'none'); colormap jet(20);
 colorbar;
 
 inputCombos = combvec((xpoints*bulkModulusConvert)', (ypoints*timeConvert)');
