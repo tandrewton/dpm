@@ -2,7 +2,7 @@
 % directory
 clear;close all;
 set(0,'DefaultFigureWindowStyle','docked')
-isPlottingAreaVelocity = false;
+isPlottingAreaVelocity = true;
 isPlottingShapes = ~isPlottingAreaVelocity;
 assert((isPlottingAreaVelocity && isPlottingShapes) == false);
 %%
@@ -99,7 +99,8 @@ interpY = interpn(ypoints*timeConvert, 3);
 interpData = interp2(im', 3);
 
 % after setting up interpData, use it as a heatmap underlying the real data
-imagesc(interpX, interpY, interpData); colormap jet(16); axis xy;
+%imagesc(interpX, interpY, interpData); colormap jet(16); axis xy;
+contourf(interpX,interpY, interpData, 12, 'LineStyle', 'none'); colormap jet(20);
 colorbar;
 
 inputCombos = combvec((xpoints*bulkModulusConvert)', (ypoints*timeConvert)');
@@ -111,7 +112,6 @@ ylabel('\tau (min)', 'FontSize', 20)
 xlim([min(xpoints) max(xpoints)]*bulkModulusConvert);
 ylim([min(ypoints) max(ypoints)]*timeConvert);
 set(gca, 'YScale', 'log', 'XScale', 'log')
-fontsize(gcf,22,"points")
 box on
 ax = gca;
 ax.TickLength = [0.025 0.025];
@@ -123,13 +123,16 @@ yticks([1 10 100 1000])
 a = colorbar;
 if (isPlottingAreaVelocity)
     a.Label.String = 'μm^2/min';
-    a.Label.Position(1) = 2;
+    a.Label.Position(1) = 2.2;
+    a.Label.Rotation = 90;
 else 
     a.Label.String = '$\mathcal{A}$';
     a.Label.Interpreter = 'latex';
     a.Label.Position(1) = 3.8;
     a.Ticks=[1.5 1.7 1.9 2.1]
+    a.Label.Rotation = 0;
 end
+fontsize(gcf,22,"points")
 
 parameterSelectionB = [0.64 1.28];
 parameterSelectionTau = [5.33 2730.67];
