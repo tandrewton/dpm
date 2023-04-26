@@ -111,7 +111,13 @@ ylabel('\tau (min)', 'FontSize', 20)
 xlim([min(xpoints) max(xpoints)]*bulkModulusConvert);
 ylim([min(ypoints) max(ypoints)]*timeConvert);
 set(gca, 'YScale', 'log', 'XScale', 'log')
-set(gca,'FontSize', 28)
+fontsize(gcf,22,"points")
+box on
+ax = gca;
+ax.TickLength = [0.025 0.025];
+ax.LineWidth = 1;
+xlim([-inf inf])
+ylim([-inf inf])
 xticks([0.01 0.1 1 10])
 yticks([1 10 100 1000])
 a = colorbar;
@@ -125,13 +131,13 @@ else
     a.Ticks=[1.5 1.7 1.9 2.1]
 end
 
-parameterSelectionB = [0.64 0.64];
+parameterSelectionB = [0.64 1.28];
 parameterSelectionTau = [5.33 2730.67];
 
 scatter(parameterSelectionB(1), parameterSelectionTau(1), 240, "black", ...
-    "square",'filled','MarkerFaceColor', 'black', 'MarkerEdgeColor', 'white', 'linewidth', 1);
-scatter(parameterSelectionB(2), parameterSelectionTau(2), 240, "red", ...
     "square",'filled','MarkerFaceColor', 'red', 'MarkerEdgeColor', 'white', 'linewidth', 1);
+scatter(parameterSelectionB(2), parameterSelectionTau(2), 240, "red", ...
+    "square",'filled','MarkerFaceColor', 'black', 'MarkerEdgeColor', 'white', 'linewidth', 1);
 
 % 
 % %integer format for x and y ticks
