@@ -266,8 +266,8 @@ module load dSQ
 #bd0 P
 #!/bin/bash
 numSeeds=25
-t_stress_arr=(1.2 2.4 4.8 9.6 19.2 76.8 307.2 1228.8 4915.2 9830.4 39321.6)
-#t_stress_arr=(307.2 1228.8 4915.2 9830.4)
+#t_stress_arr=(1.2 2.4 4.8 9.6 19.2 76.8 307.2 1228.8 4915.2 9830.4 39321.6)
+t_stress_arr=(9.6 19.2 76.8 9830.4 9830.4)
 
 #t_stress_arr=(39321.6)
 #t_stress_arr=(19.2 76.8 307.2 1228.8 9830.4)
@@ -275,11 +275,11 @@ t_stress_arr=(1.2 2.4 4.8 9.6 19.2 76.8 307.2 1228.8 4915.2 9830.4 39321.6)
 
 #ka_arr=(1.0 5.0 12.5 25.0 50.0)
 #ka_arr=(0.5 1.0 2.5 5.0 12.5 25.0 50.0) 
-ka_arr=(4.0 8.0 16.0 32.0 64.0 128.0 256.0)
+#ka_arr=(4.0 8.0 16.0 32.0 64.0 128.0 256.0)
 #ka_arr=(0.25 0.5 1.0 2.0 4.0 8.0 16.0 32.0 64.0 128.0 256.0)
-#ka_arr=(0.25 0.5 1.0 2.0)
-#taur_arr=(153.6 307.2 614.4 1228.8)
-taur_arr=(0)
+ka_arr=(16.0 32.0 64.0)
+taur_arr=(153.6 614.4 1228.8)
+#taur_arr=(0)
 k_ps=(4.0)
 rm joblist_PS_tau_ka.txt
 for t_stress in ${t_stress_arr[@]}; do 
@@ -294,4 +294,4 @@ for t_stress in ${t_stress_arr[@]}; do
   done
 done
 
-dsq --job-file joblist_PS_tau_ka.txt --mem-per-cpu 4g -t 1:00:00 --mail-type NONE --submit --partition scavenge --suppress-stats-file  -o /dev/null
+dsq --job-file joblist_PS_tau_ka.txt   --mem-per-cpu 4g -t 1:00:00 --mail-type NONE --submit --partition scavenge --suppress-stats-file  -o /dev/null

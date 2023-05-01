@@ -33,7 +33,7 @@ B="1.0";
 boolCIL="0";
 Duration="2000";
 
-numSeeds = 10;
+numSeeds = 25;
 startSeed = 1;
 max_seed = numSeeds;
 set(0,'DefaultFigureWindowStyle','docked')
@@ -56,10 +56,9 @@ array_output_dir = subdir_output + "array_output_figures/";
 N_arr = ["50"];                 %i
 calA0_arr = ["1.20"];           %ii
 %t_stress_arr = ["9830.4" "39321.6"]; %iii
-t_stress_arr = ["19.2" "39321.6"];
-%t_stress_arr=["2.4" "4.8" "9.6" "19.2" "76.8" "307.2" "1228.8" "4915.2" "9830.4"];
-%t_stress_arr=["19.2" "76.8" "307.2" "1228.8" "9830.4"];
-%t_stress_arr=["307.2" "1228.8" "9830.4"];
+%t_stress_arr = ["19.2" "39321.6"];
+%t_stress_arr=["2.4" "4.8" "9.6" "19.2" "76.8" "307.2" "1228.8" "4915.2" "9830.4" "39321.6"];
+t_stress_arr=["19.2" "9830.4"];
 att_arr = ["0.1"]; % j
 om_arr = ["1.0"]; %jj
 kl_arr = ["1.0"]; %jjj
@@ -67,13 +66,14 @@ kl_arr = ["1.0"]; %jjj
 %ka_arr=["0.25" "0.5" "1.0" "2.0" "4.0" "8.0" "16.0" "32.0" "64.0" "128.0" "256.0"]; %k
 %ka_arr=["0.5" "1.0" "2.5" "5.0" "12.5" "25.0" "50.0"];
 %ka_arr=["1.0" "5.0" "12.5" "25.0" "50.0"];
-ka_arr=["1.0" "12.5"];
+ka_arr=["16.0" "64.0"];
 kb_arr = ["0.01"]; %kk
 deltaSq_arr = ["4.0"];          %kkk
 %d_flag_arr = ["0.0"];           %l
 %tau_r_arr=["19.2" "76.8" "307.2" "1228.8" "4915.2" "9830.4"]; %l
 %tau_r_arr=["153.6" "307.2" "614.4" "1228.8"];
-tau_r_arr=["1228.8"];
+%tau_r_arr=["1228.8"];
+tau_r_arr=["0"];
 
 d_flag = "0.0"; 
 
@@ -193,13 +193,13 @@ for i=1:length(N_arr)
                                             % hardcoding some things
                                             % depending on if its for
                                             % production
-                                            if (t_stress == "19.2")
-                                                tau_r = "0";
-                                                k_a = "1.0";
-                                                Duration = "1000";
-                                            else
-                                                Duration = "2000";
-                                            end
+%                                             if (t_stress == "19.2")
+%                                                 tau_r = "0";
+%                                                 k_a = "1.0";
+%                                                 Duration = "1000";
+%                                             else
+%                                                 Duration = "2000";
+%                                             end
                                         end
 
                                         iterator_arr = [iii j jj jjj k kk l];
@@ -369,7 +369,7 @@ for i=1:length(N_arr)
                                             if (length(innerShapes_sd_no_nan) > 0)
                                                 % get the distribution quantities of the rosette cells in their last frame
                                                 [stdRosetteShapesEnd_sd, meanRosetteShapesEnd_sd] = std(innerShapes_sd_no_nan);
-                                                [stdRosetteShapesInitial_sd, meanRosetteShapesInitial_sd] = std(innerShapes_sd_no_nan);
+                                                [stdRosetteShapesInitial_sd, meanRosetteShapesInitial_sd] = std(innerShapes_sd(1,2:end),0,2, 'omitnan');
                                             else
                                                 % wound did not close in this case, so just take the largest 6
                                                 % shapes for the end frame, and the average for the  initial frame
@@ -431,29 +431,36 @@ for i=1:length(N_arr)
                                                 %    'linewidth',5, 'Color', colorList(pm1_ind),'DisplayName', displayStr)
                                                 n = 100;
                                                 skipInt = length(voidArea(:,1))/n; % keep n points to plot 
-                                                scatter(voidArea(1:skipInt:end,1)*timeConvert(pm1_ind), voidArea(1:skipInt:end,2)*cellArea(pm1_ind),...
-                                                    20, colorList(pm1_ind), "^")
+                                                %scatter(voidArea(1:skipInt:end,1)*timeConvert(pm1_ind), voidArea(1:skipInt:end,2)*cellArea(pm1_ind),...
+                                                %    20,
+                                                %    colorList(pm1_ind),
+                                                %    "^") % wound area in
+                                                %    micron^2
+                                                scatter(voidArea(1:skipInt:end,1)*timeConvert(pm1_ind), voidArea(1:skipInt:end,2)/(voidArea(1,2)),...
+                                                    20, colorList(pm1_ind), "^") % wound area in area fraction
                                                 legend off
                                                 xlabel('Time (min)','Interpreter', 'tex','fontsize', 24);
-                                                ylabel('Area (μm^2)','Interpreter', 'tex','fontsize', 24);
+                                                ylabel('Wound area fraction','Interpreter', 'tex','fontsize', 24);
                                                 box on
                                                 ax = gca;
                                                 ax.TickLength = [0.025 0.025];
                                                 ax.LineWidth = 1;
                                                 fontsize(gcf, 20, "points")
-                                                xlim([0 inf])
-                                                ylim([0 inf])
+                                                %xlim([0 inf])
+                                                %ylim([0 inf])
+                                                xlim([0 255]) % wing disc time range (largest time range)
+                                                ylim([0 1]) % area fraction range
                                                 pbaspect([1 1.3 1])
 
                                                 % plot void area vs time,
                                                 % experimental fit
                                                 F = @(x,xdata)x(1)*exp(-x(2)*xdata) + x(3)*exp(-x(4)*xdata);
-                                                if (pm1_ind == 1)
-                                                    fit_params = [5181.5 0.0839 -4888.9 0.0829];
+                                                if (pm1_ind == 1) % embryo
+                                                    fit_params = [-2.7831 0.2966 3.6255 0.1172];
                                                     tlist = linspace(min(voidArea(:,1)*timeConvert(pm1_ind)), max(voidArea(:,1)*timeConvert(pm1_ind)), 20);
                                                     plot(tlist, F(fit_params, tlist), '-', 'Color', colorList(pm1_ind), 'linewidth', 2)
-                                                elseif (pm1_ind == 2)
-                                                    fit_params = [29.9753 0.0108 83.4336 0.0704];
+                                                elseif (pm1_ind == 2) % wing disc
+                                                    fit_params = [0.9420 0.0690 0.3425 0.0107];
                                                     tlist = linspace(min(voidArea(:,1)*timeConvert(pm1_ind)), max(voidArea(:,1)*timeConvert(pm1_ind)), 20);
                                                     plot(tlist, F(fit_params, tlist), '-', 'Color', colorList(pm1_ind), 'linewidth', 2)
                                                 end
@@ -476,8 +483,8 @@ for i=1:length(N_arr)
                                                 ax.TickLength = [0.025 0.025];
                                                 ax.LineWidth = 1;
                                                 fontsize(gcf, 20, "points")
-                                                xlim([0 inf])
-                                                ylim([-inf inf])
+                                                %xlim([0 inf])
+                                                %ylim([-inf inf])
                                                 pbaspect([1 1.2 1])
 
                                                 % look for files called
@@ -498,6 +505,7 @@ for i=1:length(N_arr)
                                                 %scatter(t(1:skipInt:end), sma(1:skipInt:end), 5, colorList(pm1_ind), 'filled')
                                                 %scatter(t, sma, 10, colorList(pm1_ind), 'filled')
                                                 plot(t, sma, '-','Color', colorList(pm1_ind), 'linewidth', 3)
+                                                xlim([0 255]) % wing disc time range
                                             else
                                                 plot(voidArea(:,1), voidArea(:,2), 'linewidth', 4, 'DisplayName', displayStr)
                                                 xlabel('$t/\tau$','Interpreter','latex','fontsize', 24);
