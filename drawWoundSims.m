@@ -37,14 +37,14 @@ boundaryType = "0";
 tau_r = "0";
 B="1.0";
 boolCIL="0";
-Duration="1000";
+Duration="2000";
 FSKIP = 1;
 
 etaStr = " ";
 startSeed = 1;
-max_seed = 3;
+max_seed = 25;
 no_plots = 0;
-makeAMovie = 0; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
+makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
 %plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
 plotCells = 1;
 set(0,'DefaultFigureWindowStyle','docked')
@@ -98,7 +98,7 @@ txt='test';
 
 fnum = 1;
 figure(13), clf, hold on, box on;
-for seed = startSeed+1:max_seed
+for seed = startSeed:max_seed
     seed
     if (isTestData)
         run_name = runType+txt;     

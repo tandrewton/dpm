@@ -56,24 +56,24 @@ array_output_dir = subdir_output + "array_output_figures/";
 N_arr = ["50"];                 %i
 calA0_arr = ["1.20"];           %ii
 %t_stress_arr = ["9830.4" "39321.6"]; %iii
-%t_stress_arr = ["19.2" "39321.6"];
+t_stress_arr = ["19.2" "4915.2" "9830.4"];
 %t_stress_arr=["2.4" "4.8" "9.6" "19.2" "76.8" "307.2" "1228.8" "4915.2" "9830.4" "39321.6"];
-t_stress_arr=["19.2" "9830.4"];
+%t_stress_arr=["19.2" "9830.4"];
 att_arr = ["0.1"]; % j
 om_arr = ["1.0"]; %jj
 kl_arr = ["1.0"]; %jjj
 %ka_arr = ["0.25" "1.0" "5.0" "10.0" "50.0"];               %k
 %ka_arr=["0.25" "0.5" "1.0" "2.0" "4.0" "8.0" "16.0" "32.0" "64.0" "128.0" "256.0"]; %k
 %ka_arr=["0.5" "1.0" "2.5" "5.0" "12.5" "25.0" "50.0"];
-%ka_arr=["1.0" "5.0" "12.5" "25.0" "50.0"];
-ka_arr=["16.0" "64.0"];
+%ka_arr=["16.0" "64.0"];
+ka_arr=["16.0" "24.0" "32.0" "64.0"];
 kb_arr = ["0.01"]; %kk
 deltaSq_arr = ["4.0"];          %kkk
 %d_flag_arr = ["0.0"];           %l
 %tau_r_arr=["19.2" "76.8" "307.2" "1228.8" "4915.2" "9830.4"]; %l
 %tau_r_arr=["153.6" "307.2" "614.4" "1228.8"];
 %tau_r_arr=["1228.8"];
-tau_r_arr=["0"];
+tau_r_arr=["614.4"];
 
 d_flag = "0.0"; 
 
@@ -190,16 +190,14 @@ for i=1:length(N_arr)
                                     for l=1:length(tau_r_arr)
                                         tau_r = tau_r_arr(l);
                                         if (isProductionRun)
-                                            % hardcoding some things
-                                            % depending on if its for
-                                            % production
-%                                             if (t_stress == "19.2")
-%                                                 tau_r = "0";
-%                                                 k_a = "1.0";
-%                                                 Duration = "1000";
-%                                             else
-%                                                 Duration = "2000";
-%                                             end
+                                            %hardcoding some things
+                                            %depending on if its for
+                                            %production
+                                            if (t_stress == "19.2")
+                                                tau_r = "0";
+                                            else
+                                                %Duration = "2000";
+                                            end
                                         end
 
                                         iterator_arr = [iii j jj jjj k kk l];
@@ -437,7 +435,7 @@ for i=1:length(N_arr)
                                                 %    "^") % wound area in
                                                 %    micron^2
                                                 scatter(voidArea(1:skipInt:end,1)*timeConvert(pm1_ind), voidArea(1:skipInt:end,2)/(voidArea(1,2)),...
-                                                    20, colorList(pm1_ind), "^") % wound area in area fraction
+                                                    30, colorList(pm1_ind), "^") % wound area in area fraction
                                                 legend off
                                                 xlabel('Time (min)','Interpreter', 'tex','fontsize', 24);
                                                 ylabel('Wound area fraction','Interpreter', 'tex','fontsize', 24);
@@ -473,7 +471,7 @@ for i=1:length(N_arr)
                                                 %plot(timeInnerShapes(1:skipInt:end)*timeConvert(pm1_ind),meanInnerShapes(1:skipInt:end),...
                                                 %    '-','linewidth',3, 'Color', colorList(pm1_ind),'DisplayName', displayStr)
                                                 scatter(timeInnerShapes(1:skipInt:end)*timeConvert(pm1_ind),meanInnerShapes(1:skipInt:end),...
-                                                     10, colorList(pm1_ind), "^") 
+                                                     30, colorList(pm1_ind), "^") 
                                                 xlabel('Time (min)','Interpreter','tex','fontsize', 24);
                                                 ylabel('$\mathcal{A}$','Interpreter','latex','fontsize', 24);
                                                 %legend('location','southeast','fontsize', 6)
@@ -506,6 +504,36 @@ for i=1:length(N_arr)
                                                 %scatter(t, sma, 10, colorList(pm1_ind), 'filled')
                                                 plot(t, sma, '-','Color', colorList(pm1_ind), 'linewidth', 3)
                                                 xlim([0 255]) % wing disc time range
+                                                
+                                                % save plot data in order
+                                                % to manually overlay results varying in tau_r for
+                                                % production plots 
+                                                save(array_output_dir+'woundHealingPlotData/shape_pm1_'+pm1(pm1_ind)+'_pm2_'+pm2(pm2_ind)+'taur_'+tau_r+'.mat', 'meanInnerShapes')
+                                                save(array_output_dir+'woundHealingPlotData/shape_time_pm1_'+pm1(pm1_ind)+'_pm2_'+pm2(pm2_ind)+'taur_'+tau_r+'.mat', 'timeInnerShapes')
+                                                save(array_output_dir+'woundHealingPlotData/area_pm1_'+pm1(pm1_ind)+'_pm2_'+pm2(pm2_ind)+'taur_'+tau_r+'.mat', 'voidArea')
+                                            
+                                                if (false) % execute this code when producing plot for wound healing paper
+                                                    % taur is 0, default
+                                                    % value. but I want to show some results %where taur is nonzero as well on top
+                                                    paramsToOverlay = "_pm1_"+"4915.2"+"_pm2_"+"16.0"+"taur_"+"153.6";
+                                                    figure(4)
+                                                    load(array_output_dir+'woundHealingPlotData/shape'+paramsToOverlay+'.mat');
+                                                    load(array_output_dir+'woundHealingPlotData/shape_time'+paramsToOverlay+'.mat');
+                                                    skipInt = length(meanInnerShapes)/n;
+                                                    scatter(timeInnerShapes(1:skipInt:end)*timeConvert(pm1_ind),meanInnerShapes(1:skipInt:end),...
+                                                     30, colorList(pm1_ind), "square")
+                                                    fontsize(gcf, 14, "points")
+                                                    yticks([1.2 1.4 1.6 1.8])
+
+                                                    figure(2)
+                                                    load(array_output_dir+'woundHealingPlotData/area'+paramsToOverlay+'.mat');
+                                                    n = 100;
+                                                    skipInt = length(voidArea(:,1))/n; % keep n points to plot 
+                                                    scatter(voidArea(1:skipInt:end,1)*timeConvert(pm1_ind), voidArea(1:skipInt:end,2)/(voidArea(1,2)),...
+                                                    30, colorList(pm1_ind), "square") % wound area in area fraction
+                                                    fontsize(gcf, 14, "points")
+                                                    yticks([0 0.5 1])
+                                                end
                                             else
                                                 plot(voidArea(:,1), voidArea(:,2), 'linewidth', 4, 'DisplayName', displayStr)
                                                 xlabel('$t/\tau$','Interpreter','latex','fontsize', 24);
