@@ -17,7 +17,7 @@ addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
 pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
 showverts = 1;
 showSprings = 0;
-makeAMovie = 0;
+makeAMovie = 1;
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
 fnum=1;
@@ -261,7 +261,7 @@ for ff = FSTART:FSTEP:FEND
         if (ff == 1)
             xlimit = xlim;
             ylimit = ylim;
-            diff = 0.1* (xlimit(2) - xlimit(1));
+            diff = 0.2* (xlimit(2) - xlimit(1));
             xlimit(1) = xlimit(1) - diff;
             xlimit(2) = xlimit(2) + diff;
             ylimit(1) = ylimit(1) - diff;

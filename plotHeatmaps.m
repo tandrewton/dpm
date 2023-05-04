@@ -31,6 +31,7 @@ hfile.ColorData(isnan(hfile.ColorData)) = 0;
 xpoints = cellfun(@str2num,convertCharsToStrings(hfile.XData));
 %xinds = 1:length(xpoints);
 
+hfile.YData = hfile.YData(1:end);
 ypoints = cellfun(@str2num,convertCharsToStrings(hfile.YData(1:end)));
 %ypoints = [ypoints; inf];
 %yinds = 1:length(ypoints);
@@ -103,7 +104,7 @@ figure(3); clf; hold on;
 %contourf(interpX,interpY, interpData, 12, 'LineStyle', 'none'); colormap jet(20);
 
 % avoid all of the above by using contourf, which already interpolates
-contourf(xpoints*bulkModulusConvert, ypoints*timeConvert, im', 12, 'LineStyle', 'none'); colormap jet(20);
+contourf(xpoints*bulkModulusConvert, ypoints*timeConvert, im', 12, 'LineStyle', 'none'); colormap jet(16);
 colorbar;
 
 inputCombos = combvec((xpoints*bulkModulusConvert)', (ypoints*timeConvert)');
@@ -132,7 +133,7 @@ else
     a.Label.String = '$\mathcal{A}$';
     a.Label.Interpreter = 'latex';
     a.Label.Position(1) = 3.8;
-    a.Ticks=[1.5 1.7 1.9 2.1]
+    a.Ticks=[1.4 1.5 1.6 1.7]
     a.Label.Rotation = 0;
 end
 fontsize(gcf,22,"points")
@@ -140,9 +141,9 @@ fontsize(gcf,22,"points")
 parameterSelectionB = [0.64 1.28];
 parameterSelectionTau = [5.33 2730.67];
 
-scatter(parameterSelectionB(1), parameterSelectionTau(1), 240, "black", ...
+scatter(parameterSelectionB(1), parameterSelectionTau(1), 450, "black", ...
     "square",'filled','MarkerFaceColor', 'red', 'MarkerEdgeColor', 'white', 'linewidth', 1);
-scatter(parameterSelectionB(2), parameterSelectionTau(2), 240, "red", ...
+scatter(parameterSelectionB(2), parameterSelectionTau(2), 450, "red", ...
     "square",'filled','MarkerFaceColor', 'black', 'MarkerEdgeColor', 'white', 'linewidth', 1);
 
 % 
