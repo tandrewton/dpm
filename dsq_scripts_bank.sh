@@ -285,11 +285,11 @@ tauRatio_arr=(0.25 0.5 0.75 1.0 1.25 1.50)
 k_ps=(4.0)
 rm joblist_PS_tau_ka.txt
 for t_stress in ${t_stress_arr[@]}; do 
-  for taur in ${taur_arr[@]}; do
+  for taur in ${tauRatio_arr[@]}; do
     for att in 0.1; do
       for kl in 1.0; do
         for ka in ${ka_arr[@]}; do
-            echo bash bash/epi2D/submit_laserAblation.sh 50 30 5 1.20 0.94 0.85 $kl $ka 0.01 $att 1.0 4.0 $k_ps 4.0 1.0 0.0 $t_stress $tauRatio_arr 1 2000 day 0-24:00:00 $numSeeds 1 >> joblist_PS_tau_ka.txt
+            echo bash bash/epi2D/submit_laserAblation.sh 50 30 5 1.20 0.94 0.85 $kl $ka 0.01 $att 1.0 4.0 $k_ps 4.0 1.0 0.0 $t_stress $taur 1 2000 day 0-24:00:00 $numSeeds 1 >> joblist_PS_tau_ka.txt
         done
       done
     done
