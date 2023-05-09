@@ -57,7 +57,7 @@ N_arr = ["50"];                 %i
 calA0_arr = ["1.20"];           %ii
 %t_stress_arr = ["9830.4" "39321.6"]; %iii
 %t_stress_arr = ["19.2" "4915.2" "9830.4"];
-t_stress_arr = ["20.0" "40.0" "60.0" "100.0" "1000.0" "1250.0" "1500.0" "4500.0" "5500.0" "6500.0"];
+t_stress_arr = ["40.0" "100.0" "1000.0" "1500.0" "5500.0"];
 %t_stress_arr=["2.4" "4.8" "9.6" "19.2" "76.8" "307.2" "1228.8" "4915.2" "9830.4" "39321.6"];
 %t_stress_arr=["76.8" "9830.4"];
 att_arr = ["0.1"]; % j
@@ -71,10 +71,10 @@ ka_arr=["16.0" "32.0"];
 kb_arr = ["0.01"]; %kk
 deltaSq_arr = ["4.0"];          %kkk
 %d_flag_arr = ["0.0"];           %l
-%tau_r_arr=["19.2" "76.8" "307.2" "1228.8" "4915.2" "9830.4"]; %l
-%tau_r_arr=["153.6" "307.2" "614.4" "1228.8"];
-%tau_r_arr=["500.0"];
-tau_r_arr=["1500.0"];
+%tau_s_arr=["19.2" "76.8" "307.2" "1228.8" "4915.2" "9830.4"]; %l
+%tau_s_arr=["153.6" "307.2" "614.4" "1228.8"];
+%tau_s_arr=["500.0"];
+tau_s_arr=["0.25"];
 
 d_flag = "0.0"; 
 
@@ -82,8 +82,8 @@ d_flag = "0.0";
 %  it then identifies the correct parameter name, and the iterator in the
 %  big nested loop that runs all of the plotting routines.
 pm1 = []; pm2 = [];
-param_cell_list = {t_stress_arr att_arr om_arr kl_arr ka_arr kb_arr tau_r_arr};
-param_id_list = ["tau" "adhesion" "activity" "kl" "ka" "kb" "tau_r"];
+param_cell_list = {t_stress_arr att_arr om_arr kl_arr ka_arr kb_arr tau_s_arr};
+param_id_list = ["tau" "adhesion" "activity" "kl" "ka" "kb" "tau_s"];
 param_ind_list = [1 2 3 4 5 6 7];
 for i=1:length(param_cell_list)
     if (length(param_cell_list{i}) > 1)
@@ -128,7 +128,7 @@ mkdir(array_output_dir+pm1pm2_folder);
 
 bigproduct = length(N_arr)*length(calA0_arr)*length(t_stress_arr)*...
     length(att_arr)*length(om_arr)*length(kl_arr)*...
-    length(ka_arr)*length(kb_arr)*length(deltaSq_arr)*length(tau_r_arr);
+    length(ka_arr)*length(kb_arr)*length(deltaSq_arr)*length(tau_s_arr);
 numPlots = bigproduct;
 
 showLastFrameOfSimulations = false;
@@ -188,14 +188,14 @@ for i=1:length(N_arr)
                                 k_b = kb_arr(kk);
                                 for kkk=1:length(deltaSq_arr)
                                     deltaSq = deltaSq_arr(kkk);
-                                    for l=1:length(tau_r_arr)
-                                        tau_r = tau_r_arr(l);
+                                    for l=1:length(tau_s_arr)
+                                        tau_s = tau_s_arr(l);
                                         if (isProductionRun)
                                             %hardcoding some things
                                             %depending on if its for
                                             %production
                                             if (t_stress == "19.2")
-                                                tau_r = "0";
+                                                tau_s = "0";
                                             else
                                                 %Duration = "2000";
                                             end
@@ -220,7 +220,7 @@ for i=1:length(N_arr)
                                             displayStr = "C__A0="+calA0+",att="+att+",sm="+sm+",t_{stress}="+t_stress;
                                         else
                                             displayStr = "P"+"N="+N+",tau="+t_stress+",att="+att+...
-                                                ",kl="+k_l+",ka="+k_a+",kb="+k_b+",taur="+tau_r;
+                                                ",kl="+k_l+",ka="+k_a+",kb="+k_b+",taus="+tau_s;
                                         end
 
                                         numGoodSeeds = numSeeds;
@@ -231,7 +231,7 @@ for i=1:length(N_arr)
                                             run_name=runType+"_A0"+calA0+"_t_stress"+t_stress+"k_l"+...
                                                 k_l+"_k_a"+k_a+"_k_b"+k_b+"_w_ps"+strainRate_ps+ ...
                                                 "_dsq"+deltaSq+"_k_ps"+k_ps+"_k_lp"+k_lp+...
-                                                "_d_flag"+d_flag+"_taur"+tau_r+"_sm"+sm;
+                                                "_d_flag"+d_flag+"_taus"+tau_s+"_sm"+sm;
                                             pipeline_dir =  subdir_pipeline + run_name + "/";
                                             output_dir = subdir_output + run_name + "/";
 
@@ -507,16 +507,16 @@ for i=1:length(N_arr)
                                                 xlim([0 255]) % wing disc time range
                                                 
                                                 % save plot data in order
-                                                % to manually overlay results varying in tau_r for
+                                                % to manually overlay results varying in tau_s for
                                                 % production plots 
-                                                save(array_output_dir+'woundHealingPlotData/shape_pm1_'+pm1(pm1_ind)+'_pm2_'+pm2(pm2_ind)+'taur_'+tau_r+'.mat', 'meanInnerShapes')
-                                                save(array_output_dir+'woundHealingPlotData/shape_time_pm1_'+pm1(pm1_ind)+'_pm2_'+pm2(pm2_ind)+'taur_'+tau_r+'.mat', 'timeInnerShapes')
-                                                save(array_output_dir+'woundHealingPlotData/area_pm1_'+pm1(pm1_ind)+'_pm2_'+pm2(pm2_ind)+'taur_'+tau_r+'.mat', 'voidArea')
+                                                save(array_output_dir+'woundHealingPlotData/shape_pm1_'+pm1(pm1_ind)+'_pm2_'+pm2(pm2_ind)+'taus_'+tau_s+'.mat', 'meanInnerShapes')
+                                                save(array_output_dir+'woundHealingPlotData/shape_time_pm1_'+pm1(pm1_ind)+'_pm2_'+pm2(pm2_ind)+'taus_'+tau_s+'.mat', 'timeInnerShapes')
+                                                save(array_output_dir+'woundHealingPlotData/area_pm1_'+pm1(pm1_ind)+'_pm2_'+pm2(pm2_ind)+'taus_'+tau_s+'.mat', 'voidArea')
                                             
                                                 if (false) % execute this code when producing plot for wound healing paper
-                                                    % taur is 0, default
-                                                    % value. but I want to show some results %where taur is nonzero as well on top
-                                                    paramsToOverlay = "_pm1_"+"4915.2"+"_pm2_"+"16.0"+"taur_"+"153.6";
+                                                    % taus is 0, default
+                                                    % value. but I want to show some results %where taus is nonzero as well on top
+                                                    paramsToOverlay = "_pm1_"+"4915.2"+"_pm2_"+"16.0"+"taus_"+"?"; 
                                                     figure(4)
                                                     load(array_output_dir+'woundHealingPlotData/shape'+paramsToOverlay+'.mat');
                                                     load(array_output_dir+'woundHealingPlotData/shape_time'+paramsToOverlay+'.mat');
