@@ -2,7 +2,7 @@
 % directory
 clear;close all;
 set(0,'DefaultFigureWindowStyle','docked')
-isPlottingAreaVelocity = false;
+isPlottingAreaVelocity = true;
 isPlottingShapes = ~isPlottingAreaVelocity;
 assert((isPlottingAreaVelocity && isPlottingShapes) == false);
 %%
@@ -111,8 +111,8 @@ inputCombos = combvec((xpoints*bulkModulusConvert)', (ypoints*timeConvert)');
 
 scatter(inputCombos(1,:), inputCombos(2,:),30, 'k', 'o', 'filled', 'MarkerFaceColor', 'white', 'MarkerEdgeColor', 'k', 'linewidth', 1);
 
-xlabel('B (kPa)', 'FontSize', 20)
-ylabel('\tau (min)', 'FontSize', 20)
+xlabel('Bulk modulus B (kPa)', 'FontSize', 20)
+ylabel('Plastic timescale \tau (min)', 'FontSize', 20)
 xlim([min(xpoints) max(xpoints)]*bulkModulusConvert);
 ylim([min(ypoints) max(ypoints)]*timeConvert);
 set(gca, 'YScale', 'log', 'XScale', 'log')
@@ -126,15 +126,15 @@ xticks([0.01 0.1 1 10])
 yticks([1 10 100 1000])
 a = colorbar;
 if (isPlottingAreaVelocity)
-    a.Label.String = 'μm^2/min';
+    a.Label.String = 'dA/dt (μm^2/min)';
     a.Label.Position(1) = 2.2;
     a.Label.Rotation = 90;
 else 
-    a.Label.String = '$\mathcal{A}$';
+    a.Label.String = 'Cell shape parameter $\mathcal{A}$';
     a.Label.Interpreter = 'latex';
     a.Label.Position(1) = 3.8;
     a.Ticks=[1.4 1.5 1.6 1.7]
-    a.Label.Rotation = 0;
+    a.Label.Rotation = 90;
 end
 fontsize(gcf,22,"points")
 
