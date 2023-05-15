@@ -31,7 +31,7 @@ boundaryType = "0";
 B="1.0";
 %bd = "1";
 boolCIL="0";
-Duration="2000";
+Duration="1400";
 
 numSeeds = 25;
 startSeed = 1;
@@ -57,16 +57,16 @@ N_arr = ["50"];                 %i
 calA0_arr = ["1.20"];           %ii
 %t_stress_arr = ["9830.4" "39321.6"]; %iii
 %t_stress_arr = ["19.2" "4915.2" "9830.4"];
-%t_stress_arr = ["1000.0" "4915.2" "9830.4"];
+t_stress_arr = ["19.2" "4915.2"];
 %t_stress_arr=["2.4" "4.8" "9.6" "19.2" "76.8" "307.2" "1228.8" "4915.2" "9830.4" "39321.6"];
-t_stress_arr=["19.2" "9830.4"];
+%t_stress_arr=["1000.0" "4915.2" "9830.4"];
 att_arr = ["0.1"]; % j
 om_arr = ["1.0"]; %jj
 kl_arr = ["1.0"]; %jjj
 %ka_arr = ["0.25" "1.0" "5.0" "10.0" "50.0"];               %k
 %ka_arr=["0.25" "0.5" "1.0" "2.0" "4.0" "8.0" "16.0" "32.0" "64.0" "128.0" "256.0"]; %k
 %ka_arr=["0.5" "1.0" "2.5" "5.0" "12.5" "25.0" "50.0"];
-ka_arr=["16.0" "32.0"];
+ka_arr=["20.0" "32.0"];
 %ka_arr=["16.0" "24.0" "32.0"];
 kb_arr = ["0.01"]; %kk
 deltaSq_arr = ["4.0"];          %kkk
@@ -196,8 +196,9 @@ for i=1:length(N_arr)
                                             %production
                                             if (t_stress == "19.2")
                                                 tau_s = "0";
-                                            else
-                                                %Duration = "2000";
+                                                k_a = "20.0";
+                                            elseif (t_stress == "4915.2")
+                                                k_a = "32.0";
                                             end
                                         end
 
@@ -438,8 +439,8 @@ for i=1:length(N_arr)
                                                 scatter(voidArea(1:skipInt:end,1)*timeConvert(pm1_ind), voidArea(1:skipInt:end,2)/(voidArea(1,2)),...
                                                     30, colorList(pm1_ind), "^") % wound area in area fraction
                                                 legend off
-                                                xlabel('Time (min)','Interpreter', 'tex','fontsize', 24);
-                                                ylabel('Wound area fraction','Interpreter', 'tex','fontsize', 24);
+                                                xlabel('Time (min)','Interpreter', 'latex','fontsize', 24);
+                                                ylabel('Wound area $\frac{A(T)}{A(0)}$','Interpreter', 'latex','fontsize', 24);
                                                 box on
                                                 ax = gca;
                                                 ax.TickLength = [0.025 0.025];
@@ -457,11 +458,11 @@ for i=1:length(N_arr)
                                                 if (pm1_ind == 1) % embryo
                                                     fit_params = [-2.7831 0.2966 3.6255 0.1172];
                                                     tlist = linspace(min(voidArea(:,1)*timeConvert(pm1_ind)), max(voidArea(:,1)*timeConvert(pm1_ind)), 20);
-                                                    plot(tlist, F(fit_params, tlist), '-', 'Color', colorList(pm1_ind), 'linewidth', 2)
+                                                    plot(tlist, F(fit_params, tlist), '--', 'Color', colorList(pm1_ind), 'linewidth', 2)
                                                 elseif (pm1_ind == 2) % wing disc
                                                     fit_params = [0.9420 0.0690 0.3425 0.0107];
                                                     tlist = linspace(min(voidArea(:,1)*timeConvert(pm1_ind)), max(voidArea(:,1)*timeConvert(pm1_ind)), 20);
-                                                    plot(tlist, F(fit_params, tlist), '-', 'Color', colorList(pm1_ind), 'linewidth', 2)
+                                                    plot(tlist, F(fit_params, tlist), '--', 'Color', colorList(pm1_ind), 'linewidth', 2)
                                                 end
                                                 % plot shape vs time
                                                
@@ -473,8 +474,8 @@ for i=1:length(N_arr)
                                                 %    '-','linewidth',3, 'Color', colorList(pm1_ind),'DisplayName', displayStr)
                                                 scatter(timeInnerShapes(1:skipInt:end)*timeConvert(pm1_ind),meanInnerShapes(1:skipInt:end),...
                                                      30, colorList(pm1_ind), "^") 
-                                                xlabel('Time (min)','Interpreter','tex','fontsize', 24);
-                                                ylabel('$\mathcal{A}$','Interpreter','latex','fontsize', 24);
+                                                xlabel('Time (min)','Interpreter','latex','fontsize', 24);
+                                                ylabel('Cell shape parameter $\mathcal{A}(t)$','Interpreter','latex','fontsize', 24);
                                                 %legend('location','southeast','fontsize', 6)
                                                 legend off
                                                 box on
@@ -516,7 +517,7 @@ for i=1:length(N_arr)
                                                 if (false) % execute this code when producing plot for wound healing paper
                                                     % taus is 0, default
                                                     % value. but I want to show some results %where taus is nonzero as well on top
-                                                    paramsToOverlay = "_pm1_"+"4915.2"+"_pm2_"+"16.0"+"taus_"+"?"; 
+                                                    paramsToOverlay = "_pm1_"+"4915.2"+"_pm2_"+"32.0"+"taus_"+"0.1"; 
                                                     figure(4)
                                                     load(array_output_dir+'woundHealingPlotData/shape'+paramsToOverlay+'.mat');
                                                     load(array_output_dir+'woundHealingPlotData/shape_time'+paramsToOverlay+'.mat');
