@@ -33,7 +33,7 @@ B="1.0";
 boolCIL="0";
 Duration="2000";
 
-numSeeds = 5;
+numSeeds = 25;
 startSeed = 1;
 max_seed = numSeeds;
 set(0,'DefaultFigureWindowStyle','docked')
@@ -57,24 +57,24 @@ N_arr = ["50"];                 %i
 calA0_arr = ["1.20"];           %ii
 %t_stress_arr = ["9830.4" "39321.6"]; %iii
 %t_stress_arr = ["19.2" "4915.2" "9830.4"];
-t_stress_arr = ["40.0" "100.0" "1000.0" "1500.0" "5500.0"];
+%t_stress_arr = ["1000.0" "4915.2" "9830.4"];
 %t_stress_arr=["2.4" "4.8" "9.6" "19.2" "76.8" "307.2" "1228.8" "4915.2" "9830.4" "39321.6"];
-%t_stress_arr=["76.8" "9830.4"];
+t_stress_arr=["19.2" "9830.4"];
 att_arr = ["0.1"]; % j
 om_arr = ["1.0"]; %jj
 kl_arr = ["1.0"]; %jjj
 %ka_arr = ["0.25" "1.0" "5.0" "10.0" "50.0"];               %k
 %ka_arr=["0.25" "0.5" "1.0" "2.0" "4.0" "8.0" "16.0" "32.0" "64.0" "128.0" "256.0"]; %k
 %ka_arr=["0.5" "1.0" "2.5" "5.0" "12.5" "25.0" "50.0"];
-%ka_arr=["16.0" "64.0"];
 ka_arr=["16.0" "32.0"];
+%ka_arr=["16.0" "24.0" "32.0"];
 kb_arr = ["0.01"]; %kk
 deltaSq_arr = ["4.0"];          %kkk
 %d_flag_arr = ["0.0"];           %l
 %tau_s_arr=["19.2" "76.8" "307.2" "1228.8" "4915.2" "9830.4"]; %l
 %tau_s_arr=["153.6" "307.2" "614.4" "1228.8"];
 %tau_s_arr=["500.0"];
-tau_s_arr=["0.25"];
+tau_s_arr=["0"];
 
 d_flag = "0.0"; 
 
@@ -231,7 +231,7 @@ for i=1:length(N_arr)
                                             run_name=runType+"_A0"+calA0+"_t_stress"+t_stress+"k_l"+...
                                                 k_l+"_k_a"+k_a+"_k_b"+k_b+"_w_ps"+strainRate_ps+ ...
                                                 "_dsq"+deltaSq+"_k_ps"+k_ps+"_k_lp"+k_lp+...
-                                                "_d_flag"+d_flag+"_taur"+tau_s+"_sm"+sm;
+                                                "_d_flag"+d_flag+"_taus"+tau_s+"_sm"+sm;
                                             pipeline_dir =  subdir_pipeline + run_name + "/";
                                             output_dir = subdir_output + run_name + "/";
 

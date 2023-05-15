@@ -2192,7 +2192,7 @@ void dpm::maxwellRelaxationRestLengths(std::vector<double>& l) {
     al0 = Fl0[i];  // make sure al0 and al0_old have different addresses
     al0_old = al0;
 
-    // velocity verlet position update
+    // velocity verlet position updatem n 
     l0[i] += vl0[i] * dt + al0_old * dt * dt / 2;
 
     // force on l0. tau is the effective mass of the preferred length spring

@@ -3,12 +3,12 @@
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
 
-function drawWoundSims(N, calA0, t_stress, att, strainRate_ps, ...
-    k_l, k_a, k_b, deltaSq, d_flag) %uncomment if using function call to pipeline data
+%function drawWoundSims(N, calA0, t_stress, att, strainRate_ps, ...
+%    k_l, k_a, k_b, deltaSq, d_flag) %uncomment if using function call to pipeline data
 
-isTestData = false; %uncomment if using function call to pipeline data
+%isTestData = false; %uncomment if using function call to pipeline data
 
-%isTestData = true; %uncomment if using test data
+isTestData = true; %uncomment if using test data
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('C:\Users\atata\projects\dpm\bash')
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
@@ -42,14 +42,14 @@ FSKIP = 1;
 
 etaStr = " ";
 startSeed = 1;
-max_seed = 25;
+max_seed = 1;
 no_plots = 0;
-makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
+makeAMovie = 0; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
 %plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
 plotCells = 1;
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
-showWoundAndShapeProperties = 1; 
+showWoundAndShapeProperties = 0; 
 
 
 showverts = 0;
@@ -74,7 +74,7 @@ showVoidBlack = 0; % print void in larger black circles to see easier
 showVoidLite = 1; % print void, but in a way that works with printConfiguration on its own
 showCornersOrEdges = 0;
 if (str2num(deltaSq) > 0.0 && ~no_plots)
-    showPurseString = 0;
+    showPurseString = 1;
 else
     showPurseString = 0;
 end
@@ -588,13 +588,13 @@ for seed = startSeed:max_seed
                             vpos = [xtmp, ytmp];
                             finfo = [1:nv(ff,nn) 1];
                             %disp("finfo is "+ finfo)
-                            patch('Faces',finfo,'vertices',vpos,'FaceColor',clr,'EdgeColor','k','linewidth',2);
+                            patch('Faces',finfo,'vertices',vpos,'FaceColor',clr,'EdgeColor','none','linewidth',2);
                         end
     
                         woundVertices = purseLocs(1:2:end,:);
                         purseVertices = purseLocs(2:2:end,:);
                         % scale pursestring vertices to emulate their shrinkage in simulation
-                        A = 0.9;
+                        A = 0.96;
                         purseShrink = [A*purseVertices(:,1) + (1-A)*mean(purseVertices(:,1)) A*purseVertices(:,2) + (1-A)*mean(purseVertices(:,2))];
                         % plot wound vertices
                         scatter(purseShrink(:,1), purseShrink(:,2), 150, ...
