@@ -16,7 +16,7 @@ runType = "ablate";
 N="50";
 %ndelete="6";
 %calA0="1.10";
-strainRate_ps="1.0  ";
+strainRate_ps="1.0";
 %deltaSq = "4.0";
 k_a = "1.0";
 k_l = "1.0";
@@ -64,7 +64,7 @@ att_arr = ["0.1"]; % j
 om_arr = ["1.0"]; %jj
 kl_arr = ["1.0"]; %jjj
 %ka_arr = ["0.25" "1.0" "5.0" "10.0" "50.0"];               %k
-%ka_arr=["0.25" "0.5" "1.0" "2.0" "4.0" "8.0" "16.0" "32.0" "64.0" "128.0" "256.0"]; %k
+%ka_arr=["0.25" "0.5" "1.0" "2.0" "4.0" "8.0" "16.0" "20.0" "32.0" "64.0" "128.0" "256.0"]; %k
 %ka_arr=["0.5" "1.0" "2.5" "5.0" "12.5" "25.0" "50.0"];
 ka_arr=["20.0" "32.0"];
 %ka_arr=["16.0" "24.0" "32.0"];
@@ -439,7 +439,7 @@ for i=1:length(N_arr)
                                                 scatter(voidArea(1:skipInt:end,1)*timeConvert(pm1_ind), voidArea(1:skipInt:end,2)/(voidArea(1,2)),...
                                                     30, colorList(pm1_ind), "^") % wound area in area fraction
                                                 legend off
-                                                xlabel('Time (min)','Interpreter', 'latex','fontsize', 24);
+                                                xlabel('Time t (min)','Interpreter', 'latex','fontsize', 24);
                                                 ylabel('Wound area $\frac{A(T)}{A(0)}$','Interpreter', 'latex','fontsize', 24);
                                                 box on
                                                 ax = gca;
@@ -474,7 +474,7 @@ for i=1:length(N_arr)
                                                 %    '-','linewidth',3, 'Color', colorList(pm1_ind),'DisplayName', displayStr)
                                                 scatter(timeInnerShapes(1:skipInt:end)*timeConvert(pm1_ind),meanInnerShapes(1:skipInt:end),...
                                                      30, colorList(pm1_ind), "^") 
-                                                xlabel('Time (min)','Interpreter','latex','fontsize', 24);
+                                                xlabel('Time t (min)','Interpreter','latex','fontsize', 24);
                                                 ylabel('Cell shape parameter $\mathcal{A}(t)$','Interpreter','latex','fontsize', 24);
                                                 %legend('location','southeast','fontsize', 6)
                                                 legend off
