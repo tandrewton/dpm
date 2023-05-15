@@ -588,13 +588,13 @@ for seed = startSeed:max_seed
                             vpos = [xtmp, ytmp];
                             finfo = [1:nv(ff,nn) 1];
                             %disp("finfo is "+ finfo)
-                            patch('Faces',finfo,'vertices',vpos,'FaceColor',clr,'EdgeColor','none','linewidth',2);
+                            patch('Faces',finfo,'vertices',vpos,'FaceColor',clr,'EdgeColor','k','linewidth',2);
                         end
     
                         woundVertices = purseLocs(1:2:end,:);
                         purseVertices = purseLocs(2:2:end,:);
                         % scale pursestring vertices to emulate their shrinkage in simulation
-                        A = 0.96;
+                        A = 0.94;
                         purseShrink = [A*purseVertices(:,1) + (1-A)*mean(purseVertices(:,1)) A*purseVertices(:,2) + (1-A)*mean(purseVertices(:,2))];
                         % plot wound vertices
                         scatter(purseShrink(:,1), purseShrink(:,2), 150, ...
@@ -604,8 +604,8 @@ for seed = startSeed:max_seed
                         % plot a line between wound and purse vertices
                         for ii=1:length(woundVertices(:,1))
                             % line betw woundVertices(ii,:) and purseShrink(ii,:)
-                            plot([woundVertices(ii,1) purseShrink(ii,1)],[woundVertices(ii,2) purseShrink(ii,2)],'color', 'k', 'linewidth', 3)
                             plot([purseShrink(ii,1) purseShrink(mod(ii,length(woundVertices(:,1)))+1,1)], [purseShrink(ii,2) purseShrink(mod(ii,length(woundVertices(:,1)))+1,2)],'color', 'blue', 'linewidth', 2);
+                            plot([woundVertices(ii,1) purseShrink(ii,1)],[woundVertices(ii,2) purseShrink(ii,2)],'color', 'y', 'linewidth', 3)
                         end
     
                         axis equal;
