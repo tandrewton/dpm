@@ -18,7 +18,6 @@ addpath('C:\Users\atata\projects\dpm\matlab_funcs')
 
 runType = "ablate";
 %N="40";
-ndelete="5";
 %calA0="1.10";
 %strainRate_ps="0.005";
 if (isTestData)
@@ -34,7 +33,7 @@ tau_lp = "1.0"; %lamellipodia lifetime
 %d_flag = "0.0"; %lamellipodia max length
 boundaryType = "0"; 
 %att="0.2";
-tau_r = "0";
+tau_s = "0";
 B="1.0";
 boolCIL="0";
 Duration="1400";
@@ -74,7 +73,7 @@ showVoidBlack = 0; % print void in larger black circles to see easier
 showVoidLite = 1; % print void, but in a way that works with printConfiguration on its own
 showCornersOrEdges = 0;
 if (str2num(deltaSq) > 0.0 && ~no_plots)
-    showPurseString = 1;
+    showPurseString = 0;
 else
     showPurseString = 0;
 end
@@ -98,7 +97,7 @@ txt='test';
 
 fnum = 1;
 figure(13), clf, hold on, box on;
-for seed = startSeed:max_seed
+for seed = startSeed+5:max_seed
     seed
     if (isTestData)
         run_name = runType+txt;     
@@ -123,7 +122,7 @@ for seed = startSeed:max_seed
         run_name=runType+"_A0"+calA0+"_t_stress"+t_stress+"k_l"+...
             k_l+"_k_a"+k_a+"_k_b"+k_b+"_w_ps"+strainRate_ps+ ...
             "_dsq"+deltaSq+"_k_ps"+k_ps+"_k_lp"+k_lp+...
-            "_d_flag"+d_flag+"_taur"+tau_r+"_sm"+smooth;
+            "_d_flag"+d_flag+"_taus"+tau_s+"_sm"+smooth;
         pipeline_dir =  subdir_pipeline + run_name + "/";
         output_dir = subdir_output + run_name + "/";
         mkdir(pipeline_dir)
