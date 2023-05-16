@@ -440,7 +440,7 @@ for i=1:length(N_arr)
                                                     30, colorList(pm1_ind), "^") % wound area in area fraction
                                                 legend off
                                                 xlabel('Time t (min)','Interpreter', 'latex','fontsize', 24);
-                                                ylabel('Wound area $\frac{A(T)}{A(0)}$','Interpreter', 'latex','fontsize', 24);
+                                                ylabel('Wound area $\frac{A(t)}{A(0)}$','Interpreter', 'latex','fontsize', 24);
                                                 box on
                                                 ax = gca;
                                                 ax.TickLength = [0.025 0.025];
