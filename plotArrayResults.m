@@ -485,7 +485,7 @@ for i=1:length(N_arr)
                                                 fontsize(gcf, 20, "points")
                                                 %xlim([0 inf])
                                                 %ylim([-inf inf])
-                                                pbaspect([1 1.2 1])
+                                                pbaspect([1 1.3 1])
 
                                                 % look for files called
                                                 % shapeAll.mat, which
