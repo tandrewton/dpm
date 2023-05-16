@@ -107,6 +107,16 @@ figure(3); clf; hold on;
 contourf(xpoints*bulkModulusConvert, ypoints*timeConvert, im', 12, 'LineStyle', 'none'); colormap jet(16);
 colorbar;
 
+% scatter squares below the grid points representing parameter choices
+parameterSelectionB = [0.8 1.28];
+parameterSelectionTau = [5.33 2730.67];
+
+scatter(parameterSelectionB(1), parameterSelectionTau(1), 450, "black", ...
+    "square",'filled','MarkerFaceColor', 'red', 'MarkerEdgeColor', 'white', 'linewidth', 1);
+scatter(parameterSelectionB(2), parameterSelectionTau(2), 450, "red", ...
+    "square",'filled','MarkerFaceColor', 'black', 'MarkerEdgeColor', 'white', 'linewidth', 1);
+
+% scatter grid points
 inputCombos = combvec((xpoints*bulkModulusConvert)', (ypoints*timeConvert)');
 
 scatter(inputCombos(1,:), inputCombos(2,:),30, 'k', 'o', 'filled', 'MarkerFaceColor', 'white', 'MarkerEdgeColor', 'k', 'linewidth', 1);
@@ -137,14 +147,6 @@ else
     a.Label.Rotation = 90;
 end
 fontsize(gcf,22,"points")
-
-parameterSelectionB = [0.64 1.28];
-parameterSelectionTau = [5.33 2730.67];
-
-scatter(parameterSelectionB(1), parameterSelectionTau(1), 450, "black", ...
-    "square",'filled','MarkerFaceColor', 'red', 'MarkerEdgeColor', 'white', 'linewidth', 1);
-scatter(parameterSelectionB(2), parameterSelectionTau(2), 450, "red", ...
-    "square",'filled','MarkerFaceColor', 'black', 'MarkerEdgeColor', 'white', 'linewidth', 1);
 
 % 
 % %integer format for x and y ticks
