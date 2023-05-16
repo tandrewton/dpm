@@ -3,7 +3,7 @@ addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('C:\Users\atata\projects\dpm\bash')
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
 addpath('C:\Users\atata\projects\dpm\matlab_funcs')
-
+set(groot,{'DefaultAxesXColor', 'DefaultAxesYColor', 'DefaultAxesZColor'}, {'k', 'k', 'k'})
 % first identify all the strings I'll need to run over
 
 %    "C:\Users\atata\projects\dpm\pipeline/cells/ablate/
@@ -524,7 +524,7 @@ for i=1:length(N_arr)
                                                     skipInt = length(meanInnerShapes)/n;
                                                     scatter(timeInnerShapes(1:skipInt:end)*timeConvert(pm1_ind),meanInnerShapes(1:skipInt:end),...
                                                      30, colorList(pm1_ind), "square")
-                                                    fontsize(gcf, 14, "points")
+                                                    fontsize(gcf, 20, "points")
                                                     yticks([1.2 1.4 1.6 1.8])
 
                                                     figure(2)
@@ -533,7 +533,7 @@ for i=1:length(N_arr)
                                                     skipInt = length(voidArea(:,1))/n; % keep n points to plot 
                                                     scatter(voidArea(1:skipInt:end,1)*timeConvert(pm1_ind), voidArea(1:skipInt:end,2)/(voidArea(1,2)),...
                                                     30, colorList(pm1_ind), "square") % wound area in area fraction
-                                                    fontsize(gcf, 14, "points")
+                                                    fontsize(gcf, 20, "points")
                                                     yticks([0 0.5 1])
                                                 end
                                             else
