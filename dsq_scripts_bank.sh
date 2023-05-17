@@ -266,9 +266,9 @@ module load dSQ
 #bd0 P
 #!/bin/bash
 numSeeds=25
-t_stress_arr=(2.4 4.8 9.6 19.2 76.8 307.2 1228.8 4915.2 9830.4 39321.6)
+#t_stress_arr=(2.4 4.8 9.6 19.2 76.8 307.2 1228.8 4915.2 9830.4 39321.6)
 #t_stress_arr=(19.2 38.4 76.8) #embryo
-#t_stress_arr=(4915.2 9830.4) # wing disc
+t_stress_arr=(4915.2 9830.4) # wing disc
 
 #t_stress_arr=(39321.6)
 #t_stress_arr=(19.2 76.8 307.2 1228.8 9830.4)
@@ -280,7 +280,7 @@ ka_arr=(20.0)
 #ka_arr=(0.25 0.5 1.0 2.0 4.0 8.0)
 #ka_arr=(16.0 20.0 32.0 64.0 128.0 256.0)
 #tauRatio_arr=(0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5)
-tauRatio_arr=(0)
+tauRatio_arr=(0.1)
 k_ps=(4.0)
 rm joblist_PS_tau_ka.txt
 for t_stress in ${t_stress_arr[@]}; do 
@@ -288,7 +288,7 @@ for t_stress in ${t_stress_arr[@]}; do
     for att in 0.1; do
       for kl in 1.0; do
         for ka in ${ka_arr[@]}; do
-            echo bash bash/epi2D/submit_laserAblation.sh 50 30 5 1.20 0.94 0.85 $kl $ka 0.01 $att 1.0 4.0 $k_ps 4.0 1.0 0.0 $t_stress $taur 1 1400 day 0-24:00:00 $numSeeds 1 >> joblist_PS_tau_ka.txt
+            echo bash bash/epi2D/submit_laserAblation.sh 50 30 5 1.20 0.94 0.85 $kl $ka 0.01 $att 1.0 4.0 $k_ps 4.0 1.0 0.0 $t_stress $taur 1 2000 day 0-24:00:00 $numSeeds 1 >> joblist_PS_tau_ka.txt
         done
       done
     done
