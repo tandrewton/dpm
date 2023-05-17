@@ -4,6 +4,7 @@
 // Compilation command:
 // g++ -O3 --std=c++11 -g -I src main/epi2D/oneDP.cpp src/dpm.cpp src/epi2D.cpp -o main/epi2D/oneDP.o
 // ./main/epi2D/oneDP.o 1.0 10.0 oneDP.pos oneDP.energy oneDP.stress oneDP.void
+//   ^ run this with dampedCompression to get the illustration of compression and decompression under plastic/elastic
 //
 //                      ka  tau_maxwell
 //
@@ -123,11 +124,11 @@ int main(int argc, char const* argv[]) {
   }
   epithelial.printConfiguration2D();
 
-  // epithelial.dampedCompression(repulsiveForceUpdate, dt0, 500, 25); // used for my compression experiments for wound healing explanation of plasticity
+  epithelial.dampedCompression(repulsiveForceUpdate, dt0, 500, 25);  // used for my compression experiments for wound healing explanation of plasticity
 
   std::string forceDipoleFilename = "forceDipole/forceDipole_ka_" + ka_str + "_tau_" + tau_str + ".txt";
   double forceMoment = 0.01;
-  epithelial.dampedForceDipoleExperiment(repulsiveForceUpdate, 0.01, dt0, 500, 25, forceDipoleFilename);  // used for my force dipole experiments to explain how hard plasticity deforms more than elastic or soft plastic
+  // epithelial.dampedForceDipoleExperiment(repulsiveForceUpdate, 0.01, dt0, 500, 25, forceDipoleFilename);  // used for my force dipole experiments to explain how hard plasticity deforms more than elastic or soft plastic
 
   // epithelial.drawVelocities2D(1e-3);
   //   epithelial.vertexNVE(repulsiveForceUpdate, dt0, 20000, 250);

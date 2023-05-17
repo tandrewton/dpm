@@ -17,14 +17,14 @@ addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
 pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
 showverts = 1;
 showSprings = 0;
-makeAMovie = 1;
+makeAMovie = 0;
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
 fnum=1;
 showGlobalIndex = 0;
 showcirculoline = 1;
 showQuiver = 0;
-walls=0;
+walls=1;
 
 showCustomView = 0;
 viewLeft = 0.2;
