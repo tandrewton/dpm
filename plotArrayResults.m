@@ -506,6 +506,10 @@ for i=1:length(N_arr)
                                                 %scatter(t, sma, 10, colorList(pm1_ind), 'filled')
                                                 plot(t, sma, '-','Color', colorList(pm1_ind), 'linewidth', 3)
                                                 xlim([0 255]) % wing disc time range
+                                                t=timeInnerShapes(1:skipInt:end)*timeConvert(pm1_ind);
+                                                y=meanInnerShapes(1:skipInt:end);
+                                                save('t_pm1_'+pm1(pm1_ind)+'_pm2_'+pm2(pm2_ind)+'.mat', 't');
+                                                save('y_pm1_'+pm1(pm1_ind)+'_pm2_'+pm2(pm2_ind)+'.mat', 'y');
                                                 
                                                 % save plot data in order
                                                 % to manually overlay results varying in tau_s for
