@@ -43,8 +43,8 @@ walls = 0;
 att_range = 0.3;
  
 %PC directory
-%pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
-pc_dir="C:\Users\atata\projects\dpm\";
+pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
+%pc_dir="C:\Users\atata\projects\dpm\";
 %pipeline is the location of data generated during simulations
 subdir_pipeline = pc_dir + "pipeline/cells/"+runType+"/";
 

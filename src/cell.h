@@ -170,7 +170,7 @@ class cell : public dpm {
   void resizeCatchBonds();
 
   // File openers
-  void openEnergyObject(std::string& str) {
+  void openEnergyObject(const std::string& str) {
     enout.open(str.c_str());
     if (!enout.is_open()) {
       std::cout << "	ERROR: file could not open " << str << "..."
@@ -180,7 +180,7 @@ class cell : public dpm {
       std::cout << "** Opening file " << str << " ..." << std::endl;
   }
 
-  void openStressObject(std::string& str) {
+  void openStressObject(const std::string& str) {
     stressout.open(str.c_str());
     if (!stressout.is_open()) {
       std::cout << "	ERROR: file could not open " << str << "..."
@@ -190,7 +190,7 @@ class cell : public dpm {
       std::cout << "** Opening file " << str << " ..." << std::endl;
   }
 
-  void openTissueObject(std::string& str) {
+  void openTissueObject(const std::string& str) {
     tissueout.open(str.c_str());
     if (!tissueout.is_open()) {
       std::cout << "	ERROR: file could not open " << str << "..."
@@ -200,7 +200,7 @@ class cell : public dpm {
       std::cout << "** Opening file " << str << " ..." << std::endl;
   }
 
-  void openCatchBondObject(std::string& str) {
+  void openCatchBondObject(const std::string& str) {
     catchBondOut.open(str.c_str());
     if (!catchBondOut.is_open()) {
       std::cout << "	ERROR: file could not open " << str << "..."
@@ -212,7 +212,7 @@ class cell : public dpm {
 
   // boundary routines
   void replacePolyWallWithDP(int numCellTypes);
-  void addDP(int numVerts, vector<double>& dp_x, vector<double>& dp_y, int cellTypeIndex, int numCellTypes);
+  void addDP(int numVerts, const vector<double>& dp_x, const vector<double>& dp_y, int cellTypeIndex, int numCellTypes);
 
   // routines
   void initializeFourTransverseTissues(double phi0, double Ftol);

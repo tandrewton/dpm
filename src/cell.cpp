@@ -1905,7 +1905,7 @@ void cell::replacePolyWallWithDP(int numCellTypes) {
   numVertexContacts.resize(NVTOT, std::vector<int>(NVTOT, 0.0));
 }
 
-void cell::addDP(int numVerts, vector<double>& dp_x, vector<double>& dp_y, int cellTypeIndex, int numCellTypes) {
+void cell::addDP(int numVerts, const vector<double>& dp_x, const vector<double>& dp_y, int cellTypeIndex, int numCellTypes) {
   // add a DP with cell type = cellID, with numVerts vertices, each of which are located according to (dp_x,dp_y)
   // must account for and modify all vectors with size dependent on NCELLS and NVTOT, such as szList
   int gi, vim1, vip1;
@@ -1924,6 +1924,7 @@ void cell::addDP(int numVerts, vector<double>& dp_x, vector<double>& dp_y, int c
   for (int vi = 0; vi < dp_x.size(); vi++) {
     dist = sqrt(pow(dp_x[vi] - dp_x[(vi + 1) % dp_x.size()], 2) + pow(dp_y[vi] - dp_y[(vi + 1) % dp_y.size()], 2));
     l0.push_back(dist);
+    l00.push_back(dist);
     vl0.push_back(0.0);
     Fl0.push_back(0.0);
     t0.push_back(0.0);
@@ -3101,12 +3102,14 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double dt0, double duration, doub
   cout << "vertDOF = " << vertDOF << '\n';
   cout << "x.size() = " << x.size() << '\n';
   cout << "l0.size() = " << l0.size() << '\n';
+  cout << "l00.size() = " << l00.size() << '\n';
   cout << "a0.size() = " << a0.size() << '\n';
   cout << "cellID.size() = " << cellID.size() << '\n';
 
   // set time step magnitude
   setdt(dt0);
   int NPRINTSKIP = printInterval / dt;
+  cout << "NPRINTSKIP = " << NPRINTSKIP << ", dt = " << dt << '\n';
 
   // loop over time, print energy
   while (simclock - t0 < duration) {
@@ -3158,7 +3161,7 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double dt0, double duration, doub
              << endl;
         cout << "===============================" << endl;
         cout << endl;
-        cout << "	** simclock - t0 / duration	= " << simclock - t0
+        cout << "	** simclock - t0 / duration	= " << double(simclock - t0)
              << " / " << duration << endl;
 
         cout << " **  dt   = " << setprecision(12) << dt << endl;

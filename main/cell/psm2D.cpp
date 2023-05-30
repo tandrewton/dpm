@@ -106,6 +106,8 @@ int main(int argc, char const* argv[]) {
   durationss >> runTime;
   seedss >> seed;
 
+  cout << "runTime = " << runTime << '\n';
+
   int numCellTypes = 2;  // 0 = interior cell type (PSM) and 1 = exterior cell type (boundary)
   cell cell2D(NCELLS, 0.0, 0.0, seed, numCellTypes);
   cell2D.openPosObject(positionFile);
@@ -219,7 +221,6 @@ int main(int argc, char const* argv[]) {
     cell2D.replacePolyWallWithDP(numCellTypes);
     cell2D.resizeNeighborLinkedList2D();
   }
-  cell2D.setl00();  // set l00 to be l0 before setting maxwell relaxation time, after resizing from replacePolyWallWithDP
 
   // cell2D.dampedVertexNVE(customForceUpdate, dt0, relaxTime, relaxTime / 15);
   cout << "\n\nmain simulation begins!\n\n";
