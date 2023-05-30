@@ -12,6 +12,7 @@ testDataID = num2str(testDataii);
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('C:\Users\atata\projects\dpm\bash')
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
+addpath('C:\Users\atata\projects\dpm\matlab_funcs')
 %CHANGE THESE PARAMETERS                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   NEEDED
 
 %psm/psm_calA01.05_t_maxwell25.0_v00.05_t_abp1.0_sm1
