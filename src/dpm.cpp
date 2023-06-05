@@ -78,7 +78,7 @@ dpm::dpm(int n, int ndim, int seed) {
   srand48(seed);
 }
 
-// destructor
+/*// destructor
 dpm::~dpm() {
   // clear all private vectors
   // should update this soon
@@ -109,7 +109,7 @@ dpm::~dpm() {
 
   if (posout.is_open())
     posout.close();
-}
+}*/
 
 /******************************
 

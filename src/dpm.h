@@ -143,7 +143,7 @@ class dpm {
   dpm(int n, int ndim, int seed);
   dpm(int n, int seed)
       : dpm(n, 2, seed) {}
-  ~dpm();
+  //~dpm();
 
   // -- G E T T E R S
 
