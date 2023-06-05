@@ -3397,9 +3397,10 @@ void cell::printConfiguration2D() {
 
   if (isGiCatchBonded.size() > 0) {
     for (int gi = 0; gi < NVTOT; gi++) {
-      if (isGiCatchBonded[gi])
+      if (isGiCatchBonded[gi]) {
         // cout << "isGiCatchBonded[" << gi << "] = " << isGiCatchBonded[gi] << '\n';
         catchBondOut << catchBondPosition[gi][0] << '\t' << catchBondPosition[gi][1] << '\t' << x[NDIM * gi] << '\t' << x[NDIM * gi + 1] << '\n';
+      }
     }
   }
 
