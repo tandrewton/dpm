@@ -2793,12 +2793,6 @@ void cell::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, doub
   }
 }
 
-void cell::evolveBoundaryToTargetShape() {
-  // take a poly_bd defining the boundary walls of the simulation and evolve the walls to a target shape.
-  // initial shape is an n-gon approximating a circle, final shape is a rectangle.
-  // by evolving the boundary slowly, we can ensure that cells are not initialized outside the boundary.
-}
-
 void cell::shrinkCellVertices(dpmMemFn forceCall, double dt0, double shrinkRatio) {
   // quasistatically shrink r while keeping l0 fixed. this will give more sliding room for laterally mobile adhesion
   int it = 0, itmax = 1e4;

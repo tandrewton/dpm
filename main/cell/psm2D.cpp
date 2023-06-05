@@ -42,7 +42,7 @@ using namespace std;
 
 // global constants
 const bool plotCompression = 0;     // whether or not to plot configuration during compression protocol (0 saves memory)
-const double dphi0 = 0.005;         // packing fraction increment
+const double dphi0 = 0.01;          // packing fraction increment
 const double ka = 1.0;              // area force spring constant (should be unit)
 const double kc = 1.0;              // interaction force spring constant (should be unit)
 const double kb = 0.01;             // bending energy spring constant (should be zero)
@@ -152,7 +152,7 @@ int main(int argc, char const* argv[]) {
   for (int i = 0; i < numCellTypes; i++) {
     for (int j = 0; j < numCellTypes; j++) {
       if (i == numCellTypes - 1 || j == numCellTypes - 1) {
-        // boundaries interact with everyone, with cellID numCellTypes - 1
+        // boundaries attract everyone, with cellID numCellTypes - 1
         // cell2D.setCellTypeAttractionModifiers(i, j, 1.0);
         // boundaries are only repulsive
         cell2D.setCellTypeAttractionModifiers(i, j, 0.0);
@@ -170,16 +170,24 @@ int main(int argc, char const* argv[]) {
   //  initialize particle positions initially in a circle configuration
   int circleID = 0, rectangleID = 1;
   cell2D.initializeTransverseTissue(phi0, Ftol, circleID);
-  cell2D.printConfiguration2D();
-
   cell2D.initializeNeighborLinkedList2D(boxLengthScale);
-
   cell2D.printConfiguration2D();
 
   // compress to target packing fraction
+  cout << "first compression, takes initial circular tissue and compresses it within circular boundary\n";
   cell2D.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithPolyWalls, Ftol, dt0, phiMax, dphi0);
-  cout << "done compressing to target packing fraction\n";
   cell2D.printConfiguration2D();
+
+  cell2D.replaceCircularBoundary(rectangleID, 2.0);
+  cell2D.resizeNeighborLinkedList2D();
+  cout << "second compression, takes initial circular tissue and compresses it within rectangular boundary\n";
+  cell2D.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithPolyWalls, Ftol, dt0, phiMax, 5 * dphi0);
+  cell2D.printConfiguration2D();
+
+  cell2D.replacePolyWallWithDP(numCellTypes);
+  cell2D.resizeNeighborLinkedList2D();
+  cell2D.printConfiguration2D();
+
   cell2D.setl00();  // set l00 to be l0 before setting maxwell relaxation time
 
   double relaxTimeShort = 5.0;
@@ -196,15 +204,10 @@ int main(int argc, char const* argv[]) {
     cell2D.setActiveBrownianParameters(v0_abp, tau_abp);
   }
   // cell2D.dampedVertexNVE(attractiveSmoothForceUpdateWithPolyWalls, dt0, relaxTimeShort, relaxTimeShort / 2);
-  cell2D.dampedVertexNVE(repulsiveForceUpdateWithPolyWalls, dt0, relaxTimeShort, relaxTimeShort / 2);
-  cell2D.replaceCircularBoundary(rectangleID, 1.0);
-  // cell2D.evolveBoundaryToTargetShape();
-  cell2D.replacePolyWallWithDP(numCellTypes);
-  cell2D.resizeNeighborLinkedList2D();
   cell2D.dampedVertexNVE(repulsiveForceUpdate, dt0, relaxTimeShort, relaxTimeShort / 2);
   cell2D.shrinkCellVertices(customForceUpdate, dt0, 20.0);
 
-  cout << "\n\nmain simulation begins!\n\n";
+  cout << "\n\nmain simulation begins \n\n";
   cell2D.resizeCatchBonds();
 
   if (v0_abp <= 0.0)  // thermal, no activity, no damping
@@ -213,8 +216,6 @@ int main(int argc, char const* argv[]) {
     // cell2D.dampedVertexNVE(customForceUpdate, dt0, runTime, runTime / 15.0);
     cell2D.dampedVertexNVE(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, runTime / 15.0);
   }
-  // cell2D.saveConfiguration(savedPositions);
-  // cell2D.loadConfiguration(savedPositions);
 
   cout
       << "\n** Finished psm.cpp (2D transverse section of pre-somitic mesoderm), ending. " << endl;

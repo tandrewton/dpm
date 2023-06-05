@@ -304,14 +304,20 @@ double dpm::vertexPreferredPackingFraction2D() {
 
 // get configuration "preferred" packing fraction with respect to polygon boundaries poly_bd_x[i] and poly_bd_y[i], where we loop over i to get all boundaries
 double dpm::vertexPreferredPackingFraction2D_polygon() {
-  if (poly_bd_x.size() == 0)
+  if (poly_bd_x.size() == 0) {
+    cout << "poly_bd is empty, exiting in vertexPreferredPackingFraction2D_polygon!\n";
     return 0.0;
+  }
   int ci;
   double val, boxV, boxV_temp, areaSum = 0.0;
 
   // numerator
-  for (ci = 0; ci < NCELLS; ci++)
-    areaSum += a0[ci] + 0.25 * PI * pow(2.0 * r.at(szList[ci]), 2.0) * (0.5 * nv.at(ci) - 1);
+  for (ci = 0; ci < NCELLS; ci++) {
+    if (fabs(a0[ci] - a0[0]) < 2 * a0[0])
+      areaSum += a0[ci] + 0.25 * PI * pow(2.0 * r.at(szList[ci]), 2.0) * (0.5 * nv.at(ci) - 1);
+    // else
+    //  cout << "area of cell " << ci << "is much larger than cell 0, assuming it's a boundary and not counting it in the areaSum of vertexPreferredPackingFraction2D_polygon\n";
+  }
 
   // denominator = boundary polygonal area via shoelace method
   boxV = 0.0;
