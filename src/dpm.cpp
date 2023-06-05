@@ -98,8 +98,10 @@ dpm::~dpm() {
   stress.clear();
   sb.clear();
   lb.clear();
-  for (int i = 0; i < NBX; i++)
+  for (int i = 0; i < nn.size(); i++) {
+    // cout << i << "\t" << nn.size() << '\n';
     nn.at(i).clear();
+  }
   nn.clear();
   head.clear();
   last.clear();
@@ -1242,6 +1244,7 @@ void dpm::initializeNeighborLinkedList2D(double boxLengthScale) {
 
   // initialize box length vectors
   NBX = 1;
+
   sb.resize(NDIM);
   lb.resize(NDIM);
   for (d = 0; d < NDIM; d++) {
@@ -2192,7 +2195,7 @@ void dpm::maxwellRelaxationRestLengths(std::vector<double>& l) {
     al0 = Fl0[i];  // make sure al0 and al0_old have different addresses
     al0_old = al0;
 
-    // velocity verlet position updatem n 
+    // velocity verlet position updatem n
     l0[i] += vl0[i] * dt + al0_old * dt * dt / 2;
 
     // force on l0. tau is the effective mass of the preferred length spring

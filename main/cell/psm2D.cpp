@@ -173,6 +173,7 @@ int main(int argc, char const* argv[]) {
   cell2D.printConfiguration2D();
 
   cell2D.initializeNeighborLinkedList2D(boxLengthScale);
+
   cell2D.printConfiguration2D();
 
   // compress to target packing fraction

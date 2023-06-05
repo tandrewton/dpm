@@ -75,49 +75,6 @@ class cell : public dpm {
     cout << "Initializing epi2D object, l1 = " << l1 << ", l2 = " << l2 << '\n';
   }
 
-  // destructor
-  ~cell() {
-    // clear all private vectors
-    // should update this soon
-    cout << "destructor\n";
-    L.clear();
-    pbc.clear();
-    a0.clear();
-    l0.clear();
-    t0.clear();
-    nv.clear();
-    szList.clear();
-    im1.clear();
-    ip1.clear();
-    r.clear();
-    x.clear();
-    v.clear();
-    F.clear();
-    stress.clear();
-    sb.clear();
-    lb.clear();
-    cout << "nn size = " << nn.size() << '\n';
-    cout << "NBX = " << NBX << '\n';
-    for (int i = 0; i < NBX; i++)
-      nn.at(i).clear();
-    nn.clear();
-    head.clear();
-    last.clear();
-    list.clear();
-
-    if (posout.is_open())
-      posout.close();
-    if (enout.is_open())
-      enout.close();
-    if (stressout.is_open())
-      stressout.close();
-
-    cellID.clear();
-    cellTypeIntMat.clear();
-    cellTouchesWallsLeft.clear();
-    cellTouchesWallsRight.clear();
-  }
-
   // test routines for force calculation
   void moveVertex(int gi, double xpos, double ypos);
 
