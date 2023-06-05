@@ -188,32 +188,21 @@ int main(int argc, char const* argv[]) {
   // dpmMemFn customForceUpdate = repulsivePolarityForceUpdate;
   // dpmMemFn customForceUpdate = attractivePolarityForceUpdate;
   dpmMemFn customForceUpdate;
-  if (sm) {
-    if (v0_abp <= 0.0)
-      customForceUpdate = attractiveSmoothForceUpdate;
-    else {
-      customForceUpdate = attractionSmoothWithActiveBrownianUpdate;
-      cell2D.setActiveBrownianParameters(v0_abp, tau_abp);
-    }
-    // cell2D.dampedVertexNVE(attractiveSmoothForceUpdateWithPolyWalls, dt0, relaxTimeShort, relaxTimeShort / 2);
-    cell2D.dampedVertexNVE(repulsiveForceUpdateWithPolyWalls, dt0, relaxTimeShort, relaxTimeShort / 2);
-    cell2D.replaceCircularBoundary(rectangleID, 2.0);
-    cell2D.replacePolyWallWithDP(numCellTypes);
-    cell2D.resizeNeighborLinkedList2D();
-    cell2D.dampedVertexNVE(repulsiveForceUpdate, dt0, relaxTimeShort, relaxTimeShort / 2);
-    cell2D.shrinkCellVertices(customForceUpdate, dt0, 20.0);
-  } else {
-    // bumpy
-    if (v0_abp <= 0.0)
-      customForceUpdate = attractiveForceUpdate;
-    else {
-      customForceUpdate = attractionWithActiveBrownianUpdate;
-      cell2D.setActiveBrownianParameters(v0_abp, tau_abp);
-    }
-    cell2D.dampedVertexNVE(attractiveForceUpdateWithPolyWalls, dt0, relaxTimeShort, relaxTimeShort / 2);
-    cell2D.replacePolyWallWithDP(numCellTypes);
-    cell2D.resizeNeighborLinkedList2D();
+  assert(sm);  // code only supports smooth forces now, not going to develop a separate bumpy branch
+  if (v0_abp <= 0.0)
+    customForceUpdate = attractiveSmoothForceUpdate;
+  else {
+    customForceUpdate = attractionSmoothWithActiveBrownianUpdate;
+    cell2D.setActiveBrownianParameters(v0_abp, tau_abp);
   }
+  // cell2D.dampedVertexNVE(attractiveSmoothForceUpdateWithPolyWalls, dt0, relaxTimeShort, relaxTimeShort / 2);
+  cell2D.dampedVertexNVE(repulsiveForceUpdateWithPolyWalls, dt0, relaxTimeShort, relaxTimeShort / 2);
+  cell2D.replaceCircularBoundary(rectangleID, 1.0);
+  // cell2D.evolveBoundaryToTargetShape();
+  cell2D.replacePolyWallWithDP(numCellTypes);
+  cell2D.resizeNeighborLinkedList2D();
+  cell2D.dampedVertexNVE(repulsiveForceUpdate, dt0, relaxTimeShort, relaxTimeShort / 2);
+  cell2D.shrinkCellVertices(customForceUpdate, dt0, 20.0);
 
   cout << "\n\nmain simulation begins!\n\n";
   cell2D.resizeCatchBonds();

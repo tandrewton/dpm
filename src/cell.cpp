@@ -2023,7 +2023,7 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
   // initialize stress field
   initializeFieldStress();
 
-  // initial transverse geometry vectors in units of some lengthscale
+  // initial boundary position vectors in units of some lengthscale tissueRadii
   int numTissues = 1, totalNumCellsCheck = 0;
   double totalArea = 0.0;
   vector<double> cx = {1 / 2.0}, cy = {1 / 2.0};
@@ -2791,6 +2791,12 @@ void cell::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, doub
     // update iterate
     it++;
   }
+}
+
+void cell::evolveBoundaryToTargetShape() {
+  // take a poly_bd defining the boundary walls of the simulation and evolve the walls to a target shape.
+  // initial shape is an n-gon approximating a circle, final shape is a rectangle.
+  // by evolving the boundary slowly, we can ensure that cells are not initialized outside the boundary.
 }
 
 void cell::shrinkCellVertices(dpmMemFn forceCall, double dt0, double shrinkRatio) {
