@@ -44,19 +44,16 @@ using namespace std;
 const bool plotCompression = 0;     // whether or not to plot configuration during compression protocol (0 saves memory)
 const double dphi0 = 0.005;         // packing fraction increment
 const double ka = 1.0;              // area force spring constant (should be unit)
-const double kc = 10.0;             // interaction force spring constant (should be unit)
-const double kb = 0.1;              // bending energy spring constant (should be zero)
+const double kc = 1.0;              // interaction force spring constant (should be unit)
+const double kb = 0.01;             // bending energy spring constant (should be zero)
 const double kl = 1.0;              // segment length interaction force (should be unit)
 const double boxLengthScale = 2.5;  // neighbor list box size in units of initial l0
 const double phi0 = 0.91;           // initial packing fraction
 const double phiMax = 0.85;
-const double smallfrac = 1.0;  // fraction of small particles
-const double sizeratio = 1.0;  // size ratio between small and large particles
-const double dt0 = 0.01;       // initial magnitude of time step in units of MD time
+const double dt0 = 0.01;  // initial magnitude of time step in units of MD time
 const double Ptol = 1e-8;
 const double Ftol = 1e-12;
-const double att_range = 0.5;
-const double maxwellRelaxationTime = 10.0;
+const double att_range = 0.3;
 
 int main(int argc, char const* argv[]) {
   // local variables to be read in
@@ -123,7 +120,7 @@ int main(int argc, char const* argv[]) {
 
   cell2D.setB(B);
   if (t_stress > 0.0)
-    cell2D.setMaxwellRelaxationTime(maxwellRelaxationTime);  // t_stress is infinity unless this is uncommented
+    cell2D.setMaxwellRelaxationTime(t_stress);  // t_stress is infinity unless this is uncommented
   //  specify non-periodic boundaries
   cell2D.setpbc(0, false);
   cell2D.setpbc(1, false);
@@ -142,14 +139,11 @@ int main(int argc, char const* argv[]) {
   }
 
   dpmMemFn repulsiveForceUpdate = &dpm::repulsiveForceUpdate;
-  dpmMemFn repulsiveForceUpdateWithWalls = static_cast<void (dpm::*)()>(&cell::repulsiveForceUpdateWithWalls);
   dpmMemFn attractiveForceUpdate = static_cast<void (dpm::*)()>(&cell::attractiveForceUpdate);
   dpmMemFn attractionWithActiveBrownianUpdate = static_cast<void (dpm::*)()>(&cell::attractiveForceUpdateWithCrawling);
   dpmMemFn attractionSmoothWithActiveBrownianUpdate = static_cast<void (dpm::*)()>(&cell::attractiveSmoothForceUpdateWithCrawling);
   dpmMemFn attractionSmoothActiveBrownianCatchBondsUpdate = static_cast<void (dpm::*)()>(&cell::attractiveSmoothActiveCatchBonds);
   dpmMemFn attractiveSmoothForceUpdate = static_cast<void (dpm::*)()>(&cell::attractiveSmoothForceUpdate);
-  dpmMemFn attractiveSmoothForceUpdateWithPolyWalls = static_cast<void (dpm::*)()>(&cell::attractiveSmoothForceUpdateWithPolyWall);
-  dpmMemFn repulsivePolarityForceUpdate = static_cast<void (dpm::*)()>(&cell::repulsiveWithPolarityForceUpdate);
   dpmMemFn attractivePolarityForceUpdate = static_cast<void (dpm::*)()>(&cell::attractiveWithPolarityForceUpdate);
   dpmMemFn repulsiveForceUpdateWithPolyWalls = static_cast<void (dpm::*)()>(&cell::repulsiveForceUpdateWithPolyWall);
   dpmMemFn attractiveForceUpdateWithPolyWalls = static_cast<void (dpm::*)()>(&cell::attractiveForceUpdateWithPolyWall);
@@ -187,9 +181,7 @@ int main(int argc, char const* argv[]) {
   cell2D.printConfiguration2D();
   cell2D.setl00();  // set l00 to be l0 before setting maxwell relaxation time
 
-  bool wallsBool = true;
   double relaxTimeShort = 5.0;
-  double relaxTime = 100.0;
   std::vector<double> savedPositions;
 
   // dpmMemFn customForceUpdate = repulsivePolarityForceUpdate;
@@ -222,7 +214,6 @@ int main(int argc, char const* argv[]) {
     cell2D.resizeNeighborLinkedList2D();
   }
 
-  // cell2D.dampedVertexNVE(customForceUpdate, dt0, relaxTime, relaxTime / 15);
   cout << "\n\nmain simulation begins!\n\n";
   cell2D.resizeCatchBonds();
 

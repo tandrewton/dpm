@@ -626,7 +626,7 @@ void cell::circuloLineAttractiveForces() {
   double d_arg, y10, x10, d21;      // for calculating 3-body forces for projection 1 (vertex-line-segment)
   double projection;                // parameterized projection value. if between [0,1] then it's circulo-line, if < 0 or > 1 then it is either nothing or end-end.
   double endCapAngle, endEndAngle;  // endCapAngle is PI minus interior angle of vertices, endEndAngle is between interaction centers and circulo-line endpoints
-  double ftmp, fx, fy, energytmp;
+  double ftmp, fx, fy;
   bool isConcaveInteraction, isConvexInteraction, isSelfInteraction = false;
   int sign = 1;  // used to flip the sign of force and energy in the concave interaction case for negative endCap vertex-vertex interactions
 
@@ -3008,7 +3008,7 @@ void cell::simulateDampedWithWalls(dpmMemFn forceCall, double dt0, double durati
 // for testing numerical stability
 void cell::vertexNVE(dpmMemFn forceCall, double T, double dt0, double duration, double printInterval) {
   // local variables
-  int t, i;
+  int i;
   double K, t0 = simclock;
   double temp_simclock = simclock;
 
@@ -3078,7 +3078,7 @@ void cell::vertexNVE(dpmMemFn forceCall, double T, double dt0, double duration, 
 
         // print to energy file
         cout << "** printing energy" << endl;
-        enout << setw(w) << left << t;
+        enout << setw(w) << left << simclock - t0;
         enout << setw(wnum) << left << simclock;
         enout << setw(wnum) << setprecision(12) << U;
         enout << setw(wnum) << setprecision(12) << K;

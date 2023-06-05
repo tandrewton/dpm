@@ -28,10 +28,9 @@ class cell : public dpm {
   std::ofstream tissueout;     // output stream for tissue measurements over time
   std::ofstream catchBondOut;  // output stream for catch bond positions
 
-  // simulation-scale stored quantities
-  double simclock;         // accumulator for simulation time
-  std::vector<double> VL;  // wall velocity if simulating with wall forces
-  std::vector<double> XL;  // position of box boundaries (there are 4 box boundaries) : xrange (XL[0] XL[2]), yrange (XL[1], XL[3])
+  double simclock;             // accumulator for simulation time
+  std::vector<double> VL, XL;  // wall velocity and positions if simulating with wall forces.
+  // position of box boundaries (there are 4 box boundaries) : xrange (XL[0] XL[2]), yrange (XL[1], XL[3])
   // XL modifies the box size by mapping 0 -> 0 + XL[0], L[0] -> L[0] + XL[2], 0 -> 0 + XL[1], L[1] -> L[1] + XL[3]
 
   // energy/force modifiers
@@ -76,7 +75,7 @@ class cell : public dpm {
     cout << "Initializing epi2D object, l1 = " << l1 << ", l2 = " << l2 << '\n';
   }
 
-  /*// destructor
+  // destructor
   ~cell() {
     // clear all private vectors
     // should update this soon
@@ -117,7 +116,7 @@ class cell : public dpm {
     cellTypeIntMat.clear();
     cellTouchesWallsLeft.clear();
     cellTouchesWallsRight.clear();
-  }*/
+  }
 
   // test routines for force calculation
   void moveVertex(int gi, double xpos, double ypos);
