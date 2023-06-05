@@ -152,7 +152,7 @@ int main(int argc, char const* argv[]) {
   for (int i = 0; i < numCellTypes; i++) {
     for (int j = 0; j < numCellTypes; j++) {
       if (i == numCellTypes - 1 || j == numCellTypes - 1) {
-        // boundaries attract everyone
+        // boundaries interact with everyone, with cellID numCellTypes - 1
         // cell2D.setCellTypeAttractionModifiers(i, j, 1.0);
         // boundaries are only repulsive
         cell2D.setCellTypeAttractionModifiers(i, j, 0.0);

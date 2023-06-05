@@ -550,9 +550,16 @@ void cell::catchBondsUpdate() {
   double f_off = 1.0;  // mechanosensitivity parameter of catch bonds
   double bond_stiffness = 1.0;
   double dx, dy, distance;
+  int ci, vi;
   assert(isGiCatchBonded.size() == NVTOT);
   // evaluate switching states from bonded to non-bonded depending on k_on or k_off values
   for (int gi = 0; gi < NVTOT; gi++) {
+    cindices(ci, vi, gi);
+    if (cellID[ci] != 0) {  // if cell type does not match bulk cell ID, then it does not form catch bonds
+      isGiCatchBonded[gi] = false;
+      continue;
+    }
+
     // settle the binding and unbinding events on each vertex gi
     double randNum = (float)(rand()) / (float)(RAND_MAX);  // random number between 0 and 1
     if (isGiCatchBonded[gi]) {
