@@ -2011,7 +2011,7 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
   // aspect ratio is L[0]/L[1]
   // polyShapeID = 0 corresponds to a circle, 1 corresponds to a rectangle
   int i, d, ci, cj, vi, vj, gi, cellDOF = NDIM * NCELLS, cumNumCells = 0;
-  int numEdges = 10;  // number of edges in the polygonal walls to approximate a circle
+  int numEdges = 20;  // number of edges in the polygonal walls to approximate a circle
   double areaSum, xtra = 1.1;
 
   // local disk vectors
@@ -2039,8 +2039,7 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
   for (int i = 0; i < tissueRadii.size(); i++) {
     cellFractionPerTissue.push_back(tissueRadii[i] * tissueRadii[i] / totalArea);
     numCellsInTissue.push_back(round(cellFractionPerTissue[i] * NCELLS));
-    cout << "cellFraction = " << tissueRadii[i] * tissueRadii[i] / totalArea << '\n';
-    cout << "initializing " << NCELLS << " cells, with tissue " << i << " having cell fraction = " << cellFractionPerTissue[i] << '\n';
+    cout << "cellFraction = " << tissueRadii[i] * tissueRadii[i] / totalArea << ", initializing " << NCELLS << " cells, with tissue " << i << " having cell fraction = " << cellFractionPerTissue[i] << '\n';
     cout << "NCELLS * cellFraction = " << NCELLS * cellFractionPerTissue[i] << ", which is " << round(NCELLS * cellFractionPerTissue[i]) << " when rounded\n";
     totalNumCellsCheck += round(NCELLS * cellFractionPerTissue[i]);
   }
@@ -2100,9 +2099,8 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
   cout << "setting radii of SP disks\n";
   // set radii of SP disks
   for (ci = 0; ci < NCELLS; ci++) {
-    xtra = 1.1;  // disks should have radius similar to the final particle radius, or could modify vrad[i] condition in wall calculation later
+    xtra = 1.0;  // disks should have radius similar to the final particle radius
     drad.at(ci) = xtra * sqrt((2.0 * a0.at(ci)) / (nv.at(ci) * sin(2.0 * PI / nv.at(ci))));
-    cout << "drad = " << drad[ci] << '\n';
   }
 
   // FIRE VARIABLES
@@ -2111,7 +2109,7 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
   double vnorm = 0;
   double alpha = alpha0;
 
-  double dt0 = 1e-2;
+  double dt0 = 0.01;
   double dtmax = 10 * dt0;
   double dtmin = 1e-8 * dt0;
 
@@ -2330,6 +2328,11 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
     cout << "	** P = " << P << endl;
     cout << "	** alpha = " << alpha << endl;
   }
+  double top, bottom, left, right;
+  top = 1.0 * *max_element(std::begin(poly_bd_y[0]), std::end(poly_bd_y[0]));
+  bottom = 1.0 * *min_element(std::begin(poly_bd_y[0]), std::end(poly_bd_y[0]));
+  left = 1.0 * *min_element(std::begin(poly_bd_x[0]), std::end(poly_bd_x[0]));
+  right = 1.0 * *max_element(std::begin(poly_bd_x[0]), std::end(poly_bd_x[0]));
 
   // initialize vertex positions based on cell centers
   for (ci = 0; ci < NCELLS; ci++) {
@@ -2344,6 +2347,10 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
       // set positions
       x.at(NDIM * gi) = dtmp * cos((2.0 * PI * vi) / nv.at(ci)) + dpos.at(NDIM * ci) + 1e-2 * l0[gi] * drand48();
       x.at(NDIM * gi + 1) = dtmp * sin((2.0 * PI * vi) / nv.at(ci)) + dpos.at(NDIM * ci + 1) + 1e-2 * l0[gi] * drand48();
+      if (x.at(NDIM * gi) < left || x.at(NDIM * gi) > right)
+        cout << "vertex initialized outside of poly_bd_x\n";
+      if (x.at(NDIM * gi + 1) < bottom || x.at(NDIM * gi + 1) > top)
+        cout << "vertex initialized outside of poly_bd_y\n";
     }
   }
 }
