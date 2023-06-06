@@ -535,6 +535,8 @@ void cell::directorDiffusion() {
   double r1, r2, grv;
   double Dr0 = 1 / tau_ABP;
   for (int ci = 0; ci < NCELLS; ci++) {
+    if (cellID[ci] != 0)  // only cell types are allowed to crawl, boundaries are not allowed to crawl
+      continue;
     // propagate diffusion of directors psi
     r1 = drand48();
     r2 = drand48();
@@ -1922,6 +1924,7 @@ void cell::addDP(int numVerts, const vector<double>& dp_x, const vector<double>&
   NVTOT += numVerts;
   vertDOF += NDIM * numVerts;
   szList.push_back(szList.back() + nv.back());
+  psi.push_back(0.0);
   nv.push_back(numVerts);
   // next: a0, l0, t0, r; im1, ip1, x, v, f in initializeVertexShapeParameters and initializeVertexIndexing
   gi = szList[NCELLS - 1];
