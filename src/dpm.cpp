@@ -1,15 +1,6 @@
-/*
-
-        BASIC FUNCTION DEFINITIONS for DPM class
-
-        Jack Treado, 04/10/21
-
-*/
-
 #include "dpm.h"
 #include <functional>
 
-// namespace
 using namespace Eigen;
 using namespace std;
 

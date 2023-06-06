@@ -1,15 +1,6 @@
 #ifndef CELL_H
 #define CELL_H
 
-/*
-
-        HEADER FILE FOR CELL CLASS
-
-                -- Inherits from DPM class
-                -- For cells with variable force routines and variable simulation boundaries
-*/
-
-#include <math.h>
 #include <algorithm>
 #include <stdexcept>
 #include "dpm.h"
@@ -53,25 +44,19 @@ class cell : public dpm {
   cell(int n, double att1, double att2, int seed, int numCellTypes)
       : dpm(n, seed) {
     // set values here
-    vector<double> zerosNCELLS(NCELLS, 0.0);
-    vector<int> zerosNCELLS_int(NCELLS, 0);
-    vector<int> zerosNumCellTypes(numCellTypes, 0);
-    vector<bool> falseNCELLS(NCELLS, false);
-    vector<double> temp3(NDIM * 2, 0.0);
     l1 = att1;
     l2 = att2;
     simclock = 0.0;
-    VL = temp3;
+    VL = vector<double>(NDIM * 2, 0.0);
     XL = VL;
-    cellID = zerosNCELLS_int;  // cellID is a vector of size NCELLS that determines how to evaluate cell-cell forces using cellTypeIntMat
+    cellID = vector<int>(NCELLS, 0);  // cellID determines how to evaluate cell-cell forces using cellTypeIntMat
     // make sure to add and subtract from cellID when adding or removing cells
-    vector<vector<double>> onesCellIDxCellID(numCellTypes, vector<double>(vector<double>(numCellTypes, 1.0)));
-    cellTypeIntMat = onesCellIDxCellID;  // all interactions start with multiplicative modifier 1.0
-    cellTouchesWallsLeft = falseNCELLS;
-    cellTouchesWallsRight = falseNCELLS;
+    cellTypeIntMat = vector<vector<double>>(numCellTypes, vector<double>(numCellTypes, 1.0));  // all interactions start with multiplicative modifier 1.0
+    cellTouchesWallsLeft = vector<bool>(NCELLS, false);
+    cellTouchesWallsRight = vector<bool>(NCELLS, false);
     v0_ABP = 0.0;
     tau_ABP = 1.0;
-    psi = zerosNCELLS;
+    psi = vector<double>(NCELLS, 0.0);
     cout << "Initializing epi2D object, l1 = " << l1 << ", l2 = " << l2 << '\n';
   }
 
@@ -126,45 +111,10 @@ class cell : public dpm {
   void resizeCatchBonds();
 
   // File openers
-  void openEnergyObject(const std::string& str) {
-    enout.open(str.c_str());
-    if (!enout.is_open()) {
-      std::cout << "	ERROR: file could not open " << str << "..."
-                << std::endl;
-      exit(1);
-    } else
-      std::cout << "** Opening file " << str << " ..." << std::endl;
-  }
-
-  void openStressObject(const std::string& str) {
-    stressout.open(str.c_str());
-    if (!stressout.is_open()) {
-      std::cout << "	ERROR: file could not open " << str << "..."
-                << std::endl;
-      exit(1);
-    } else
-      std::cout << "** Opening file " << str << " ..." << std::endl;
-  }
-
-  void openTissueObject(const std::string& str) {
-    tissueout.open(str.c_str());
-    if (!tissueout.is_open()) {
-      std::cout << "	ERROR: file could not open " << str << "..."
-                << std::endl;
-      exit(1);
-    } else
-      std::cout << "** Opening file " << str << " ..." << std::endl;
-  }
-
-  void openCatchBondObject(const std::string& str) {
-    catchBondOut.open(str.c_str());
-    if (!catchBondOut.is_open()) {
-      std::cout << "	ERROR: file could not open " << str << "..."
-                << std::endl;
-      exit(1);
-    } else
-      std::cout << "** Opening file " << str << " ..." << std::endl;
-  }
+  void openEnergyObject(const std::string& filename) { openFile(enout, filename); }
+  void openStressObject(const std::string& filename) { openFile(stressout, filename); }
+  void openTissueObject(const std::string& filename) { openFile(tissueout, filename); }
+  void openCatchBondObject(const std::string& filename) { openFile(catchBondOut, filename); }
 
   // boundary routines
   void replacePolyWallWithDP(int numCellTypes);

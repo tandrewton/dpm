@@ -1,21 +1,6 @@
 #ifndef DPM_H
 #define DPM_H
 
-/*
-
-        HEADER FILE FOR DPM CLASS
-
-                -- Stores vertex information for NCELLS with n_\mu vertices each
-                -- Stores shape parameters + spring constants
-                -- Integrates equations of motion (NVE/NVT)
-                -- Finds specified configurations (jammed, fixed p, fixed shear strain, etc)
-                -- Compute mechanical information (Hessian, elastic moduli, etc)
-                -- Prints data to files
-
-        Jack Treado, 04/10/21
-
-*/
-
 #include <Eigen/Core>
 #include <Eigen/Dense>
 #include <Eigen/Eigenvalues>
@@ -138,6 +123,15 @@ class dpm {
   // output objects
   std::ofstream posout;
 
+  void openFile(std::ofstream& file, const std::string& filename) {
+    file.open(filename.c_str());
+    if (!file.is_open()) {
+      std::cerr << "ERROR: Could not open file " << filename << std::endl;
+      exit(1);
+    }
+    std::cout << "** Opening file " << filename << " ..." << std::endl;
+  }
+
  public:
   // Constructors and Destructors
   dpm(int n, int ndim, int seed);
@@ -242,14 +236,7 @@ class dpm {
   void moveSimulationToPositiveCoordinates(double xshift = 0, double yshift = 0);
 
   // File openers
-  void openPosObject(std::string& str) {
-    posout.open(str.c_str());
-    if (!posout.is_open()) {
-      std::cerr << "	ERROR: posout could not open " << str << "..." << std::endl;
-      exit(1);
-    } else
-      std::cout << "** Opening pos file " << str << " ..." << std::endl;
-  }
+  void openPosObject(std::string& filename) { openFile(posout, filename); }
 
   // Initialize particles (two dimensions)
   void monodisperse2D(double calA0, int n);

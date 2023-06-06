@@ -118,27 +118,14 @@ int main(int argc, char const* argv[]) {
   cell2D.setkl(kl);
   cell2D.setkb(kb);
   cell2D.setkc(kc);
-  cout << "ka, kl, kb, kc = " << ka << '\t' << kl << '\t' << kb << '\t' << kc << '\n';
-
   cell2D.setB(B);
   if (t_stress > 0.0)
     cell2D.setMaxwellRelaxationTime(t_stress);  // t_stress is infinity unless this is uncommented
-  //  specify non-periodic boundaries
-  cell2D.setpbc(0, false);
+  cell2D.setpbc(0, false);                      //  specify non-periodic boundaries
   cell2D.setpbc(1, false);
-
-  // set adhesion scale
-  cell2D.setl1(att);
+  cell2D.setl1(att);  // set adhesion scales
   cell2D.setl2(att_range);
-  if (att > att_range) {
-    cout << "att, att_range = " << att << '\t' << att_range << '\n';
-    cout << "attraction stronger than attraction range; discontinuous adhesive potential; error, exiting!\n";
-    return 1;
-  }
-  if (fabs(att - att_range) < 1e-5) {
-    cout << "or, adhesion lengthscales are the same, so we will divide by zero; error' exiting!\n";
-    return 1;
-  }
+  assert(att < att_range);  // required to have a differentiable, finite adhesive potential
 
   dpmMemFn repulsiveForceUpdate = &dpm::repulsiveForceUpdate;
   dpmMemFn attractiveForceUpdate = static_cast<void (dpm::*)()>(&cell::attractiveForceUpdate);
@@ -153,16 +140,11 @@ int main(int argc, char const* argv[]) {
   // cellTypeIntMat = ones to begin with
   for (int i = 0; i < numCellTypes; i++) {
     for (int j = 0; j < numCellTypes; j++) {
-      if (i == numCellTypes - 1 || j == numCellTypes - 1) {
-        // boundaries attract everyone, with cellID numCellTypes - 1
-        // cell2D.setCellTypeAttractionModifiers(i, j, 1.0);
-        // boundaries are only repulsive
-        cell2D.setCellTypeAttractionModifiers(i, j, 0.0);
-        cout << "in set cell type attraction modifiers, i, j = " << i << '\t' << j << '\n';
-      } else if (i != j) {  // other than boundaries, off diagonals are zero (only cells of same type interact)
-                            // else // no cells interact
-        cell2D.setCellTypeAttractionModifiers(i, j, 1.0);
-      }
+      // other than boundaries, off-diagonals are zero (only cells of same type interact)
+      double attractionModifier =
+          (i == numCellTypes - 1 || j == numCellTypes - 1) ? 0.0 : (i != j) ? 1.0
+                                                                            : 0.0;
+      cell2D.setCellTypeAttractionModifiers(i, j, attractionModifier);
     }
   }
   cell2D.printInteractionMatrix();
