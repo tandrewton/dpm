@@ -13,26 +13,26 @@
 // run command:
 
 /*
-./main/cell/psm2D.o   12   25 1.05 0.01  25.0   0.01  1.0    1   1      400    test1
-./main/cell/psm2D.o   12   25 1.05 0.05  25.0   0.01  1.0    1   1      400    test2
-./main/cell/psm2D.o   12   25 1.05 0.1   25.0   0.01  1.0    1   1      400    test3
-./main/cell/psm2D.o   12   25 1.05 0.2   25.0   0.01  1.0    1   1      400    test4
+./main/cell/psm2D.o   12   25 1.05 0.85 0.01  25.0   0.01  1.0    1   1      400    test1
+./main/cell/psm2D.o   12   25 1.05 0.85 0.05  25.0   0.01  1.0    1   1      400    test2
+./main/cell/psm2D.o   12   25 1.05 0.85 0.1   25.0   0.01  1.0    1   1      400    test3
+./main/cell/psm2D.o   12   25 1.05 0.85 0.2   25.0   0.01  1.0    1   1      400    test4
 
-./main/cell/psm2D.o   12   25 1.05 0.01  25.0   0.05  1.0    1   1      400    test5
-./main/cell/psm2D.o   12   25 1.05 0.05  25.0   0.05  1.0    1   1      400    test6
-./main/cell/psm2D.o   12   25 1.05 0.1   25.0   0.05  1.0    1   1      400    test7
-./main/cell/psm2D.o   12   25 1.05 0.2   25.0   0.05  1.0    1   1      400    test8
+./main/cell/psm2D.o   12   25 1.05 0.85 0.01  25.0   0.05  1.0    1   1      400    test5
+./main/cell/psm2D.o   12   25 1.05 0.85 0.05  25.0   0.05  1.0    1   1      400    test6
+./main/cell/psm2D.o   12   25 1.05 0.85 0.1   25.0   0.05  1.0    1   1      400    test7
+./main/cell/psm2D.o   12   25 1.05 0.85 0.2   25.0   0.05  1.0    1   1      400    test8
 
-./main/cell/psm2D.o   12   25 1.05 0.01  25.0   0.1   1.0    1   1      400    test9
-./main/cell/psm2D.o   12   25 1.05 0.05  25.0   0.1   1.0    1   1      400    test10
-./main/cell/psm2D.o   12   25 1.05 0.1   25.0   0.1   1.0    1   1      400    test11
-./main/cell/psm2D.o   12   16 1.05 0.2   0.0   0.1   1.0    1   1       100    test12
+./main/cell/psm2D.o   12   25 1.05 0.85 0.01  25.0   0.1   1.0    1   1      400    test9
+./main/cell/psm2D.o   12   25 1.05 0.85 0.05  25.0   0.1   1.0    1   1      400    test10
+./main/cell/psm2D.o   12   25 1.05 0.85 0.1   25.0   0.1   1.0    1   1      400    test11
+./main/cell/psm2D.o   12   16 1.05 0.85 0.2   0.0   0.1   1.0    1   1       100    test12
 
-./main/cell/psm2D.o   12   25 1.05 0.0  25.0   0.05   1.0    1   1      400    test1
-./main/cell/psm2D.o   12   25 1.05 0.01 25.0   0.05   1.0    1   1      400    test2
-./main/cell/psm2D.o   12   25 1.05 0.1  25.0   0.05   1.0    1   1      400    test3
+./main/cell/psm2D.o   12   25 1.05 0.85 0.0  25.0   0.05   1.0    1   1      400    test1
+./main/cell/psm2D.o   12   25 1.05 0.85 0.01 25.0   0.05   1.0    1   1      400    test2
+./main/cell/psm2D.o   12   25 1.05 0.85 0.1  25.0   0.05   1.0    1   1      400    test3
 */
-//                  NCELLS NV  A0  att t_maxwell v0  tau_abp sm seed duration outFileStem
+//                  NCELLS NV  A0  phi att t_maxwell v0  tau_abp sm seed duration outFileStem
 
 #include <sstream>
 #include "cell.h"
@@ -48,17 +48,16 @@ const double kc = 1.0;              // interaction force spring constant (should
 const double kb = 0.01;             // bending energy spring constant (should be zero)
 const double kl = 1.0;              // segment length interaction force (should be unit)
 const double boxLengthScale = 2.5;  // neighbor list box size in units of initial l0
-const double phi0 = 0.91;           // initial packing fraction
-const double phiMax = 0.85;
-const double dt0 = 0.01;  // initial magnitude of time step in units of MD time
-const double Ptol = 1e-8;
-const double Ftol = 1e-12;
+const double phi0 = 0.91;           // initial preferred packing fraction
+const double dt0 = 0.01;            // initial magnitude of time step in units of MD time
+const double Ptol = 1e-6;
+const double Ftol = 1e-8;
 const double att_range = 0.3;
 
 int main(int argc, char const* argv[]) {
   // local variables to be read in
   int NCELLS, nv, seed, sm;
-  double calA0, att, B = 1.0;
+  double calA0, phi, att, B = 1.0;
   double t_stress, runTime;
   double v0_abp, tau_abp;
 
@@ -66,14 +65,15 @@ int main(int argc, char const* argv[]) {
   string NCELLS_str = argv[1];
   string nv_str = argv[2];
   string calA0_str = argv[3];
-  string att_str = argv[4];
-  string t_stress_str = argv[5];
-  string v0_str = argv[6];
-  string tau_abp_str = argv[7];
-  string sm_str = argv[8];
-  string seed_str = argv[9];
-  string duration_str = argv[10];
-  string outFileStem = argv[11];
+  string phi_str = argv[4];
+  string att_str = argv[5];
+  string t_stress_str = argv[6];
+  string v0_str = argv[7];
+  string tau_abp_str = argv[8];
+  string sm_str = argv[9];
+  string seed_str = argv[10];
+  string duration_str = argv[11];
+  string outFileStem = argv[12];
 
   string positionFile = outFileStem + ".pos";
   string tissueFile = outFileStem + ".tissue";
@@ -83,6 +83,7 @@ int main(int argc, char const* argv[]) {
   stringstream NCELLSss(NCELLS_str);
   stringstream nvss(nv_str);
   stringstream calA0ss(calA0_str);
+  stringstream phiss(phi_str);
   stringstream attss(att_str);
   stringstream t_stressss(t_stress_str);
   stringstream v0ss(v0_str);
@@ -95,6 +96,7 @@ int main(int argc, char const* argv[]) {
   NCELLSss >> NCELLS;
   nvss >> nv;
   calA0ss >> calA0;
+  phiss >> phi;
   attss >> att;
   t_stressss >> t_stress;
   v0ss >> v0_abp;
@@ -175,13 +177,13 @@ int main(int argc, char const* argv[]) {
 
   // compress to target packing fraction
   cout << "first compression, takes initial circular tissue and compresses it within circular boundary\n";
-  cell2D.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithPolyWalls, Ftol, dt0, phiMax, dphi0);
+  cell2D.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithPolyWalls, Ftol, dt0, phi, 5 * dphi0);
   cell2D.printConfiguration2D();
 
   cell2D.replaceCircularBoundary(rectangleID, 2.0);
   cell2D.resizeNeighborLinkedList2D();
   cout << "second compression, takes initial circular tissue and compresses it within rectangular boundary\n";
-  cell2D.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithPolyWalls, Ftol, dt0, phiMax, 5 * dphi0);
+  cell2D.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithPolyWalls, Ftol, dt0, phi, 5 * dphi0);
   cell2D.printConfiguration2D();
 
   cell2D.replacePolyWallWithDP(numCellTypes);

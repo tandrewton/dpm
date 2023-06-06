@@ -31,7 +31,7 @@ FSKIP = 1;
 
 startSeed = 1;
 max_seed = 1;
-makeAMovie = 0; %if makeAMovie is 0, then plot every frame separately
+makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
 showCatchBonds = false;
@@ -43,13 +43,11 @@ walls = 0;
 att_range = 0.3;
  
 %PC directory
-pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
-%pc_dir="C:\Users\atata\projects\dpm\";
 %pipeline is the location of data generated during simulations
-subdir_pipeline = pc_dir + "pipeline/cells/"+runType+"/";
+subdir_pipeline = "pipeline/cells/"+runType+"/";
 
 %output is location of results of this postprocessing
-subdir_output = pc_dir + "output/cells/"+runType+"/";
+subdir_output = "output/cells/"+runType+"/";
 mkdir(subdir_pipeline);
 mkdir(subdir_output);
 
@@ -68,11 +66,11 @@ for seed = startSeed:max_seed
         mkdir(pipeline_dir)
         mkdir(output_dir)
         fileheader=run_name+testDataID+"_seed" + seed;
-        nvestr = pc_dir+'test'+testDataID+'.pos';
-        energystr = pc_dir+'test'+testDataID+'.energy';
-        stressstr = pc_dir+'test'+testDataID+'.stress';
-        tissuestr = pc_dir+'test'+testDataID+'.tissue';
-        catchBondStr = pc_dir+'test'+testDataID+'.catchBond';
+        nvestr = "test"+testDataID+'.pos';
+        energystr = "test"+testDataID+'.energy';
+        stressstr = "test"+testDataID+'.stress';
+        tissuestr = "test"+testDataID+'.tissue';
+        catchBondStr = "test"+testDataID+'.catchBond';
     else
         %psm/psm_calA01.05_t_maxwell25.0_v00.05_t_abp1.0_sm1
         % /_NCELLS10_dur100_att0.1_startsd1_endsd1_sd1.tissue
