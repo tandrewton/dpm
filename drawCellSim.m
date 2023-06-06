@@ -90,19 +90,6 @@ for seed = startSeed:max_seed
         tissuestr = pipeline_dir+fileheader+'.tissue';
     end
 
-%         A = load(tissuestr);
-%         %plot(A(:,1), A(:,2), 'displayname', 'boundary area')
-%         %plot(A(:,1), A(:,3), 'displayname', 'total cell area')
-%         plot(A(:,1), (A(:,2) - A(:,3))./A(:,2), 'displayname',...
-%             "$\phi$, $<A>$ = " + mean(A(:,2)), 'linewidth', 2)
-%         legend()
-%         xlabel('$\tau$','Interpreter','latex');
-%         ylabel('Extracellular Fraction','Interpreter','latex');
-%         legend('Location', 'northeast', 'Interpreter', 'latex');
-%         ylim([0 1])
-%         ax = gca;
-%         ax.FontSize = 20;
-
     % read in position data
     [trajectoryData, cell_count] = readCellClassPosOutput(nvestr);
 
