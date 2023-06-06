@@ -7,7 +7,7 @@ close all; clear
 %isTestData = false; %uncomment if using function call to pipeline data
 
 isTestData = true; %uncomment if using test data
-testDataii = 12;
+testDataii = 9;
 testDataID = num2str(testDataii);
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('C:\Users\atata\projects\dpm\bash')
