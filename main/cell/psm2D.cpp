@@ -25,7 +25,7 @@
 
 ./main/cell/psm2D.o   12   25 1.05 0.85 0.01  25.0   0.1   1.0    1   1      400    test9
 ./main/cell/psm2D.o   12   25 1.05 0.85 0.05  25.0   0.1   1.0    1   1      400    test10
-./main/cell/psm2D.o   12   25 1.05 0.85 0.1   25.0   0.1   1.0    1   1      400    test11
+./main/cell/psm2D.o   12   25 1.05 0.95 0.2   0.0   0.0   1.0    1   1      400    test11
 ./main/cell/psm2D.o   12   16 1.05 0.85 0.2   0.0   0.1   1.0    1   1       100    test12
 
 ./main/cell/psm2D.o   12   25 1.05 0.85 0.0  25.0   0.05   1.0    1   1      400    test1
@@ -105,8 +105,6 @@ int main(int argc, char const* argv[]) {
   durationss >> runTime;
   seedss >> seed;
 
-  cout << "runTime = " << runTime << '\n';
-
   int numCellTypes = 2;  // 0 = interior cell type (PSM) and 1 = exterior cell type (boundary)
   cell cell2D(NCELLS, 0.0, 0.0, seed, numCellTypes);
   cell2D.openPosObject(positionFile);
@@ -151,58 +149,34 @@ int main(int argc, char const* argv[]) {
 
   // initialize particles with the same number of vertices and the same preferred shape parameter calA0
   cell2D.monodisperse2D(calA0, nv);
-  //  initialize particle positions initially in a circle configuration
   int circleID = 0, rectangleID = 1;
-  cell2D.initializeTransverseTissue(phi0, Ftol, circleID);
+  cell2D.initializeTransverseTissue(phi0, Ftol, circleID);  // initialize within a ring boundary
   cell2D.initializeNeighborLinkedList2D(boxLengthScale);
   cell2D.printConfiguration2D();
 
-  // compress to target packing fraction
-  cout << "first compression, takes initial circular tissue and compresses it within circular boundary\n";
-  cell2D.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithPolyWalls, Ftol, dt0, phi, 5 * dphi0);
-  cell2D.printConfiguration2D();
-
+  // switch ring boundary for rectangular boundary, compress to desired density
   cell2D.replaceCircularBoundary(rectangleID, 2.0);
   cell2D.resizeNeighborLinkedList2D();
-  cout << "second compression, takes initial circular tissue and compresses it within rectangular boundary\n";
-  cell2D.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithPolyWalls, Ftol, dt0, phi, 5 * dphi0);
+  cout << "compression within rectangular boundary\n";
+  cell2D.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithPolyWalls, Ftol, dt0, phi, 2 * dphi0);
   cell2D.printConfiguration2D();
-
   cell2D.replacePolyWallWithDP(numCellTypes);
+  cell2D.resizeCatchBonds();
   cell2D.resizeNeighborLinkedList2D();
   cell2D.printConfiguration2D();
-
   cell2D.setl00();  // set l00 to be l0 before setting maxwell relaxation time
 
   double relaxTimeShort = 5.0;
-  std::vector<double> savedPositions;
-
-  // dpmMemFn customForceUpdate = repulsivePolarityForceUpdate;
-  // dpmMemFn customForceUpdate = attractivePolarityForceUpdate;
   dpmMemFn customForceUpdate;
   assert(sm);  // code only supports smooth forces now, not going to develop a separate bumpy branch
-  if (v0_abp <= 0.0)
-    customForceUpdate = attractiveSmoothForceUpdate;
-  else {
-    customForceUpdate = attractionSmoothWithActiveBrownianUpdate;
-    cell2D.setActiveBrownianParameters(v0_abp, tau_abp);
-  }
+  customForceUpdate = attractionSmoothWithActiveBrownianUpdate;
+  cell2D.setActiveBrownianParameters(v0_abp, tau_abp);
+
   // cell2D.dampedVertexNVE(attractiveSmoothForceUpdateWithPolyWalls, dt0, relaxTimeShort, relaxTimeShort / 2);
   cell2D.dampedVertexNVE(repulsiveForceUpdate, dt0, relaxTimeShort, relaxTimeShort / 2);
   cell2D.shrinkCellVertices(customForceUpdate, dt0, 20.0);
-
-  cout << "\n\nmain simulation begins \n\n";
-  cell2D.resizeCatchBonds();
-
-  if (v0_abp <= 0.0)  // thermal, no activity, no damping
-    cell2D.vertexNVE(customForceUpdate, 1e-2, dt0, runTime, runTime / 20.0);
-  else {  // active simulation, damping
-    // cell2D.dampedVertexNVE(customForceUpdate, dt0, runTime, runTime / 15.0);
-    cell2D.dampedVertexNVE(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, runTime / 15.0);
-  }
-
-  cout
-      << "\n** Finished psm.cpp (2D transverse section of pre-somitic mesoderm), ending. " << endl;
+  cell2D.dampedVertexNVE(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, runTime / 15.0);
+  cout << "\n** Finished psm.cpp (2D transverse section of pre-somitic mesoderm), ending. " << endl;
 
   return 0;
 }
