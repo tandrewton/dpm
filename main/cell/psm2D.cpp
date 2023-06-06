@@ -23,10 +23,10 @@
 ./main/cell/psm2D.o   12   25 1.05 0.85 0.1   25.0   0.05  1.0    1   1      400    test7
 ./main/cell/psm2D.o   12   25 1.05 0.85 0.2   25.0   0.05  1.0    1   1      400    test8
 
-./main/cell/psm2D.o   50   16 1.05 0.95 0.2   0.0   0.0   1.0    1   1      100    test9
-./main/cell/psm2D.o   50   16 1.05 0.95 0.2   0.0   1.0   1.0    1   1      100    test10
-./main/cell/psm2D.o   50   16 1.05 0.95 0.2   0.0   0.0   1.0    1   1      400    test11
-./main/cell/psm2D.o   50   16 1.05 0.85 0.2   0.0   0.1   1.0    1   1       100    test12
+./main/cell/psm2D.o   50   16 1.05 0.98 0.2   0.0   0.0   1.0    1   1      100    test9
+./main/cell/psm2D.o   50   16 1.05 0.98 0.2   0.0   0.05   1.0    1   1      100    test10
+./main/cell/psm2D.o   50   16 1.05 0.8 0.2   0.0   0.0   1.0    1   1      100    test11
+./main/cell/psm2D.o   50   16 1.05 0.8 0.2   0.0   0.05   1.0    1   1       100    test12
 
 ./main/cell/psm2D.o   12   25 1.05 0.85 0.0  25.0   0.05   1.0    1   1      400    test1
 ./main/cell/psm2D.o   12   25 1.05 0.85 0.01 25.0   0.05   1.0    1   1      400    test2

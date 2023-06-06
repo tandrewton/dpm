@@ -7,7 +7,7 @@ close all; clear
 %isTestData = false; %uncomment if using function call to pipeline data
 
 isTestData = true; %uncomment if using test data
-testDataii = 9;
+testDataii = 10;
 testDataID = num2str(testDataii);
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('C:\Users\atata\projects\dpm\bash')
@@ -338,7 +338,7 @@ for seed = startSeed:max_seed
 
         if (ff == FEND)
             axis off;
-            %exportgraphics(gcf, 'last_frame_PSM_sim_att'+att+'_sd'+seed+'.tif', 'Resolution', 1000);
+            exportgraphics(gcf, "output/cells/psm/"+'testdata'+testDataID+'fr'+ff+'.tif', 'Resolution', 100);
             %writematrix(vpos, "last_frame_PSM_images/" + ...
             %    "last_frame_PSM_sim_att"+att+"_sd"+seed+".txt");
             %exportgraphics(gcf, 'last_frame_PSM_sim_att'+att+'_sd'+seed+'_bd.tif', 'Resolution', 1000);
