@@ -49,14 +49,14 @@ class cell : public dpm {
     simclock = 0.0;
     VL = vector<double>(NDIM * 2, 0.0);
     XL = VL;
-    cellID = vector<int>(NCELLS, 0);  // cellID determines how to evaluate cell-cell forces using cellTypeIntMat
+    cellID = vector<int>(n, 0);  // cellID determines how to evaluate cell-cell forces using cellTypeIntMat
     // make sure to add and subtract from cellID when adding or removing cells
     cellTypeIntMat = vector<vector<double>>(numCellTypes, vector<double>(numCellTypes, 1.0));  // all interactions start with multiplicative modifier 1.0
-    cellTouchesWallsLeft = vector<bool>(NCELLS, false);
-    cellTouchesWallsRight = vector<bool>(NCELLS, false);
+    cellTouchesWallsLeft = vector<bool>(n, false);
+    cellTouchesWallsRight = vector<bool>(n, false);
     v0_ABP = 0.0;
     tau_ABP = 1.0;
-    psi = vector<double>(NCELLS, 0.0);
+    psi = vector<double>(n, 0.0);
     cout << "Initializing epi2D object, l1 = " << l1 << ", l2 = " << l2 << '\n';
   }
 
