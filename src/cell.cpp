@@ -2347,10 +2347,14 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
       // set positions
       x.at(NDIM * gi) = dtmp * cos((2.0 * PI * vi) / nv.at(ci)) + dpos.at(NDIM * ci) + 1e-2 * l0[gi] * drand48();
       x.at(NDIM * gi + 1) = dtmp * sin((2.0 * PI * vi) / nv.at(ci)) + dpos.at(NDIM * ci + 1) + 1e-2 * l0[gi] * drand48();
-      if (x.at(NDIM * gi) < left || x.at(NDIM * gi) > right)
-        cout << "vertex initialized outside of poly_bd_x\n";
-      if (x.at(NDIM * gi + 1) < bottom || x.at(NDIM * gi + 1) > top)
-        cout << "vertex initialized outside of poly_bd_y\n";
+      if (x.at(NDIM * gi) < left)
+        x.at(NDIM * gi) = left + r[0];
+      if (x.at(NDIM * gi) > right)
+        x.at(NDIM * gi) = right - r[0];
+      if (x.at(NDIM * gi + 1) < bottom)
+        x.at(NDIM * gi) = bottom + r[0];
+      if (x.at(NDIM * gi + 1) > top)
+        x.at(NDIM * gi) = top - r[0];
     }
   }
 }
