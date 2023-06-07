@@ -7,7 +7,7 @@ close all; clear
 %isTestData = false; %uncomment if using function call to pipeline data
 
 isTestData = true; %uncomment if using test data
-testDataii = 10;
+testDataii = 11;
 testDataID = num2str(testDataii);
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('C:\Users\atata\projects\dpm\bash')
@@ -31,10 +31,10 @@ FSKIP = 1;
 
 startSeed = 1;
 max_seed = 1;
-makeAMovie = 0; %if makeAMovie is 0, then plot every frame separately
+makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
-showCatchBonds = true;
+showCatchBonds = false;
 
 showverts = 0;
 showGlobalIndex = 0;
@@ -270,16 +270,16 @@ for seed = startSeed:max_seed
                         % if cellID is boundary, have it be black exterior
                         % with white interior
                         if (cellID(nn) == 1)
-                            % if cellID is a boundary, have it be black
+                            % if cellID is a boundary, have it be blue
                             % exterior with white interior
-                            patch('Faces',finfo,'vertices',vpos,'FaceColor','w','EdgeColor','k','linewidth',0.001);
+                            patch('Faces',finfo,'vertices',vpos,'FaceColor','w','EdgeColor','b','linewidth',0.001);
                         else
                             % if cellID is a real cell, have it be black
                             % exterior with black interior
-                            %patch('Faces',finfo,'vertices',vpos,'FaceColor','k','EdgeColor','k','linewidth',0.001);
-                            patch('Faces',finfo,'vertices',vpos,'FaceColor',clr, ...
-                                'FaceAlpha', 'flat','FaceVertexAlphaData', 0, 'EdgeColor','k',...
-                                'linewidth',0.001);
+                            patch('Faces',finfo,'vertices',vpos,'FaceColor','k','EdgeColor','k','linewidth',0.001);
+                            %patch('Faces',finfo,'vertices',vpos,'FaceColor',clr, ...
+                                %'FaceAlpha', 'flat','FaceVertexAlphaData', 0, 'EdgeColor','k',...
+                                %'linewidth',0.001);
                         end
                     end
                 end
