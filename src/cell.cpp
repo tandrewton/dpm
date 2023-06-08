@@ -154,7 +154,7 @@ void cell::maxwellRelaxationRestLengths(std::vector<double>& l, std::vector<int>
 
 void cell::shapeForces2D() {
   // uses cellID to determine whether to compute certain parts of the shape forces
-  // for example, the ECM cellID shouldn't have any bending energy.
+  // for example, the boundary cellID is more rigid to bending and might have larger ka and kl
 
   // local variables
   int ci, ci_real, gi, vi, nvtmp;
@@ -411,14 +411,6 @@ void cell::repulsiveForceUpdateWithWalls() {
   vertexRepulsiveForces2D();
   wallForces(false, false, false, false, a, b, c, d);
 }
-
-/*void cell::repulsiveForceUpdateWithoutTopWall() {
-  double a, b, c, d;
-  resetForcesAndEnergy();
-  shapeForces2D();
-  vertexRepulsiveForces2D();
-  wallForces(true, false, false, false, a, b, c, d);
-}*/
 
 void cell::repulsiveWithPolarityForceUpdate() {
   resetForcesAndEnergy();
