@@ -21,15 +21,15 @@
 ./main/cell/psm2D.o   12   25 1.05 0.85 0.01  25.0   0.05  1.0    1   1      400    test5
 ./main/cell/psm2D.o   12   25 1.05 0.85 0.05  25.0   0.05  1.0    1   1      400    test6
 ./main/cell/psm2D.o   12   25 1.05 0.85 0.1   25.0   0.05  1.0    1   1      400    test7
-./main/cell/psm2D.o   50   16 1.05 0.98 0.2   0.0   0.1   1.0    1   1      100    test8
+./main/cell/psm2D.o   30   16 1.05 0.98 0.2   0.0   0.1   10.0    1   1      100    test8
 
-./main/cell/psm2D.o   50   16 1.05 0.98 0.2   0.0   0.0   1.0    1   1      100    test9
-./main/cell/psm2D.o   50   16 1.05 0.98 0.2   0.0   0.05   1.0    1   1      100    test10
-./main/cell/psm2D.o   50   16 1.05 0.8 0.2   0.0   0.0   1.0    1   1      100    test11
-./main/cell/psm2D.o   50   16 1.05 0.8 0.2   0.0   0.05   1.0    1   1       100    test12
+./main/cell/psm2D.o   30   16 1.05 0.98 0.2   0.0   0.0   10.0    1   1      100    test9
+./main/cell/psm2D.o   30   16 1.05 0.98 0.2   0.0   0.05   10.0    1   1      100    test10
+./main/cell/psm2D.o   30   16 1.05 0.8 0.2   0.0   0.0   10.0    1   1      100    test11
+./main/cell/psm2D.o   30   16 1.05 0.8 0.2   0.0   0.05   10.0    1   1       100    test12
 
-./main/cell/psm2D.o   50   16 1.05 0.55 0.2   0.0   0.0   1.0    1   1      500    test13
-./main/cell/psm2D.o   50  16 1.05 0.55 0.2   0.0   0.1   1.0    1   1       500    test14
+./main/cell/psm2D.o   30   16 1.05 0.55 0.2   0.0   0.0   10.0    1   1      500    test13
+./main/cell/psm2D.o   30   16 1.05 0.55 0.2   0.0   0.1   10.0    1   1       500    test14
 */
 //                  NCELLS NV  A0  phi att t_maxwell v0  tau_abp sm seed duration outFileStem
 
@@ -153,10 +153,11 @@ int main(int argc, char const* argv[]) {
   cell2D.initializeNeighborLinkedList2D(boxLengthScale);
   cell2D.printConfiguration2D();
 
-  // switch ring boundary for rectangular boundary, compress to desired density
-  cell2D.replaceCircularBoundary(rectangleID, 2.0);
+  // switch ring boundary for rectangular boundary
+  // cell2D.replaceCircularBoundary(rectangleID, 2.0);
+
+  // compress to desired density
   cell2D.resizeNeighborLinkedList2D();
-  cout << "compression within rectangular boundary\n";
   cell2D.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithPolyWalls, Ftol, dt0, phi, 2 * dphi0);
   cell2D.printConfiguration2D();
   cell2D.replacePolyWallWithDP(numCellTypes);

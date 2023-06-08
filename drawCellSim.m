@@ -352,9 +352,9 @@ for seed = startSeed:max_seed
 
         if (ff == FEND)
             figure(fnum)
-            exportgraphics(gcf, "output/cells/psm/"+'testdata'+testDataID+'fr'+ff+'.tif', 'Resolution', 1000);
+            exportgraphics(gcf, "output/cells/psm/"+'testdata'+testDataID+'fr'+ff+'.tif', 'Resolution', 100);
             figure(fnum_boundary);
-            exportgraphics(gcf, "output/cells/psm/"+'testdata'+testDataID+'fr'+ff+'_bd.tif', 'Resolution', 1000);
+            exportgraphics(gcf, "output/cells/psm/"+'testdata'+testDataID+'fr'+ff+'_bd.tif', 'Resolution', 100);
             %writematrix(vpos, "last_frame_PSM_images/" + ...
             %    "last_frame_PSM_sim_att"+att+"_sd"+seed+".txt");
             %exportgraphics(gcf, 'last_frame_PSM_sim_att'+att+'_sd'+seed+'_bd.tif', 'Resolution', 1000);
