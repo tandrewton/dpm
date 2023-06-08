@@ -2808,7 +2808,7 @@ void cell::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, doub
 }
 
 void cell::shrinkCellVertices(dpmMemFn forceCall, double dt0, double shrinkRatio) {
-  // quasistatically shrink r while keeping l0 fixed. this will give more sliding room for laterally mobile adhesion
+  // quasistatically shrink r by a factor of shrinkRatio while keeping l0 fixed. this will give more sliding room for laterally mobile adhesion
   int it = 0, itmax = 1e4;
   // local variables
   int t, i, relaxTime = 1;

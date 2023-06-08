@@ -7,7 +7,7 @@ close all; clear
 %isTestData = false; %uncomment if using function call to pipeline data
 
 isTestData = true; %uncomment if using test data
-testDataii = 11;
+testDataii = 8;
 testDataID = num2str(testDataii);
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('C:\Users\atata\projects\dpm\bash')
@@ -57,6 +57,7 @@ txt='test';
 
 phi_array = [];
 fnum = 1;
+fnum_boundary = 1000;
 figure(13), clf, hold on, box on;
 for seed = startSeed:max_seed
     if (isTestData)
@@ -273,6 +274,11 @@ for seed = startSeed:max_seed
                             % if cellID is a boundary, have it be blue
                             % exterior with white interior
                             patch('Faces',finfo,'vertices',vpos,'FaceColor','w','EdgeColor','b','linewidth',0.001);
+                            % switch to bd figure, plot bd, then switch
+                            % back
+                            figure(fnum_boundary); clf; hold on;
+                            patch('Faces',finfo,'vertices',vpos,'FaceColor','k','EdgeColor','k','linewidth',0.001)
+                            figure(fnum);
                         else
                             % if cellID is a real cell, have it be black
                             % exterior with black interior
@@ -336,9 +342,19 @@ for seed = startSeed:max_seed
             writeVideo(vobj,currframe);
         end
 
+        % fix fnum_boundary to have same axes as fnum
+        figure(fnum_boundary)
+        ax_boundary = gca;
+        ax_boundary.XLim = ax.XLim;
+        ax_boundary.YLim = ax.YLim;
+        ax_boundary.DataAspectRatio = ax.DataAspectRatio;
+        ax_boundary.Visible = ax.Visible;
+
         if (ff == FEND)
-            axis off;
-            exportgraphics(gcf, "output/cells/psm/"+'testdata'+testDataID+'fr'+ff+'.tif', 'Resolution', 100);
+            figure(fnum)
+            exportgraphics(gcf, "output/cells/psm/"+'testdata'+testDataID+'fr'+ff+'.tif', 'Resolution', 1000);
+            figure(fnum_boundary);
+            exportgraphics(gcf, "output/cells/psm/"+'testdata'+testDataID+'fr'+ff+'_bd.tif', 'Resolution', 1000);
             %writematrix(vpos, "last_frame_PSM_images/" + ...
             %    "last_frame_PSM_sim_att"+att+"_sd"+seed+".txt");
             %exportgraphics(gcf, 'last_frame_PSM_sim_att'+att+'_sd'+seed+'_bd.tif', 'Resolution', 1000);

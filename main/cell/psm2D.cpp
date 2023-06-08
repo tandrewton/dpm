@@ -21,16 +21,15 @@
 ./main/cell/psm2D.o   12   25 1.05 0.85 0.01  25.0   0.05  1.0    1   1      400    test5
 ./main/cell/psm2D.o   12   25 1.05 0.85 0.05  25.0   0.05  1.0    1   1      400    test6
 ./main/cell/psm2D.o   12   25 1.05 0.85 0.1   25.0   0.05  1.0    1   1      400    test7
-./main/cell/psm2D.o   12   25 1.05 0.85 0.2   25.0   0.05  1.0    1   1      400    test8
+./main/cell/psm2D.o   50   16 1.05 0.98 0.2   0.0   0.1   1.0    1   1      100    test8
 
 ./main/cell/psm2D.o   50   16 1.05 0.98 0.2   0.0   0.0   1.0    1   1      100    test9
 ./main/cell/psm2D.o   50   16 1.05 0.98 0.2   0.0   0.05   1.0    1   1      100    test10
 ./main/cell/psm2D.o   50   16 1.05 0.8 0.2   0.0   0.0   1.0    1   1      100    test11
 ./main/cell/psm2D.o   50   16 1.05 0.8 0.2   0.0   0.05   1.0    1   1       100    test12
 
-./main/cell/psm2D.o   12   25 1.05 0.85 0.0  25.0   0.05   1.0    1   1      400    test1
-./main/cell/psm2D.o   12   25 1.05 0.85 0.01 25.0   0.05   1.0    1   1      400    test2
-./main/cell/psm2D.o   12   25 1.05 0.85 0.1  25.0   0.05   1.0    1   1      400    test3
+./main/cell/psm2D.o   50   16 1.05 0.55 0.2   0.0   0.0   1.0    1   1      500    test13
+./main/cell/psm2D.o   50  16 1.05 0.55 0.2   0.0   0.1   1.0    1   1       500    test14
 */
 //                  NCELLS NV  A0  phi att t_maxwell v0  tau_abp sm seed duration outFileStem
 
@@ -174,7 +173,11 @@ int main(int argc, char const* argv[]) {
 
   // cell2D.dampedVertexNVE(attractiveSmoothForceUpdateWithPolyWalls, dt0, relaxTimeShort, relaxTimeShort / 2);
   cell2D.dampedVertexNVE(repulsiveForceUpdate, dt0, relaxTimeShort, relaxTimeShort / 2);
-  cell2D.shrinkCellVertices(customForceUpdate, dt0, 20.0);
+  double shrinkFactor = 20.0;
+  cell2D.shrinkCellVertices(customForceUpdate, dt0, shrinkFactor);
+  cell2D.setl1(att * shrinkFactor);
+  cell2D.setl2(att_range * shrinkFactor);
+  assert(att < att_range);  // required to have a differentiable, finite adhesive potential
   cell2D.dampedVertexNVE(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, runTime / 15.0);
   cout << "\n** Finished psm.cpp (2D transverse section of pre-somitic mesoderm), ending. " << endl;
 
