@@ -21,7 +21,7 @@
 ./main/cell/psm2D.o   12   25 1.05 0.85 0.01  25.0   0.05  1.0    1   1      400    test5
 ./main/cell/psm2D.o   12   25 1.05 0.85 0.05  25.0   0.05  1.0    1   1      400    test6
 ./main/cell/psm2D.o   12   25 1.05 0.85 0.1   25.0   0.05  1.0    1   1      400    test7
-./main/cell/psm2D.o   30   16 1.15 0.98 0.2   0.0   0.1   10.0    1   1      0    test8
+./main/cell/psm2D.o   16   16 1.15 0.98 0.2   0.0   0.05   10.0    1   1      50    test8
 
 ./main/cell/psm2D.o   30   16 1.05 0.98 0.2   0.0   0.0   10.0    1   1      100    test9
 ./main/cell/psm2D.o   30   16 1.05 0.98 0.2   0.0   0.05   10.0    1   1      100    test10
@@ -161,13 +161,22 @@ int main(int argc, char const* argv[]) {
   cell2D.resizeNeighborLinkedList2D();
   cell2D.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithPolyWalls, Ftol, dt0, phi, 2 * dphi0);
   cell2D.printConfiguration2D();
+
+  double relaxTimeShort = 50.0;
+  cell2D.dampedVertexNVE(attractiveSmoothWithPolyWalls, dt0, relaxTimeShort, relaxTimeShort / 4.0);
+
+  // shrinking changes effective packing fraction, shape parameters, and effective attractive range. need to be careful if I keep it up.
+  // double shrinkFactor = 10.0;
+  // cell2D.shrinkCellVertices(attractiveSmoothWithPolyWalls, dt0, shrinkFactor);
+  // cell2D.dampedVertexNVE(attractiveSmoothWithPolyWalls, dt0, relaxTimeShort, relaxTimeShort / 4.0);
+
+  /*
   cell2D.replacePolyWallWithDP(numCellTypes);
   cell2D.resizeCatchBonds();
   cell2D.resizeNeighborLinkedList2D();
   cell2D.printConfiguration2D();
   cell2D.setl00();  // set l00 to be l0 before setting maxwell relaxation time
 
-  double relaxTimeShort = 50.0;
   dpmMemFn customForceUpdate;
   assert(sm);  // code only supports smooth forces now, not going to develop a separate bumpy branch
   customForceUpdate = attractionSmoothWithActiveBrownianUpdate;
@@ -175,14 +184,16 @@ int main(int argc, char const* argv[]) {
 
   // cell2D.dampedVertexNVE(attractiveSmoothForceUpdateWithPolyWalls, dt0, relaxTimeShort, relaxTimeShort / 2);
   // cell2D.dampedVertexNVE(repulsiveForceUpdate, dt0, relaxTimeShort, relaxTimeShort / 2);
-  double shrinkFactor = 20.0;
-  cell2D.shrinkCellVertices(customForceUpdate, dt0, shrinkFactor);
-  cell2D.setl1(att);
-  cell2D.setl2(att_range * shrinkFactor);
-  assert(att < att_range);  // required to have a differentiable, finite adhesive potential
-  cell2D.dampedVertexNVE(attractiveSmoothForceUpdate, dt0, relaxTimeShort, relaxTimeShort / 4.0);
+  double shrinkFactor = 10.0;
+  // cell2D.shrinkCellVertices(customForceUpdate, dt0, shrinkFactor);
+  // cell2D.setl1(att);
+  // cell2D.setl2(att_range * shrinkFactor);
+  // assert(att < att_range);  // required to have a differentiable, finite adhesive potential
+  // cell2D.dampedVertexNVE(attractiveSmoothForceUpdate, dt0, relaxTimeShort, relaxTimeShort / 4.0);
+  cell2D.vertexNVE(attractiveSmoothForceUpdate, 1e-2, dt0, relaxTimeShort, relaxTimeShort / 4.0);
   cell2D.dampedVertexNVE(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, runTime / 15.0);
   cout << "\n** Finished psm.cpp (2D transverse section of pre-somitic mesoderm), ending. " << endl;
+  */
 
   return 0;
 }

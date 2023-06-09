@@ -2820,6 +2820,7 @@ void cell::shrinkCellVertices(dpmMemFn forceCall, double dt0, double shrinkRatio
     for (int gi = 0; gi < NVTOT; gi++) {
       r[gi] *= 0.95;
     }
+    // grow areas to keep same calA?
 
     // run NVE for relaxTime to be quasistatic
     for (int time = 0; i < relaxTime / dt0; i++) {
