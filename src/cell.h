@@ -27,6 +27,7 @@ class cell : public dpm {
   // energy/force modifiers
   std::vector<int> cellID;                          // 0/1/2/... = NT/PSM1/NC/PSM2/cell0/cell1/cell2/cell3
   std::vector<std::vector<double>> cellTypeIntMat;  // size(cellID) x size(cellID) matrix where (i,j)th entry is the force modifier for interactions between cell types i and j
+  double originalVertexRadius;
 
   // activity data
   std::vector<bool> cellTouchesWallsLeft;
@@ -46,6 +47,7 @@ class cell : public dpm {
     // set values here
     l1 = att1;
     l2 = att2;
+    originalVertexRadius = 0.0;
     simclock = 0.0;
     VL = vector<double>(NDIM * 2, 0.0);
     XL = VL;
@@ -123,8 +125,8 @@ class cell : public dpm {
   // routines
   void initializeFourTransverseTissues(double phi0, double Ftol);
   void initializeTransverseTissue(double phi0, double Ftol, int polyShapeID = 0);
-  void vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0);
-  void vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0);
+  void vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0, bool isFIRE = true);
+  void vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0, bool isFIRE = true);
   void shrinkCellVertices(dpmMemFn forceCall, double dt0, double shrinkRatio);
   void simulateDampedWithWalls(dpmMemFn forceCall, double dt0, double duration, double printInterval, double pressureRate, double adhesionRate, bool wallsOn, bool leftOpen, bool bottomOpen, bool rightOpen, bool topOpen, double trueStrainRateX = 0.0, double trueStrainRateY = 0.0, double appliedUniaxialPressure = 0.0);
   void vertexNVE(dpmMemFn forceCall, double T, double dt0, double duration, double printInterval);

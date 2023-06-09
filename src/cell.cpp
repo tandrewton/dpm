@@ -684,7 +684,7 @@ void cell::circuloLineAttractiveForces() {
         }
 
         // contact distance
-        sij = r[gi] + r[gj];
+        sij = max(2 * originalVertexRadius, r[gi] + r[gj]);
 
         // attraction distances
         shellij = (1.0 + l2) * sij;
@@ -778,7 +778,7 @@ void cell::circuloLineAttractiveForces() {
           }
 
           // contact distance
-          sij = r[gi] + r[gj];
+          sij = max(2 * originalVertexRadius, r[gi] + r[gj]);
 
           // attraction distances
           shellij = (1.0 + l2) * sij;
@@ -1727,7 +1727,7 @@ void cell::wallForces(bool left, bool bottom, bool right, bool top, double& forc
     vi = i / 2;
     boxL = L[i % NDIM];
 
-    s = 2 * r[vi];
+    s = max(2 * originalVertexRadius, 2 * r[vi]);
     cut = (1.0 + l1) * s;
     shell = (1.0 + l2) * s;
     distLower = fabs(x[i] - XL[i % NDIM]);  // XL[0] is new position of left x boundary, XL[1] is new position of bottom y boundary
@@ -1792,9 +1792,9 @@ void cell::wallForces(bool left, bool bottom, bool right, bool top, double& forc
   forceLeft += appliedUniaxialPressure * L[1];
   forceRight += -appliedUniaxialPressure * L[1];
 
-  if (L[0] < r[0]) {
+  if (L[0] < max(originalVertexRadius, r[0])) {
     cout << "forceLeft = " << forceLeft << ", added force = " << appliedUniaxialPressure * L[1] << '\n';
-    cout << "L[0] = " << L[0] << " < r[0] = " << r[0] << ", there is no room left to compress or simclock < 410\n";
+    cout << "L[0] = " << L[0] << " < r[0] = " << r[0] << ", there is no room left to compress\n";
     cout << "XL[0] = " << XL[0] << '\n';
     // assert(false);
   }
@@ -2693,7 +2693,7 @@ void cell::initializeFourTransverseTissues(double phi0, double Ftol) {
   }
 }
 
-void cell::vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0) {
+void cell::vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0, bool isFIRE) {
   // same as for dpm, but with less printing at the end
   // local variables
   int it = 0, itmax = 1e4;
@@ -2709,7 +2709,10 @@ void cell::vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, 
     // update phi0
     phi0 = vertexPreferredPackingFraction2D();
     // relax configuration (pass member function force update)
-    vertexFIRE2D(forceCall, Ftol, dt0);
+    if (isFIRE)
+      vertexFIRE2D(forceCall, Ftol, dt0);
+    else
+      dampedVertexNVE(forceCall, dt0, 10.0, 0);
 
     // get scale factor
     scaleFactor = sqrt((phi0 + dphi0) / phi0);
@@ -2750,7 +2753,7 @@ void cell::vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, 
   }
 }
 
-void cell::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0) {
+void cell::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0, bool isFIRE) {
   // TEMPORARY JUST TO USE OVERLOADED PRINTCONFIGURATION2D
   // same as vertexCompress2Target2D, but with polygonal boundaries (affects packing fraction calculation, and expects forceCall to
   //  account for polygonal boundary forces
@@ -2770,7 +2773,10 @@ void cell::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, doub
     phi0 = vertexPreferredPackingFraction2D_polygon();
     // relax configuration (pass member function force update)
     // make sure that forceCall is a force routine that includes a call to evaluatePolygonalWallForces
-    vertexFIRE2D(forceCall, Ftol, dt0);
+    if (isFIRE)
+      vertexFIRE2D(forceCall, Ftol, dt0);
+    else
+      dampedVertexNVE(forceCall, dt0, 10.0, 0);
 
     // get scale factor
     scaleFactor = sqrt((phi0 + dphi0) / phi0);
@@ -2810,9 +2816,11 @@ void cell::shrinkCellVertices(dpmMemFn forceCall, double dt0, double shrinkRatio
   // set time step magnitude
   setdt(dt0);
 
-  double initialRadius = r[0];
+  // store originalVertexRadius, which is used to track shrinking progress, and to modify the
+  // range of the force calculation in e.g. circuloLineAttractiveForces
+  originalVertexRadius = r[0];
 
-  while (initialRadius / r[0] < shrinkRatio && it < itmax) {
+  while (originalVertexRadius / r[0] < shrinkRatio && it < itmax) {
     /*if (posout.is_open() && it % NPRINTSKIP == 0)
       printConfiguration2D();
     */
