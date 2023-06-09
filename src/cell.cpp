@@ -684,7 +684,7 @@ void cell::circuloLineAttractiveForces() {
         }
 
         // contact distance
-        sij = max(2 * originalVertexRadius, r[gi] + r[gj]);
+        sij = r[gi] + r[gj];
 
         // attraction distances
         shellij = (1.0 + l2) * sij;
@@ -778,7 +778,7 @@ void cell::circuloLineAttractiveForces() {
           }
 
           // contact distance
-          sij = max(2 * originalVertexRadius, r[gi] + r[gj]);
+          sij = r[gi] + r[gj];
 
           // attraction distances
           shellij = (1.0 + l2) * sij;
@@ -1727,7 +1727,7 @@ void cell::wallForces(bool left, bool bottom, bool right, bool top, double& forc
     vi = i / 2;
     boxL = L[i % NDIM];
 
-    s = max(2 * originalVertexRadius, 2 * r[vi]);
+    s = 2 * r[vi];
     cut = (1.0 + l1) * s;
     shell = (1.0 + l2) * s;
     distLower = fabs(x[i] - XL[i % NDIM]);  // XL[0] is new position of left x boundary, XL[1] is new position of bottom y boundary
@@ -1792,7 +1792,7 @@ void cell::wallForces(bool left, bool bottom, bool right, bool top, double& forc
   forceLeft += appliedUniaxialPressure * L[1];
   forceRight += -appliedUniaxialPressure * L[1];
 
-  if (L[0] < max(originalVertexRadius, r[0])) {
+  if (L[0] < r[0]) {
     cout << "forceLeft = " << forceLeft << ", added force = " << appliedUniaxialPressure * L[1] << '\n';
     cout << "L[0] = " << L[0] << " < r[0] = " << r[0] << ", there is no room left to compress\n";
     cout << "XL[0] = " << XL[0] << '\n';
@@ -2828,7 +2828,8 @@ void cell::shrinkCellVertices(dpmMemFn forceCall, double dt0, double shrinkRatio
     for (int gi = 0; gi < NVTOT; gi++) {
       r[gi] *= 0.95;
     }
-    // grow areas to keep same calA?
+    // scale kc since vertices control spring constant too
+    kc /= 0.95;
 
     // run NVE for relaxTime to be quasistatic
     for (int time = 0; i < relaxTime / dt0; i++) {
