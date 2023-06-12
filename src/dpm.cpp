@@ -1744,11 +1744,9 @@ double dpm::distanceLinePointComponents(double x1, double y1, double x2, double 
   double dot = (-dx10) * (dx21) +
                (-dy10) * (dy21);  // (pt0 - pt1) dot (pt2 - pt1)
   const double t = max(0.0, min(1.0, dot / l2));
-  const double projectionx = x1 + t * (dx21);
-  const double projectiony = y1 + t * (dy21);
-  xcomp = x0 - projectionx;
-  ycomp = y0 - projectiony;
-  const double distance = sqrt(pow(xcomp, 2) + pow(ycomp, 2));
+  xcomp = x0 - x1 + t * (dx21);
+  ycomp = y0 - y1 + t * (dy21);
+  const double distance = sqrt(xcomp * xcomp + ycomp * ycomp);
   return distance;
 }
 
@@ -1771,30 +1769,29 @@ double dpm::linePointDistancesAndProjection(double x1, double y1, double x2, dou
     dy10 -= L[1] * round(dy10 / L[1]);
   }
 
-  double l2_sq = pow(dx21, 2) + pow(dy21, 2);  // |(pt2 - pt1)|^2
-  if (l2_sq == 0.0) {                          // pt2 == pt1 case
+  double l2_sq = dx21 * dx21 + dy21 * dy21;  // |(pt2 - pt1)|^2
+  if (l2_sq == 0.0) {                        // pt2 == pt1 case
     xcomp = dx10;
     ycomp = dy10;
-    return sqrt(pow(dx10, 2) + pow(dy10, 2));
+    return sqrt(dx10 * dx10 + dy10 * dy10);
   }
 
   double dot = (-dx10) * (dx21) +
-               (-dy10) * (dy21);                     // (pt0 - pt1) dot (pt2 - pt1)
-  const double t = max(0.0, min(1.0, dot / l2_sq));  // t is restricted to [0,1], which parametrizes the line segment (v + t (w - v))
-  double projectionx = x1 + t * (dx21);
-  double projectiony = y1 + t * (dy21);
+               (-dy10) * (dy21);  // (pt0 - pt1) dot (pt2 - pt1)
+  projection = dot / l2_sq;
 
-  xcomp = x0 - projectionx;
+  const double t = max(0.0, min(1.0, projection));  // t is restricted to [0,1], which parametrizes the line segment (v + t (w - v))
+
+  xcomp = x0 - x1 - t * (dx21);  // x0 - projection in x
   if (pbc[0]) {
     xcomp -= L[0] * round(xcomp / L[0]);
   }
-  ycomp = y0 - projectiony;
+  ycomp = y0 - y1 - t * (dy21);  // y0 - projection in y
   if (pbc[1]) {
     ycomp -= L[1] * round(ycomp / L[1]);
   }
 
-  projection = dot / l2_sq;
-  const double distance = sqrt(pow(xcomp, 2) + pow(ycomp, 2));
+  const double distance = sqrt(xcomp * xcomp + ycomp * ycomp);
   return distance;
 }
 

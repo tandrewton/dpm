@@ -117,9 +117,6 @@ int main(int argc, char const* argv[]) {
     cell2D.setMaxwellRelaxationTime(t_stress);  // t_stress is infinity unless this is uncommented
   cell2D.setpbc(0, false);                      //  specify non-periodic boundaries
   cell2D.setpbc(1, false);
-  cell2D.setl1(att);  // set adhesion scales
-  cell2D.setl2(att_range);
-  assert(att < att_range);  // required to have a differentiable, finite adhesive potential
 
   dpmMemFn repulsiveForceUpdate = &dpm::repulsiveForceUpdate;
   dpmMemFn attractiveForceUpdate = static_cast<void (dpm::*)()>(&cell::attractiveForceUpdate);
@@ -159,6 +156,11 @@ int main(int argc, char const* argv[]) {
   cell2D.resizeNeighborLinkedList2D();
   cell2D.vertexCompress2Target2D_polygon(attractiveSmoothWithPolyWalls, Ftol, dt0, phi, 2 * dphi0, isFIRE);
   cell2D.printConfiguration2D();
+
+  // setting adhesion after compression to help with FIRE
+  cell2D.setl1(att);  // set adhesion scales
+  cell2D.setl2(att_range);
+  assert(att < att_range);  // required to have a differentiable, finite adhesive potential
   double shrinkFactor = 2.0;
   cell2D.shrinkCellVertices(attractiveSmoothWithPolyWalls, dt0, shrinkFactor);
   cell2D.printConfiguration2D();
