@@ -36,7 +36,7 @@ set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
 showCatchBonds = false;
 
-showverts = 0 ;
+showverts = 1;
 showGlobalIndex = 0;
 showcirculoline = 0;
 walls = 0;

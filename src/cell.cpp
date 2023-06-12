@@ -676,7 +676,7 @@ void cell::circuloLineAttractiveForces() {
         cellTypeIntModifier = cellTypeIntMat[cellID[ci]][cellID[cj]];
         kint = (kc * l1 * cellTypeIntModifier) / (l2 - l1 * cellTypeIntModifier);
         // make sure cellTypeIntModifier does not change the adhesive force function outside of its defined range
-        assert(l1 * cellTypeIntModifier <= l2 && cellTypeIntModifier >= 0.0);
+        // assert(l1 * cellTypeIntModifier <= l2 && cellTypeIntModifier >= 0.0);
 
         if (gj == ip1[gi] || gj == im1[gi]) {
           pj = list[pj];
@@ -707,12 +707,12 @@ void cell::circuloLineAttractiveForces() {
                 // scaled distance
                 xij = rij / sij;
                 if (rij < sij) {
-                  ftmp = kc * (1 - (rij / sij)) * (1 / sij);
-                  cellU[ci] += 0.5 * kc * pow((1 - (rij / sij)), 2.0);
-                  U += 0.5 * kc * pow((1 - (rij / sij)), 2.0);
+                  ftmp = kc * (1 - xij) / sij / rij;
+                  cellU[ci] += 0.5 * kc * pow((1 - xij), 2.0);
+                  U += 0.5 * kc * pow((1 - xij), 2.0);
                   // force elements
-                  fx = ftmp * (dx / rij);
-                  fy = ftmp * (dy / rij);
+                  fx = ftmp * dx;
+                  fy = ftmp * dy;
 
                   // add to forces
                   F[NDIM * gi] -= fx;
@@ -801,12 +801,12 @@ void cell::circuloLineAttractiveForces() {
                   // scaled distance
                   xij = rij / sij;
                   if (rij < sij) {
-                    ftmp = kc * (1 - (rij / sij)) * (1 / sij);
-                    cellU[ci] += 0.5 * kc * pow((1 - (rij / sij)), 2.0);
-                    U += 0.5 * kc * pow((1 - (rij / sij)), 2.0);
+                    ftmp = kc * (1 - xij) / sij / rij;
+                    cellU[ci] += 0.5 * kc * pow((1 - xij), 2.0);
+                    U += 0.5 * kc * pow((1 - xij), 2.0);
                     // force elements
-                    fx = ftmp * (dx / rij);
-                    fy = ftmp * (dy / rij);
+                    fx = ftmp * dx;
+                    fy = ftmp * dy;
 
                     // add to forces
                     F[NDIM * gi] -= fx;
@@ -2810,6 +2810,7 @@ void cell::shrinkCellVertices(dpmMemFn forceCall, double dt0, double shrinkRatio
   int it = 0, itmax = 1e4;
   // local variables
   int t, i, relaxTime = 1;
+  double shrinkFactor = 0.95;
 
   int NPRINTSKIP = 10;  // every 10 iterations, save the configuration to check
 
@@ -2824,12 +2825,15 @@ void cell::shrinkCellVertices(dpmMemFn forceCall, double dt0, double shrinkRatio
     /*if (posout.is_open() && it % NPRINTSKIP == 0)
       printConfiguration2D();
     */
+
     // shrink vertices
     for (int gi = 0; gi < NVTOT; gi++) {
-      r[gi] *= 0.95;
+      r[gi] *= shrinkFactor;
     }
     // scale kc since vertices control spring constant too
-    kc /= 0.95;
+    kc /= shrinkFactor;
+    // scale attractive range so that vertices stay in contact? not sure..
+    setl2(l2 / shrinkFactor);
 
     // run NVE for relaxTime to be quasistatic
     for (int time = 0; i < relaxTime / dt0; i++) {

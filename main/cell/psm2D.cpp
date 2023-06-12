@@ -147,7 +147,7 @@ int main(int argc, char const* argv[]) {
   cell2D.initializeTransverseTissue(phi0, Ftol, circleID);  // initialize within a ring boundary
   cell2D.initializeNeighborLinkedList2D(boxLengthScale);
   cell2D.printConfiguration2D();
-
+  /*
   // switch ring boundary for rectangular boundary
   // cell2D.replaceCircularBoundary(rectangleID, 2.0);
 
@@ -165,7 +165,6 @@ int main(int argc, char const* argv[]) {
   cell2D.shrinkCellVertices(attractiveSmoothWithPolyWalls, dt0, shrinkFactor);
   cell2D.printConfiguration2D();
 
-  /*
   cell2D.replacePolyWallWithDP(numCellTypes);
   cell2D.resizeCatchBonds();
   cell2D.resizeNeighborLinkedList2D();

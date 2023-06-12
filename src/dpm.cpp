@@ -1744,8 +1744,8 @@ double dpm::distanceLinePointComponents(double x1, double y1, double x2, double 
   double dot = (-dx10) * (dx21) +
                (-dy10) * (dy21);  // (pt0 - pt1) dot (pt2 - pt1)
   const double t = max(0.0, min(1.0, dot / l2));
-  xcomp = x0 - x1 + t * (dx21);
-  ycomp = y0 - y1 + t * (dy21);
+  xcomp = x0 - x1 - t * (dx21);
+  ycomp = y0 - y1 - t * (dy21);
   const double distance = sqrt(xcomp * xcomp + ycomp * ycomp);
   return distance;
 }
