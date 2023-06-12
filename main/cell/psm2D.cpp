@@ -158,21 +158,12 @@ int main(int argc, char const* argv[]) {
   // cell2D.replaceCircularBoundary(rectangleID, 2.0);
 
   // compress to desired density
-  bool isFIRE = false;  // use damped NVE to quench
-  cell2D.resizeNeighborLinkedList2D();
-  cell2D.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithPolyWalls, Ftol, dt0, phi, 2 * dphi0, isFIRE);
-  cell2D.printConfiguration2D();
-
-  double relaxTimeShort = 50.0;
-  cell2D.dampedVertexNVE(attractiveSmoothWithPolyWalls, dt0, relaxTimeShort, relaxTimeShort / 4.0);
-
-  // shrinking changes effective packing fraction, shape parameters, and effective attractive range. need to be careful if I keep it up.
+  bool isFIRE = true;  // use damped NVE to quench
   double shrinkFactor = 10.0;
   cell2D.shrinkCellVertices(attractiveSmoothWithPolyWalls, dt0, shrinkFactor);
-  // if shrinking vertices, must change spring constant
-  cell2D.printConfiguration2D();
+  cell2D.resizeNeighborLinkedList2D();
   cell2D.vertexCompress2Target2D_polygon(attractiveSmoothWithPolyWalls, Ftol, dt0, phi, 2 * dphi0, isFIRE);
-  cell2D.dampedVertexNVE(attractiveSmoothWithPolyWalls, dt0, relaxTimeShort, relaxTimeShort / 4.0);
+  cell2D.printConfiguration2D();
 
   /*
   cell2D.replacePolyWallWithDP(numCellTypes);

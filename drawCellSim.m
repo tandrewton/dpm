@@ -31,7 +31,7 @@ FSKIP = 1;
 
 startSeed = 1;
 max_seed = 1;
-makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately
+makeAMovie = 0; %if makeAMovie is 0, then plot every frame separately
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
 showCatchBonds = false;
