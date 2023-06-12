@@ -2833,7 +2833,7 @@ void cell::shrinkCellVertices(dpmMemFn forceCall, double dt0, double shrinkRatio
     // scale kc since vertices control spring constant too
     kc /= shrinkFactor;
     // scale attractive range so that vertices stay in contact? not sure..
-    setl2(l2 / shrinkFactor);
+    // setl2(l2 / shrinkFactor);
 
     // run NVE for relaxTime to be quasistatic
     for (int time = 0; i < relaxTime / dt0; i++) {

@@ -31,14 +31,14 @@ FSKIP = 1;
 
 startSeed = 1;
 max_seed = 1;
-makeAMovie = 0; %if makeAMovie is 0, then plot every frame separately
+makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
 showCatchBonds = false;
 
 showverts = 1;
 showGlobalIndex = 0;
-showcirculoline = 0;
+showcirculoline = 1;
 walls = 0;
 att_range = 0.3;
  
@@ -223,9 +223,6 @@ for seed = startSeed:max_seed
                     end
                 end
                 for vv = 1:nv(ff,nn)
-                    if nn == 1
-                        continue
-                    end
                     xplot = xtmp(vv) - vradtmp(vv);
                     yplot = ytmp(vv) - vradtmp(vv);
                     if showcirculoline == 1% calculate coordinates of a rectangle representing the line segment between successive vertices in a DP
@@ -253,10 +250,11 @@ for seed = startSeed:max_seed
                             xtmpnext+offsetx, xtmpnext-offsetx];
                         cornery = [ytmp(vv)-offsety, ytmp(vv)+offsety,...
                             ytmpnext+offsety, ytmpnext-offsety];
-                        patch(cornerx, cornery, cornerx./cornerx, 'black','EdgeColor','blue', 'LineWidth',2)
+                        patch(cornerx, cornery, cornerx./cornerx, 'black','LineStyle', 'none')
                     end
                 end
-            else
+            end
+            if (~showverts || (showverts && showcirculoline))
                 rx = xtmp - cx;
                 ry = ytmp - cy;
                 rads = sqrt(rx.^2 + ry.^2);
@@ -282,7 +280,7 @@ for seed = startSeed:max_seed
                         else
                             % if cellID is a real cell, have it be black
                             % exterior with black interior
-                            patch('Faces',finfo,'vertices',vpos,'FaceColor','k','EdgeColor','k','linewidth',0.001);
+                            patch('Faces',finfo,'vertices',vpos,'FaceColor','k');
                             %patch('Faces',finfo,'vertices',vpos,'FaceColor',clr, ...
                                 %'FaceAlpha', 'flat','FaceVertexAlphaData', 0, 'EdgeColor','k',...
                                 %'linewidth',0.001);
