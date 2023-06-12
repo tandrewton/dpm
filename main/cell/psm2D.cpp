@@ -69,10 +69,9 @@ int main(int argc, char const* argv[]) {
   string t_stress_str = argv[6];
   string v0_str = argv[7];
   string tau_abp_str = argv[8];
-  string sm_str = argv[9];
-  string seed_str = argv[10];
-  string duration_str = argv[11];
-  string outFileStem = argv[12];
+  string seed_str = argv[9];
+  string duration_str = argv[10];
+  string outFileStem = argv[11];
 
   string positionFile = outFileStem + ".pos";
   string tissueFile = outFileStem + ".tissue";
@@ -87,7 +86,6 @@ int main(int argc, char const* argv[]) {
   stringstream t_stressss(t_stress_str);
   stringstream v0ss(v0_str);
   stringstream tau_abpss(tau_abp_str);
-  stringstream smss(sm_str);
   stringstream durationss(duration_str);
   stringstream seedss(seed_str);
 
@@ -100,7 +98,6 @@ int main(int argc, char const* argv[]) {
   t_stressss >> t_stress;
   v0ss >> v0_abp;
   tau_abpss >> tau_abp;
-  smss >> sm;
   durationss >> runTime;
   seedss >> seed;
 
@@ -159,10 +156,11 @@ int main(int argc, char const* argv[]) {
 
   // compress to desired density
   bool isFIRE = true;  // use damped NVE to quench
-  double shrinkFactor = 10.0;
-  cell2D.shrinkCellVertices(attractiveSmoothWithPolyWalls, dt0, shrinkFactor);
   cell2D.resizeNeighborLinkedList2D();
   cell2D.vertexCompress2Target2D_polygon(attractiveSmoothWithPolyWalls, Ftol, dt0, phi, 2 * dphi0, isFIRE);
+  cell2D.printConfiguration2D();
+  double shrinkFactor = 2.0;
+  cell2D.shrinkCellVertices(attractiveSmoothWithPolyWalls, dt0, shrinkFactor);
   cell2D.printConfiguration2D();
 
   /*
