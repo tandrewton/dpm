@@ -13,6 +13,7 @@ addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('C:\Users\atata\projects\dpm\bash')
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
 addpath('C:\Users\atata\projects\dpm\matlab_funcs')
+set(0,'DefaultFigureWindowStyle','docked')
 %CHANGE THESE PARAMETERS                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   NEEDED
 
 %psm/psm_calA01.05_t_maxwell25.0_v00.05_t_abp1.0_sm1
@@ -28,19 +29,26 @@ sm = "1";
 att="0.1";
 Duration="400";
 FSKIP = 1;
-
+showPeriodicImages = 0;
 startSeed = 1;
 max_seed = 1;
-makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately
-set(0,'DefaultFigureWindowStyle','docked')
-showPeriodicImages = 0;
-showCatchBonds = false;
-
-showverts = 1;
 showGlobalIndex = 0;
-showcirculoline = 1;
 walls = 0;
 att_range = 0.3;
+
+forImageAnalysis = 1;
+if (forImageAnalysis)
+    showCatchBonds = 0;
+    showverts = 1;
+    showcirculoline = 1;
+    makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately
+else
+    showCatchBonds = 1;
+    showverts = 0;
+    showcirculoline = 0;
+    makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately
+end
+
  
 %PC directory
 %pipeline is the location of data generated during simulations
@@ -182,10 +190,8 @@ for seed = startSeed:max_seed
             % calculate line between catch bond anchor points
             catchBond = catchBondLocations{ff};
             for ii=1:2:length(catchBond(:,1))
-
                 plot([catchBond(ii,1) catchBond(ii+1,1)],...
                     [catchBond(ii,2) catchBond(ii+1,2)], 'r', 'Linewidth', 1)
-
             end
         end
 
@@ -214,7 +220,9 @@ for seed = startSeed:max_seed
                     yplot = ytmp(vv) - vradtmp(vv);
                     for xx = itLow:itHigh
                         for yy = itLow:itHigh
-                            rectangle('Position',[xplot+xx*Lx, yplot + yy*Ly, 2*vradtmp(vv), 2*vradtmp(vv)],'Curvature',[1 1],'EdgeColor','k','FaceColor',clr);
+                            if (cellID(nn) == 0)
+                                rectangle('Position',[xplot+xx*Lx, yplot + yy*Ly, 2*vradtmp(vv), 2*vradtmp(vv)],'Curvature',[1 1],'EdgeColor','k','FaceColor',clr);
+                            end
                             %text(xplot-0.25,yplot-0.25,num2str(vv-1))
                             if showGlobalIndex
                                 text(xtmp(vv), ytmp(vv), num2str(gitmp(vv)), 'FontSize', 6);
@@ -250,7 +258,9 @@ for seed = startSeed:max_seed
                             xtmpnext+offsetx, xtmpnext-offsetx];
                         cornery = [ytmp(vv)-offsety, ytmp(vv)+offsety,...
                             ytmpnext+offsety, ytmpnext-offsety];
-                        patch(cornerx, cornery, cornerx./cornerx, 'black','LineStyle', 'none')
+                        if (cellID(nn) == 0)
+                            patch(cornerx, cornery, cornerx./cornerx, 'black','LineStyle', 'none')
+                        end
                     end
                 end
             end
@@ -272,11 +282,12 @@ for seed = startSeed:max_seed
                             % if cellID is a boundary, have it be blue
                             % exterior with white interior
                             patch('Faces',finfo,'vertices',vpos,'FaceColor','w','EdgeColor','b','linewidth',0.001);
-                            % switch to bd figure, plot bd, then switch
-                            % back
-                            figure(fnum_boundary); clf; hold on;
-                            patch('Faces',finfo,'vertices',vpos,'FaceColor','k','EdgeColor','k','linewidth',0.001)
-                            figure(fnum);
+                            if (forImageAnalysis)
+                                % switch to bd figure, plot bd, switch back
+                                figure(fnum_boundary); clf; hold on;
+                                patch('Faces',finfo,'vertices',vpos,'FaceColor','k','EdgeColor','k','linewidth',0.001)
+                                figure(fnum);
+                            end
                         else
                             % if cellID is a real cell, have it be black
                             % exterior with black interior
@@ -340,22 +351,19 @@ for seed = startSeed:max_seed
             writeVideo(vobj,currframe);
         end
 
-        % fix fnum_boundary to have same axes as fnum
-        figure(fnum_boundary)
-        ax_boundary = gca;
-        ax_boundary.XLim = ax.XLim;
-        ax_boundary.YLim = ax.YLim;
-        ax_boundary.DataAspectRatio = ax.DataAspectRatio;
-        ax_boundary.Visible = ax.Visible;
+        if (forImageAnalysis)
+            % fix fnum_boundary to have same axes as fnum
+            figure(fnum_boundary)
+            ax_boundary = gca;
+            ax_boundary.XLim = ax.XLim;
+            ax_boundary.YLim = ax.YLim;
+            ax_boundary.DataAspectRatio = ax.DataAspectRatio;
+            ax_boundary.Visible = ax.Visible;
 
-        if (ff == FEND)
             figure(fnum)
             exportgraphics(gcf, "output/cells/psm/"+'testdata'+testDataID+'fr'+ff+'.tif', 'Resolution', 100);
             figure(fnum_boundary);
             exportgraphics(gcf, "output/cells/psm/"+'testdata'+testDataID+'fr'+ff+'_bd.tif', 'Resolution', 100);
-            %writematrix(vpos, "last_frame_PSM_images/" + ...
-            %    "last_frame_PSM_sim_att"+att+"_sd"+seed+".txt");
-            %exportgraphics(gcf, 'last_frame_PSM_sim_att'+att+'_sd'+seed+'_bd.tif', 'Resolution', 1000);
             phi_array = [phi_array sum(cellarea(1:end-1))/cellarea(end)];
         end
     end

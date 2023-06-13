@@ -505,17 +505,18 @@ void cell::attractiveSmoothActiveCatchBonds() {
 
 void cell::brownianCrawlingUpdate() {
   int gi;
-  // propel at constant speed v_0
+  // propel at speed distributed uniformly from 0 to v_0
   // v_0 should have a force scale comparable to the shape energy? or other energy scale. check that and make v0_ABP scale with one of the spring constants
   // printf("v0_ABP = %f, kc * rho0 / 2*r = %f \n", v0_ABP, kc * sqrt(a0[0]) / (2 * r[0]));
   for (int ci = 0; ci < NCELLS; ci++) {
-    if (cellID[ci] != 0)  // only cell types are allowed to crawl, boundaries are not allowed to crawl
+    if (cellID[ci] != 0)  // only cells are allowed to crawl, boundaries are not allowed to crawl
       continue;
     double director = psi[ci];
+    double randNum = (float)(rand()) / (float)(RAND_MAX);  // random number between 0 and 1
     for (int vi = 0; vi < nv[ci]; vi++) {
       gi = gindex(ci, vi);
-      F[gi * NDIM] += v0_ABP * cos(director);
-      F[gi * NDIM + 1] += v0_ABP * sin(director);
+      F[gi * NDIM] += randNum * v0_ABP * cos(director);
+      F[gi * NDIM + 1] += randNum * v0_ABP * sin(director);
     }
   }
 
@@ -1015,10 +1016,14 @@ void cell::calculateSmoothInteraction(double rx, double ry, double sij, double s
           cellU[cj] += energytmp / 2;
           U += energytmp;
 
-          // add to virial stress - not including this code now because I haven't worked out the stress of a 3-body interaction
-          numVertexContacts[gi][gj]++;
-          numVertexContacts[gi][g2]++;
-          numVertexContacts[gj][g2]++;
+          // haven't calculated the virial stress, otherwise that would go here.
+
+          if (cellID[gi] == 0 && cellID[gj] == 0) {
+            // if gi and gj are cells and not boundary, then count their contacts
+            numVertexContacts[gi][gj]++;
+            numVertexContacts[gi][g2]++;
+            numVertexContacts[gj][g2]++;
+          }
         }
 
         if (projection <= 0 && isCapInteraction) {
@@ -1087,7 +1092,7 @@ void cell::calculateSmoothInteraction(double rx, double ry, double sij, double s
         else if (ci < cj)
           cij[NCELLS * ci + cj - (ci + 1) * (ci + 2) / 2]++;
 
-        if (sign > 0) {
+        if (sign > 0 && cellID[gi] == 0 && cellID[middle] == 0) {
           numVertexContacts[gi][middle]++;
         }
       }
