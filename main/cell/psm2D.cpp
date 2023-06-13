@@ -25,17 +25,17 @@
 
 ./main/cell/psm2D.o   30   16 1.05 0.9 0.2   0.0   0.1   50.0    1     1000    test9
 ./main/cell/psm2D.o   30   16 1.05 0.9 0.2   0.0   0.05   50.0   1     1000    test10
-./main/cell/psm2D.o   30   16 1.05 0.9 0.2   0.0   0.01   50.0     1     100    test11
-./main/cell/psm2D.o   30   16 1.05 0.9 0.2   0.0   0.0   50.0    1     100    test12
+./main/cell/psm2D.o   30   16 1.05 0.9 0.2   0.0   0.01   50.0   1     1000    test11
+./main/cell/psm2D.o   30   16 1.05 0.9 0.2   0.0   0.0   50.0    1     1000    test12
 
 ./main/cell/psm2D.o   30   16 1.05 0.9 0.1   0.0   0.1   50.0    1     1000    test13
 ./main/cell/psm2D.o   30   16 1.05 0.9 0.1   0.0   0.05   50.0   1     1000    test14
-./main/cell/psm2D.o   30   16 1.05 0.9 0.1   0.0   0.01   50.0     1     1000    test15
+./main/cell/psm2D.o   30   16 1.05 0.9 0.1   0.0   0.01   50.0   1     1000    test15
 ./main/cell/psm2D.o   30   16 1.05 0.9 0.1   0.0   0.0   50.0    1     1000    test16
 
 ./main/cell/psm2D.o   30   16 1.05 0.9 0.05   0.0   0.1   50.0    1     1000    test17
 ./main/cell/psm2D.o   30   16 1.05 0.9 0.05   0.0   0.05   50.0   1     1000    test18
-./main/cell/psm2D.o   30   16 1.05 0.9 0.05   0.0   0.01   50.0     1     1000    test19
+./main/cell/psm2D.o   30   16 1.05 0.9 0.05   0.0   0.01   50.0   1     1000    test19
 ./main/cell/psm2D.o   30   16 1.05 0.9 0.05   0.0   0.0   50.0    1     1000    test20
 
 */
