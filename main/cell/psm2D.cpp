@@ -21,15 +21,23 @@
 ./main/cell/psm2D.o   12   25 1.05 0.85 0.01  25.0   0.05  1.0    1     400    test5
 ./main/cell/psm2D.o   12   25 1.05 0.85 0.05  25.0   0.05  1.0    1     400    test6
 ./main/cell/psm2D.o   12   25 1.05 0.85 0.1   25.0   0.05  1.0    1     400    test7
-./main/cell/psm2D.o   16   16 1.15 0.98 0.2   0.0   0.1   50.0   1     200    test8
+./main/cell/psm2D.o   16   16 1.15 0.98 0.2   0.0   0.05   25.0   1     1000    test8
 
-./main/cell/psm2D.o   16   16 1.05 0.98 0.2   0.0   0.1   50.0    1     1000    test9
-./main/cell/psm2D.o   30   16 1.05 0.98 0.2   0.0   0.05   10.0   1     100    test10
-./main/cell/psm2D.o   30   16 1.05 0.8 0.2   0.0   0.0   10.0     1     100    test11
-./main/cell/psm2D.o   30   16 1.05 0.8 0.2   0.0   0.05   10.0    1     100    test12
+./main/cell/psm2D.o   30   16 1.05 0.9 0.2   0.0   0.1   50.0    1     1000    test9
+./main/cell/psm2D.o   30   16 1.05 0.9 0.2   0.0   0.05   50.0   1     1000    test10
+./main/cell/psm2D.o   30   16 1.05 0.9 0.2   0.0   0.01   50.0     1     100    test11
+./main/cell/psm2D.o   30   16 1.05 0.9 0.2   0.0   0.0   50.0    1     100    test12
 
-./main/cell/psm2D.o   30   16 1.05 0.55 0.2   0.0   0.0   10.0    1     500    test13
-./main/cell/psm2D.o   30   16 1.05 0.55 0.2   0.0   0.1   10.0    1     500    test14
+./main/cell/psm2D.o   30   16 1.05 0.9 0.1   0.0   0.1   50.0    1     1000    test13
+./main/cell/psm2D.o   30   16 1.05 0.9 0.1   0.0   0.05   50.0   1     1000    test14
+./main/cell/psm2D.o   30   16 1.05 0.9 0.1   0.0   0.01   50.0     1     1000    test15
+./main/cell/psm2D.o   30   16 1.05 0.9 0.1   0.0   0.0   50.0    1     1000    test16
+
+./main/cell/psm2D.o   30   16 1.05 0.9 0.05   0.0   0.1   50.0    1     1000    test17
+./main/cell/psm2D.o   30   16 1.05 0.9 0.05   0.0   0.05   50.0   1     1000    test18
+./main/cell/psm2D.o   30   16 1.05 0.9 0.05   0.0   0.01   50.0     1     1000    test19
+./main/cell/psm2D.o   30   16 1.05 0.9 0.05   0.0   0.0   50.0    1     1000    test20
+
 */
 //                  NCELLS NV  A0  phi att t_maxwell v0  tau_abp seed duration outFileStem
 

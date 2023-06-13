@@ -7,7 +7,7 @@ close all; clear
 %isTestData = false; %uncomment if using function call to pipeline data
 
 isTestData = true; %uncomment if using test data
-testDataii = 8;
+testDataii = 9;
 testDataID = num2str(testDataii);
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('C:\Users\atata\projects\dpm\bash')
@@ -36,7 +36,7 @@ showGlobalIndex = 0;
 walls = 0;
 att_range = 0.3;
 
-forImageAnalysis = 1;
+forImageAnalysis = 0;
 if (forImageAnalysis)
     showCatchBonds = 0;
     showverts = 1;
