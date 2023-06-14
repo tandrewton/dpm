@@ -7,7 +7,7 @@ close all; clear
 %isTestData = false; %uncomment if using function call to pipeline data
 
 isTestData = true; %uncomment if using test data
-testDataii = 9;
+testDataii = 20;
 testDataID = num2str(testDataii);
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('C:\Users\atata\projects\dpm\bash')
@@ -36,7 +36,7 @@ showGlobalIndex = 0;
 walls = 0;
 att_range = 0.3;
 
-forImageAnalysis = 0;
+forImageAnalysis = 1;
 if (forImageAnalysis)
     showCatchBonds = 0;
     showverts = 1;
@@ -221,7 +221,7 @@ for seed = startSeed:max_seed
                     for xx = itLow:itHigh
                         for yy = itLow:itHigh
                             if (cellID(nn) == 0)
-                                rectangle('Position',[xplot+xx*Lx, yplot + yy*Ly, 2*vradtmp(vv), 2*vradtmp(vv)],'Curvature',[1 1],'EdgeColor','k','FaceColor',clr);
+                                rectangle('Position',[xplot+xx*Lx, yplot + yy*Ly, 2*vradtmp(vv), 2*vradtmp(vv)],'Curvature',[1 1],'EdgeColor','k','FaceColor',clr, 'linestyle', 'none');
                             end
                             %text(xplot-0.25,yplot-0.25,num2str(vv-1))
                             if showGlobalIndex
