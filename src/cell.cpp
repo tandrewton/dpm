@@ -674,10 +674,11 @@ void cell::circuloLineAttractiveForces() {
         cindices(cj, vj, gj);
 
         // check if cellType changes the attraction definition. If it does, modify the force function by changing only l1 and kint which depends on l1.
-        cellTypeIntModifier = cellTypeIntMat[cellID[ci]][cellID[cj]];
+        cellTypeIntModifier = cellTypeIntMat[cellID[ci]][cellID[cj]];  // only effects adhesion, repulsion is assigned 1 earlier
         kint = (kc * l1 * cellTypeIntModifier) / (l2 - l1 * cellTypeIntModifier);
         // make sure cellTypeIntModifier does not change the adhesive force function outside of its defined range
         // assert(l1 * cellTypeIntModifier <= l2 && cellTypeIntModifier >= 0.0);
+        // cout << "cellTypeIntModifier = " << cellTypeIntModifier << ", kint = " << kint << ", ci, cj = " << ci << '\t' << cj << ", cellID[ci], cellID[cj] = " << cellID[ci] << '\t' << cellID[cj] << '\n';
 
         if (gj == ip1[gi] || gj == im1[gi]) {
           pj = list[pj];
@@ -739,7 +740,7 @@ void cell::circuloLineAttractiveForces() {
               // 0 < projection < 1 means that p0 projection onto p1-p2 falls between p1 and p2, so it's a vertex-line-segment contact
               // projection > 1 means p0 projection falls ahead of p2, so ignore
               // unless d < shellij, in which case we need to check if i-(j-1) is close enough to need an inverse v-v interaction to patch discontinuities
-              calculateSmoothInteraction(rx, ry, sij, shellij, cutij, kint, kc, gi, gj, projection, ci, cj);
+              calculateSmoothInteraction(rx, ry, sij, shellij, cutij, kint, cellTypeIntModifier_repulsion * kc, gi, gj, projection, ci, cj);
             }
           }
 
@@ -836,7 +837,7 @@ void cell::circuloLineAttractiveForces() {
                 // 0 < projection < 1 means that p0 projection onto p1-p2 falls between p1 and p2, so it's a vertex-line-segment contact
                 // projection > 1 means p0 projection falls ahead of p2, so ignore
                 // unless d < shellij, in which case we need to check if i-(j-1) is close enough to need an inverse v-v interaction to patch discontinuities
-                calculateSmoothInteraction(rx, ry, sij, shellij, cutij, kint, kc, gi, gj, projection, ci, cj);
+                calculateSmoothInteraction(rx, ry, sij, shellij, cutij, kint, cellTypeIntModifier_repulsion * kc, gi, gj, projection, ci, cj);
               }
             }
             int gi_temp = gi;
@@ -1114,7 +1115,6 @@ void cell::vertexAttractiveForces2D_test(double& energy) {
 
   // attraction shell parameters
   double shellij, cutij, xij, kint = (kc * l1) / (l2 - l1);
-  // cout << "kc / kint = " << kc / kint << '\t' << kc << '\t' << kint << '\n';
 
   // sort particles
   sortNeighborLinkedList2D();
@@ -1411,12 +1411,6 @@ void cell::vertexAttractiveForces2D_2() {
 
   // attraction shell parameters
   double shellij, cutij, xij, kint = (kc * l1) / (l2 - l1);
-  // cout << "kc / kint = " << kc / kint << '\t' << kc << '\t' << kint << '\n';
-
-  /*cout << "before sorting : " << '\n';
-  for (int i = 0; i < NVTOT; i++) {
-    cout << "i " << i << " at pos : " << x[NDIM * i] << '\t' << x[NDIM * i + 1] << '\n';
-  }*/
 
   // sort particles
   sortNeighborLinkedList2D();

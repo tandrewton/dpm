@@ -6,7 +6,7 @@ close all; clear
 %function drawCellSim(N, att, initialPressure, prate, adhrate, Duration)
 %isTestData = false; %uncomment if using function call to pipeline data
 
-testData = [9 10 11 12 13 14 15 16 17 18 19 20];
+testData = [5]; %6 7 8];% 10 11 12 13 14 15 16 17 18 19 20];
 for testDataii=testData
     close all;
     isTestData = true; %uncomment if using test data
@@ -39,7 +39,7 @@ for testDataii=testData
     walls = 0;
     att_range = 0.3;
     
-    forImageAnalysis = 1;
+    forImageAnalysis = 0;
     if (forImageAnalysis)
         showCatchBonds = 0;
         showverts = 1;
@@ -176,7 +176,6 @@ for testDataii=testData
             vrad = trajectoryData.vrad(ff,:);
             psi = trajectoryData.psi(ff,:);
             cellarea = trajectoryData.area(ff,:);
-            
     
             %if L is not constant, use the next 3 lines
             L = trajectoryData.L(ff,:);

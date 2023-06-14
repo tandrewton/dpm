@@ -18,10 +18,10 @@
 ./main/cell/psm2D.o   12   25 1.05 0.85 0.1   25.0   0.01  1.0    1     400    test3
 ./main/cell/psm2D.o   12   25 1.05 0.85 0.2   25.0   0.01  1.0    1     400    test4
 
-./main/cell/psm2D.o   12   25 1.05 0.85 0.01  25.0   0.05  1.0    1     400    test5
-./main/cell/psm2D.o   12   25 1.05 0.85 0.05  25.0   0.05  1.0    1     400    test6
-./main/cell/psm2D.o   12   25 1.05 0.85 0.1   25.0   0.05  1.0    1     400    test7
-./main/cell/psm2D.o   16   16 1.15 0.98 0.2   0.0   0.05   25.0   1     1000    test8
+./main/cell/psm2D.o   12   16 1.05 0.75 0.0   0.0   0.05   50.0   1     50    test5
+./main/cell/psm2D.o   12   16 1.05 0.75 0.01   0.0   0.05   50.0   1     50    test6
+./main/cell/psm2D.o   12   16 1.05 0.75 0.1   0.0   0.05   50.0   1     50    test7
+./main/cell/psm2D.o   12   16 1.05 0.75 0.2   0.0   0.05   50.0   1     50    test8
 
 ./main/cell/psm2D.o   30   16 1.05 0.9 0.2   0.0   0.1   50.0    1     1000    test9
 ./main/cell/psm2D.o   30   16 1.05 0.9 0.2   0.0   0.05   50.0   1     1000    test10
@@ -141,13 +141,16 @@ int main(int argc, char const* argv[]) {
   dpmMemFn attractiveForceUpdateWithPolyWalls = static_cast<void (dpm::*)()>(&cell::attractiveForceUpdateWithPolyWall);
 
   // cellTypeIntMat = ones to begin with
-  for (int i = 0; i < numCellTypes; i++) {
-    for (int j = 0; j < numCellTypes; j++) {
+  for (int cellIDi = 0; cellIDi < numCellTypes; cellIDi++) {
+    for (int cellIDj = 0; cellIDj < numCellTypes; cellIDj++) {
       // other than boundaries, off-diagonals are zero (only cells of same type interact)
+      // if either cellID is a boundary, set it to 0 (no attraction with boundaries)
+      // otherwise, one of the cellIDs must not be a boundary. If the cells are the same, they should attract (set to 1).
+      double boundaryID = numCellTypes - 1;
       double attractionModifier =
-          (i == numCellTypes - 1 || j == numCellTypes - 1) ? 0.0 : (i != j) ? 1.0
-                                                                            : 0.0;
-      cell2D.setCellTypeAttractionModifiers(i, j, attractionModifier);
+          (cellIDi == boundaryID || cellIDj == boundaryID) ? 0.0 : (cellIDi == cellIDj) ? 1.0
+                                                                                        : 0.0;
+      cell2D.setCellTypeAttractionModifiers(cellIDi, cellIDj, attractionModifier);
     }
   }
   cell2D.printInteractionMatrix();
@@ -157,7 +160,6 @@ int main(int argc, char const* argv[]) {
   int circleID = 0, rectangleID = 1;
   cell2D.initializeTransverseTissue(phi0, Ftol, circleID);  // initialize within a ring boundary
   cell2D.initializeNeighborLinkedList2D(boxLengthScale);
-  cell2D.printConfiguration2D();
 
   // switch ring boundary for rectangular boundary
   // cell2D.replaceCircularBoundary(rectangleID, 2.0);
@@ -166,12 +168,10 @@ int main(int argc, char const* argv[]) {
   bool isFIRE = true;  // use damped NVE to quench
   cell2D.resizeNeighborLinkedList2D();
   cell2D.vertexCompress2Target2D_polygon(attractiveSmoothWithPolyWalls, Ftol, dt0, phi, 2 * dphi0, isFIRE);
-  cell2D.printConfiguration2D();
 
   cell2D.replacePolyWallWithDP(numCellTypes);
   cell2D.resizeCatchBonds();
   cell2D.resizeNeighborLinkedList2D();
-  cell2D.printConfiguration2D();
 
   double relaxTime = 50.0;
   cell2D.dampedVertexNVE(attractiveSmoothForceUpdate, dt0, relaxTime, relaxTime / 4.0);
