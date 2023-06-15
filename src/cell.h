@@ -40,6 +40,7 @@ class cell : public dpm {
   // catch bonds for substrate adhesion parameters
   std::vector<bool> isGiCatchBonded;
   std::vector<std::vector<double>> catchBondPosition;
+  double k_off;
 
  public:
   cell(int n, double att1, double att2, int seed, int numCellTypes)
@@ -58,6 +59,7 @@ class cell : public dpm {
     cellTouchesWallsRight = vector<bool>(n, false);
     v0_ABP = 0.0;
     tau_ABP = 1.0;
+    k_off = 1.0;
     psi = vector<double>(n, 0.0);
     cout << "Initializing epi2D object, l1 = " << l1 << ", l2 = " << l2 << '\n';
   }
@@ -107,6 +109,7 @@ class cell : public dpm {
     v0_ABP = v0;
     tau_ABP = tau;
   }
+  void setkoff(double val) { k_off = val; }
   void brownianCrawlingUpdate();
   void directorDiffusion();
   void catchBondsUpdate();

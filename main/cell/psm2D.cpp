@@ -13,34 +13,34 @@
 // run command:
 
 /*
-./main/cell/psm2D.o   12   25 1.05 0.85 0.01  25.0   0.01  1.0    1     400    test1
-./main/cell/psm2D.o   12   25 1.05 0.85 0.05  25.0   0.01  1.0    1     400    test2
-./main/cell/psm2D.o   12   25 1.05 0.85 0.1   25.0   0.01  1.0    1     400    test3
-./main/cell/psm2D.o   12   25 1.05 0.85 0.2   25.0   0.01  1.0    1     400    test4
+./main/cell/psm2D.o   12   25 1.05 0.85 0.01  25.0   0.01  1.0   1.0   1     400    test1
+./main/cell/psm2D.o   12   25 1.05 0.85 0.05  25.0   0.01  1.0   1.0   1    400    test2
+./main/cell/psm2D.o   12   25 1.05 0.85 0.1   25.0   0.01  1.0   1.0   1    400    test3
+./main/cell/psm2D.o   12   25 1.05 0.85 0.2   25.0   0.01  1.0   1.0   1    400    test4
 
-./main/cell/psm2D.o   12   16 1.05 0.75 0.0   0.0   0.05   50.0   1     50    test5
-./main/cell/psm2D.o   12   16 1.05 0.75 0.01   0.0   0.05   50.0   1     50    test6
-./main/cell/psm2D.o   12   16 1.05 0.75 0.1   0.0   0.05   50.0   1     50    test7
-./main/cell/psm2D.o   8   16 1.05 0.75 0.2   0.0   0.05   50.0   1     50    test8
+./main/cell/psm2D.o   12   16 1.05 0.75 0.0   0.0   0.05   50.0  1.0   1    50    test5
+./main/cell/psm2D.o   12   16 1.05 0.75 0.01  0.0   0.05   50.0  1.0   1    50    test6
+./main/cell/psm2D.o   12   16 1.05 0.75 0.1   0.0   0.05   50.0  1.0   1    50    test7
+./main/cell/psm2D.o   8   16 1.05 0.75 0.2    0.0   0.05   50.0  1.0   1    50    test8
 
-./main/cell/psm2D.o   40   16 1.05 0.9 0.1   0.0   0.1   50.0    1     1000    test9
-./main/cell/psm2D.o   40   16 1.05 0.9 0.1   0.0   0.05   50.0   1     1000    test10
-./main/cell/psm2D.o   40   16 1.05 0.9 0.1   0.0   0.01   50.0   1     1000    test11
+./main/cell/psm2D.o   40   16 1.05 0.9 0.1    0.0   0.1   50.0   1.0   1    1000    test9
+./main/cell/psm2D.o   40   16 1.05 0.9 0.1    0.0   0.05   50.0  1.0   1    1000    test10
+./main/cell/psm2D.o   40   16 1.05 0.9 0.1    0.0   0.01   50.0  1.0   1    1000    test11
 
-./main/cell/psm2D.o   40   16 1.05 0.9 0.05   0.0   0.1   50.0    1     1000    test12
-./main/cell/psm2D.o   40   16 1.05 0.9 0.05   0.0   0.05   50.0   1     1000    test13
-./main/cell/psm2D.o   40   16 1.05 0.9 0.05   0.0   0.01   50.0   1     1000    test14
+./main/cell/psm2D.o   40   16 1.05 0.9 0.05   0.0   0.1   50.0   1.0   1    1000    test12
+./main/cell/psm2D.o   40   16 1.05 0.9 0.05   0.0   0.05   50.0  1.0   1    1000    test13
+./main/cell/psm2D.o   40   16 1.05 0.9 0.05   0.0   0.01   50.0  1.0   1    1000    test14
 
-./main/cell/psm2D.o   40   16 1.05 0.9 0.01   0.0   0.1   50.0    1     1000    test15
-./main/cell/psm2D.o   40   16 1.05 0.9 0.01   0.0   0.05   50.0   1     1000    test16
-./main/cell/psm2D.o   40   16 1.05 0.9 0.01   0.0   0.01   50.0   1     1000    test17
+./main/cell/psm2D.o   40   16 1.05 0.9 0.01   0.0   0.1   50.0   1.0   1    1000    test15
+./main/cell/psm2D.o   40   16 1.05 0.9 0.01   0.0   0.05   50.0  1.0   1    1000    test16
+./main/cell/psm2D.o   40   16 1.05 0.9 0.01   0.0   0.01   50.0  1.0   1    1000    test17
 
-./main/cell/psm2D.o   40   16 1.05 0.9 0   0.0   0.1   50.0    1     1000    test18
-./main/cell/psm2D.o   40   16 1.05 0.9 0   0.0   0.05   50.0   1     1000    test19
-./main/cell/psm2D.o   40   16 1.05 0.9 0   0.0   0.01   50.0   1     1000    test20
+./main/cell/psm2D.o   40   16 1.05 0.9   0    0.0   0.1   50.0    1.0   1    1000    test18
+./main/cell/psm2D.o   40   16 1.05 0.9   0    0.0   0.05   50.0   1.0   1    1000    test19
+./main/cell/psm2D.o   40   16 1.05 0.9   0    0.0   0.01   50.0   1.0   1    1000    test20
 
 */
-//                  NCELLS NV  A0  phi att t_maxwell v0  tau_abp seed duration outFileStem
+//                  NCELLS NV  A0  phi att t_maxwell v0  tau_abp k_off seed duration outFileStem
 
 #include <sstream>
 #include "cell.h"
@@ -67,7 +67,7 @@ int main(int argc, char const* argv[]) {
   int NCELLS, nv, seed, sm;
   double calA0, phi, att, B = 1.0;
   double t_stress, runTime;
-  double v0_abp, tau_abp;
+  double v0_abp, tau_abp, k_off;
 
   // read in parameters from command line input
   string NCELLS_str = argv[1];
@@ -78,9 +78,10 @@ int main(int argc, char const* argv[]) {
   string t_stress_str = argv[6];
   string v0_str = argv[7];
   string tau_abp_str = argv[8];
-  string seed_str = argv[9];
-  string duration_str = argv[10];
-  string outFileStem = argv[11];
+  string k_off_str = argv[9];
+  string seed_str = argv[10];
+  string duration_str = argv[11];
+  string outFileStem = argv[12];
 
   string positionFile = outFileStem + ".pos";
   string tissueFile = outFileStem + ".tissue";
@@ -95,6 +96,7 @@ int main(int argc, char const* argv[]) {
   stringstream t_stressss(t_stress_str);
   stringstream v0ss(v0_str);
   stringstream tau_abpss(tau_abp_str);
+  stringstream k_offss(k_off_str);
   stringstream durationss(duration_str);
   stringstream seedss(seed_str);
 
@@ -107,6 +109,7 @@ int main(int argc, char const* argv[]) {
   t_stressss >> t_stress;
   v0ss >> v0_abp;
   tau_abpss >> tau_abp;
+  k_offss >> k_off;
   durationss >> runTime;
   seedss >> seed;
 
@@ -121,6 +124,7 @@ int main(int argc, char const* argv[]) {
   cell2D.setkl(kl);
   cell2D.setkb(kb);
   cell2D.setkc(kc);
+  cell2D.setkoff(k_off);
   cell2D.setB(B);
   if (t_stress > 0.0)
     cell2D.setMaxwellRelaxationTime(t_stress);  // t_stress is infinity unless this is uncommented
