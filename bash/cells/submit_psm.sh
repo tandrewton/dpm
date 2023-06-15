@@ -25,16 +25,17 @@ mkdir -p out
 NCELLS=$1
 NV=$2
 calA0=$3
-att=$4
-t_maxwell=$5
-v0=$6
-t_abp=$7
-k_off=$8
-duration=$9
-partition="${10}"
-time="${11}"
-numSeeds="${12}"
-startSeed="${13}"
+phi=$4
+att=$5
+t_maxwell=$6
+v0=$7
+t_abp=$8
+k_off=$9
+duration="${10}"
+partition="${11}"
+time="${12}"
+numSeeds="${13}"
+startSeed="${14}"
 
 let endSeed=$startSeed+$numSeeds-1
 
