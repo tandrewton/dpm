@@ -48,6 +48,14 @@
 #define NDIM 2
 using namespace std;
 
+// helper functions to parse arguments
+template <typename T>
+T parseArg(const std::string& arg) {
+  T value;
+  std::stringstream(arg) >> value;
+  return value;
+}
+
 // global constants
 const bool plotCompression = 0;     // whether or not to plot configuration during compression protocol (0 saves memory)
 const double dphi0 = 0.01;          // packing fraction increment
@@ -64,54 +72,24 @@ const double att_range = 0.3;
 
 int main(int argc, char const* argv[]) {
   // local variables to be read in
-  int NCELLS, nv, seed, sm;
-  double calA0, phi, att, B = 1.0;
-  double t_stress, runTime;
-  double v0_abp, tau_abp, k_off;
-
-  // read in parameters from command line input
-  string NCELLS_str = argv[1];
-  string nv_str = argv[2];
-  string calA0_str = argv[3];
-  string phi_str = argv[4];
-  string att_str = argv[5];
-  string t_stress_str = argv[6];
-  string v0_str = argv[7];
-  string tau_abp_str = argv[8];
-  string k_off_str = argv[9];
-  string seed_str = argv[10];
-  string duration_str = argv[11];
-  string outFileStem = argv[12];
+  double B = 1.0;
+  // Read command-line arguments into corresponding variables
+  int NCELLS = parseArg<int>(argv[1]);
+  int nv = parseArg<int>(argv[2]);
+  double calA0 = parseArg<double>(argv[3]);
+  double phi = parseArg<double>(argv[4]);
+  double att = parseArg<double>(argv[5]);
+  double t_stress = parseArg<double>(argv[6]);
+  double v0_abp = parseArg<double>(argv[7]);
+  double tau_abp = parseArg<double>(argv[8]);
+  double k_off = parseArg<double>(argv[9]);
+  int seed = parseArg<int>(argv[10]);
+  double runTime = parseArg<double>(argv[11]);
+  std::string outFileStem = argv[12];
 
   string positionFile = outFileStem + ".pos";
   string tissueFile = outFileStem + ".tissue";
   string catchBondFile = outFileStem + ".catchBond";
-
-  // using sstreams to get parameters
-  stringstream NCELLSss(NCELLS_str);
-  stringstream nvss(nv_str);
-  stringstream calA0ss(calA0_str);
-  stringstream phiss(phi_str);
-  stringstream attss(att_str);
-  stringstream t_stressss(t_stress_str);
-  stringstream v0ss(v0_str);
-  stringstream tau_abpss(tau_abp_str);
-  stringstream k_offss(k_off_str);
-  stringstream durationss(duration_str);
-  stringstream seedss(seed_str);
-
-  // read into data
-  NCELLSss >> NCELLS;
-  nvss >> nv;
-  calA0ss >> calA0;
-  phiss >> phi;
-  attss >> att;
-  t_stressss >> t_stress;
-  v0ss >> v0_abp;
-  tau_abpss >> tau_abp;
-  k_offss >> k_off;
-  durationss >> runTime;
-  seedss >> seed;
 
   int numCellTypes = 2;  // 0 = interior cell type (PSM) and 1 = exterior cell type (boundary)
   cell cell2D(NCELLS, 0.0, 0.0, seed, numCellTypes);
