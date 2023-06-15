@@ -21,7 +21,7 @@
 ./main/cell/psm2D.o   12   16 1.05 0.75 0.0   0.0   0.05   50.0   1     50    test5
 ./main/cell/psm2D.o   12   16 1.05 0.75 0.01   0.0   0.05   50.0   1     50    test6
 ./main/cell/psm2D.o   12   16 1.05 0.75 0.1   0.0   0.05   50.0   1     50    test7
-./main/cell/psm2D.o   12   16 1.05 0.75 0.2   0.0   0.05   50.0   1     50    test8
+./main/cell/psm2D.o   8   16 1.05 0.75 0.2   0.0   0.05   50.0   1     50    test8
 
 ./main/cell/psm2D.o   30   16 1.05 0.9 0.2   0.0   0.1   50.0    1     1000    test9
 ./main/cell/psm2D.o   30   16 1.05 0.9 0.2   0.0   0.05   50.0   1     1000    test10
@@ -173,13 +173,13 @@ int main(int argc, char const* argv[]) {
   cell2D.resizeCatchBonds();
   cell2D.resizeNeighborLinkedList2D();
 
-  double relaxTime = 50.0;
-  cell2D.dampedVertexNVE(attractiveSmoothForceUpdate, dt0, relaxTime, relaxTime / 4.0);
+  double relaxTime = 10.0;
+  cell2D.dampedVertexNVE(attractiveSmoothForceUpdate, dt0, relaxTime, 0);
   cell2D.printConfiguration2D();
   cell2D.setl00();  // set l00 to be l0 before setting maxwell relaxation time
   cell2D.setActiveBrownianParameters(v0_abp, tau_abp);
 
-  cell2D.dampedVertexNVE(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, runTime / 40.0);
+  cell2D.dampedVertexNVE(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, runTime / 10.0);
   cout << "\n** Finished psm.cpp (2D transverse section of pre-somitic mesoderm), ending. " << endl;
 
   return 0;

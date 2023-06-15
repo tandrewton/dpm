@@ -6,7 +6,7 @@ close all; clear
 %function drawCellSim(N, att, initialPressure, prate, adhrate, Duration)
 %isTestData = false; %uncomment if using function call to pipeline data
 
-testData = [5]; %6 7 8];% 10 11 12 13 14 15 16 17 18 19 20];
+testData = [8]; %6 7 8];% 10 11 12 13 14 15 16 17 18 19 20];
 for testDataii=testData
     close all;
     isTestData = true; %uncomment if using test data

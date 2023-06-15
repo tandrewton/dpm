@@ -562,8 +562,9 @@ void cell::catchBondsUpdate() {
       dy = catchBondPosition[gi][1] - x[NDIM * gi + 1];
 
       // modify k_off depending on pulling force (mechanosensitivity) and disable catch bonds if cadherin is present
-      distance = sqrt(pow(dx, 2) + pow(dy, 2));
-      temp_koff = k_off * exp(-sqrt(distance) / f_off);
+      // distance = sqrt(pow(dx, 2) + pow(dy, 2));
+      // temp_koff = k_off * exp(-sqrt(distance) / f_off);
+      temp_koff = 0;
 
       // count up number of contacts between gi and other vertices
       int colSumGi = 0, rowSumGi = 0;
@@ -572,8 +573,9 @@ void cell::catchBondsUpdate() {
         rowSumGi += numVertexContacts[i][gi];
       }
 
-      if (colSumGi + rowSumGi >= 1)
+      if (colSumGi + rowSumGi >= 1) {
         temp_koff = 1e10;
+      }
 
       // attempt dissociate
       if (randNum < temp_koff * dt)
@@ -1019,7 +1021,7 @@ void cell::calculateSmoothInteraction(double rx, double ry, double sij, double s
 
           // haven't calculated the virial stress, otherwise that would go here.
 
-          if (cellID[gi] == 0 && cellID[gj] == 0) {
+          if (cellID[ci] == 0 && cellID[cj] == 0) {
             // if gi and gj are cells and not boundary, then count their contacts
             numVertexContacts[gi][gj]++;
             numVertexContacts[gi][g2]++;
@@ -1093,7 +1095,7 @@ void cell::calculateSmoothInteraction(double rx, double ry, double sij, double s
         else if (ci < cj)
           cij[NCELLS * ci + cj - (ci + 1) * (ci + 2) / 2]++;
 
-        if (sign > 0 && cellID[gi] == 0 && cellID[middle] == 0) {
+        if (sign > 0 && cellID[ci] == 0 && cellID[cj] == 0) {
           numVertexContacts[gi][middle]++;
         }
       }
