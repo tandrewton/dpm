@@ -34,9 +34,11 @@ k_off=$9
 duration="${10}"
 partition="${11}"
 time="${12}"
-numSeeds="${13}"
+numRuns="${13}"
 startSeed="${14}"
 
+numSeedsPerRun=1
+let numSeeds=$numSeedsPerRun*$numRuns
 let endSeed=$startSeed+$numSeeds-1
 
 # name strings
