@@ -59,7 +59,7 @@ configFile=$simdatadir/"$file_basename"_config.txt
 binf=bin/"$runstr".o
 mainf=$maindir/psm2D.cpp
 
-echo Running psm simulations with parameters: > configFile
+echo Running psm simulations with parameters: > $configFile
 echo NCELLS = "$NCELLS" >> $configFile
 echo NV = "$NV" >> $configFile
 echo calA0 = "$calA0" >> $configFile
