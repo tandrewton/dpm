@@ -42,9 +42,9 @@ let numSeeds=$numSeedsPerRun*$numRuns
 let endSeed=$startSeed+$numSeeds-1
 
 # name strings
-basestr=psm_calA0"$calA0"_t_maxwell"$t_maxwell"_v0"$v0"_t_abp"$t_abp"k_off"$k_off"
+basestr=psm_calA0"$calA0"_tm"$t_maxwell"_v0"$v0"_t_abp"$t_abp"k_off"$k_off"
 # name of file (not unique, but is unique within its subdirectory)
-file_basename=_NCELLS"$NCELLS"_dur"$duration"_att"$att"_startsd"$startSeed"_endsd"$endSeed"
+file_basename=_N"$NCELLS"_dur"$duration"_att"$att"_start"$startSeed"_end"$endSeed"
 # name of run (must be unique, distinguishes from other runs on slurm)
 runstr="$basestr""$file_basename"
 
