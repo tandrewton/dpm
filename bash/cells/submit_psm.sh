@@ -7,7 +7,7 @@ srcdir=$cellsdir/src
 maindir=$cellsdir/main/cell
 
 # directory for all output for cell simulations
-outputdir=/gpfs/gibbs/project/fas/ohern/at965/dpm
+outputdir=/gpfs/gibbs/pi/ohern/at965/dpm
 
 # directory for simulations specific to psm
 simtypedir=$outputdir/psm
