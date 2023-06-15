@@ -23,20 +23,21 @@
 ./main/cell/psm2D.o   12   16 1.05 0.75 0.1   0.0   0.05   50.0   1     50    test7
 ./main/cell/psm2D.o   8   16 1.05 0.75 0.2   0.0   0.05   50.0   1     50    test8
 
-./main/cell/psm2D.o   30   16 1.05 0.9 0.2   0.0   0.1   50.0    1     1000    test9
-./main/cell/psm2D.o   30   16 1.05 0.9 0.2   0.0   0.05   50.0   1     1000    test10
-./main/cell/psm2D.o   30   16 1.05 0.9 0.2   0.0   0.01   50.0   1     1000    test11
-./main/cell/psm2D.o   30   16 1.05 0.9 0.2   0.0   0.0   50.0    1     1000    test12
+./main/cell/psm2D.o   40   16 1.05 0.9 0.1   0.0   0.1   50.0    1     1000    test9
+./main/cell/psm2D.o   40   16 1.05 0.9 0.1   0.0   0.05   50.0   1     1000    test10
+./main/cell/psm2D.o   40   16 1.05 0.9 0.1   0.0   0.01   50.0   1     1000    test11
 
-./main/cell/psm2D.o   30   16 1.05 0.9 0.1   0.0   0.1   50.0    1     1000    test13
-./main/cell/psm2D.o   30   16 1.05 0.9 0.1   0.0   0.05   50.0   1     1000    test14
-./main/cell/psm2D.o   30   16 1.05 0.9 0.1   0.0   0.01   50.0   1     1000    test15
-./main/cell/psm2D.o   30   16 1.05 0.9 0.1   0.0   0.0   50.0    1     1000    test16
+./main/cell/psm2D.o   40   16 1.05 0.9 0.05   0.0   0.1   50.0    1     1000    test12
+./main/cell/psm2D.o   40   16 1.05 0.9 0.05   0.0   0.05   50.0   1     1000    test13
+./main/cell/psm2D.o   40   16 1.05 0.9 0.05   0.0   0.01   50.0   1     1000    test14
 
-./main/cell/psm2D.o   30   16 1.05 0.9 0.05   0.0   0.1   50.0    1     1000    test17
-./main/cell/psm2D.o   30   16 1.05 0.9 0.05   0.0   0.05   50.0   1     1000    test18
-./main/cell/psm2D.o   30   16 1.05 0.9 0.05   0.0   0.01   50.0   1     1000    test19
-./main/cell/psm2D.o   30   16 1.05 0.9 0.05   0.0   0.0   50.0    1     1000    test20
+./main/cell/psm2D.o   40   16 1.05 0.9 0.01   0.0   0.1   50.0    1     1000    test15
+./main/cell/psm2D.o   40   16 1.05 0.9 0.01   0.0   0.05   50.0   1     1000    test16
+./main/cell/psm2D.o   40   16 1.05 0.9 0.01   0.0   0.01   50.0   1     1000    test17
+
+./main/cell/psm2D.o   40   16 1.05 0.9 0   0.0   0.1   50.0    1     1000    test18
+./main/cell/psm2D.o   40   16 1.05 0.9 0   0.0   0.05   50.0   1     1000    test19
+./main/cell/psm2D.o   40   16 1.05 0.9 0   0.0   0.01   50.0   1     1000    test20
 
 */
 //                  NCELLS NV  A0  phi att t_maxwell v0  tau_abp seed duration outFileStem
@@ -179,7 +180,7 @@ int main(int argc, char const* argv[]) {
   cell2D.setl00();  // set l00 to be l0 before setting maxwell relaxation time
   cell2D.setActiveBrownianParameters(v0_abp, tau_abp);
 
-  cell2D.dampedVertexNVE(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, runTime / 10.0);
+  cell2D.dampedVertexNVE(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, runTime / 40.0);
   cout << "\n** Finished psm.cpp (2D transverse section of pre-somitic mesoderm), ending. " << endl;
 
   return 0;

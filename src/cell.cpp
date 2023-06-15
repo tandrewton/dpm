@@ -541,10 +541,11 @@ void cell::directorDiffusion() {
 }
 
 void cell::catchBondsUpdate() {
+  // planning to write the bond_tension using vertex radius to non-dimensionalize the force. If I change the decision to use the vertex radius as my dimensionalizing unit, need to change it consistently here and probably elsewhere
   double k_on = 100.0, k_off = 1.0, temp_koff;
   double f_off = 1.0;  // mechanosensitivity parameter of catch bonds
   double bond_stiffness = 1.0;
-  double dx, dy, distance;
+  double dx, dy, bond_tension, vertexDiameter;
   int ci, vi;
   assert(isGiCatchBonded.size() == NVTOT);
   // evaluate switching states from bonded to non-bonded depending on k_on or k_off values
@@ -560,11 +561,12 @@ void cell::catchBondsUpdate() {
     if (isGiCatchBonded[gi]) {
       dx = catchBondPosition[gi][0] - x[NDIM * gi];
       dy = catchBondPosition[gi][1] - x[NDIM * gi + 1];
+      vertexDiameter = 2 * r[gi];
 
       // modify k_off depending on pulling force (mechanosensitivity) and disable catch bonds if cadherin is present
-      // distance = sqrt(pow(dx, 2) + pow(dy, 2));
-      // temp_koff = k_off * exp(-sqrt(distance) / f_off);
-      temp_koff = 0;
+      bond_tension = bond_stiffness * (sqrt(dx * dx + dy * dy) / vertexDiameter) / vertexDiameter;
+      temp_koff = k_off * exp(-bond_tension / f_off);  // where are the dimensions here?
+      // cout << "bond_tension = " << bond_tension << ", f_off = " << f_off << '\n';
 
       // count up number of contacts between gi and other vertices
       int colSumGi = 0, rowSumGi = 0;
