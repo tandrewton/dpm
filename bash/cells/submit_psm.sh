@@ -63,6 +63,7 @@ echo Running psm simulations with parameters: > $configFile
 echo NCELLS = "$NCELLS" >> $configFile
 echo NV = "$NV" >> $configFile
 echo calA0 = "$calA0" >> $configFile
+echo phi = "$phi" >> $configFile
 echo att = "$att" >> $configFile
 echo t_maxwell = "$t_maxwell" >> $configFile
 echo v0 = "$v0" >> $configFile
@@ -112,7 +113,7 @@ for seed in `seq $startSeed $numSeedsPerRun $endSeed`; do
         outFileStem=$simdatadir/$filestr
 
         # append to runString
-        runString="$runString ; ./$binf $NCELLS $NV $calA0 $att $t_maxwell $v0 $t_abp $k_off $seed $duration $outFileStem"
+        runString="$runString ; ./$binf $NCELLS $NV $calA0 $phi $att $t_maxwell $v0 $t_abp $k_off $seed $duration $outFileStem"
     done
 
     # finish off run string
