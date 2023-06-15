@@ -71,7 +71,7 @@ configFile=$simdatadir/"$file_basename"_config.txt
 binf=bin/"$runstr".o
 mainf=$maindir/laserAblation.cpp
 
-echo Running laserAblation simulations with parameters: > configFile
+echo Running laserAblation simulations with parameters: >> $configFile
 echo NCELLS = "$NCELLS" >> $configFile
 echo NV = "$NV" >> $configFile
 echo ndelete = "$ndelete" >> $configFile
