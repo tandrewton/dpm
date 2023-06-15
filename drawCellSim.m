@@ -374,5 +374,5 @@ for seed = startSeed:max_seed
     if makeAMovie == 1
         close(vobj);
     end
-
+    cd ../../../../
 end
