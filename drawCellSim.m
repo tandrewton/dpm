@@ -2,13 +2,13 @@
 % output is a movie made from stitching the position file frames together
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
-function drawCellSim(N, calA0, att, v0, k_off)
+%function drawCellSim(N, calA0, att, v0, k_off)
 %close all; clear
-isTestData = false; %uncomment if using function call to pipeline data
+%isTestData = false; %uncomment if using function call to pipeline data
 
-%isTestData = true; %uncomment if using test data
-%testDataii = 9;
-%testDataID = num2str(testDataii);
+isTestData = true; %uncomment if using test data
+testDataii = 8;
+testDataID = num2str(testDataii);
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('C:\Users\atata\projects\dpm\bash')
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
