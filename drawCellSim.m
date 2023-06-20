@@ -4,7 +4,7 @@ close all; clear
 %isTestData = false; %uncomment if using function call to pipeline data
 
 isTestData = true; %uncomment if using test data
-testDataii = 8;
+testDataii = 9;
 testDataID = num2str(testDataii);
 
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
@@ -57,7 +57,6 @@ txt='test';
 theta = linspace(0, 2*pi, 100); % Adjust the number of points as needed
 fnum = 1;
 fnum_boundary = 1000;
-figure(13), clf, hold on, box on;
 for seed = startSeed:max_seed
     if (isTestData)
         run_name = runType+txt;     
@@ -122,7 +121,6 @@ for seed = startSeed:max_seed
     if showCatchBonds
         catchBondLocations = readDataBlocks(catchBondStr, 2);
     end
-    figure(fnum), clf, hold on, box on;
 
     for ff = FSTART:FSTEP:FEND
         %nv can change, so recompute color map each frame
@@ -140,7 +138,7 @@ for seed = startSeed:max_seed
         if ~makeAMovie
             fnum = fnum+1;
         end
-        figure(fnum), clf, hold on, box on;
+        figure(fnum), clf, hold on, axis off;
         fprintf('printing frame ff = %d/%d\n',ff,FEND);
 
         % get cell positions
@@ -246,7 +244,7 @@ for seed = startSeed:max_seed
                     patch('Faces',finfo,'vertices',vpos,'FaceColor','w','EdgeColor','b','linewidth',0.001);
                     if (forImageAnalysis)
                         % switch to bd figure, plot bd, switch back
-                        figure(fnum_boundary); clf; hold on;
+                        figure(fnum_boundary); axis off;
                         patch('Faces',finfo,'vertices',vpos,'FaceColor','k','EdgeColor','k','linewidth',0.001)
                         figure(fnum);
                     end
@@ -293,7 +291,6 @@ for seed = startSeed:max_seed
 
         % if making a movie, save frame
         if makeAMovie == 1
-            axis off;
             currframe = getframe(gcf);
             writeVideo(vobj,currframe);
         end
