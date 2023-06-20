@@ -35,14 +35,14 @@ showGlobalIndex = 0;
 walls = 0;
 att_range = 0.3;
 
-forImageAnalysis = 1;
+forImageAnalysis = 0;
 if (forImageAnalysis)
     showCatchBonds = 0;
     showverts = 1;
     showcirculoline = 1;
     makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately
 else
-    showCatchBonds = 1;
+    showCatchBonds = 0;
     showverts = 0;
     showcirculoline = 0;
     makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately
@@ -82,7 +82,7 @@ for seed = startSeed:max_seed
         %psm/psm_calA01.05_tm0.0_v00.1_t_abp50.0
         %k_off1000.0/_N40_dur1000_att0_start1_end1_sd1.tissue
         run_name =runType+"_calA0"+calA0+'_tm'+t_maxwell...
-            +'_v0'+v0+'_t_abp'+t_abp+'k_off'+k_off;
+            +'_v0'+v0+'_t_abp'+t_abp+'k_ecm'+k_ecm+'k_off'+k_off;
         pipeline_dir =  subdir_pipeline + run_name + "/";
         output_dir = subdir_output + run_name + "/";
         mkdir(pipeline_dir)
