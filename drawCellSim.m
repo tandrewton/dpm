@@ -35,7 +35,7 @@ forImageAnalysis = 1;
 if (forImageAnalysis)
     showCatchBonds = 0;
     showverts = 1;
-    showcirculoline = 0;
+    showcirculoline = 1;
     makeAMovie = 1;
 else
     showCatchBonds = 0;
@@ -54,7 +54,6 @@ mkdir(subdir_pipeline);
 mkdir(subdir_output);
 txt='test';
 
-phi_array = [];
 theta = linspace(0, 2*pi, 100); % Adjust the number of points as needed
 fnum = 1;
 fnum_boundary = 1000;
@@ -190,41 +189,42 @@ for seed = startSeed:max_seed
             cx = mean(xtmp);
             cy = mean(ytmp);
             if showverts == 1
-                boundaryX = xtmp + vradtmp * cos(theta);
-                boundaryY = ytmp + vradtmp * sin(theta);
-                patch(boundaryX', boundaryY', 'black', 'linestyle', 'none')
-                for vv = 1:nv(ff,nn)
-                    % calculate coordinates of a rectangle representing 
-                    % the line segment between successive vertices in a DP
-                    if showcirculoline == 1
-                        vnext = mod(vv, nv(ff,nn))+1;
-                        xtmpnext = xtmp(vnext);
-                        ytmpnext = ytmp(vnext);
-                        rx = xtmpnext - xtmp(vv);
-                        ry = ytmpnext - ytmp(vv);
-                        if (rx == 0) 
-                            % if line is vertical, perpendicular is <1,0>
-                           perp_x = 1;
-                           perp_y = 0;
-                        else
-                             % dot product of r and perp = 0, so perp is perpendicular to r
-                            perp_x = -ry/rx;
-                            perp_y = 1;
-                        end
-                        norm = sqrt(perp_x^2 + perp_y^2);
-                        perp_x = perp_x / norm;
-                        perp_y = perp_y / norm;
-                        % calculate 4 coordinates of a rectangle
-                        % for the segment
-                        offsetx = vradtmp(vv)*perp_x;
-                        offsety = vradtmp(vv)*perp_y;
-                        cornerx = [xtmp(vv)-offsetx, xtmp(vv)+offsetx, ...
-                            xtmpnext+offsetx, xtmpnext-offsetx];
-                        cornery = [ytmp(vv)-offsety, ytmp(vv)+offsety,...
-                            ytmpnext+offsety, ytmpnext-offsety];
-                        if (cellID(nn) == 0)
-                            patch(cornerx, cornery, cornerx./cornerx, 'black','LineStyle', 'none')
-                        end
+                if (cellID(nn) == 0)
+                    boundaryX = xtmp + vradtmp * cos(theta);
+                    boundaryY = ytmp + vradtmp * sin(theta);
+                    patch(boundaryX', boundaryY', 'black', 'linestyle', 'none')
+                end
+                % calculate coordinates of a rectangle representing 
+                % the line segment between successive vertices in a DP
+                if showcirculoline == 1
+                    vv = 1:nv(ff,nn);
+                    vnext = mod(vv, nv(ff,nn))+1;
+                    xtmpnext = xtmp(vnext);
+                    ytmpnext = ytmp(vnext);
+                    rx = xtmpnext - xtmp(vv);
+                    ry = ytmpnext - ytmp(vv);
+
+                    % dot product of r and perp = 0, so perp is perpendicular to r
+                    perp_x = -ry ./ rx;
+                    perp_y = ones(size(rx));
+
+                    % if line is vertical, perpendicular is <1,0>
+                    isVertical = (rx == 0);
+                    perp_x(isVertical) = 1;
+                    perp_y(isVertical) = 0;
+
+                    norm = sqrt(perp_x.^2 + perp_y.^2);
+                    perp_x = perp_x ./ norm;
+                    perp_y = perp_y ./ norm;
+                    
+                    % calculate 4 coordinates of a rectangle
+                    % for the segment
+                    offsetx = vradtmp(vv) .* perp_x;
+                    offsety = vradtmp(vv) .* perp_y;
+                    cornerx = [xtmp(vv)-offsetx, xtmp(vv)+offsetx, xtmpnext+offsetx, xtmpnext-offsetx];
+                    cornery = [ytmp(vv)-offsety, ytmp(vv)+offsety, ytmpnext+offsety, ytmpnext-offsety];
+                    if (cellID(nn) == 0)
+                        patch(cornerx', cornery', cornerx'./cornerx', 'black','LineStyle', 'none')
                     end
                 end
             end
@@ -235,42 +235,31 @@ for seed = startSeed:max_seed
                 %xtmp = xtmp + 0.4*l0tmp(1)*(rx./rads);
                 %ytmp = ytmp + 0.4*l0tmp(1)*(ry./rads);
                 %text(cx,cy,num2str(nn)) % plot cell # on each cell
-                for xx = itLow:itHigh
-                    for yy = itLow:itHigh
-                        vpos = [xtmp + xx*Lx, ytmp + yy*Ly];
-                        finfo = [1:nv(ff,nn) 1];
-                        %disp("finfo is "+ finfo)
-                        % if cellID is boundary, have it be black exterior
-                        % with white interior
-                        if (cellID(nn) == 1)
-                            % if cellID is a boundary, have it be blue
-                            % exterior with white interior
-                            patch('Faces',finfo,'vertices',vpos,'FaceColor','w','EdgeColor','b','linewidth',0.001);
-                            if (forImageAnalysis)
-                                % switch to bd figure, plot bd, switch back
-                                figure(fnum_boundary); clf; hold on;
-                                patch('Faces',finfo,'vertices',vpos,'FaceColor','k','EdgeColor','k','linewidth',0.001)
-                                figure(fnum);
-                            end
-                        else
-                            % if cellID is a real cell, have it be black
-                            % exterior with black interior
-                            patch('Faces',finfo,'vertices',vpos,'FaceColor','k');
-                            %patch('Faces',finfo,'vertices',vpos,'FaceColor',clr, ...
-                                %'FaceAlpha', 'flat','FaceVertexAlphaData', 0, 'EdgeColor','k',...
-                                %'linewidth',0.001);
-                        end
+                vpos = [xtmp, ytmp];
+                finfo = [1:nv(ff,nn) 1];
+                %disp("finfo is "+ finfo)
+                % if cellID is boundary, have it be black exterior
+                % with white interior
+                if (cellID(nn) == 1)
+                    % if cellID is a boundary, have it be blue
+                    % exterior with white interior
+                    patch('Faces',finfo,'vertices',vpos,'FaceColor','w','EdgeColor','b','linewidth',0.001);
+                    if (forImageAnalysis)
+                        % switch to bd figure, plot bd, switch back
+                        figure(fnum_boundary); clf; hold on;
+                        patch('Faces',finfo,'vertices',vpos,'FaceColor','k','EdgeColor','k','linewidth',0.001)
+                        figure(fnum);
                     end
+                else
+                    % if cellID is a real cell, have it be black
+                    % exterior with black interior
+                    patch('Faces',finfo,'vertices',vpos,'FaceColor','k');
+                    %patch('Faces',finfo,'vertices',vpos,'FaceColor',clr, ...
+                        %'FaceAlpha', 'flat','FaceVertexAlphaData', 0, 'EdgeColor','k',...
+                        %'linewidth',0.001);
                 end
             end
         end
-
-        %for kk=1:4
-        %    plot([polyBoundary(kk,1:2:end) polyBoundary(kk,1)],...
-        %        [polyBoundary(kk,2:2:end) polyBoundary(kk,2)], 'k','linewidth', 1)
-        %end
-        %scatter(initPosSP(:,1), initPosSP(:,2),'ro')
-        %scatter(initPosSP2(:,1),initPosSP2(:,2),'ko')
 
         axis equal;
         ax = gca;
@@ -322,7 +311,6 @@ for seed = startSeed:max_seed
             exportgraphics(gcf, runType+fileheader_short+'fr'+ff+'.tif', 'Resolution', 100);
             figure(fnum_boundary);
             exportgraphics(gcf, runType+fileheader_short+'fr'+ff+'_bd.tif', 'Resolution', 100);
-            phi_array = [phi_array sum(cellarea(1:end-1))/cellarea(end)];
         end
     end
 
