@@ -4,7 +4,7 @@ close all; clear
 %isTestData = false; %uncomment if using function call to pipeline data
 
 isTestData = true; %uncomment if using test data
-testDataii = 9;
+testDataii = 8;
 testDataID = num2str(testDataii);
 
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
@@ -31,14 +31,14 @@ walls = 0;
 att_range = 0.3;
 
 %if makeAMovie is 0, then plot every frame separately
-forImageAnalysis = 1;
+forImageAnalysis = 0;
 if (forImageAnalysis)
     showCatchBonds = 0;
     showverts = 1;
     showcirculoline = 1;
     makeAMovie = 1;
 else
-    showCatchBonds = 0;
+    showCatchBonds = 1;
     showverts = 0;
     showcirculoline = 0;
     makeAMovie = 1;
@@ -89,7 +89,6 @@ for seed = startSeed:max_seed
     % read in position data
     disp(nvestr)
     [trajectoryData, cell_count] = readCellClassPosOutput(nvestr);
-    cd(output_dir)
 
     % get number of frames
     NFRAMES = trajectoryData.NFRAMES;
@@ -119,9 +118,10 @@ for seed = startSeed:max_seed
     boxAxHigh = 1;
 
     if showCatchBonds
-        catchBondLocations = readDataBlocks(catchBondStr, 2);
+        catchBondLocations = readDataBlocks(catchBondStr, 4);
     end
 
+    cd(output_dir)
     for ff = FSTART:FSTEP:FEND
         %nv can change, so recompute color map each frame
         [nvUQ, ~, IC] = unique(nonzeros(nv(ff,:)));
@@ -161,9 +161,9 @@ for seed = startSeed:max_seed
         if (showCatchBonds)
             % calculate line between catch bond anchor points
             catchBond = catchBondLocations{ff};
-            for ii=1:2:length(catchBond(:,1))
-                plot([catchBond(ii,1) catchBond(ii+1,1)],...
-                    [catchBond(ii,2) catchBond(ii+1,2)], 'r', 'Linewidth', 1)
+            for ii=1:2:length(catchBond(:,1))-1
+                plot([catchBond(ii,1) catchBond(ii,3)],...
+                    [catchBond(ii,2) catchBond(ii,4)], 'r', 'Linewidth', 1)
             end
         end
 
