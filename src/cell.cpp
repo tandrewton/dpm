@@ -2798,7 +2798,6 @@ void cell::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, doub
       cout << "	** P 			= " << P << endl;
       cout << "	** Sxy 			= " << Sxy << endl;
       cout << "	** U 			= " << U << endl;
-      printConfiguration2D();
       cout << endl
            << endl;
     }

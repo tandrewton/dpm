@@ -160,7 +160,6 @@ int main(int argc, char const* argv[]) {
 
   double relaxTime = 50.0;
   cell2D.dampedVertexNVE(attractiveSmoothForceUpdate, dt0, relaxTime, 0);
-  cell2D.printConfiguration2D();
   cell2D.setl00();  // set l00 to be l0 before setting maxwell relaxation time
   cell2D.setActiveBrownianParameters(v0_abp, tau_abp);
 
