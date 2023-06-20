@@ -25,24 +25,23 @@ t_abp = "50.0";
 %att="0.1";
 Duration="1000";
 FSKIP = 1;
-showPeriodicImages = 0;
 startSeed = 1;
 max_seed = 1;
-showGlobalIndex = 0;
 walls = 0;
 att_range = 0.3;
 
-forImageAnalysis = 0;
+%if makeAMovie is 0, then plot every frame separately
+forImageAnalysis = 1;
 if (forImageAnalysis)
     showCatchBonds = 0;
     showverts = 1;
-    showcirculoline = 1;
-    makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately
+    showcirculoline = 0;
+    makeAMovie = 1;
 else
     showCatchBonds = 0;
     showverts = 0;
     showcirculoline = 0;
-    makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately
+    makeAMovie = 1;
 end
 
 %PC directory
@@ -53,11 +52,10 @@ subdir_pipeline = "pipeline/cells/"+runType+"/";
 subdir_output = "output/cells/"+runType+"/";
 mkdir(subdir_pipeline);
 mkdir(subdir_output);
-
-%txt = 'N = '+N+', NV = '+NV+', calA_o='+calA+', att='+att+', B='+B;
 txt='test';
 
 phi_array = [];
+theta = linspace(0, 2*pi, 100); % Adjust the number of points as needed
 fnum = 1;
 fnum_boundary = 1000;
 figure(13), clf, hold on, box on;
@@ -66,8 +64,6 @@ for seed = startSeed:max_seed
         run_name = runType+txt;     
         pipeline_dir =  subdir_pipeline + run_name + "/";
         output_dir = subdir_output + run_name + "/";
-        mkdir(pipeline_dir)
-        mkdir(output_dir)
         fileheader=run_name+testDataID+"_seed" + seed;
         fileheader_short = fileheader;
         nvestr = "test"+testDataID+'.pos';
@@ -82,8 +78,6 @@ for seed = startSeed:max_seed
             +'_v0'+v0+'_t_abp'+t_abp+'k_ecm'+k_ecm+'k_off'+k_off;
         pipeline_dir =  subdir_pipeline + run_name + "/";
         output_dir = subdir_output + run_name + "/";
-        mkdir(pipeline_dir)
-        mkdir(output_dir)
         fileheader="_N"+N+"_dur"+Duration+"_att"+att+"_start"+ ...
             startSeed+"_end"+max_seed+"_sd"+seed;
         fileheader_short = "_N"+N+"_dur"+Duration+"_att"+att+"_sd"+seed;
@@ -92,11 +86,11 @@ for seed = startSeed:max_seed
         stressstr = pipeline_dir+fileheader+'.stress';
         tissuestr = pipeline_dir+fileheader+'.tissue';
     end
-
+    mkdir(pipeline_dir)
+    mkdir(output_dir)
     % read in position data
-    nvestr
+    disp(nvestr)
     [trajectoryData, cell_count] = readCellClassPosOutput(nvestr);
-
     cd(output_dir)
 
     % get number of frames
@@ -118,30 +112,18 @@ for seed = startSeed:max_seed
         moviestr = movieName;
         vobj = VideoWriter(moviestr, 'MPEG-4');
         vobj.Quality = 100;
-            
         vobj.FrameRate = 5;
         open(vobj);
     end
-    
-    if showPeriodicImages == 1
-        itLow = -1;
-        itHigh = 1;
-        boxAxLow = -0.25;
-        boxAxHigh = 1.25;
-    else
-        itLow = 0;
-        itHigh = 0;
-        boxAxLow = 0;
-        boxAxHigh = 1;
-    end
+    itLow = 0;
+    itHigh = 0;
+    boxAxLow = 0;
+    boxAxHigh = 1;
 
     if showCatchBonds
         catchBondLocations = readDataBlocks(catchBondStr, 2);
     end
-
     figure(fnum), clf, hold on, box on;
-
-    %FSTART=FEND; % hack to skip to the last frame to save the boundary info
 
     for ff = FSTART:FSTEP:FEND
         %nv can change, so recompute color map each frame
@@ -160,7 +142,6 @@ for seed = startSeed:max_seed
             fnum = fnum+1;
         end
         figure(fnum), clf, hold on, box on;
-
         fprintf('printing frame ff = %d/%d\n',ff,FEND);
 
         % get cell positions
@@ -181,10 +162,6 @@ for seed = startSeed:max_seed
         Ly = L(4);
 
         if (showCatchBonds)
-%             scatter(catchBondLocations{ff}(1:2:end,1),...
-%                 catchBondLocations{ff}(1:2:end,2), 40, 'blue', '.','MarkerFaceColor','blue');
-%             scatter(catchBondLocations{ff}(2:2:end,1),...
-%                 catchBondLocations{ff}(2:2:end,2), 40, 'red', '.');
             % calculate line between catch bond anchor points
             catchBond = catchBondLocations{ff};
             for ii=1:2:length(catchBond(:,1))
@@ -199,7 +176,7 @@ for seed = startSeed:max_seed
             ytmp = ypos{nn};
             gitmp = gi{nn};
             l0tmp = l0{nn};
-            vradtmp = vrad{nn}*1.0;
+            vradtmp = vrad{nn};
             psitmp = psi(nn);
             costmp = cos(psitmp);
             sintmp = sin(psitmp);
@@ -213,31 +190,20 @@ for seed = startSeed:max_seed
             cx = mean(xtmp);
             cy = mean(ytmp);
             if showverts == 1
+                boundaryX = xtmp + vradtmp * cos(theta);
+                boundaryY = ytmp + vradtmp * sin(theta);
+                patch(boundaryX', boundaryY', 'black', 'linestyle', 'none')
                 for vv = 1:nv(ff,nn)
-                    xplot = xtmp(vv) - vradtmp(vv);
-                    yplot = ytmp(vv) - vradtmp(vv);
-                    for xx = itLow:itHigh
-                        for yy = itLow:itHigh
-                            if (cellID(nn) == 0)
-                                rectangle('Position',[xplot+xx*Lx, yplot + yy*Ly, 2*vradtmp(vv), 2*vradtmp(vv)],'Curvature',[1 1],'EdgeColor','k','FaceColor',clr, 'linestyle', 'none');
-                            end
-                            %text(xplot-0.25,yplot-0.25,num2str(vv-1))
-                            if showGlobalIndex
-                                text(xtmp(vv), ytmp(vv), num2str(gitmp(vv)), 'FontSize', 6);
-                            end
-                        end
-                    end
-                end
-                for vv = 1:nv(ff,nn)
-                    xplot = xtmp(vv) - vradtmp(vv);
-                    yplot = ytmp(vv) - vradtmp(vv);
-                    if showcirculoline == 1% calculate coordinates of a rectangle representing the line segment between successive vertices in a DP
+                    % calculate coordinates of a rectangle representing 
+                    % the line segment between successive vertices in a DP
+                    if showcirculoline == 1
                         vnext = mod(vv, nv(ff,nn))+1;
                         xtmpnext = xtmp(vnext);
                         ytmpnext = ytmp(vnext);
                         rx = xtmpnext - xtmp(vv);
                         ry = ytmpnext - ytmp(vv);
-                        if (rx == 0) % if line is vertical, perpendicular is <1,0>
+                        if (rx == 0) 
+                            % if line is vertical, perpendicular is <1,0>
                            perp_x = 1;
                            perp_y = 0;
                         else
@@ -297,7 +263,6 @@ for seed = startSeed:max_seed
                     end
                 end
             end
-
         end
 
         %for kk=1:4
@@ -314,12 +279,7 @@ for seed = startSeed:max_seed
         set(gca,'children',flipud(get(gca,'children'))) 
         %ax.XTick = [];
         %ax.YTick = [];
-        if showPeriodicImages == 1
-            ax.XLim = [boxAxLow boxAxHigh]*Lx;
-            ax.YLim = [boxAxLow boxAxHigh]*Ly;
-            % plot box
-            plot([0 Lx Lx 0 0], [0 0 Ly Ly 0], 'k-', 'linewidth', 1.5);
-        elseif walls == 1
+        if walls == 1
             ax.XLim = [L_left Lx];
             ax.YLim = [L_bottom Ly];
             % plot box
