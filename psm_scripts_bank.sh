@@ -3,10 +3,10 @@ module load dSQ
 #!/bin/bash
 numSeeds=1
 calA0=(1.05)
-att_arr=(0 0.001 0.01 0.05 0.1)
+att_arr=(0 0.01 0.05 0.1)
 v0_arr=(0.05)
-kecm_arr=(1.0 10.0 100.0)
-koff_arr=(10.0 100.0 1000.0)
+kecm_arr=(1.0 5.0 10.0 25.0)
+koff_arr=(1.0 10.0 100.0)
 rm joblist_psm_att_v0_koff.txt
 for att in ${att_arr[@]}; do 
   for v0 in ${v0_arr[@]}; do
@@ -26,10 +26,10 @@ rsync -rav --inplace --progress at965@transfer-grace.hpc.yale.edu:/gpfs/gibbs/pi
 
 close all; clear;
 calA0_arr = ["1.05"];
-att_arr = ["0" "0.001" "0.01" "0.05" "0.1"];
+att_arr = ["0" "0.01" "0.05" "0.1"];
 v0_arr = ["0.05"];
-k_ecm_arr = ["1.0" "10.0" "100.0"];
-k_off_arr = ["10.0" "100.0" "1000.0"];
+k_ecm_arr = ["1.0" "5.0" "10.0" "25.0"];
+k_off_arr = ["10.0" "100.0"];
 for ii=1:length(calA0_arr)
     for jj=1:length(att_arr)
         for kk=1:length(v0_arr)

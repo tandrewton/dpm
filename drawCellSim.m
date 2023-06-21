@@ -1,9 +1,9 @@
 %pwd should give ~/Documents/YalePhd/projects/dpm
-%function drawCellSim(N, calA0, att, v0, k_ecm, k_off)
-close all; clear
-%isTestData = false; %uncomment if using function call to pipeline data
+function drawCellSim(N, calA0, att, v0, k_ecm, k_off)
+%close all; clear
+isTestData = false; %uncomment if using function call to pipeline data
 
-isTestData = true; %uncomment if using test data
+%isTestData = true; %uncomment if using test data
 testDataii = 8;
 testDataID = num2str(testDataii);
 
@@ -83,6 +83,7 @@ for seed = startSeed:max_seed
         energystr = pipeline_dir+fileheader+'.energy';
         stressstr = pipeline_dir+fileheader+'.stress';
         tissuestr = pipeline_dir+fileheader+'.tissue';
+        catchBondStr = pipeline_dir+fileheader+'.catchBond';
     end
     mkdir(pipeline_dir)
     mkdir(output_dir)
