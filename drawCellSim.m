@@ -164,10 +164,13 @@ for seed = startSeed:max_seed
         if (showCatchBonds)
             % calculate line between catch bond anchor points
             catchBond = catchBondLocations{ff};
-            length(catchBond(:,1))
+            xtmp = catchBond(:,1);
             for ii=1:2:length(catchBond(:,1))-1
-                plot([catchBond(ii,1) catchBond(ii,3)],...
-                    [catchBond(ii,2) catchBond(ii,4)], 'r', 'Linewidth', 1)
+                %boundaryX = xtmp + vradtmp * cos(theta);
+                %boundaryY = ytmp + vradtmp * sin(theta);
+                %patch(boundaryX', boundaryY', 'red', 'linestyle', 'none')
+                %plot([catchBond(ii,1) catchBond(ii,3)],...
+                %    [catchBond(ii,2) catchBond(ii,4)], 'r', 'Linewidth', 1)
             end
         end
 
