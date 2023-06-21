@@ -91,6 +91,11 @@ for seed = startSeed:max_seed
     disp(nvestr)
     [trajectoryData, cell_count] = readCellClassPosOutput(nvestr);
 
+    if showCatchBonds
+        catchBondLocations = readDataBlocks(catchBondStr, 4);
+    end
+    cd(output_dir)
+
     % get number of frames
     NFRAMES = trajectoryData.NFRAMES;
     NCELLS = trajectoryData.NCELLS;
@@ -104,6 +109,8 @@ for seed = startSeed:max_seed
 
     if makeAMovie == 1
         movieName = runType+fileheader_short+'.mp4';
+        exist(movieName, 'file')
+        runType+fileheader+movieName
         if exist(movieName, 'file')==2
           delete(movieName);
         end
@@ -118,11 +125,6 @@ for seed = startSeed:max_seed
     boxAxLow = 0;
     boxAxHigh = 1;
 
-    if showCatchBonds
-        catchBondLocations = readDataBlocks(catchBondStr, 4);
-    end
-
-    cd(output_dir)
     for ff = FSTART:FSTEP:FEND
         %nv can change, so recompute color map each frame
         [nvUQ, ~, IC] = unique(nonzeros(nv(ff,:)));
@@ -162,6 +164,7 @@ for seed = startSeed:max_seed
         if (showCatchBonds)
             % calculate line between catch bond anchor points
             catchBond = catchBondLocations{ff};
+            length(catchBond(:,1))
             for ii=1:2:length(catchBond(:,1))-1
                 plot([catchBond(ii,1) catchBond(ii,3)],...
                     [catchBond(ii,2) catchBond(ii,4)], 'r', 'Linewidth', 1)
