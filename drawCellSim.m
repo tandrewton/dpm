@@ -1,9 +1,9 @@
 %pwd should give ~/Documents/YalePhd/projects/dpm
-function drawCellSim(N, calA0, att, v0, k_ecm, k_off)
-%close all; clear
-isTestData = false; %uncomment if using function call to pipeline data
+%function drawCellSim(N, calA0, att, v0, k_ecm, k_off)
+close all; clear
+%isTestData = false; %uncomment if using function call to pipeline data
 
-%isTestData = true; %uncomment if using test data
+isTestData = true; %uncomment if using test data
 testDataii = 8;
 testDataID = num2str(testDataii);
 
@@ -164,14 +164,12 @@ for seed = startSeed:max_seed
         if (showCatchBonds)
             % calculate line between catch bond anchor points
             catchBond = catchBondLocations{ff};
-            xtmp = catchBond(:,1);
-            for ii=1:2:length(catchBond(:,1))-1
-                %boundaryX = xtmp + vradtmp * cos(theta);
-                %boundaryY = ytmp + vradtmp * sin(theta);
-                %patch(boundaryX', boundaryY', 'red', 'linestyle', 'none')
-                %plot([catchBond(ii,1) catchBond(ii,3)],...
-                %    [catchBond(ii,2) catchBond(ii,4)], 'r', 'Linewidth', 1)
-            end
+            rx = catchBond(:,1) - catchBond(:,3);
+            ry = catchBond(:,2) - catchBond(:,4);
+            [offsetx, offsety] = patchRectangleOffsets(rx, ry, mean(vrad{1}/10));
+            cornerx = [catchBond(:,1) - offsetx, catchBond(:,1) + offsetx, catchBond(:,3) + offsetx, catchBond(:,3) - offsetx];
+            cornery = [catchBond(:,2) - offsety, catchBond(:,2) + offsety, catchBond(:,4) + offsety, catchBond(:,4) - offsety];
+            patch(cornerx', cornery', 'red', 'linestyle', 'none')
         end
 
         for nn = 1:NCELLS
@@ -201,48 +199,17 @@ for seed = startSeed:max_seed
                 end
                 % calculate coordinates of a rectangle representing 
                 % the line segment between successive vertices in a DP
-                if showcirculoline == 1
-                    vv = 1:nv(ff,nn);
-                    vnext = mod(vv, nv(ff,nn))+1;
-                    xtmpnext = xtmp(vnext);
-                    ytmpnext = ytmp(vnext);
-                    rx = xtmpnext - xtmp(vv);
-                    ry = ytmpnext - ytmp(vv);
-
-                    % dot product of r and perp = 0, so perp is perpendicular to r
-                    perp_x = -ry ./ rx;
-                    perp_y = ones(size(rx));
-
-                    % if line is vertical, perpendicular is <1,0>
-                    isVertical = (rx == 0);
-                    perp_x(isVertical) = 1;
-                    perp_y(isVertical) = 0;
-
-                    norm = sqrt(perp_x.^2 + perp_y.^2);
-                    perp_x = perp_x ./ norm;
-                    perp_y = perp_y ./ norm;
-                    
-                    % calculate 4 coordinates of a rectangle
-                    % for the segment
-                    offsetx = vradtmp(vv) .* perp_x;
-                    offsety = vradtmp(vv) .* perp_y;
-                    cornerx = [xtmp(vv)-offsetx, xtmp(vv)+offsetx, xtmpnext+offsetx, xtmpnext-offsetx];
-                    cornery = [ytmp(vv)-offsety, ytmp(vv)+offsety, ytmpnext+offsety, ytmpnext-offsety];
-                    if (cellID(nn) == 0)
-                        patch(cornerx', cornery', cornerx'./cornerx', 'black','LineStyle', 'none')
-                    end
+                if (cellID(nn) == 0 && showcirculoline == 1)
+                    [cornerx, cornery] = patchConnectedRectanglesCorners(xtmp, ytmp, vradtmp);
+                    patch(cornerx', cornery', 'black','LineStyle', 'none')
                 end
             end
             if (~showverts || (showverts && showcirculoline))
                 rx = xtmp - cx;
                 ry = ytmp - cy;
                 rads = sqrt(rx.^2 + ry.^2);
-                %xtmp = xtmp + 0.4*l0tmp(1)*(rx./rads);
-                %ytmp = ytmp + 0.4*l0tmp(1)*(ry./rads);
-                %text(cx,cy,num2str(nn)) % plot cell # on each cell
                 vpos = [xtmp, ytmp];
                 finfo = [1:nv(ff,nn) 1];
-                %disp("finfo is "+ finfo)
                 % if cellID is boundary, have it be black exterior
                 % with white interior
                 if (cellID(nn) == 1)
@@ -289,12 +256,6 @@ for seed = startSeed:max_seed
             % plot box
             %plot([viewLxLow viewLx viewLx viewLxLow viewLxLow], [viewLyLow viewLyLow viewLy viewLy viewLyLow], 'k-', 'linewidth', 1.5);
         end
-        
-        %annotationStr = "$$t/\tau$$ = "+time(ff);
-        framenum = ff-1;
-        annotationStr = "frame="+framenum;
-        %annotation('textbox',[0.4, 0.4, 0, 0],...
-        %    'interpreter', 'latex', 'String', annotationStr, 'Edgecolor','none', 'FitBoxToText','on');
 
         % if making a movie, save frame
         if makeAMovie == 1
@@ -324,4 +285,51 @@ for seed = startSeed:max_seed
         close(vobj);
     end
     cd ../../../../
+end
+
+function [cornerx, cornery] = patchConnectedRectanglesCorners(midptx, midpty, width)
+%INPUT: midptx, midpty are N x 1 vectors representing N coordinates
+%           where midpt, circshift(midpt, -1) are the midpoints of two opposite
+%           sides of a rectangle
+%       width is N x 1 representing width of each rectangle
+
+%OUTPUT: [cornerx, cornery] are the locations of the corners of the
+%       rectangle for the patch object. The rectangles will all be
+%       connected, which is useful for drawing cells.
+    
+    shift_midptx = circshift(midptx, -1);
+    shift_midpty = circshift(midpty, -1);
+    
+    rx = midptx - shift_midptx;
+    ry = midpty - shift_midpty;
+    [offsetx, offsety] = patchRectangleOffsets(rx, ry, width);
+
+    cornerx = [midptx-offsetx, midptx+offsetx, shift_midptx+offsetx, shift_midptx-offsetx];
+    cornery = [midpty-offsety, midpty+offsety, shift_midpty+offsety, shift_midpty-offsety];
+end
+
+function [offsetx, offsety] = patchRectangleOffsets(rx, ry, width)
+% INPUT: Nx1 vectors rx, ry which point from one midpoint to an opposite
+%           midpoint on the same rectangle, for N rectangles
+%        Nx1 vector width of the rectangle width
+% OUTPUT: offsetx, offsety which represent displacements to the original
+%           midpoints of the rectangle, used for a patch object
+
+    % dot product of r and perp = 0, so perp is perpendicular to r
+    perp_x = -ry ./ rx;
+    perp_y = ones(size(rx));
+
+    % if line is vertical, perpendicular is <1,0>
+    isVertical = (rx == 0);
+    perp_x(isVertical) = 1;
+    perp_y(isVertical) = 0;
+
+    norm = sqrt(perp_x.^2 + perp_y.^2);
+    perp_x = perp_x ./ norm;
+    perp_y = perp_y ./ norm;
+    
+    % calculate 4 coordinates of a rectangle
+    % for the segment
+    offsetx = width .* perp_x;
+    offsety = width .* perp_y;
 end
