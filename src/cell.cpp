@@ -533,9 +533,10 @@ void cell::directorDiffusion() {
     // propagate diffusion of directors psi
     r1 = drand48();
     r2 = drand48();
+    // box-muller transform of random numbers to a gaussian random variable
     grv = sqrt(-2.0 * log(r1)) * cos(2.0 * PI * r2);
     // if flag is present, do not diffuse.
-    psi[ci] += sqrt(dt * 2.0 * Dr0) * grv;
+    psi[ci] += sqrt(2.0 * Dr0) * grv * dt;
     psi[ci] -= 2 * PI * round(psi[ci] / (2 * PI));
   }
 }
