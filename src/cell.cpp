@@ -391,8 +391,6 @@ void cell::shapeForces2D() {
   for (int ci = 0; ci < NCELLS; ci++) {
     for (int vi = 0; vi < nv[ci]; vi++) {
       int gi = gindex(ci, vi);
-      if (gi > fieldShapeStress.size())
-        cout << "gi, ci, vi = " << gi << '\t' << ci << '\t' << vi << '\n';
       fieldShapeStressCells[ci][0] += fieldShapeStress[gi][0];
       fieldShapeStressCells[ci][1] += fieldShapeStress[gi][1];
       fieldShapeStressCells[ci][2] += fieldShapeStress[gi][2];
@@ -603,24 +601,6 @@ void cell::resizeCatchBonds() {
   isGiCatchBonded.resize(NVTOT, false);
   catchBondPosition.resize(NVTOT, std::vector<double>(2));
 }
-
-void cell::attractiveForceUpdatePrint(double& forceX, double& forceY, double& energy) {
-  resetForcesAndEnergy();
-  // shapeForces2D();
-  energy = 0.0;
-  vertexAttractiveForces2D_test(energy);
-  forceX = F[0];
-  forceY = F[1];
-}
-
-/*void cell::attractiveForceUpdateSmoothPrint(double& forceX, double& forceY, double& energy) {
-  resetForcesAndEnergy();
-  // shapeForces2D();
-  energy = 0.0;
-  smoothAttractiveForces2D_test(energy);
-  forceX = F[0];
-  forceY = F[1];
-}*/
 
 void cell::circuloLineAttractiveForces() {
   // altered from vertexAttractiveForces2D_2, here we use vertex-vertex and vertex-line segment distances to make a smooth interaction

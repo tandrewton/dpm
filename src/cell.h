@@ -97,8 +97,6 @@ class cell : public dpm {
   void attractiveWallCrawlingForceUpdate();
   void repulsiveForceUpdateWithPolyWall();
   void attractiveForceUpdateWithPolyWall();
-  void attractiveForceUpdatePrint(double& forceX, double& forceY, double& energy);
-  void attractiveForceUpdateSmoothPrint(double& forceX, double& forceY, double& energy);
   void vertexAttractiveForces2D_2();
   void vertexAttractiveForces2D_test(double& energy);
   void circuloLineAttractiveForces();
