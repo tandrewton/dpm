@@ -1,9 +1,9 @@
 %pwd should give ~/Documents/YalePhd/projects/dpm
-%function drawCellSim(N, calA0, att, v0, k_ecm, k_off)
-close all; clear
-%isTestData = false; %uncomment if using function call to pipeline data
+function drawCellSim(N, calA0, phi, att, v0, k_ecm, k_off)
+%close all; clear
+isTestData = false; %uncomment if using function call to pipeline data
 
-isTestData = true; %uncomment if using test data
+%isTestData = true; %uncomment if using test data
 testDataii = 8;
 testDataID = num2str(testDataii);
 
@@ -72,7 +72,7 @@ for seed = startSeed:max_seed
     else
         %psm/psm_calA01.05_tm0.0_v00.1_t_abp50.0
         %k_off1000.0/_N40_dur1000_att0_start1_end1_sd1.tissue
-        run_name =runType+"_calA0"+calA0+'_tm'+t_maxwell...
+        run_name =runType+"_calA0"+calA0+'_phi'+phi+'_tm'+t_maxwell...
             +'_v0'+v0+'_t_abp'+t_abp+'k_ecm'+k_ecm+'k_off'+k_off;
         pipeline_dir =  subdir_pipeline + run_name + "/";
         output_dir = subdir_output + run_name + "/";
@@ -285,6 +285,7 @@ for seed = startSeed:max_seed
         close(vobj);
     end
     cd ../../../../
+end
 end
 
 function [cornerx, cornery] = patchConnectedRectanglesCorners(midptx, midpty, width)
