@@ -1982,30 +1982,22 @@ void cell::addDP(int numVerts, const vector<double>& dp_x, const vector<double>&
 // eventually, call this 4x in order to replace initializeFourTransverseTissues
 void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID) {
   // initialize starting positions and all related data for a large DP (ECM) and numCellsInside smaller DPs
-  // isFixedBoundary is an optional bool argument that tells cells to stay away from boundary during initialization
   // aspect ratio is L[0]/L[1]
   // polyShapeID = 0 corresponds to a circle, 1 corresponds to a rectangle
-  int i, d, ci, cj, vi, vj, gi, cellDOF = NDIM * NCELLS, cumNumCells = 0;
-  int numEdges = 20;  // number of edges in the polygonal walls to approximate a circle
-  double areaSum, xtra = 1.1;
+  int cj, vi, vj, gi, cellDOF = NDIM * NCELLS, cumNumCells = 0;
+  int numEdges = 20;
+  double areaSum = 0.0, xtra = 1.1;
 
   // local disk vectors
-  vector<double> drad(NCELLS, 0.0);
-  vector<double> dpos(cellDOF, 0.0);
-  vector<double> dv(cellDOF, 0.0);
-  vector<double> dF(cellDOF, 0.0);
-
-  // print to console
+  vector<double> drad(NCELLS, 0.0), dpos(cellDOF, 0.0), dv(cellDOF, 0.0), dF(cellDOF, 0.0);
   cout << "** initializing particle positions using 2D SP model and FIRE relaxation ..." << endl;
-
-  // initialize stress field
   initializeFieldStress();
 
   // initial boundary position vectors in units of some lengthscale tissueRadii
-  int numTissues = 1, totalNumCellsCheck = 0;
+  int numTissues = 1;
   double totalArea = 0.0;
-  vector<double> cx = {1 / 2.0}, cy = {1 / 2.0};
-  vector<double> tissueRadii = {1 / 2.0}, cellFractionPerTissue, numCellsInTissue;
+  vector<double> cx = {1 / 2.0}, cy = {1 / 2.0}, tissueRadii = {1 / 2.0}, cellFractionPerTissue;
+  vector<int> numCellsInTissue;
   for (int i = 0; i < tissueRadii.size(); i++) {
     totalArea += tissueRadii[i] * tissueRadii[i];
     cout << totalArea << '\t' << tissueRadii[i] << '\n';
@@ -2016,32 +2008,30 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
     numCellsInTissue.push_back(round(cellFractionPerTissue[i] * NCELLS));
     cout << "cellFraction = " << tissueRadii[i] * tissueRadii[i] / totalArea << ", initializing " << NCELLS << " cells, with tissue " << i << " having cell fraction = " << cellFractionPerTissue[i] << '\n';
     cout << "NCELLS * cellFraction = " << NCELLS * cellFractionPerTissue[i] << ", which is " << round(NCELLS * cellFractionPerTissue[i]) << " when rounded\n";
-    totalNumCellsCheck += round(NCELLS * cellFractionPerTissue[i]);
   }
 
-  assert(totalNumCellsCheck == NCELLS);
+  assert(NCELLS == accumulate(numCellsInTissue.begin(), numCellsInTissue.end(), 0));
 
   // initialize box size based on packing fraction
   areaSum = 0.0;
-  for (ci = 0; ci < NCELLS; ci++)
+  for (int ci = 0; ci < NCELLS; ci++)
     areaSum += a0.at(ci) + 0.25 * PI * pow(l0.at(ci), 2.0) * (0.5 * nv.at(ci) - 1);
 
   // set box size : phi_0 = areaSum / A => A = areaSum/phi_0 which gives us the following formulas for L
-  for (d = 0; d < NDIM; d++) {
+  for (int d = 0; d < NDIM; d++) {
     L.at(d) = pow(4 / PI * areaSum * cellFractionPerTissue[0] / phi0, 1.0 / NDIM);
   }
 
-  // multiply lengths by lengthscale
-  for (int i = 0; i < numTissues; i++) {
-    double tissueLengthscale = L[0];
+  double tissueLengthscale = L[0];
+  for (int i = 0; i < numTissues; i++) {  // multiply lengths by lengthscale
     cx[i] *= tissueLengthscale;
     cy[i] *= tissueLengthscale;
     tissueRadii[i] *= tissueLengthscale;
   }
 
-  ofstream boundaryStream("polyBoundary.txt");  // clear boundary text file, for visualizing or for debugging
-  ofstream ipStream("initPosSP.txt");           // clear initialPos text file, for visualizing or for debugging
-  ofstream ip2Stream("initPosSP2.txt");         // clear initialPos text file, for visualizing or for debugging
+  ofstream boundaryStream("polyBoundary.txt");  // clear boundary text file, for visualizing or debugging
+  ofstream ipStream("initPosSP.txt");
+  ofstream ip2Stream("initPosSP2.txt");
   for (int n = 0; n < numTissues; n++) {
     cout << "initializing cell centers randomly but rejecting if further than R from the center for tissue " << n << "out of " << numTissues - 1 << "\n";
     double scale_radius = 1.1;                   // make the polygon radius slightly larger so that it encompasses the circle that points are initialized in
@@ -2055,10 +2045,11 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
     else
       assert(false);
 
-    for (i = cumNumCells; i < cumNumCells + numCellsInTissue[n]; i++) {
+    for (int i = cumNumCells; i < cumNumCells + numCellsInTissue[n]; i++) {
       cout << "i = " << i << "\t, dpos.size() = " << dpos.size() << ", cumNumCells = " << cumNumCells << "\t, numCellsInTissue[n] = " << numCellsInTissue[n] << '\n';
-      double dpos_x = tissueRadii[n] * (2 * drand48() - 1) + cx[n], dpos_y = tissueRadii[n] * (2 * drand48() - 1) + cy[n];
-      while (pow(dpos_x - cx[n], 2) + pow(dpos_y - cy[n], 2) > pow(tissueRadii[n] / (scale_radius), 2)) {
+      double dpos_x = tissueRadii[n] * (2 * drand48() - 1) + cx[n];
+      double dpos_y = tissueRadii[n] * (2 * drand48() - 1) + cy[n];
+      while (pow(dpos_x - cx[n], 2) + pow(dpos_y - cy[n], 2) > pow(tissueRadii[n] / scale_radius, 2)) {
         dpos_x = tissueRadii[n] / scale_radius * (2 * drand48() - 1) + cx[n];
         dpos_y = tissueRadii[n] / scale_radius * (2 * drand48() - 1) + cy[n];
       }
@@ -2073,7 +2064,7 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
 
   cout << "setting radii of SP disks\n";
   // set radii of SP disks
-  for (ci = 0; ci < NCELLS; ci++) {
+  for (int ci = 0; ci < NCELLS; ci++) {
     xtra = 1.0;  // disks should have radius similar to the final particle radius
     drad.at(ci) = xtra * sqrt((2.0 * a0.at(ci)) / (nv.at(ci) * sin(2.0 * PI / nv.at(ci))));
   }
@@ -2105,7 +2096,7 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
   while ((fcheck > Ftol) && fireit < itmax) {
     // FIRE step 1. Compute P
     P = 0.0;
-    for (i = 0; i < cellDOF; i++)
+    for (int i = 0; i < cellDOF; i++)
       P += dv[i] * dF[i];
 
     // FIRE step 2. adjust simulation based on net motion of degrees of freedom
@@ -2139,7 +2130,7 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
       }
 
       // take half step backwards, reset velocities
-      for (i = 0; i < cellDOF; i++) {
+      for (int i = 0; i < cellDOF; i++) {
         // take half step backwards
         dpos[i] -= 0.5 * dt * dv[i];
 
@@ -2159,38 +2150,38 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
     }
 
     // FIRE step 3. First VV update
-    for (i = 0; i < cellDOF; i++)
+    for (int i = 0; i < cellDOF; i++)
       dv[i] += 0.5 * dt * dF[i];
 
     // FIRE step 4. adjust velocity magnitude
     fnorm = 0.0;
     vnorm = 0.0;
-    for (i = 0; i < cellDOF; i++) {
+    for (int i = 0; i < cellDOF; i++) {
       fnorm += dF[i] * dF[i];
       vnorm += dv[i] * dv[i];
     }
     fnorm = sqrt(fnorm);
     vnorm = sqrt(vnorm);
     if (fnorm > 0) {
-      for (i = 0; i < cellDOF; i++)
+      for (int i = 0; i < cellDOF; i++)
         dv[i] = (1 - alpha) * dv[i] + alpha * (vnorm / fnorm) * dF[i];
     }
 
     // FIRE step 4. Second VV update
-    for (i = 0; i < cellDOF; i++) {
+    for (int i = 0; i < cellDOF; i++) {
       dpos[i] += dt * dv[i];
       dF[i] = 0.0;
     }
 
     // FIRE step 5. Update forces
-    for (ci = 0; ci < NCELLS; ci++) {
+    for (int ci = 0; ci < NCELLS; ci++) {
       for (cj = ci + 1; cj < NCELLS; cj++) {
         // contact distance
         sij = drad[ci] + drad[cj];
 
         // true distance
         rij = 0.0;
-        for (d = 0; d < NDIM; d++) {
+        for (int d = 0; d < NDIM; d++) {
           // get distance element
           dtmp = dpos[NDIM * cj + d] - dpos[NDIM * ci + d];
           if (pbc[d])
@@ -2210,7 +2201,7 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
           ftmp = kc * (1.0 - (rij / sij)) / sij;
 
           // add to vectorial force
-          for (d = 0; d < NDIM; d++) {
+          for (int d = 0; d < NDIM; d++) {
             vftmp = ftmp * (dr[d] / rij);
             dF[NDIM * ci + d] -= vftmp;
             dF[NDIM * cj + d] += vftmp;
@@ -2235,7 +2226,7 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
         bound_x2 = poly_x[(bound_i + 1) % n];
         bound_y1 = poly_y[bound_i];
         bound_y2 = poly_y[(bound_i + 1) % n];
-        for (i = 0; i < cellDOF / NDIM; i++) {
+        for (int i = 0; i < cellDOF / NDIM; i++) {
           distanceParticleWall = distanceLinePointComponents(bound_x1, bound_y1, bound_x2, bound_y2, dpos[i * NDIM], dpos[i * NDIM + 1], Rx, Ry);
           dw = drad[i] - distanceParticleWall;
           if (distanceParticleWall <= drad[i]) {
@@ -2246,12 +2237,12 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
       }
     }
     // FIRE step 5. Final VV update
-    for (i = 0; i < cellDOF; i++)
+    for (int i = 0; i < cellDOF; i++)
       dv[i] += 0.5 * dt * dF[i];
 
     // update forces to check
     fcheck = 0.0;
-    for (i = 0; i < cellDOF; i++)
+    for (int i = 0; i < cellDOF; i++)
       fcheck += dF[i] * dF[i];
     fcheck = sqrt(fcheck / NCELLS);
 
@@ -2310,7 +2301,7 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
   right = 1.0 * *max_element(std::begin(poly_bd_x[0]), std::end(poly_bd_x[0]));
 
   // initialize vertex positions based on cell centers
-  for (ci = 0; ci < NCELLS; ci++) {
+  for (int ci = 0; ci < NCELLS; ci++) {
     ip2Stream << dpos[ci * NDIM] << '\t' << dpos[ci * NDIM + 1] << '\n';
     for (vi = 0; vi < nv.at(ci); vi++) {
       // get global vertex index

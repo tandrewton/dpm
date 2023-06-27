@@ -1,9 +1,9 @@
 %pwd should give ~/Documents/YalePhd/projects/dpm
-function drawCellSim(N, calA0, phi, att, v0, k_ecm, k_off)
+%function drawCellSim(N, calA0, phi, att, v0, k_ecm, k_off)
 %close all; clear
-isTestData = false; %uncomment if using function call to pipeline data
+%isTestData = false; %uncomment if using function call to pipeline data
 
-%isTestData = true; %uncomment if using test data
+isTestData = true; %uncomment if using test data
 testDataii = 8;
 testDataID = num2str(testDataii);
 
@@ -31,7 +31,7 @@ walls = 0;
 att_range = 0.3;
 
 %if makeAMovie is 0, then plot every frame separately
-forImageAnalysis = 0;
+forImageAnalysis = 1;
 if (forImageAnalysis)
     showCatchBonds = 0;
     showverts = 1;
@@ -286,7 +286,7 @@ for seed = startSeed:max_seed
     end
     cd ../../../../
 end
-end
+%end
 
 function [cornerx, cornery] = patchConnectedRectanglesCorners(midptx, midpty, width)
 %INPUT: midptx, midpty are N x 1 vectors representing N coordinates

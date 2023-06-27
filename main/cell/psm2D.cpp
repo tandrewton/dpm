@@ -21,7 +21,7 @@
 ./main/cell/psm2D.o   12   16 1.05 0.75 0.0   0.0   0.05   10.0  1.0     1.0   1    50    test5
 ./main/cell/psm2D.o   12   16 1.05 0.75 0.01  0.0   0.05   10.0  1.0     1.0   1    50    test6
 ./main/cell/psm2D.o   12   16 1.05 0.75 0.1   0.0   0.05   10.0  1.0     1.0   1    50    test7
-./main/cell/psm2D.o   8   16 1.05 0.75 0.2    0.0   0.05   10.0  1.0    0.1   1    50    test8
+./main/cell/psm2D.o   8    16 1.0  0.74 0.1   0.0   0.005   1.0  0.06    3.0   1    100    test8
 
 ./main/cell/psm2D.o   40   16 1.05 0.9 0.1    0.0   0.1   10.0   1.0     1.0   1    100    test9
 ./main/cell/psm2D.o   40   16 1.05 0.9 0.1    0.0   0.05   10.0  1.0     1.0   1    1000    test10
@@ -59,7 +59,6 @@ T parseArg(const std::string& arg) {
 // global constants
 const bool plotCompression = 0;     // whether or not to plot configuration during compression protocol (0 saves memory)
 const double dphi0 = 0.01;          // packing fraction increment
-const double ka = 1.0;              // area force spring constant (should be unit)
 const double kc = 1.0;              // interaction force spring constant (should be unit)
 const double kb = 0.01;             // bending energy spring constant (should be zero)
 const double kl = 1.0;              // segment length interaction force (should be unit)
@@ -72,7 +71,7 @@ const double att_range = 0.3;
 
 int main(int argc, char const* argv[]) {
   // local variables to be read in
-  double B = 1.0;
+  double B = 1.0, ka = 23.6;
   // Read command-line arguments into corresponding variables
   int NCELLS = parseArg<int>(argv[1]);
   int nv = parseArg<int>(argv[2]);
@@ -99,7 +98,7 @@ int main(int argc, char const* argv[]) {
   cell2D.openCatchBondObject(catchBondFile);
 
   // set spring constants
-  cell2D.setka(ka);
+  cell2D.setka(1.0);  // set to 1 for initialization and FIRE, then set to larger for dynamic
   cell2D.setkl(kl);
   cell2D.setkb(kb);
   cell2D.setkc(kc);
@@ -158,7 +157,8 @@ int main(int argc, char const* argv[]) {
   cell2D.resizeCatchBonds();
   cell2D.resizeNeighborLinkedList2D();
 
-  double relaxTime = 50.0;
+  double relaxTime = 10.0;
+  cell2D.setka(ka);
   cell2D.dampedVertexNVE(attractiveSmoothForceUpdate, dt0, relaxTime, 0);
   cell2D.setl00();  // set l00 to be l0 before setting maxwell relaxation time
   cell2D.setActiveBrownianParameters(v0_abp, tau_abp);

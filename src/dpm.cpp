@@ -446,6 +446,7 @@ void dpm::initializeVertexIndexing2D() {
 }
 
 // initialize vertex shape parameters and (a0, l0, t0, r) based on nv (nref is the reference nv, smallest nv among the polydispersity)
+// sets a0 to 1 if nvtmp=nref, which is true for monodisperse2D()
 void dpm::initializeVertexShapeParameters(double calA0, int nref) {
   // local variables
   int gi, ci, vi, nvtmp;
