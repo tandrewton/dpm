@@ -513,8 +513,8 @@ void cell::brownianCrawlingUpdate() {
     double randNum = (float)(rand()) / (float)(RAND_MAX);  // random number between 0 and 1
     for (int vi = 0; vi < nv[ci]; vi++) {
       gi = gindex(ci, vi);
-      F[gi * NDIM] += randNum * v0_ABP * cos(director);
-      F[gi * NDIM + 1] += randNum * v0_ABP * sin(director);
+      F[gi * NDIM] += randNum * 2 * v0_ABP * cos(director);
+      F[gi * NDIM + 1] += randNum * 2 * v0_ABP * sin(director);
     }
   }
 
@@ -524,7 +524,7 @@ void cell::brownianCrawlingUpdate() {
 
 void cell::directorDiffusion() {
   double r1, r2, grv;
-  double Dr0 = 1 / tau_ABP;
+  double Dr0 = 1.0 / tau_ABP;
   for (int ci = 0; ci < NCELLS; ci++) {
     if (cellID[ci] != 0)  // only cell types are allowed to crawl, boundaries are not allowed to crawl
       continue;
@@ -533,8 +533,8 @@ void cell::directorDiffusion() {
     r2 = drand48();
     // box-muller transform of random numbers to a gaussian random variable
     grv = sqrt(-2.0 * log(r1)) * cos(2.0 * PI * r2);
-    // if flag is present, do not diffuse.
-    psi[ci] += sqrt(2.0 * Dr0) * grv * dt;
+    // note: grv has variance of sqrt(dt), so we need an additional sqrt(dt) to get a unit of time.
+    psi[ci] += sqrt(2.0 * Dr0 * dt) * grv;
     psi[ci] -= 2 * PI * round(psi[ci] / (2 * PI));
   }
 }

@@ -2,6 +2,7 @@
 #define CELL_H
 
 #include <algorithm>
+#include <random>
 #include <stdexcept>
 #include "dpm.h"
 
@@ -107,6 +108,10 @@ class cell : public dpm {
   void setActiveBrownianParameters(double v0, double tau) {
     v0_ABP = v0;
     tau_ABP = tau;
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis(0.0, 2 * PI);
+    std::generate(psi.begin(), psi.end(), [&]() { return dis(gen); });
   }
   void setkecm(double val) { k_ecm = val; }
   void setkoff(double val) { k_off = val; }

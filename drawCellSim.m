@@ -31,7 +31,7 @@ walls = 0;
 att_range = 0.3;
 
 %if makeAMovie is 0, then plot every frame separately
-forImageAnalysis = 1;
+forImageAnalysis = 0;
 if (forImageAnalysis)
     showCatchBonds = 0;
     showverts = 1;
@@ -39,8 +39,8 @@ if (forImageAnalysis)
     makeAMovie = 1;
 else
     showCatchBonds = 1;
-    showverts = 0;
-    showcirculoline = 0;
+    showverts = 1;
+    showcirculoline = 1;
     makeAMovie = 1;
 end
 
