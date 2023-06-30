@@ -1858,6 +1858,28 @@ void cell::cellPolarityForces(int ci, double k_polarity, std::string direction) 
   }
 }
 
+void cell::scalePolyWallSize(double scaleFactor) {
+  for (int tissueIt = 0; tissueIt < poly_bd_x.size(); tissueIt++) {
+    double cx = 0, cy = 0;
+    vector<double> poly_x = poly_bd_x[tissueIt];
+    vector<double> poly_y = poly_bd_y[tissueIt];
+    // calculate the center of the polygon
+    for (int i = 0; i < poly_x.size(); i++) {
+      cx += poly_x[i];
+      cy += poly_y[i];
+    }
+    cx /= poly_x.size();
+    cy /= poly_x.size();
+
+    // new vertex is given by scaling the separation vector between center and vertex,
+    //    and then adding it to the center
+    for (int i = 0; i < poly_x.size(); i++) {
+      poly_bd_x[tissueIt][i] = (poly_x[i] - cx) * scaleFactor + cx;
+      poly_bd_y[tissueIt][i] = (poly_y[i] - cy) * scaleFactor + cy;
+    }
+  }
+}
+
 // boundary routines
 void cell::replacePolyWallWithDP(int numCellTypes) {
   // take a polyWall in poly_bd_x and poly_bd_y, create data to replace the polywall with a DP of the same size and shape, then delete the polywall. Assign the new DP a cellTypeIndex of numCellTypes - 1.
@@ -2741,7 +2763,10 @@ void cell::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, doub
     if (it >= itmax)
       cout << "inside vertexCompress2Target2D_polygon, reached maxit. exiting compression steps\n";
     // scale particle sizes
-    scaleParticleSizes2D(scaleFactor);
+    // scaleParticleSizes2D(scaleFactor);
+
+    // scale poly boundary size to preserve a0=1
+    scalePolyWallSize(1 / scaleFactor);
 
     // update phi0
     phi0 = vertexPreferredPackingFraction2D_polygon();

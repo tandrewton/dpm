@@ -127,6 +127,7 @@ class cell : public dpm {
   void openCatchBondObject(const std::string& filename) { openFile(catchBondOut, filename); }
 
   // boundary routines
+  void scalePolyWallSize(double scaleFactor);
   void replacePolyWallWithDP(int numCellTypes);
   void addDP(int numVerts, const vector<double>& dp_x, const vector<double>& dp_y, int cellTypeIndex, int numCellTypes);
 

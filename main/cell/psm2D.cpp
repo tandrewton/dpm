@@ -21,7 +21,7 @@
 ./main/cell/psm2D.o   12   16 1.05 0.75 0.0   0.0   0.05   10.0  1.0     1.0   1    50    test5
 ./main/cell/psm2D.o   12   16 1.05 0.75 0.01  0.0   0.05   10.0  1.0     1.0   1    50    test6
 ./main/cell/psm2D.o   12   16 1.05 0.75 0.1   0.0   0.05   10.0  0.06    1.0   1    50    test7
-./main/cell/psm2D.o   6    16 1.0  0.74 0.1   0.0   0.05   1.0  0.06    1.0   1    100    test8
+./main/cell/psm2D.o   6    16 1.0  0.74 0.1   0.0   0.05   1.0  0.06    1.0   1    50    test8
 
 ./main/cell/psm2D.o   40   16 1.05 0.9 0.1    0.0   0.1   10.0   1.0     1.0   1    100    test9
 ./main/cell/psm2D.o   40   16 1.05 0.9 0.1    0.0   0.05   10.0  1.0     1.0   1    1000    test10
@@ -63,15 +63,15 @@ const double kc = 1.0;              // interaction force spring constant (should
 const double kb = 0.01;             // bending energy spring constant (should be zero)
 const double kl = 1.0;              // segment length interaction force (should be unit)
 const double boxLengthScale = 2.5;  // neighbor list box size in units of initial l0
-const double phi0 = 0.91;           // initial preferred packing fraction
-const double dt0 = 0.01;            // initial magnitude of time step in units of MD time
+// const double phi0 = 0.91;           // initial preferred packing fraction
+const double dt0 = 0.01;  // initial magnitude of time step in units of MD time
 const double Ptol = 1e-5;
 const double Ftol = 1e-6;
 const double att_range = 0.3;
 
 int main(int argc, char const* argv[]) {
   // local variables to be read in
-  double B = 1.0, ka = 23.6;
+  double B = 1.0, ka = 23.6, phi0 = 0.5;
   // Read command-line arguments into corresponding variables
   int NCELLS = parseArg<int>(argv[1]);
   int nv = parseArg<int>(argv[2]);
@@ -164,7 +164,7 @@ int main(int argc, char const* argv[]) {
   cell2D.setActiveBrownianParameters(v0_abp, tau_abp);
 
   cell2D.dampedVertexNVE(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, relaxTime, 0);
-  cell2D.dampedVertexNVE(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, runTime / 20.0);
+  cell2D.dampedVertexNVE(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, runTime / 10.0);
   cout << "\n** Finished psm.cpp (2D transverse section of pre-somitic mesoderm), ending. " << endl;
 
   return 0;
