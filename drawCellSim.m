@@ -1,9 +1,9 @@
 %pwd should give ~/Documents/YalePhd/projects/dpm
-%function drawCellSim(N, calA0, phi, att, v0, k_ecm, k_off)
+function drawCellSim(N, calA0, phi, att, v0, k_ecm, k_off)
 %close all; clear
-%isTestData = false; %uncomment if using function call to pipeline data
+isTestData = false; %uncomment if using function call to pipeline data
 
-isTestData = true; %uncomment if using test data
+%isTestData = true; %uncomment if using test data
 testDataii = 8;
 testDataID = num2str(testDataii);
 
@@ -21,7 +21,7 @@ runType = "psm";
 %calA0="1.05";
 t_maxwell = "0.0";
 %v0 = "0.05";
-t_abp = "50.0";
+t_abp = "1.0";
 %att="0.1";
 Duration="1000";
 FSKIP = 1;
@@ -286,7 +286,7 @@ for seed = startSeed:max_seed
     end
     cd ../../../../
 end
-%end
+end
 
 function [cornerx, cornery] = patchConnectedRectanglesCorners(midptx, midpty, width)
 %INPUT: midptx, midpty are N x 1 vectors representing N coordinates
