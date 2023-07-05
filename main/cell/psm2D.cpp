@@ -146,6 +146,7 @@ int main(int argc, char const* argv[]) {
   int circleID = 0, rectangleID = 1;
   cell2D.initializeTransverseTissue(phi0, Ftol, circleID);  // initialize within a ring boundary
   cell2D.initializeNeighborLinkedList2D(boxLengthScale);
+  cell2D.printConfiguration2D();
 
   // switch ring boundary for rectangular boundary
   // cell2D.replaceCircularBoundary(rectangleID, 2.0);
