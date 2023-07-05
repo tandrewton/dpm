@@ -21,7 +21,7 @@
 ./main/cell/psm2D.o   12   16 1.05 0.75 0.0   0.0   0.05   10.0  1.0     1.0   1    50    test5
 ./main/cell/psm2D.o   12   16 1.05 0.75 0.01  0.0   0.05   10.0  1.0     1.0   1    50    test6
 ./main/cell/psm2D.o   12   16 1.05 0.75 0.1   0.0   0.05   10.0  0.06    1.0   1    50    test7
-./main/cell/psm2D.o   6    16 1.0  0.63 0.1   0.0   0.05   1.0  0.06    1.0   1    50    test8
+./main/cell/psm2D.o   30   10 1.05  0.53 0.1   0.0   0.05   1.0  0.06    1.0   1    0    test8
 
 ./main/cell/psm2D.o   40   16 1.05 0.9 0.1    0.0   0.1   10.0   1.0     1.0   1    100    test9
 ./main/cell/psm2D.o   40   16 1.05 0.9 0.1    0.0   0.05   10.0  1.0     1.0   1    1000    test10
@@ -71,8 +71,10 @@ const double att_range = 0.3;
 
 int main(int argc, char const* argv[]) {
   // local variables to be read in
-  double B = 1.0, ka = 23.6, phi0 = 0.5;
-  // Read command-line arguments into corresponding variables
+  double B = 1.0, phi0 = 0.55;
+  // double ka = 23.6;
+  double ka = 1.0;
+  //  Read command-line arguments into corresponding variables
   int NCELLS = parseArg<int>(argv[1]);
   int nv = parseArg<int>(argv[2]);
   double calA0 = parseArg<double>(argv[3]);
@@ -152,18 +154,22 @@ int main(int argc, char const* argv[]) {
   bool isFIRE = true;  // use damped NVE to quench
   cell2D.resizeNeighborLinkedList2D();
   cell2D.vertexCompress2Target2D_polygon(attractiveSmoothWithPolyWalls, Ftol, dt0, phi, 2 * dphi0, isFIRE);
+  cell2D.printConfiguration2D();
 
   cell2D.replacePolyWallWithDP(numCellTypes);
   cell2D.resizeCatchBonds();
   cell2D.resizeNeighborLinkedList2D();
+  cell2D.printConfiguration2D();
 
   double relaxTime = 10.0;
   cell2D.setka(ka);
   cell2D.dampedVertexNVE(attractiveSmoothForceUpdate, dt0, relaxTime, 0);
   cell2D.setl00();  // set l00 to be l0 before setting maxwell relaxation time
   cell2D.setActiveBrownianParameters(v0_abp, tau_abp);
+  cell2D.printConfiguration2D();
 
   cell2D.dampedVertexNVE(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, relaxTime, 0);
+  cell2D.printConfiguration2D();
   cell2D.dampedVertexNVE(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, runTime / 20.0);
   cout << "\n** Finished psm.cpp (2D transverse section of pre-somitic mesoderm), ending. " << endl;
 

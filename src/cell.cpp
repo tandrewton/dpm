@@ -2022,14 +2022,11 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
   vector<int> numCellsInTissue;
   for (int i = 0; i < tissueRadii.size(); i++) {
     totalArea += tissueRadii[i] * tissueRadii[i];
-    cout << totalArea << '\t' << tissueRadii[i] << '\n';
   }
 
   for (int i = 0; i < tissueRadii.size(); i++) {
     cellFractionPerTissue.push_back(tissueRadii[i] * tissueRadii[i] / totalArea);
     numCellsInTissue.push_back(round(cellFractionPerTissue[i] * NCELLS));
-    cout << "cellFraction = " << tissueRadii[i] * tissueRadii[i] / totalArea << ", initializing " << NCELLS << " cells, with tissue " << i << " having cell fraction = " << cellFractionPerTissue[i] << '\n';
-    cout << "NCELLS * cellFraction = " << NCELLS * cellFractionPerTissue[i] << ", which is " << round(NCELLS * cellFractionPerTissue[i]) << " when rounded\n";
   }
 
   assert(NCELLS == accumulate(numCellsInTissue.begin(), numCellsInTissue.end(), 0));

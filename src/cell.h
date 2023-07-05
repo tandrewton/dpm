@@ -14,11 +14,8 @@ typedef void (cell::*cellMemFn)(void);
 
 class cell : public dpm {
  protected:
-  // specific output objects
-  std::ofstream enout;         // output stream for energy data
-  std::ofstream stressout;     // output stream for stress data
-  std::ofstream tissueout;     // output stream for tissue measurements over time
-  std::ofstream catchBondOut;  // output stream for catch bond positions
+  // output streams for energy, stress, tissue measurements, catch bond positions, mean square displacements
+  std::ofstream enout, stressout, tissueout, catchBondOut, msdout;
 
   double simclock;             // accumulator for simulation time
   std::vector<double> VL, XL;  // wall velocity and positions if simulating with wall forces.
@@ -125,6 +122,7 @@ class cell : public dpm {
   void openStressObject(const std::string& filename) { openFile(stressout, filename); }
   void openTissueObject(const std::string& filename) { openFile(tissueout, filename); }
   void openCatchBondObject(const std::string& filename) { openFile(catchBondOut, filename); }
+  void openMSDObject(const std::string& filename) { openFile(msdout, filename); }
 
   // boundary routines
   void scalePolyWallSize(double scaleFactor);
