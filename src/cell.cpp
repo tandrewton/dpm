@@ -1871,12 +1871,15 @@ void cell::scalePolyWallSize(double scaleFactor) {
     cx /= poly_x.size();
     cy /= poly_x.size();
 
+    cout << "d(p_1, center) = " << sqrt(pow(poly_bd_x[tissueIt][0] - cx, 2) + pow(poly_bd_y[tissueIt][0] - cy, 2)) << '\n';
+
     // new vertex is given by scaling the separation vector between center and vertex,
     //    and then adding it to the center
     for (int i = 0; i < poly_x.size(); i++) {
       poly_bd_x[tissueIt][i] = (poly_x[i] - cx) * scaleFactor + cx;
       poly_bd_y[tissueIt][i] = (poly_y[i] - cy) * scaleFactor + cy;
     }
+    cout << "after scaling, d(p_1, center) = " << sqrt(pow(poly_bd_x[tissueIt][0] - cx, 2) + pow(poly_bd_y[tissueIt][0] - cy, 2)) << '\n';
   }
 }
 
@@ -2764,6 +2767,9 @@ void cell::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, doub
 
     // scale poly boundary size to preserve a0=1
     scalePolyWallSize(1 / scaleFactor);
+    cout << "scalePolyWallSize by factor of " << 1.0 / scaleFactor << "\n";
+    cout << "vertex size = " << r[0] << '\n';
+    cout << "cell size = " << a0[0] << '\n';
 
     // update phi0
     phi0 = vertexPreferredPackingFraction2D_polygon();

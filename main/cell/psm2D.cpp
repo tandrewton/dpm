@@ -152,7 +152,7 @@ int main(int argc, char const* argv[]) {
   // cell2D.replaceCircularBoundary(rectangleID, 2.0);
 
   // compress to desired density
-  bool isFIRE = true;  // use damped NVE to quench
+  bool isFIRE = true;  // FIRE or dampedNVE to quench
   cell2D.resizeNeighborLinkedList2D();
   cell2D.vertexCompress2Target2D_polygon(attractiveSmoothWithPolyWalls, Ftol, dt0, phi, 2 * dphi0, isFIRE);
   cell2D.printConfiguration2D();

@@ -2647,6 +2647,7 @@ void dpm::vertexAttractiveForces2D() {
 void dpm::evaluatePolygonalWallForces(const std::vector<double>& poly_x, const std::vector<double>& poly_y, bool attractionOn) {
   // evaluates particle-wall forces for a polygonal boundary specified by poly_x,poly_y. Does not compute stress yet.
   int n = poly_x.size();
+  double wallThicknessBuffer = 2.0;  // used to make sure wall can't phase through a vertex when scaling vertex or wall positions
   double distanceParticleWall, scaledDistParticleWall, Rx, Ry, dw, K = 5;
   double kint = (kc * l1) / (l2 - l1);
   double bound_x1, bound_x2, bound_y1, bound_y2;
@@ -2678,7 +2679,7 @@ void dpm::evaluatePolygonalWallForces(const std::vector<double>& poly_x, const s
           F[i * NDIM] += ftmp * Rx / distanceParticleWall;
           F[i * NDIM + 1] += ftmp * Ry / distanceParticleWall;
         }
-      } else if (distanceParticleWall <= r[i]) {  // purely repulsive, only look for particle-wall overlap
+      } else if (distanceParticleWall <= wallThicknessBuffer * r[i]) {  // purely repulsive, only look for particle-wall overlap, with 2x thickness buffer on wall
         F[i * NDIM] += K * dw * Rx / distanceParticleWall;
         F[i * NDIM + 1] += K * dw * Ry / distanceParticleWall;
         U += K / 2 * pow(dw, 2);
