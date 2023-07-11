@@ -513,6 +513,8 @@ void cell::brownianCrawlingUpdate() {
     double randNum = (float)(rand()) / (float)(RAND_MAX);  // random number between 0 and 1
     for (int vi = 0; vi < nv[ci]; vi++) {
       gi = gindex(ci, vi);
+      // it's possible that this force needs a proportionality constant like 1/N_v or something. do the math
+      // when measuring MSD, test it on one particle and see if linear displacement is off by a factor of N_v.?
       F[gi * NDIM] += randNum * 2 * v0_ABP * cos(director);
       F[gi * NDIM + 1] += randNum * 2 * v0_ABP * sin(director);
     }
@@ -533,7 +535,7 @@ void cell::directorDiffusion() {
     r2 = drand48();
     // box-muller transform of random numbers to a gaussian random variable
     grv = sqrt(-2.0 * log(r1)) * cos(2.0 * PI * r2);
-    // note: grv has variance of sqrt(dt), so we need an additional sqrt(dt) to get a unit of time.
+    // note: grv has variance 1, but needs to be scaled to sqrt(dt)
     psi[ci] += sqrt(2.0 * Dr0 * dt) * grv;
     psi[ci] -= 2 * PI * round(psi[ci] / (2 * PI));
   }
@@ -2056,7 +2058,7 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
   ofstream ip2Stream("initPosSP2.txt");
   for (int n = 0; n < numTissues; n++) {
     cout << "initializing cell centers randomly but rejecting if further than R from the center for tissue " << n << "out of " << numTissues - 1 << "\n";
-    double scale_radius = 1.1;                   // make the polygon radius slightly larger so that it encompasses the circle that points are initialized in
+    double scale_radius = 1.2;                   // make the polygon radius slightly larger so that it encompasses the circle that points are initialized in
     poly_bd_x.push_back(std::vector<double>());  // make new data for generateCircularBoundary to write a polygon
     poly_bd_y.push_back(std::vector<double>());
 

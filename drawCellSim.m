@@ -31,7 +31,7 @@ walls = 0;
 att_range = 0.3;
 
 %if makeAMovie is 0, then plot every frame separately
-forImageAnalysis = 0;
+forImageAnalysis = 1;
 if (forImageAnalysis)
     showCatchBonds = 0;
     showverts = 1;
@@ -187,23 +187,10 @@ for seed = startSeed:max_seed
             %clr = cellCLR(IC(nn),:);
             colors = ['r','g','b','c','m','y','k'];
             %clr = colors(cellIDtmp+1);
-            clr='k';
+            clr='b';
 
             cx = mean(xtmp);
             cy = mean(ytmp);
-            if showverts == 1
-                if (cellID(nn) == 0)
-                    boundaryX = xtmp + vradtmp * cos(theta);
-                    boundaryY = ytmp + vradtmp * sin(theta);
-                    patch(boundaryX', boundaryY', 'black', 'linestyle', 'none')
-                end
-                % calculate coordinates of a rectangle representing 
-                % the line segment between successive vertices in a DP
-                if (cellID(nn) == 0 && showcirculoline == 1)
-                    [cornerx, cornery] = patchConnectedRectanglesCorners(xtmp, ytmp, vradtmp);
-                    patch(cornerx', cornery', 'black','LineStyle', 'none')
-                end
-            end
             if (~showverts || (showverts && showcirculoline))
                 rx = xtmp - cx;
                 ry = ytmp - cy;
@@ -216,6 +203,7 @@ for seed = startSeed:max_seed
                     % if cellID is a boundary, have it be blue
                     % exterior with white interior
                     patch('Faces',finfo,'vertices',vpos,'FaceColor','w','EdgeColor','b','linewidth',0.001);
+                    set(gca,'children',flipud(get(gca,'children')))
                     if (forImageAnalysis)
                         % switch to bd figure, plot bd, switch back
                         figure(fnum_boundary); axis off;
@@ -223,12 +211,21 @@ for seed = startSeed:max_seed
                         figure(fnum);
                     end
                 else
-                    % if cellID is a real cell, have it be black
-                    % exterior with black interior
-                    patch('Faces',finfo,'vertices',vpos,'FaceColor','k');
-                    %patch('Faces',finfo,'vertices',vpos,'FaceColor',clr, ...
-                        %'FaceAlpha', 'flat','FaceVertexAlphaData', 0, 'EdgeColor','k',...
-                        %'linewidth',0.001);
+                    % if cellID is a real cell, give it an interior color
+                    patch('Faces',finfo,'vertices',vpos,'FaceColor','cyan','linestyle','none');
+                end
+            end
+            if showverts == 1
+                if (cellID(nn) == 0)
+                    boundaryX = xtmp + vradtmp * cos(theta);
+                    boundaryY = ytmp + vradtmp * sin(theta);
+                    patch(boundaryX', boundaryY', clr, 'linestyle', 'none')
+                end
+                % calculate coordinates of a rectangle representing 
+                % the line segment between successive vertices in a DP
+                if (cellID(nn) == 0 && showcirculoline == 1)
+                    [cornerx, cornery] = patchConnectedRectanglesCorners(xtmp, ytmp, vradtmp);
+                    patch(cornerx', cornery', clr,'LineStyle', 'none')
                 end
             end
         end
@@ -237,7 +234,7 @@ for seed = startSeed:max_seed
         ax = gca;
         % since boundaries are last in the file, flip children order to get
         % boundary patch objects below cell patch objects
-        set(gca,'children',flipud(get(gca,'children'))) 
+        %set(gca,'children',flipud(get(gca,'children'))) 
         %ax.XTick = [];
         %ax.YTick = [];
         if walls == 1
