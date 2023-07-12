@@ -3169,6 +3169,18 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double dt0, double duration, doub
     // update sim clock
     simclock += dt;
 
+    if (msdout.is_open() && int((simclock - t0) / dt) % int(0.1 / dt) == 0) {
+      msdout << simclock - t0 << '\t';
+      double cx = 0, cy = 0;
+      for (int ci = 0; ci < NCELLS; ci++) {
+        if (cellID[ci] == 0) {
+          com2D(ci, cx, cy);
+          msdout << cx << '\t' << cy << '\t';
+        }
+      }
+      msdout << '\n';
+    }
+
     // print to console and file
     if (int(printInterval) != 0) {
       if (int((simclock - t0) / dt) % NPRINTSKIP == 0 &&
