@@ -3187,18 +3187,22 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double dt0, double duration, doub
         }
         msdout << '\n';
       }
-      /*if (cellContactOut.is_open()) {
+      if (cellContactOut.is_open()) {
+        std::vector<std::vector<int>> cij_matrix(NCELLS, std::vector<int>(NCELLS, 0));
         for (int cj = 0; cj < NCELLS; cj++) {
           for (int ci = 0; ci < NCELLS; ci++) {
-            if (ci >= cj) {
+            if (ci > cj) {
               int element = cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2];
-              cout << element << " ";
+              cij_matrix[ci][cj] = element;
+              // cout << element << " ";
             } else
-              cout << "0 ";
+              // cout << "0 ";
+              cij_matrix[ci][cj] = 0;
           }
-          cout << '\n';
+          // cout << '\n';
         }
-      }*/
+        saveMatrixToCSV(cij_matrix, cellContactOut);
+      }
     }
 
     // print to console and file
@@ -3274,19 +3278,6 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double dt0, double duration, doub
             cout << "printing maxCellID boundary ID tissueMeasurements to file\n";
             // hardcoding boundary ID for now.
             takeTissueMeasurements(maxCellID);
-          }
-        }
-
-        if (cellContactOut.is_open()) {
-          for (int cj = 0; cj < NCELLS; cj++) {
-            for (int ci = 0; ci < NCELLS; ci++) {
-              if (ci >= cj) {
-                int element = cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2];
-                cout << element << " ";
-              } else
-                cout << "0 ";
-            }
-            cout << '\n';
           }
         }
       }
@@ -3486,4 +3477,21 @@ void cell::printConfiguration2D() {
          << " " << endl;
 
   cout << "leaving printPosCell\n";
+}
+
+// Function to save a single matrix to a CSV file
+void cell::saveMatrixToCSV(const std::vector<std::vector<int>>& matrix, std::ofstream& filestream) {
+  if (filestream.is_open()) {
+    for (const auto& row : matrix) {
+      for (size_t i = 0; i < row.size(); i++) {
+        filestream << row[i];
+        if (i < row.size() - 1)
+          filestream << ",";
+      }
+      filestream << "\n";
+    }
+    filestream << "\n";
+  } else {
+    std::cerr << "Error opening file\n";
+  }
 }

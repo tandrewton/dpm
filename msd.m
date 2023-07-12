@@ -21,3 +21,16 @@ MSD = mean(msd_per_particle_per_lag, 1);
 
 figure()
 plot(time(2:maxLag), MSD(2:end),'k')
+%%
+filename = "test8.cellContact";
+delimiter = ','; % Delimiter used within each matrix
+
+% Read the entire file as a single string
+fileContent = fileread(filename);
+
+% Split the string into individual matrices using newline separations
+matrices = strsplit(fileContent, '\n\n');
+
+% Remove empty cell from last newline character
+nonemptyIndices = ~cellfun(@isempty, matrices);
+matrices = matrices(nonemptyIndices);

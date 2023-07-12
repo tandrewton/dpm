@@ -143,6 +143,8 @@ class cell : public dpm {
 
   // printouts
   void printConfiguration2D();
+  // Function to save a single matrix to a CSV file
+  void saveMatrixToCSV(const std::vector<std::vector<int>>& matrix, std::ofstream& filestream);  // int type!
 };
 
 #endif
