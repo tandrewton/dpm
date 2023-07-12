@@ -191,6 +191,7 @@ for seed = startSeed:max_seed
 
             cx = mean(xtmp);
             cy = mean(ytmp);
+            text(cx, cy, num2str(nn));
             if (~showverts || (showverts && showcirculoline))
                 rx = xtmp - cx;
                 ry = ytmp - cy;

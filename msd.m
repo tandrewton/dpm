@@ -9,15 +9,15 @@ cellPos = data(:,2:end);
 numCells = size(cellPos, 2) / 2;
 numSteps = size(cellPos, 1);
 
-maxLag = numSteps/2;  % Maximum time lag to consider
-msd_per_lag = zeros(numCells, maxLag);
+maxLag = round(numSteps/4);  % Maximum time lag to consider
+msd_per_particle_per_lag = zeros(numCells, maxLag);
 
 for lag = 1:maxLag
     displacements = cellPos(lag+1:end, :) - cellPos(1:end-lag, :);
-    msd_per_particle = mean(sum(displacements.^2, 2));
-    msd_per_lag(:, lag) = mean(msd_per_particle, 1);
+    msd_per_particle = sum(displacements.^2, 2);
+    msd_per_particle_per_lag(:, lag) = mean(msd_per_particle, 1);
 end
-MSD = mean(msd_per_lag, 1);
+MSD = mean(msd_per_particle_per_lag, 1);
 
 figure()
-plot(time(1:maxLag), MSD,'k')
+plot(time(2:maxLag), MSD(2:end),'k')

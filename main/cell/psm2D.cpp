@@ -13,34 +13,17 @@
 // run command:
 
 /*
-./main/cell/psm2D.o   12   25 1.05 0.85 0.01  25.0   0.01  1.0   1.0   1.0   1     400    test1
-./main/cell/psm2D.o   12   25 1.05 0.85 0.05  25.0   0.01  1.0   1.0   1.0   1    400    test2
-./main/cell/psm2D.o   12   25 1.05 0.85 0.1   25.0   0.01  1.0   1.0   1.0   1    400    test3
-./main/cell/psm2D.o   12   25 1.05 0.85 0.2   25.0   0.01  1.0   1.0   1.0   1    400    test4
+./main/cell/psm2D.o   12   25 1.05 0.85 0.01  25.0    0.01    1.0   1.0   1.0   1     400    test1
+./main/cell/psm2D.o   12   25 1.05 0.85 0.05  25.0    0.01    1.0   1.0   1.0   1    400    test2
+./main/cell/psm2D.o   12   25 1.05 0.85 0.1   25.0    0.01    1.0   1.0   1.0   1    400    test3
+./main/cell/psm2D.o   12   25 1.05 0.85 0.2   25.0    0.01    1.0   1.0   1.0   1    400    test4
 
-./main/cell/psm2D.o   12   16 1.05 0.75 0.0   0.0   0.05   10.0  1.0     1.0   1    50    test5
-./main/cell/psm2D.o   12   16 1.05 0.75 0.01  0.0   0.05   10.0  1.0     1.0   1    50    test6
-./main/cell/psm2D.o   12   16 1.05 0.75 0.1   0.0   0.05   10.0  0.06    1.0   1    50    test7
-./main/cell/psm2D.o   12   10 1.0  0.53 0.01  0.0    0.01   1.0  0.06    1.0   1    50    test8
-
-./main/cell/psm2D.o   40   10 1.0  0.63 0.01  0.0   0.005   1.0  0.06    1.0   1    500    test9
-./main/cell/psm2D.o   40   10 1.0  0.73 0.01  0.0   0.005   1.0  0.06    1.0   1    500    test10
-./main/cell/psm2D.o   40   16 1.05 0.9 0.1    0.0   0.01   10.0  1.0     1.0   1    1000    test11
-
-./main/cell/psm2D.o   40   16 1.05 0.9 0.05   0.0   0.1   10.0   1.0     1.0   1    1000    test12
-./main/cell/psm2D.o   40   16 1.05 0.9 0.05   0.0   0.05   10.0  1.0     1.0   1    1000    test13
-./main/cell/psm2D.o   40   16 1.05 0.9 0.05   0.0   0.01   10.0  1.0     1.0   1    1000    test14
-
-./main/cell/psm2D.o   40   16 1.05 0.9 0.01   0.0   0.1   10.0   1.0     1.0   1    1000    test15
-./main/cell/psm2D.o   40   16 1.05 0.9 0.01   0.0   0.05   10.0  1.0     1.0   1    1000    test16
-./main/cell/psm2D.o   40   16 1.05 0.9 0.01   0.0   0.01   10.0  1.0     1.0   1    1000    test17
-
-./main/cell/psm2D.o   40   16 1.05 0.9   0    0.0   0.1   10.0    1.0     1.0   1    1000    test18
-./main/cell/psm2D.o   40   16 1.05 0.9   0    0.0   0.05   10.0   1.0     1.0   1    1000    test19
-./main/cell/psm2D.o   40   16 1.05 0.9   0    0.0   0.01   10.0   1.0     1.0   1    1000    test20
-
+./main/cell/psm2D.o   12   16 1.05 0.75 0.0   10.0    0.05    10.0  1.0     1.0   1    50    test5
+./main/cell/psm2D.o   12   16 1.05 0.75 0.01  10.0    0.05    10.0  1.0     1.0   1    50    test6
+./main/cell/psm2D.o   12   16 1.05 0.75 0.1   10.0    0.05    10.0  0.06    1.0   1    50    test7
+./main/cell/psm2D.o   6   10 1.0  0.53 0.01   10.0    0.05    1.0  0.05    1.0   1    200    test8
 */
-//                  NCELLS NV  A0  phi att t_maxwell v0  tau_abp k_ecm k_off seed duration outFileStem
+//                  NCELLS NV  A0  phi att t_maxwell_boundary v0  tau_abp k_ecm k_off seed duration outFileStem
 
 #include <sstream>
 #include "cell.h"
@@ -71,9 +54,9 @@ const double att_range = 0.3;
 
 int main(int argc, char const* argv[]) {
   // local variables to be read in
-  double B = 1.0, phi0 = 0.55;
+  double B = 1.0, phi0 = 0.5;
   // double ka = 23.6;
-  double ka = 1.0;
+  double ka = 2.5;
   //  Read command-line arguments into corresponding variables
   int NCELLS = parseArg<int>(argv[1]);
   int nv = parseArg<int>(argv[2]);
@@ -174,7 +157,9 @@ int main(int argc, char const* argv[]) {
 
   // begin production run after all of the initialization and equilibration settles
   std::string msdFile = outFileStem + ".msd";
+  std::string cellContactFile = outFileStem + ".cellContact";
   cell2D.openMSDObject(msdFile);
+  cell2D.openCellContactObject(cellContactFile);
   cell2D.dampedVertexNVE(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, runTime / 20.0);
   cout << "\n** Finished psm.cpp (2D transverse section of pre-somitic mesoderm), ending. " << endl;
 

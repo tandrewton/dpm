@@ -269,7 +269,8 @@ void cell::shapeForces2D() {
 
     // -- Area force (comes from a cross product) only applies to cellID 0 = ordinary cells, not boundaries
     // letting both cellID = 0 and = 1 have area and bending forces. ignore the above comment for now.
-    if (cellID[ci_real] == 0 || cellID[ci_real] == 1) {
+    // if (cellID[ci_real] == 0 || cellID[ci_real] == 1) {
+    if (cellID[ci_real] == 0) {
       forceX = 0.5 * fa * (rim1y - rip1y);
       forceY = 0.5 * fa * (rip1x - rim1x);
 
@@ -314,7 +315,6 @@ void cell::shapeForces2D() {
 
     // -- Bending force
     if (kb > 0 && (cellID[ci_real] == 0 || cellID[ci_real] == 1)) {
-      // if boundary type, make it 10x as bending rigid
       // if (kb > 0) {
       //  get ip2 for third angle
       rip2x = x[NDIM * ip1[ip1[gi]]] - cx;
@@ -1074,10 +1074,12 @@ void cell::calculateSmoothInteraction(double rx, double ry, double sij, double s
         fieldStress[middle][1] += -dy / 2 * fy;
         fieldStress[middle][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
 
-        if (ci > cj)
-          cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2]++;
-        else if (ci < cj)
-          cij[NCELLS * ci + cj - (ci + 1) * (ci + 2) / 2]++;
+        if (sign != 0 && (ci != cj)) {
+          if (ci > cj)
+            cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2]++;
+          else if (ci < cj)
+            cij[NCELLS * ci + cj - (ci + 1) * (ci + 2) / 2]++;
+        }
 
         if (sign > 0 && cellID[ci] == 0 && cellID[cj] == 0) {
           numVertexContacts[gi][middle]++;
@@ -1228,10 +1230,12 @@ void cell::vertexAttractiveForces2D_test(double& energy) {
               fieldStress[gj][1] += -dy / 2 * fy;
               fieldStress[gj][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
 
-              if (ci > cj)
-                cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2]++;
-              else if (ci < cj)
-                cij[NCELLS * ci + cj - (ci + 1) * (ci + 2) / 2]++;
+              if (ci != cj) {
+                if (ci > cj)
+                  cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2]++;
+                else if (ci < cj)
+                  cij[NCELLS * ci + cj - (ci + 1) * (ci + 2) / 2]++;
+              }
             }
           }
         }
@@ -1515,10 +1519,12 @@ void cell::vertexAttractiveForces2D_2() {
               fieldStress[gj][1] += -dy / 2 * fy;
               fieldStress[gj][2] += -0.5 * (dx / 2 * fy + dy / 2 * fx);
 
-              if (ci > cj)
-                cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2]++;
-              else if (ci < cj)
-                cij[NCELLS * ci + cj - (ci + 1) * (ci + 2) / 2]++;
+              if (ci != cj) {
+                if (ci > cj)
+                  cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2]++;
+                else if (ci < cj)
+                  cij[NCELLS * ci + cj - (ci + 1) * (ci + 2) / 2]++;
+              }
             }
           }
         }
@@ -3169,16 +3175,30 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double dt0, double duration, doub
     // update sim clock
     simclock += dt;
 
-    if (msdout.is_open() && int((simclock - t0) / dt) % int(0.1 / dt) == 0) {
-      msdout << simclock - t0 << '\t';
-      double cx = 0, cy = 0;
-      for (int ci = 0; ci < NCELLS; ci++) {
-        if (cellID[ci] == 0) {
-          com2D(ci, cx, cy);
-          msdout << cx << '\t' << cy << '\t';
+    if (int((simclock - t0) / dt) % int(0.1 / dt) == 0) {
+      if (msdout.is_open()) {
+        msdout << simclock - t0 << '\t';
+        double cx = 0, cy = 0;
+        for (int ci = 0; ci < NCELLS; ci++) {
+          if (cellID[ci] == 0) {
+            com2D(ci, cx, cy);
+            msdout << cx << '\t' << cy << '\t';
+          }
         }
+        msdout << '\n';
       }
-      msdout << '\n';
+      /*if (cellContactOut.is_open()) {
+        for (int cj = 0; cj < NCELLS; cj++) {
+          for (int ci = 0; ci < NCELLS; ci++) {
+            if (ci >= cj) {
+              int element = cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2];
+              cout << element << " ";
+            } else
+              cout << "0 ";
+          }
+          cout << '\n';
+        }
+      }*/
     }
 
     // print to console and file
@@ -3254,6 +3274,19 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double dt0, double duration, doub
             cout << "printing maxCellID boundary ID tissueMeasurements to file\n";
             // hardcoding boundary ID for now.
             takeTissueMeasurements(maxCellID);
+          }
+        }
+
+        if (cellContactOut.is_open()) {
+          for (int cj = 0; cj < NCELLS; cj++) {
+            for (int ci = 0; ci < NCELLS; ci++) {
+              if (ci >= cj) {
+                int element = cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2];
+                cout << element << " ";
+              } else
+                cout << "0 ";
+            }
+            cout << '\n';
           }
         }
       }
