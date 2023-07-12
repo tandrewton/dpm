@@ -203,7 +203,6 @@ for seed = startSeed:max_seed
                     % if cellID is a boundary, have it be blue
                     % exterior with white interior
                     patch('Faces',finfo,'vertices',vpos,'FaceColor','w','EdgeColor','b','linewidth',0.001);
-                    set(gca,'children',flipud(get(gca,'children')))
                     if (forImageAnalysis)
                         % switch to bd figure, plot bd, switch back
                         figure(fnum_boundary); axis off;
@@ -229,14 +228,10 @@ for seed = startSeed:max_seed
                 end
             end
         end
-
+        % last patch is the boundary, flip order so it's plotted underneath
+        set(gca,'children',flipud(get(gca,'children')))
         axis equal;
         ax = gca;
-        % since boundaries are last in the file, flip children order to get
-        % boundary patch objects below cell patch objects
-        %set(gca,'children',flipud(get(gca,'children'))) 
-        %ax.XTick = [];
-        %ax.YTick = [];
         if walls == 1
             ax.XLim = [L_left Lx];
             ax.YLim = [L_bottom Ly];
@@ -270,9 +265,9 @@ for seed = startSeed:max_seed
             ax_boundary.Visible = ax.Visible;
 
             figure(fnum)
-            exportgraphics(gcf, runType+fileheader_short+'fr'+ff+'.tif', 'Resolution', 100);
+            exportgraphics(gcf, runType+fileheader_short+'fr'+ff+'.tif', 'Resolution', 200);
             figure(fnum_boundary);
-            exportgraphics(gcf, runType+fileheader_short+'fr'+ff+'_bd.tif', 'Resolution', 100);
+            exportgraphics(gcf, runType+fileheader_short+'fr'+ff+'_bd.tif', 'Resolution', 200);
         end
     end
 
