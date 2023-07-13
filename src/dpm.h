@@ -264,6 +264,7 @@ class dpm {
   void generateCircularBoundary(int numEdges, double radius, double cx, double cy, std::vector<double>& poly_x, std::vector<double>& poly_y);
   void generateCircle(int numEdges, double cx, double cy, double r, std::vector<double>& poly_x, std::vector<double>& poly_y);
   void generateRectangularBoundary(double radius, double cx, double cy, std::vector<double>& poly_x, std::vector<double>& poly_y);
+  void generateHorseshoeBoundary(double cx, double cy, std::vector<double>& poly_x, std::vector<double>& poly_y);
   void replaceCircularBoundary(int polyShapeID, double aspectRatio);
   std::vector<double> resample_polygon(std::vector<double> px, std::vector<double> py, double perimeter, int numPoints);
 

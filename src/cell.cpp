@@ -1867,8 +1867,9 @@ void cell::cellPolarityForces(int ci, double k_polarity, std::string direction) 
 }
 
 void cell::scalePolyWallSize(double scaleFactor) {
+  double distanceBeforeScaling, changeInDistance;
   for (int tissueIt = 0; tissueIt < poly_bd_x.size(); tissueIt++) {
-    double cx = 0, cy = 0;
+    double cx = 0, cy = 0, tempx = 0, tempy = 0;
     vector<double> poly_x = poly_bd_x[tissueIt];
     vector<double> poly_y = poly_bd_y[tissueIt];
     // calculate the center of the polygon
@@ -1879,7 +1880,14 @@ void cell::scalePolyWallSize(double scaleFactor) {
     cx /= poly_x.size();
     cy /= poly_x.size();
 
-    cout << "d(p_1, center) = " << sqrt(pow(poly_bd_x[tissueIt][0] - cx, 2) + pow(poly_bd_y[tissueIt][0] - cy, 2)) << '\n';
+    tempx = poly_bd_x[tissueIt][0] - cx;
+    tempy = poly_bd_y[tissueIt][0] - cy;
+    distanceBeforeScaling = sqrt(pow(tempx, 2) + pow(tempy, 2));
+    if (fabs(1 - scaleFactor) * distanceBeforeScaling < r[0] / 2) {
+      // must have scaleFactor move boundary less than a vertex radius. doing half to be safe, maybe try a full
+      scaleFactor = 1 - r[0] / (2 * distanceBeforeScaling);
+      cout << "modifying scaleFactor to be " << scaleFactor << '\n';
+    }
 
     // new vertex is given by scaling the separation vector between center and vertex,
     //    and then adding it to the center
@@ -1887,7 +1895,6 @@ void cell::scalePolyWallSize(double scaleFactor) {
       poly_bd_x[tissueIt][i] = (poly_x[i] - cx) * scaleFactor + cx;
       poly_bd_y[tissueIt][i] = (poly_y[i] - cy) * scaleFactor + cy;
     }
-    cout << "after scaling, d(p_1, center) = " << sqrt(pow(poly_bd_x[tissueIt][0] - cx, 2) + pow(poly_bd_y[tissueIt][0] - cy, 2)) << '\n';
   }
 }
 
@@ -2039,8 +2046,6 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
     cellFractionPerTissue.push_back(tissueRadii[i] * tissueRadii[i] / totalArea);
     numCellsInTissue.push_back(round(cellFractionPerTissue[i] * NCELLS));
   }
-
-  assert(NCELLS == accumulate(numCellsInTissue.begin(), numCellsInTissue.end(), 0));
 
   // initialize box size based on packing fraction
   areaSum = 0.0;
@@ -2808,6 +2813,7 @@ void cell::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, doub
       cout << endl
            << endl;
     }
+    printConfiguration2D();
 
     // update iterate
     it++;

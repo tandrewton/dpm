@@ -22,8 +22,10 @@
 ./main/cell/psm2D.o   12   16 1.05 0.75 0.01  10.0    0.05    10.0  1.0     1.0   1    50    test6
 ./main/cell/psm2D.o   12   16 1.05 0.75 0.1   10.0    0.05    10.0  0.06    1.0   1    50    test7
 ./main/cell/psm2D.o   6   10 1.0  0.53 0.01   10.0    0.05    1.0  0.05    1.0   1    200    test8
+./main/cell/psm2D.o   25   12 1.0  0.74 0.01   0.0    0.05    1.0  0.05    1.0   1    20    test8
+
 */
-//                  NCELLS NV  A0  phi att t_maxwell_boundary v0  tau_abp k_ecm k_off seed duration outFileStem
+//                NCELLS NV  A0  phi att t_maxwell_bd v0  tau_abp k_ecm k_off seed duration outFileStem
 
 #include <sstream>
 #include "cell.h"

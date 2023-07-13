@@ -1860,6 +1860,43 @@ void dpm::generateRectangularBoundary(double radius, double cx, double cy, std::
   boundaryStream << '\n';
 }
 
+void dpm::generateHorseshoeBoundary(double cx, double cy, std::vector<double>& poly_x, std::vector<double>& poly_y) {
+  // place a rectangular boundary, then fix L[0] and L[1] just outside the circle for plotting purposes.
+  // in initializePositions2D, isCircle flag is chosen to ensure that particles fall within L/2 (radius) of L/2 (center of box)
+  // cx cy are the center of the boundary polygon
+  // generateCircle(numEdges, cx, cy, radius, poly_x, poly_y);
+
+  /*std::vector<double> x_pos = {cx + radius, cx - radius, cx - radius, cx + radius},
+                      y_pos = {cy + radius * aspectRatio, cy + radius * aspectRatio, cy - radius * aspectRatio, cy - radius * aspectRatio};
+  for (int i = 0; i < 4; i++) {
+    poly_x.push_back(x_pos[i]);
+    poly_y.push_back(y_pos[i]);
+  }*/
+  double radius = 10;
+  double length = radius / 2;
+  std::vector<double> x_pos = {0, 0, length, length, 2 * length, 2 * length, 3 * length, 3 * length},
+                      y_pos = {radius, 3 * radius, 3 * radius, radius, radius, 3 * radius, 3 * radius, radius};
+  // calculate coordinates of a semicircle with center at (1.5 * length, radius))
+  int numEdges = 10;
+  for (int n = 0; n < numEdges; n++) {
+    double theta = n * PI / (numEdges - 1);
+    x_pos.push_back(cx + radius * cos(theta));
+    y_pos.push_back(cy + radius * sin(theta));
+  }
+
+  cout << "after generating the polygon boundary, set L[0] and L[1] to be outside this boundary\n";
+  L[0] = 1.05 * *max_element(std::begin(poly_x), std::end(poly_x));
+  L[1] = 1.05 * *max_element(std::begin(poly_y), std::end(poly_y));
+  cout << L[0] << '\t' << L[1] << '\n';
+
+  // plot final polygonal boundary, make sure to clear the file when running a new simulation (should be run with ofstream polyBoundary.txt without app before generateCircularBoundary is called)
+  ofstream boundaryStream("polyBoundary.txt", std::ios_base::app);
+  for (int i = 0; i < poly_x.size(); i++) {
+    boundaryStream << poly_x[i] << '\t' << poly_y[i] << '\t';
+  }
+  boundaryStream << '\n';
+}
+
 void dpm::replaceCircularBoundary(int polyShapeID, double aspectRatio) {
   int numBoundaryElements = poly_bd_x.size();
   // calculate bounding box for the poly_bd
@@ -2647,7 +2684,7 @@ void dpm::vertexAttractiveForces2D() {
 void dpm::evaluatePolygonalWallForces(const std::vector<double>& poly_x, const std::vector<double>& poly_y, bool attractionOn) {
   // evaluates particle-wall forces for a polygonal boundary specified by poly_x,poly_y. Does not compute stress yet.
   int n = poly_x.size();
-  double wallThicknessBuffer = 2.0;  // used to make sure wall can't phase through a vertex when scaling vertex or wall positions
+  double wallThicknessBuffer = 2.5;  // used to make sure wall can't phase through a vertex when scaling vertex or wall positions
   double distanceParticleWall, scaledDistParticleWall, Rx, Ry, dw, K = 5;
   double kint = (kc * l1) / (l2 - l1);
   double bound_x1, bound_x2, bound_y1, bound_y2;
