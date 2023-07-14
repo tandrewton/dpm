@@ -1873,15 +1873,25 @@ void dpm::generateHorseshoeBoundary(double cx, double cy, std::vector<double>& p
     poly_y.push_back(y_pos[i]);
   }*/
   double radius = 10;
-  double length = radius / 2;
+  double length = 2 * radius / 3;
   std::vector<double> x_pos = {0, 0, length, length, 2 * length, 2 * length, 3 * length, 3 * length},
                       y_pos = {radius, 3 * radius, 3 * radius, radius, radius, 3 * radius, 3 * radius, radius};
   // calculate coordinates of a semicircle with center at (1.5 * length, radius))
-  int numEdges = 10;
+  int numEdges = 30;
   for (int n = 0; n < numEdges; n++) {
-    double theta = n * PI / (numEdges - 1);
-    x_pos.push_back(cx + radius * cos(theta));
-    y_pos.push_back(cy + radius * sin(theta));
+    double theta = -n * PI / (numEdges - 1);
+    x_pos.push_back(1.5 * length + radius * cos(theta));
+    y_pos.push_back(radius + radius * sin(theta));
+  }
+
+  // wrote the above in clockwise order, switching it to be counter clockwise
+  std::reverse(x_pos.begin(), x_pos.end());
+  std::reverse(y_pos.begin(), y_pos.end());
+
+  for (int i = 0; i < x_pos.size(); i++) {
+    cout << x_pos[i] << '\t' << y_pos[i] << '\n';
+    poly_x.push_back(x_pos[i]);
+    poly_y.push_back(y_pos[i]);
   }
 
   cout << "after generating the polygon boundary, set L[0] and L[1] to be outside this boundary\n";
@@ -1954,6 +1964,21 @@ std::vector<double> dpm::resample_polygon(std::vector<double> px, std::vector<do
   cout << "arc_length = " << arc_length << '\n';
   cout << "in resample_polygon, result.size() = " << result.size() << '\n';
   return result;
+}
+
+// Check if a point (x, y) is inside a polygon defined by vectors poly_x and poly_y
+bool dpm::isInsidePolygon(double x, double y, const std::vector<double>& poly_x, const std::vector<double>& poly_y) {
+  int i, j, nvert = poly_x.size();
+  bool inside = false;
+
+  for (i = 0, j = nvert - 1; i < nvert; j = i++) {
+    if (((poly_y[i] > y) != (poly_y[j] > y)) &&
+        (x < (poly_x[j] - poly_x[i]) * (y - poly_y[i]) / (poly_y[j] - poly_y[i]) + poly_x[i])) {
+      inside = !inside;
+    }
+  }
+
+  return inside;
 }
 
 /******************************
@@ -2684,8 +2709,8 @@ void dpm::vertexAttractiveForces2D() {
 void dpm::evaluatePolygonalWallForces(const std::vector<double>& poly_x, const std::vector<double>& poly_y, bool attractionOn) {
   // evaluates particle-wall forces for a polygonal boundary specified by poly_x,poly_y. Does not compute stress yet.
   int n = poly_x.size();
-  double wallThicknessBuffer = 2.5;  // used to make sure wall can't phase through a vertex when scaling vertex or wall positions
-  double distanceParticleWall, scaledDistParticleWall, Rx, Ry, dw, K = 5;
+  double wallThicknessBuffer = 1.0;  // used to make sure wall can't phase through a vertex when scaling vertex or wall positions
+  double distanceParticleWall, scaledDistParticleWall, Rx, Ry, dw;
   double kint = (kc * l1) / (l2 - l1);
   double bound_x1, bound_x2, bound_y1, bound_y2;
   double shellij, cutij, ftmp;
@@ -2701,7 +2726,7 @@ void dpm::evaluatePolygonalWallForces(const std::vector<double>& poly_x, const s
     bound_y2 = poly_y[(bound_i + 1) % n];
     for (int i = 0; i < NVTOT; i++) {
       distanceParticleWall = distanceLinePointComponents(bound_x1, bound_y1, bound_x2, bound_y2, x[i * NDIM], x[i * NDIM + 1], Rx, Ry);
-      dw = r[i] - distanceParticleWall;
+      dw = fabs(r[i] - distanceParticleWall);
       if (attractionOn) {  // attractive, so choose a weaker K and check for attractive shell interaction
         scaledDistParticleWall = distanceParticleWall / r[i];
         // K = 1;
@@ -2716,10 +2741,10 @@ void dpm::evaluatePolygonalWallForces(const std::vector<double>& poly_x, const s
           F[i * NDIM] += ftmp * Rx / distanceParticleWall;
           F[i * NDIM + 1] += ftmp * Ry / distanceParticleWall;
         }
-      } else if (distanceParticleWall <= wallThicknessBuffer * r[i]) {  // purely repulsive, only look for particle-wall overlap, with 2x thickness buffer on wall
-        F[i * NDIM] += K * dw * Rx / distanceParticleWall;
-        F[i * NDIM + 1] += K * dw * Ry / distanceParticleWall;
-        U += K / 2 * pow(dw, 2);
+      } else if (distanceParticleWall <= wallThicknessBuffer * r[i]) {  // purely repulsive, only look for particle-wall overlap, with thickness buffer on wall
+        F[i * NDIM] += kc * dw * Rx / distanceParticleWall;
+        F[i * NDIM + 1] += kc * dw * Ry / distanceParticleWall;
+        U += kc / 2 * pow(dw, 2);
       }
     }
   }

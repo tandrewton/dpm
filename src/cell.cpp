@@ -1883,8 +1883,9 @@ void cell::scalePolyWallSize(double scaleFactor) {
     tempx = poly_bd_x[tissueIt][0] - cx;
     tempy = poly_bd_y[tissueIt][0] - cy;
     distanceBeforeScaling = sqrt(pow(tempx, 2) + pow(tempy, 2));
-    if (fabs(1 - scaleFactor) * distanceBeforeScaling < r[0] / 2) {
-      // must have scaleFactor move boundary less than a vertex radius. doing half to be safe, maybe try a full
+    changeInDistance = sqrt(pow(tempx * scaleFactor, 2) + pow(tempy * scaleFactor, 2)) - distanceBeforeScaling;
+    if (fabs(1 - scaleFactor) * distanceBeforeScaling > r[0] / 2) {
+      // must have scaleFactor move boundary less than a vertex radius.
       scaleFactor = 1 - r[0] / (2 * distanceBeforeScaling);
       cout << "modifying scaleFactor to be " << scaleFactor << '\n';
     }
@@ -2077,22 +2078,48 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
       generateCircularBoundary(numEdges, scale_radius * tissueRadii[n], cx[n], cy[n], poly_bd_x[n], poly_bd_y[n]);
     else if (polyShapeID == 1)
       generateRectangularBoundary(scale_radius * tissueRadii[n], cx[n], cy[n], poly_bd_x[n], poly_bd_y[n]);
+    else if (polyShapeID == 2)
+      generateHorseshoeBoundary(cx[n], cy[n], poly_bd_x[n], poly_bd_y[n]);
     else
       assert(false);
 
+    // Find the maximum and minimum values in poly_bd_x
+    auto xMinMax = std::minmax_element(poly_bd_x[n].begin(), poly_bd_x[n].end());
+    double minX = *xMinMax.first;
+    double maxX = *xMinMax.second;
+
+    //  Find the maximum and minimum values in poly_bd_y
+    auto yMinMax = std::minmax_element(poly_bd_y[n].begin(), poly_bd_y[n].end());
+    double minY = *yMinMax.first;
+    double maxY = *yMinMax.second;
+
     for (int i = cumNumCells; i < cumNumCells + numCellsInTissue[n]; i++) {
-      cout << "i = " << i << "\t, dpos.size() = " << dpos.size() << ", cumNumCells = " << cumNumCells << "\t, numCellsInTissue[n] = " << numCellsInTissue[n] << '\n';
-      double dpos_x = tissueRadii[n] * (2 * drand48() - 1) + cx[n];
+      /*double dpos_x = tissueRadii[n] * (2 * drand48() - 1) + cx[n];
       double dpos_y = tissueRadii[n] * (2 * drand48() - 1) + cy[n];
       while (pow(dpos_x - cx[n], 2) + pow(dpos_y - cy[n], 2) > pow(tissueRadii[n] / scale_radius, 2)) {
         dpos_x = tissueRadii[n] / scale_radius * (2 * drand48() - 1) + cx[n];
         dpos_y = tissueRadii[n] / scale_radius * (2 * drand48() - 1) + cy[n];
+      }*/
+      double dpos_x, dpos_y;
+      bool insidePolygon = false;
+      double buffer = r[0] * 10;
+
+      while (!insidePolygon) {
+        // dpos_x = tissueRadii[n] * (2 * drand48() - 1) + cx[n];
+        // dpos_y = tissueRadii[n] * (2 * drand48() - 1) + cy[n];
+        dpos_x = (maxX - buffer - minX) * drand48() + minX + buffer;
+        dpos_y = (maxY - buffer - minY) * drand48() + minY + buffer;
+
+        // Check if the generated position is inside the polygon
+        if (isInsidePolygon(dpos_x, dpos_y, poly_bd_x[n], poly_bd_y[n])) {
+          insidePolygon = true;
+        }
       }
+
       dpos.at(i * NDIM) = dpos_x;
       dpos.at(i * NDIM + 1) = dpos_y;
       ipStream << dpos[i * NDIM] << '\t' << dpos[i * NDIM + 1] << '\n';
       cellID[i] = n;
-      cout << "cell " << i << " is in tissue number " << n << "with cell type = " << cellID[i] << " with position " << dpos_x << '\t' << dpos_y << '\n';
     }
     cumNumCells += numCellsInTissue[n];
   }

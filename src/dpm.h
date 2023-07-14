@@ -267,6 +267,7 @@ class dpm {
   void generateHorseshoeBoundary(double cx, double cy, std::vector<double>& poly_x, std::vector<double>& poly_y);
   void replaceCircularBoundary(int polyShapeID, double aspectRatio);
   std::vector<double> resample_polygon(std::vector<double> px, std::vector<double> py, double perimeter, int numPoints);
+  bool isInsidePolygon(double x, double y, const std::vector<double>& poly_x, const std::vector<double>& poly_y);
 
   // force definitions
   void resetForcesAndEnergy();

@@ -27,7 +27,6 @@ Duration="1000";
 FSKIP = 1;
 startSeed = 1;
 max_seed = 1;
-walls = 0;
 att_range = 0.3;
 
 %if makeAMovie is 0, then plot every frame separately
@@ -38,7 +37,7 @@ if (forImageAnalysis)
     showcirculoline = 1;
     makeAMovie = 1;
 else
-    showCatchBonds = 1;
+    showCatchBonds = 0;
     showverts = 1;
     showcirculoline = 1;
     makeAMovie = 1;
@@ -233,22 +232,15 @@ for seed = startSeed:max_seed
         set(gca,'children',flipud(get(gca,'children')))
         axis equal;
         ax = gca;
-        if walls == 1
-            ax.XLim = [L_left Lx];
-            ax.YLim = [L_bottom Ly];
-            % plot box
-            plot([L_left Lx Lx L_left L_left], [L_bottom L_bottom Ly Ly L_bottom], 'k-', 'linewidth', 1.5);
-        else
-            viewScale = 1.3;
-            viewLx = viewScale*Lx;
-            viewLxLow = -(viewScale-1)*Lx;
-            viewLy = viewScale*Ly;
-            viewLyLow = -(viewScale-1)*Ly;
-            ax.XLim = [-(viewScale-1) viewScale]*Lx;
-            ax.YLim = [-(viewScale-1) viewScale]*Ly;
-            % plot box
-            %plot([viewLxLow viewLx viewLx viewLxLow viewLxLow], [viewLyLow viewLyLow viewLy viewLy viewLyLow], 'k-', 'linewidth', 1.5);
-        end
+        viewScale = 1.3;
+        viewLx = viewScale*Lx;
+        viewLxLow = -(viewScale-1)*Lx;
+        viewLy = viewScale*Ly;
+        viewLyLow = -(viewScale-1)*Ly;
+        ax.XLim = [-(viewScale-1) viewScale]*Lx;
+        ax.YLim = [-(viewScale-1) viewScale]*Ly;
+        % plot box
+        %plot([viewLxLow viewLx viewLx viewLxLow viewLxLow], [viewLyLow viewLyLow viewLy viewLy viewLyLow], 'k-', 'linewidth', 1.5);
 
         % if making a movie, save frame
         if makeAMovie == 1
