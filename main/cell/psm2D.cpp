@@ -22,7 +22,7 @@
 ./main/cell/psm2D.o   12   16 1.05 0.75 0.01  10.0    0.05    10.0  1.0     1.0   1    50    test6
 ./main/cell/psm2D.o   12   16 1.05 0.75 0.1   10.0    0.05    10.0  0.06    1.0   1    50    test7
 ./main/cell/psm2D.o   6   10 1.0  0.53 0.01   10.0    0.05    1.0  0.05    1.0   1    200    test8
-./main/cell/psm2D.o   25   12 1.0  0.74 0.01   0.0    0.05    1.0  0.05    1.0   1    20    test8
+./main/cell/psm2D.o   100   12 1.0  0.74 0.0   0.0    0.05    1.0  0.05    1.0   1    20    test8
 
 */
 //                NCELLS NV  A0  phi att t_maxwell_bd v0  tau_abp k_ecm k_off seed duration outFileStem
@@ -129,7 +129,7 @@ int main(int argc, char const* argv[]) {
   // initialize particles with the same number of vertices and the same preferred shape parameter calA0
   cell2D.monodisperse2D(calA0, nv);
   int circleID = 0, rectangleID = 1, horseshoeID = 2;
-  cell2D.initializeTransverseTissue(phi0, Ftol, circleID);  // initialize within a ring boundary
+  cell2D.initializeTransverseTissue(phi0, Ftol, horseshoeID);  // initialize within a ring boundary
   cell2D.initializeNeighborLinkedList2D(boxLengthScale);
   cell2D.printConfiguration2D();
 

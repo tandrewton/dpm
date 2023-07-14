@@ -1880,13 +1880,24 @@ void cell::scalePolyWallSize(double scaleFactor) {
     cx /= poly_x.size();
     cy /= poly_x.size();
 
-    tempx = poly_bd_x[tissueIt][0] - cx;
-    tempy = poly_bd_y[tissueIt][0] - cy;
-    distanceBeforeScaling = sqrt(pow(tempx, 2) + pow(tempy, 2));
-    changeInDistance = sqrt(pow(tempx * scaleFactor, 2) + pow(tempy * scaleFactor, 2)) - distanceBeforeScaling;
-    if (fabs(1 - scaleFactor) * distanceBeforeScaling > r[0] / 2) {
+    // record vertex where distance has max change, in order to scale the scaleFactor to less than a vertex size
+    // this will prevent compression of boundaries from phasing through vertices
+    double maxChangeInDistance = 0, maxDistanceBeforeScaling = 0;
+    int vertexOfMaxChange = -1;
+    for (int i = 0; i < poly_bd_x[tissueIt].size(); i++) {
+      tempx = poly_bd_x[tissueIt][i] - cx;
+      tempy = poly_bd_y[tissueIt][i] - cy;
+      distanceBeforeScaling = sqrt(pow(tempx, 2) + pow(tempy, 2));
+      changeInDistance = fabs(sqrt(pow(tempx * scaleFactor, 2) + pow(tempy * scaleFactor, 2)) - distanceBeforeScaling);
+      if (changeInDistance > maxChangeInDistance) {
+        vertexOfMaxChange = i;
+        maxDistanceBeforeScaling = distanceBeforeScaling;
+        maxChangeInDistance = changeInDistance;
+      }
+    }
+    if (maxChangeInDistance > r[0] / 2) {
       // must have scaleFactor move boundary less than a vertex radius.
-      scaleFactor = 1 - r[0] / (2 * distanceBeforeScaling);
+      scaleFactor = 1 - r[0] / (2 * maxDistanceBeforeScaling);
       cout << "modifying scaleFactor to be " << scaleFactor << '\n';
     }
 
@@ -2840,7 +2851,7 @@ void cell::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, doub
       cout << endl
            << endl;
     }
-    printConfiguration2D();
+    // printConfiguration2D();
 
     // update iterate
     it++;
