@@ -30,7 +30,7 @@ max_seed = 1;
 att_range = 0.3;
 
 %if makeAMovie is 0, then plot every frame separately
-forImageAnalysis = 0;
+forImageAnalysis = 1;
 if (forImageAnalysis)
     showCatchBonds = 0;
     showverts = 1;
@@ -190,7 +190,7 @@ for seed = startSeed:max_seed
 
             cx = mean(xtmp);
             cy = mean(ytmp);
-            text(cx, cy, num2str(nn));
+            %text(cx, cy, num2str(nn));
             if (~showverts || (showverts && showcirculoline))
                 rx = xtmp - cx;
                 ry = ytmp - cy;
