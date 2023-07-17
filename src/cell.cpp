@@ -3219,7 +3219,7 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double dt0, double duration, doub
     // update sim clock
     simclock += dt;
 
-    if (int((simclock - t0) / dt) % int(0.1 / dt) == 0) {
+    if (int((simclock - t0) / dt) % int(0.5 / dt) == 0) {
       if (msdout.is_open()) {
         msdout << simclock - t0 << '\t';
         double cx = 0, cy = 0;
