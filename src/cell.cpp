@@ -535,7 +535,7 @@ void cell::directorDiffusion() {
     r2 = drand48();
     // box-muller transform of random numbers to a gaussian random variable
     grv = sqrt(-2.0 * log(r1)) * cos(2.0 * PI * r2);
-    // note: grv has variance 1, but needs to be scaled to sqrt(dt)
+    // note: grv has variance 1, but needs to be scaled to sqrt(dt) because noise has dimensions of 1/sqrt(t)
     psi[ci] += sqrt(2.0 * Dr0 * dt) * grv;
     psi[ci] -= 2 * PI * round(psi[ci] / (2 * PI));
   }
