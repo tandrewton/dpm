@@ -51,7 +51,7 @@ matricesStr = strsplit(fileContent, '\n\n');
 nonemptyIndices = ~cellfun(@isempty, matricesStr);
 matricesStr = matricesStr(nonemptyIndices);
 
-NE = zeros(1, size(matricesStr,2));
+NE = zeros(1, numel(matricesStr));
 
 % Process each matrix
 for i = 1:numel(matricesStr)
@@ -66,18 +66,22 @@ for i = 1:numel(matricesStr)
     % matrix(i,j) = # vertex contacts between cell i and cell j at a
     % particular time 
     matrix = str2double(vertcat(values{:}));
+
+    % binarize matrix so that any vertex contact is counted as a cell
+    % contact, and there can be no more than 1 cell contact between cells 
     matrix(matrix >= 1) = 1;
 
-    % move to next iteration if we're on first, since we want differences
-    % in time
+    % skip to next iteration if on first, since we want differences in time
     if i == 1
         continue;
+    else
+        % store matrix to compare next timestep
+        oldmatrix = matrix;
     end
 
     % Process the matrix
     newmat = matrix - oldmatrix;
-
-    % store matrix to compare next timestep
-    oldmatrix = matrix;
+    NE(i) = sum(newmat, 'all');
 end
-%%
+
+plot(time, NE,'k')
