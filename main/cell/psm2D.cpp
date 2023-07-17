@@ -131,7 +131,6 @@ int main(int argc, char const* argv[]) {
   int circleID = 0, rectangleID = 1, horseshoeID = 2;
   cell2D.initializeTransverseTissue(phi0, Ftol, circleID);  // initialize within a ring boundary
   cell2D.initializeNeighborLinkedList2D(boxLengthScale);
-  cell2D.printConfiguration2D();
 
   // switch ring boundary for rectangular boundary
   // cell2D.replaceCircularBoundary(rectangleID, 2.0);
@@ -140,22 +139,18 @@ int main(int argc, char const* argv[]) {
   bool isFIRE = true;  // FIRE or dampedNVE to quench
   cell2D.resizeNeighborLinkedList2D();
   cell2D.vertexCompress2Target2D_polygon(attractiveSmoothWithPolyWalls, Ftol, dt0, phi, dphi0, isFIRE);
-  cell2D.printConfiguration2D();
 
   cell2D.replacePolyWallWithDP(numCellTypes);
   cell2D.resizeCatchBonds();
   cell2D.resizeNeighborLinkedList2D();
-  cell2D.printConfiguration2D();
 
   double relaxTime = 10.0;
   cell2D.setka(ka);
   cell2D.dampedVertexNVE(attractiveSmoothForceUpdate, dt0, relaxTime, 0);
   cell2D.setl00();  // set l00 to be l0 before setting maxwell relaxation time
   cell2D.setActiveBrownianParameters(v0_abp, tau_abp);
-  cell2D.printConfiguration2D();
 
   cell2D.dampedVertexNVE(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, relaxTime, 0);
-  cell2D.printConfiguration2D();
 
   // begin production run after all of the initialization and equilibration settles
   std::string msdFile = outFileStem + ".msd";

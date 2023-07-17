@@ -1,9 +1,9 @@
 %pwd should give ~/Documents/YalePhd/projects/dpm
-%function drawCellSim(N, calA0, phi, att, v0, k_ecm, k_off)
+function drawCellSim(N, calA0, phi, att, v0, k_ecm, k_off)
 %close all; clear
-%isTestData = false; %uncomment if using function call to pipeline data
+isTestData = false; %uncomment if using function call to pipeline data
 
-isTestData = true; %uncomment if using test data
+%isTestData = true; %uncomment if using test data
 testDataii = 8;
 testDataID = num2str(testDataii);
 
@@ -19,7 +19,7 @@ set(0,'DefaultFigureWindowStyle','docked')
 runType = "psm";
 %N="100";
 %calA0="1.05";
-t_maxwell = "0.0";
+t_maxwell = "10.0";
 %v0 = "0.05";
 t_abp = "1.0";
 %att="0.1";
@@ -205,7 +205,7 @@ for seed = startSeed:max_seed
                     patch('Faces',finfo,'vertices',vpos,'FaceColor','w','EdgeColor','b','linewidth',0.001);
                     if (forImageAnalysis)
                         % switch to bd figure, plot bd, switch back
-                        figure(fnum_boundary); axis off;
+                        figure(fnum_boundary); clf; axis off;
                         patch('Faces',finfo,'vertices',vpos,'FaceColor','k','EdgeColor','k','linewidth',0.001)
                         figure(fnum);
                     end
@@ -271,7 +271,7 @@ for seed = startSeed:max_seed
     end
     cd ../../../../
 end
-%end
+end
 
 function [cornerx, cornery] = patchConnectedRectanglesCorners(midptx, midpty, width)
 %INPUT: midptx, midpty are N x 1 vectors representing N coordinates
