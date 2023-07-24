@@ -43,7 +43,7 @@ etaStr = " ";
 startSeed = 1;
 max_seed = 25;
 no_plots = 0;
-makeAMovie = 0; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
+makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
 %plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
 plotCells = 1;
 set(0,'DefaultFigureWindowStyle','docked')
