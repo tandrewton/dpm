@@ -1650,38 +1650,43 @@ void epi2D::dampedCompression(dpmMemFn forceCall, double dt0, double duration, d
   setdt(dt0);
   int NPRINTSKIP = printInterval / dt;
 
-  // initial coordinate of walls
-  double maxX = 0.0, maxY = 0.0;
-  for (int i = 0; i < x.size(); i += 2) {
-    if (x[i] > maxX)
-      maxX = x[i];
-    if (x[i + 1] > maxY)
-      maxY = x[i + 1];
-  }
-  double lowerWallPos = 0, upperWallPos = maxY + r[0], leftWallPos = -1e10, rightWallPos = 1e10;
-  double initialHeight = upperWallPos - lowerWallPos;
+  // center the particle
   double comx, comy;
   com2D(0, comx, comy);
   displaceCell(0, L[0] / 2 - comx, L[1] / 2 - comy);
-  // center the particle in the middle of the walls so the compression is symmetric
 
+  // initial coordinate of walls
+  double maxX = 0.0, maxY = 0.0, minX = 1e10, minY = 1e10;
+  for (int i = 0; i < x.size(); i += 2) {
+    if (x[i] > maxX)
+      maxX = x[i];
+    if (x[i] < minX)
+      minX = x[i];
+    if (x[i + 1] > maxY)
+      maxY = x[i + 1];
+    if (x[i + 1] < minY)
+      minY = x[i + 1];
+  }
+  double lowerWallPos = minY - r[0], upperWallPos = maxY + r[0], leftWallPos = -1e10, rightWallPos = 1e10;
+  double initialHeight = upperWallPos - lowerWallPos;
+  printConfiguration2D();
   std::ofstream wallout("wallPositions.txt");
-  // print wall positions for easy debugging of wall locations
-  wallout << simclock - t0 << '\t' << lowerWallPos << '\t' << upperWallPos << '\t' << leftWallPos << '\t' << rightWallPos << '\n';
+  // print wall positions for visualization
 
   // loop over time, print energy
   while (simclock - t0 < duration) {
     if (int((simclock - t0) / dt) % 100 == 0) {
+      cout << "calA = " << pow(perimeter(0), 2) / (4 * PI * area(0)) << '\n';
       wallout << simclock - t0 << '\t' << lowerWallPos << '\t' << upperWallPos << '\t' << leftWallPos << '\t' << rightWallPos << '\n';
       double currentHeight = upperWallPos - lowerWallPos;
       double increment = r[0] * 0.007;
-      if (simclock - t0 < 0.4 * duration && currentHeight > 0.5 * initialHeight) {
+      if (simclock - t0 < 0.4 * duration && currentHeight > 0.66 * initialHeight) {
         // bring the upper and lower walls toward each other until 50% of initial height
         upperWallPos -= increment;
         lowerWallPos += increment;
       } else if (simclock - t0 < 0.4 * duration) {
         // hold the wall there until 40% duration has passed (total)
-      } else if (simclock - t0 >= 0.4 * duration && currentHeight < initialHeight) {
+      } else if (simclock - t0 >= 0.4 * duration && currentHeight < 1.5 * initialHeight) {
         // release the wall for 60% duration
         upperWallPos += increment;
         lowerWallPos -= increment;
@@ -1720,8 +1725,7 @@ void epi2D::dampedCompression(dpmMemFn forceCall, double dt0, double duration, d
 
     // print to console and file
     if (printInterval > dt) {
-      if (int((simclock - t0) / dt) % NPRINTSKIP == 0 &&
-          (simclock - temp_simclock) > printInterval / 2.0) {
+      if (int((simclock - t0) / dt) % NPRINTSKIP == 0) {
         temp_simclock = simclock;
         // compute kinetic energy
         K = vertexKineticEnergy();

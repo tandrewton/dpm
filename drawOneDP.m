@@ -11,13 +11,13 @@ isTestData = true;
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
 
-%CHANGE THESE PARAMETERS                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   NEEDED
+%CHANGE THESE PARAMETERS                                                                                                                                                                                                                                                                                                                                                                                                                                                                          NEEDED
 
 %PC directory
 pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
 showverts = 1;
 showSprings = 0;
-makeAMovie = 0;
+makeAMovie = 1;
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
 fnum=1;

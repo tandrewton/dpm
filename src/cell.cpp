@@ -504,8 +504,7 @@ void cell::attractiveSmoothActiveCatchBonds() {
 void cell::brownianCrawlingUpdate() {
   int gi;
   // propel at speed distributed uniformly from 0 to v_0
-  // v_0 should have a force scale comparable to the shape energy? or other energy scale. check that and make v0_ABP scale with one of the spring constants
-  // printf("v0_ABP = %f, kc * rho0 / 2*r = %f \n", v0_ABP, kc * sqrt(a0[0]) / (2 * r[0]));
+  // v_0 is calibrated such that the net swim speed is similar to the experimental cell track mean speed
   for (int ci = 0; ci < NCELLS; ci++) {
     if (cellID[ci] != 0)  // only cells are allowed to crawl, boundaries are not allowed to crawl
       continue;

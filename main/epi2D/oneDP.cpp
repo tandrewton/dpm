@@ -8,7 +8,7 @@
 //
 //                      ka  tau_maxwell
 //
-// ./main/epi2D/oneDP.o 1.0 10000 oneDP.pos oneDP.energy oneDP.stress oneDP.void
+// ./main/epi2D/oneDP.o 1.0 1000000 oneDP.pos oneDP.energy oneDP.stress oneDP.void
 /*
 ka_arr=(0.01 0.05 0.1 0.2 0.4 1.6 16.0 20.0 32.0)
 tau_arr=(10.0 20.0 40.0 80.0 320.0 1000.0)
@@ -17,6 +17,7 @@ for ka in ${ka_arr[@]}; do
         echo ./main/epi2D/oneDP.o $ka $t_stress oneDP.pos oneDP.energy oneDP.stress oneDP.void
     done
 done
+^ run this with forceDipoleExperiment to get the force dipole heatmaps
 */
 //
 // positionFile: string of path to output file with position/configuration data
@@ -48,7 +49,9 @@ bool wallsOff = false;
 int main(int argc, char const* argv[]) {
   // local variables to be read in
   int NCELLS = 1, nsmall = 24, seed = 1, gi;
-  double calA0 = 1.0, ka, kl = 1.0, kb = 0.01, phiMin = 0.6, phiMax = 0.4, att = 0.1;
+  double calA0 = 1.0, ka, kl = 1.0, phiMin = 0.6, phiMax = 0.4, att = 0.1;
+  // double kb = 0.01; // for forceDipole
+  double kb = 0.0;  // for compression
   double t_plastic, B = 1.0;
   bool boolCIL;
 
@@ -122,13 +125,14 @@ int main(int argc, char const* argv[]) {
   for (int i = 0; i < 3; i++) {
     epithelial.displaceVertex(0, i, 0.005, 0.0);
   }
-  epithelial.printConfiguration2D();
 
-  // epithelial.dampedCompression(repulsiveForceUpdate, dt0, 500, 25);  // used for my compression experiments for wound healing explanation of plasticity
+  epithelial.dampedCompression(repulsiveForceUpdate, dt0, 1000, 50);  // used for my compression experiments for wound healing explanation of plasticity
 
+  /*
   std::string forceDipoleFilename = "forceDipole/forceDipole_ka_" + ka_str + "_tau_" + tau_str + ".txt";
   double forceMoment = 0.01;
   epithelial.dampedForceDipoleExperiment(repulsiveForceUpdate, 0.01, dt0, 500, 25, forceDipoleFilename);  // used for my force dipole experiments to explain how hard plasticity deforms more than elastic or soft plastic
+  */
 
   // epithelial.drawVelocities2D(1e-3);
   //   epithelial.vertexNVE(repulsiveForceUpdate, dt0, 20000, 250);
