@@ -65,9 +65,9 @@ for ii=1:length(v0_arr)
                 for i = 1:size(xCoords,1)
                     n = size(xCoords,2);
                     [v, c] = voronoin([xCoords(i,:)' yCoords(i,:)']);
-                    vn = sparse(n, n);
+                    vn = zeros(n, n);
                     for j=1:n
-                        for k=i+1:n
+                        for k=j+1:n
                             s = size(intersect(c{j}, c{k}));
                             if (1 < s(2))
                                 vn(j,k) = 1;
