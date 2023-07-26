@@ -4,7 +4,7 @@ close all; clf; clear
 set(0,'DefaultFigureWindowStyle','docked')
 set(groot, 'defaultAxesFontSize', 12)
 %folder = "test8";
-v0_arr=["0.01"];% "0.02" "0.04" "0.08" "0.16"];
+v0_arr=["0.04"];% "0.02" "0.04" "0.08" "0.16"];
 k_ecm_arr=["0.005"];% "0.05" "0.5" "5"];
 k_off_arr=["1.0"];
 att_arr=["0.001"];% "0.01" "0.1"];
@@ -46,9 +46,9 @@ for ii=1:length(v0_arr)
                 
                 %% plot cell tracks
                 % divide cellPos (# timesteps x 2N) into xCoords and yCoords, which are (#
-                % timesteps x N)
-                xCoords = cellPos(:,1:2:end);
-                yCoords = cellPos(:,2:2:end);
+                % timesteps x N-1), -1 because removing boundary
+                xCoords = cellPos(:,1:2:end-2);
+                yCoords = cellPos(:,2:2:end-2);
                 
                 % Plot cell tracks
                 %figure(2);clf;hold on;
@@ -59,79 +59,78 @@ for ii=1:length(v0_arr)
                 axis equal off;
 
                 %% for each timestep, plot the voronoi diagram to make sure it works
-                % might need to remove last cell which is boundary, not
-                % sure right now.
                 nexttile; hold on;
-                for i = 1:size(xCoords,1)
-                    n = size(xCoords,2);
-                    [v, c] = voronoin([xCoords(i,:)' yCoords(i,:)']);
+                changeInContacts = zeros(1, size(xCoords,1)-1);
+                neighborDistances = [];
+                videoWriter = VideoWriter(output_folder+"video.mp4", 'MPEG-4');
+                videoWriter.FrameRate = 5;
+                open(videoWriter);
+                n = size(xCoords,2);
+                voronoiCenterPositions = zeros(size(xCoords,1), 2, n);
+                for timeii = 1:2%size(xCoords,1)
+                    % [vx, vy] = voronoi(xCoords(timeii,:), yCoords(timeii,:));
+                    % figure(2);
+                    % plot(vx,vy,'k')
+                    % axis square equal
+                    % xlim([-2, 20])
+                    % ylim([-2, 20])
+                    % writeVideo(videoWriter, getframe(gcf));
+                    [v, c] = voronoin([xCoords(timeii,:)' yCoords(timeii,:)']);
+                    v(isinf(v)) = nan;
                     vn = zeros(n, n);
+                    % calculate c.o.m. of each polygon j, 
+                    % make a dictionary for polygon j -> cellID[j]
+                    % Calculate the center of mass (COM) for each Voronoi cell
+                    cellComs = cell2mat(cellfun(@(indices) mean(v(indices, :),"omitnan"),...
+                        c, 'UniformOutput', false))';
+
+                    voronoiCenterPositions(timeii,:,:) = cellComs;
+
+                    % Duplicate point coordinates to match with cellComs for vectorized distance calculation
+                    pointCoords = [xCoords(timeii,:); yCoords(timeii,:)];
+                    
+                    % Calculate the Euclidean distance between each point and each cell's COM
+                    %distances = sqrt(sum((pointCoords - cellComs).^2, 1));
+                    distances = pdist2(pointCoords', cellComs');
+                    
+                    % Find the index of the closest cell (minimum distance) for each point
+                    [~, pointCellDict] = min(distances, [], 1);
                     for j=1:n
                         for k=j+1:n
                             s = size(intersect(c{j}, c{k}));
                             if (1 < s(2))
+                                %instead of j,k here, should be cellID[j]
+                                %and cellID[k]
+                                %vn(pointCellDict(j),pointCellDict(k)) = 1;
+                                %vn(pointCellDict(k),pointCellDict(j)) = 1;
                                 vn(j,k) = 1;
                                 vn(k,j) = 1;
+                                distance = sqrt((xCoords(timeii, j) - xCoords(timeii,k))^2 + ...
+                                    (yCoords(timeii,j) - yCoords(timeii,k))^2);
+                                neighborDistances = [neighborDistances distance];
                             end
                         end
                     end
-                end
-                
-                %% plot neighbor exchange count vs time
-                filename = folder + ".cellContact";
-                delimiter = ','; % Delimiter used within each matrix
-                
-                % Read the entire file as a single string
-                fileContent = fileread(filename);
-                
-                % Split the string into individual matrices using newline separations
-                matricesStr = strsplit(fileContent, '\n\n');
-                
-                % Remove empty cell from last newline character
-                nonemptyIndices = ~cellfun(@isempty, matricesStr);
-                matricesStr = matricesStr(nonemptyIndices);
-                
-                NE = zeros(1, numel(matricesStr));
-                
-                % Process each matrix
-                for i = 1:numel(matricesStr)
-                    % Split the matrix string into rows
-                    rowsStr = strsplit(matricesStr{i}, '\n');
-                    rowsStr(cellfun('isempty', rowsStr)) = [];
-                    
-                    % Split rows into values
-                    values = cellfun(@(x) strsplit(x, delimiter), rowsStr, 'UniformOutput', false);
-                    
-                    % Convert values to a numeric matrix
-                    % matrix(i,j) = # vertex contacts between cell i and cell j at a
-                    % particular time 
-                    matrix = str2double(vertcat(values{:}));
-                
-                    % binarize matrix so that any vertex contact is counted as a cell
-                    % contact, and there can be no more than 1 cell contact between cells 
-                    matrix(matrix >= 1) = 1;
-                
-                    % skip to next iteration if on first, since we want differences in time
-                    if i == 1
-                        continue;
-                    else
-                        % store matrix to compare next timestep
-                        oldmatrix = matrix;
+                    if (timeii > 1)
+                        %changeInContacts(i-1) = sum(vn - oldContactMatrix,"all");
+                        changeInContacts(i-1) = sum(vn ~= oldVn,"all");
                     end
-                
-                    % Process the matrix
-                    newmat = matrix - oldmatrix;
-                    NE(i) = sum(newmat, 'all');
+                    oldC = c;
+                    oldV = v;
+                    oldVn = vn;
                 end
-                
-                %figure()
-                nexttile;
-                plot(time, NE,'k')
-                xlabel("Time (min)")
-                ylabel("NE count")
-                
+                % close(videoWriter);
+                figure(1);
+                plot(time(2:end), cumsum(abs(changeInContacts)))
+                nexttile();
+                histogram(neighborDistances);
                 print(output_folder+"msd_tracks.eps",'-depsc')
             end
         end
     end
+end
+
+figure(); clf; hold on;
+for ii=1:39
+    plot(voronoiCenterPositions(:,1,ii),voronoiCenterPositions(:,2,ii));
 end
