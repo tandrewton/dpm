@@ -157,7 +157,7 @@ int main(int argc, char const* argv[]) {
   std::string cellContactFile = outFileStem + ".cellContact";
   cell2D.openMSDObject(msdFile);
   cell2D.openCellContactObject(cellContactFile);
-  cell2D.dampedVertexNVE(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, runTime / 20.0);
+  cell2D.dampedVertexNVE(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, 3.0);
   cout << "\n** Finished psm.cpp (2D transverse section of pre-somitic mesoderm), ending. " << endl;
 
   return 0;

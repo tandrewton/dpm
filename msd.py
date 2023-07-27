@@ -3,10 +3,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator
-#from scipy.spatial import Voronoi, voronoi_plot_2d
+# from scipy.spatial import Voronoi, voronoi_plot_2d
 import pyvoro
+from collections import defaultdict
+import debugpy
 
 # Calculate MSD function
+
+
 def calculate_msd(filename):
     data = np.loadtxt(filename)
     time = data[:, 0]
@@ -26,6 +30,8 @@ def calculate_msd(filename):
     return time[1:maxLag+1], MSD
 
 # Main function
+
+
 def main():
     # Set default parameters
     folder = "pipeline/cells/psm/psm_calA01.0_phi0.74_tm10.0_v0"
@@ -40,8 +46,9 @@ def main():
                 for att in att_arr:
                     fig, axs = plt.subplots(2, 2, figsize=(10, 8))
                     folder_path = folder + v0 + "_t_abp1.0k_ecm" + k_ecm + "k_off" + k_off + \
-                                  "/_N40_dur1000_att" + att + "_start1_end1_sd1"
+                        "/_N40_dur1000_att" + att + "_start1_end1_sd1"
                     output_folder = "output" + os.path.sep + folder_path[9:]
+                    print(output_folder)
 
                     filename = folder_path + ".msd"
                     time, msd = calculate_msd(filename)
@@ -56,31 +63,56 @@ def main():
                     yCoords = cellPos[:, 1::2]
 
                     for i in range(xCoords.shape[1]):
-                        axs[0, 1].plot(xCoords[:, i], yCoords[:, i], '-', linewidth=2)
+                        axs[0, 1].plot(
+                            xCoords[:, i], yCoords[:, i], '-', linewidth=2)
                     axs[0, 1].set_aspect('equal')
                     axs[0, 1].set_axis_off()
-                    #print(np.shape(np.column_stack((xCoords[1, :], yCoords[1, :]))))
-                    #print(np.shape([[5,7], [2,3], [3,5],[4,1]]))
 
                     # Plot Voronoi diagrams
-                    for timeii in range(1, 2):  # Change to `xCoords.shape[0]` for all timesteps       
+                    neighborExchangeCount = np.zeros(xCoords.shape[0])
+                    # Change to `xCoords.shape[0]` for all timesteps
+                    for timeii in range(0, xCoords.shape[0]):
+                        # cell_neighbors stores
+                        cell_neighbors = defaultdict(set)
                         cells = pyvoro.compute_2d_voronoi(
-                            np.column_stack((xCoords[timeii, :], yCoords[timeii, :])),
-                            [[min(xCoords[timeii,:])-1, max(xCoords[timeii,:])+1],[min(yCoords[timeii,:])-1, max(yCoords[timeii,:])+1]], #limits
-                            2.0 # block size
+                            np.column_stack(
+                                (xCoords[timeii, :], yCoords[timeii, :])),
+                            [[min(xCoords[timeii, :])-1, max(xCoords[timeii, :])+1],
+                             [min(yCoords[timeii, :])-1, max(yCoords[timeii, :])+1]],  # limits
+                            2.0  # block size
                         )
-                        print(cells[0])
+                        axs[1, 0].set_aspect('equal')
+                        axs[1, 0].set_axis_off()
+                        for i, cell in enumerate(cells):
+                            cell_neighbors[i] = {j['adjacent_cell']
+                                                 for j in cells[i]['faces']}
+                            polygon = cell['vertices']
+
+                            # axs[1, 0].fill(
+                            #    *zip(*polygon), facecolor='none', edgecolor='k', lw=0.2)
+                        # calculate number of neighbor exchanges
+                        if (timeii > 0):
+                            neighborDifferences = {
+                                k: cell_neighbors[k] ^ old_cell_neighbors[k] for k in cell_neighbors}
+                            for k in neighborDifferences:
+                                # if difference in neighbor sets for each cell
+                                if neighborDifferences[k]:
+                                    neighborExchangeCount[timeii] += 1
+
+                        old_cell_neighbors = cell_neighbors
+                    debugpy.breakpoint()
+
                     #    vor = Voronoi(np.column_stack((xCoords[timeii, :], yCoords[timeii, :])))
                     #    voronoi_plot_2d(vor, ax=axs[1, 0], show_vertices=False, line_colors='k',
                     #                    line_width=1, line_alpha=0.6)
-                    #axs[1, 0].set_aspect('equal')
-                    #axs[1, 0].set_axis_off()
+                    # axs[1, 0].set_aspect('equal')
+                    # axs[1, 0].set_axis_off()
 
-                    # want to calculate the neighbor list and compare between frames, then accumulate 
+                    # want to calculate the neighbor list and compare between frames, then accumulate
 
                     # Calculate neighbor distances
-                    #neighborDistances = []
-                    #for timeii in range(xCoords.shape[0]):
+                    # neighborDistances = []
+                    # for timeii in range(xCoords.shape[0]):
                     #    vor = Voronoi(np.column_stack((xCoords[timeii, :], yCoords[timeii, :])))
                     #    regions, vertices = voronoi_finite_polygons_2d(vor)
                     #    for region in regions:
@@ -94,8 +126,10 @@ def main():
                     #    axs[1, 1].set_axis_off()
 
                     # Save the plot
+                    # plt.show()
                     plt.savefig(output_folder + "msd_tracks.png")
                     plt.close()
+
 
 if __name__ == "__main__":
     main()
