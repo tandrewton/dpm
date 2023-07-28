@@ -3,12 +3,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator
-# from scipy.spatial import Voronoi, voronoi_plot_2d
 import pyvoro
 from collections import defaultdict
 import debugpy
-
-# Calculate MSD function
 
 
 def calculate_msd(filename):
@@ -29,16 +26,14 @@ def calculate_msd(filename):
     MSD = np.mean(msd_per_particle_per_lag, axis=0)
     return time[1:maxLag+1], MSD
 
-# Main function
-
 
 def main():
     # Set default parameters
     folder = "pipeline/cells/psm/psm_calA01.0_phi0.74_tm10.0_v0"
-    v0_arr = ["0.04"]
-    k_ecm_arr = ["0.005"]
+    v0_arr = ["0.01"]  # , "0.02", "0.04", "0.08", "0.16"]
+    k_ecm_arr = ["0.005"]  # , "0.05", "0.5", "5"]
     k_off_arr = ["1.0"]
-    att_arr = ["0.001"]
+    att_arr = ["0.001"]  # , "0.01", "0.1"]
 
     for v0 in v0_arr:
         for k_ecm in k_ecm_arr:
@@ -72,7 +67,6 @@ def main():
                     neighborExchangeCount = np.zeros(xCoords.shape[0])
                     # Change to `xCoords.shape[0]` for all timesteps
                     for timeii in range(0, xCoords.shape[0]):
-                        # cell_neighbors stores
                         cell_neighbors = defaultdict(set)
                         cells = pyvoro.compute_2d_voronoi(
                             np.column_stack(
@@ -94,36 +88,21 @@ def main():
                         if (timeii > 0):
                             neighborDifferences = {
                                 k: cell_neighbors[k] ^ old_cell_neighbors[k] for k in cell_neighbors}
+                            if (any(bool(difference) for difference in neighborDifferences.values())):
+                                debugpy.breakpoint()
                             for k in neighborDifferences:
-                                # if difference in neighbor sets for each cell
-                                if neighborDifferences[k]:
+                                # if neighbor set of k differs between timesteps
+                                # and each difference is symmetric with another neighbor set of neighborDifferences[k]
+                                if (neighborDifferences[k] and any(neighborDifferences[l] for l in neighborDifferences[k])):
                                     neighborExchangeCount[timeii] += 1
 
                         old_cell_neighbors = cell_neighbors
-                    debugpy.breakpoint()
+                    # debugpy.breakpoint()
 
-                    #    vor = Voronoi(np.column_stack((xCoords[timeii, :], yCoords[timeii, :])))
-                    #    voronoi_plot_2d(vor, ax=axs[1, 0], show_vertices=False, line_colors='k',
-                    #                    line_width=1, line_alpha=0.6)
-                    # axs[1, 0].set_aspect('equal')
-                    # axs[1, 0].set_axis_off()
-
-                    # want to calculate the neighbor list and compare between frames, then accumulate
-
-                    # Calculate neighbor distances
-                    # neighborDistances = []
-                    # for timeii in range(xCoords.shape[0]):
-                    #    vor = Voronoi(np.column_stack((xCoords[timeii, :], yCoords[timeii, :])))
-                    #    regions, vertices = voronoi_finite_polygons_2d(vor)
-                    #    for region in regions:
-                    #        indices = region + [region[0]]
-                    #        polygon = vertices[indices]
-                    #        x, y = np.mean(polygon, axis=0)
-                    #        xCoords[timeii].append(x)
-                    #        yCoords[timeii].append(y)
-                    #        axs[1, 1].plot(polygon[:, 0], polygon[:, 1], 'k-', alpha=0.5)
-                    #    axs[1, 1].set_aspect('equal')
-                    #    axs[1, 1].set_axis_off()
+                    # account for double counting of neighbor exchanges by symmetry
+                    neighborExchangeCount /= 2
+                    plt.plot(
+                        range(0, xCoords.shape[0]), np.cumsum(neighborExchangeCount))
 
                     # Save the plot
                     # plt.show()
