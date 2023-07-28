@@ -30,10 +30,10 @@ def calculate_msd(filename):
 def main():
     # Set default parameters
     folder = "pipeline/cells/psm/psm_calA01.0_phi0.74_tm10.0_v0"
-    v0_arr = ["0.01"]  # , "0.02", "0.04", "0.08", "0.16"]
-    k_ecm_arr = ["0.005"]  # , "0.05", "0.5", "5"]
+    v0_arr = ["0.01", "0.02", "0.04", "0.08", "0.16"]
+    k_ecm_arr = ["0.005", "0.05", "0.5", "5"]
     k_off_arr = ["1.0"]
-    att_arr = ["0.001"]  # , "0.01", "0.1"]
+    att_arr = ["0.001", "0.01", "0.1"]
 
     for v0 in v0_arr:
         for k_ecm in k_ecm_arr:
@@ -65,6 +65,8 @@ def main():
 
                     # Plot Voronoi diagrams
                     neighborExchangeCount = np.zeros(xCoords.shape[0])
+                    cellNeighborList = [dict()
+                                        for x in range(xCoords.shape[0])]
                     # Change to `xCoords.shape[0]` for all timesteps
                     for timeii in range(0, xCoords.shape[0]):
                         cell_neighbors = defaultdict(set)
@@ -80,24 +82,33 @@ def main():
                         for i, cell in enumerate(cells):
                             cell_neighbors[i] = {j['adjacent_cell']
                                                  for j in cells[i]['faces']}
-                            polygon = cell['vertices']
-
+                            # polygon = cell['vertices']
                             # axs[1, 0].fill(
                             #    *zip(*polygon), facecolor='none', edgecolor='k', lw=0.2)
-                        # calculate number of neighbor exchanges
-                        if (timeii > 0):
-                            neighborDifferences = {
-                                k: cell_neighbors[k] ^ old_cell_neighbors[k] for k in cell_neighbors}
-                            if (any(bool(difference) for difference in neighborDifferences.values())):
-                                debugpy.breakpoint()
-                            for k in neighborDifferences:
-                                # if neighbor set of k differs between timesteps
-                                # and each difference is symmetric with another neighbor set of neighborDifferences[k]
-                                if (neighborDifferences[k] and any(neighborDifferences[l] for l in neighborDifferences[k])):
-                                    neighborExchangeCount[timeii] += 1
 
-                        old_cell_neighbors = cell_neighbors
-                    # debugpy.breakpoint()
+                        cellNeighborList[timeii] = cell_neighbors
+
+                    for timeii in range(0, xCoords.shape[0]):
+                        if (timeii > 0):
+                            # compute differences between neighbors of cell k at time i and time i-1
+                            neighborDifferences = {
+                                k: cellNeighborList[timeii][k] - cellNeighborList[timeii-1][k] for k in cellNeighborList[timeii]}
+                            # for each cell k,
+                            for k in neighborDifferences:
+                                if (all(element >= 0 for element in neighborDifferences[k])):
+                                    # check if neighbor diff nonempty, and k is a new neighbor of some other cell
+                                    # note that k is the first cell with a change in neighborlist.
+                                    # neighborDifferences[k] is the cell that is a new neighbor of k.
+                                    if (neighborDifferences[k] and any(neighborDifferences[l] for l in neighborDifferences[k])):
+                                        doesNeighborPersist = True
+                                        persistThreshold = 3  # look 3 configurations forward
+                                        for l in range(1, persistThreshold):
+                                            # isFutureNeighbor is true if there is overlap between sets at different times
+                                            isFutureNeighbor = bool(neighborDifferences[
+                                                k] & cellNeighborList[timeii + persistThreshold][k])
+                                            doesNeighborPersist = doesNeighborPersist and isFutureNeighbor
+                                        if (doesNeighborPersist):
+                                            neighborExchangeCount[timeii] += 1
 
                     # account for double counting of neighbor exchanges by symmetry
                     neighborExchangeCount /= 2
