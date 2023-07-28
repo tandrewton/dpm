@@ -33,7 +33,7 @@ def main():
     v0_arr = ["0.01", "0.02", "0.04", "0.08", "0.16"]
     k_ecm_arr = ["0.005", "0.05", "0.5", "5"]
     k_off_arr = ["1.0"]
-    att_arr = ["0.001", "0.01", "0.1"]
+    att_arr = ["0.01", "0.01", "0.1"]
 
     for v0 in v0_arr:
         for k_ecm in k_ecm_arr:
@@ -88,8 +88,9 @@ def main():
 
                         cellNeighborList[timeii] = cell_neighbors
 
+                    persistThreshold = 3  # look 3 configurations forward
                     for timeii in range(0, xCoords.shape[0]):
-                        if (timeii > 0):
+                        if (timeii > 0 and timeii < xCoords.shape[0] - persistThreshold):
                             # compute differences between neighbors of cell k at time i and time i-1
                             neighborDifferences = {
                                 k: cellNeighborList[timeii][k] - cellNeighborList[timeii-1][k] for k in cellNeighborList[timeii]}
@@ -101,11 +102,10 @@ def main():
                                     # neighborDifferences[k] is the cell that is a new neighbor of k.
                                     if (neighborDifferences[k] and any(neighborDifferences[l] for l in neighborDifferences[k])):
                                         doesNeighborPersist = True
-                                        persistThreshold = 3  # look 3 configurations forward
                                         for l in range(1, persistThreshold):
-                                            # isFutureNeighbor is true if there is overlap between sets at different times
+                                            # isFutureNeighbor is true if overlap between sets at different times
                                             isFutureNeighbor = bool(neighborDifferences[
-                                                k] & cellNeighborList[timeii + persistThreshold][k])
+                                                k] & cellNeighborList[timeii + l][k])
                                             doesNeighborPersist = doesNeighborPersist and isFutureNeighbor
                                         if (doesNeighborPersist):
                                             neighborExchangeCount[timeii] += 1
