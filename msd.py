@@ -76,6 +76,7 @@ def main():
                     neighborExchangeCount = np.zeros(xCoords.shape[0])
                     cellNeighborList = [dict()
                                         for x in range(xCoords.shape[0])]
+                    edgeLengths = []
                     # Change to `xCoords.shape[0]` for all timesteps
                     for timeii in range(0, xCoords.shape[0]):
                         cell_neighbors = defaultdict(set)
@@ -89,13 +90,34 @@ def main():
                         # axs[1, 0].set_aspect('equal')
                         # axs[1, 0].set_axis_off()
                         for i, cell in enumerate(cells):
+                            # store neighbors of cell i
                             cell_neighbors[i] = {j['adjacent_cell']
                                                  for j in cells[i]['faces']}
                             # polygon = cell['vertices']
                             # axs[1, 0].fill(
                             #    *zip(*polygon), facecolor='none', edgecolor='k', lw=0.2)
+                            for j, edge in enumerate(cell['faces']):
+                                # only choose edges that involve real cells
+                                if edge['adjacent_cell'] >= 0:
+                                    edgeVert0 = edge['vertices'][0]
+                                    edgeVert1 = edge['vertices'][1]
+                                    edgeLength = cell['vertices'][edgeVert0] - \
+                                        cell['vertices'][edgeVert1]
+                                    edgeLength = np.sqrt(np.sum(edgeLength**2))
+                                    edgeLengths.append(edgeLength)
 
                         cellNeighborList[timeii] = cell_neighbors
+
+                    edgeLengths = np.asarray(edgeLengths)
+                    # probably have super long edge lengths to filter, or check if cell ID is negative
+                    histFig = plt.figure()
+                    histAx = histFig.add_subplot(1, 1, 1)
+                    histAx.hist(edgeLengths, bins=20,
+                                color='blue', alpha=0.7)
+                    histAx.set_xlabel('Edge length')
+                    histAx.set_ylabel('Counts')
+                    plt.show()
+                    debugpy.breakpoint()
 
                     persistThreshold = 3  # look 3 configurations forward
                     for timeii in range(0, xCoords.shape[0]):
@@ -118,8 +140,8 @@ def main():
                                             doesNeighborPersist = doesNeighborPersist and isFutureNeighbor
                                         if (doesNeighborPersist):
                                             neighborExchangeCount[timeii] += 1
-                                            print(
-                                                "neighbor exchange between cells", k, ",", neighborDifferences[k])
+                                            # print(
+                                            #    "neighbor exchange between cells", k, ",", neighborDifferences[k])
 
                     # account for double counting of neighbor exchanges by symmetry
                     neighborExchangeCount /= 2
@@ -129,7 +151,7 @@ def main():
                     axs[1, 1].set_ylabel("cumulative NE")
 
                     # Save the plot
-                    # plt.show()
+                    plt.show()
                     plt.savefig(output_folder + "msd_tracks.png")
                     plt.close()
 
