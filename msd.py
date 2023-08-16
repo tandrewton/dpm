@@ -30,10 +30,10 @@ def calculate_msd(filename):
 def main():
     # Set default parameters
     folder = "pipeline/cells/psm/psm_calA01.0_phi0.74_tm10.0_v0"
-    v0_arr = ["0.01", "0.02", "0.04", "0.08", "0.16"]
-    k_ecm_arr = ["0.005", "0.05", "0.5", "5"]
+    v0_arr = ["0.01"]  # , "0.02", "0.04", "0.08", "0.16"]
+    k_ecm_arr = ["0.005"]  # , "0.05", "0.5", "5"]
     k_off_arr = ["1.0"]
-    att_arr = ["0.01", "0.01", "0.1"]
+    att_arr = ["0.001"]  # , "0.01", "0.1"]
 
     for v0 in v0_arr:
         for k_ecm in k_ecm_arr:
@@ -52,16 +52,25 @@ def main():
                     axs[0, 0].set_xlabel("Time (min)")
                     axs[0, 0].set_ylabel("MSD(t)/(25$\pi \mu m^2$)")
 
+                    axs[0, 1].loglog(time, msd, 'k')
+                    axs[0, 1].set_xlabel("Time (min)")
+                    axs[0, 1].set_ylabel("MSD(t)/(25$\pi \mu m^2$)")
+                    axs[0, 1].axline(
+                        [10**0, 5*10**-3], [10**1, 5*10**-1], color='r')
+                    axs[0, 1].axline(
+                        [10**1, 10**-1], [10**2, 10**-0], color='b')
+                    # debugpy.breakpoint()
+
                     # Plot cell tracks
                     cellPos = np.loadtxt(filename)[:, 1:]
                     xCoords = cellPos[:, ::2]
                     yCoords = cellPos[:, 1::2]
 
                     for i in range(xCoords.shape[1]):
-                        axs[0, 1].plot(
+                        axs[1, 0].plot(
                             xCoords[:, i], yCoords[:, i], '-', linewidth=2)
-                    axs[0, 1].set_aspect('equal')
-                    axs[0, 1].set_axis_off()
+                    axs[1, 0].set_aspect('equal')
+                    axs[1, 0].set_axis_off()
 
                     # Plot Voronoi diagrams
                     neighborExchangeCount = np.zeros(xCoords.shape[0])
@@ -77,8 +86,8 @@ def main():
                              [min(yCoords[timeii, :])-1, max(yCoords[timeii, :])+1]],  # limits
                             2.0  # block size
                         )
-                        axs[1, 0].set_aspect('equal')
-                        axs[1, 0].set_axis_off()
+                        # axs[1, 0].set_aspect('equal')
+                        # axs[1, 0].set_axis_off()
                         for i, cell in enumerate(cells):
                             cell_neighbors[i] = {j['adjacent_cell']
                                                  for j in cells[i]['faces']}
@@ -103,17 +112,21 @@ def main():
                                     if (neighborDifferences[k] and any(neighborDifferences[l] for l in neighborDifferences[k])):
                                         doesNeighborPersist = True
                                         for l in range(1, persistThreshold):
-                                            # isFutureNeighbor is true if overlap between sets at different times
+                                            # isFutureNeighbor is true if overlap > 0 between sets at different times
                                             isFutureNeighbor = bool(neighborDifferences[
                                                 k] & cellNeighborList[timeii + l][k])
                                             doesNeighborPersist = doesNeighborPersist and isFutureNeighbor
                                         if (doesNeighborPersist):
                                             neighborExchangeCount[timeii] += 1
+                                            print(
+                                                "neighbor exchange between cells", k, ",", neighborDifferences[k])
 
                     # account for double counting of neighbor exchanges by symmetry
                     neighborExchangeCount /= 2
-                    plt.plot(
+                    axs[1, 1].plot(
                         range(0, xCoords.shape[0]), np.cumsum(neighborExchangeCount))
+                    axs[1, 1].set_xlabel("Time (min)")
+                    axs[1, 1].set_ylabel("cumulative NE")
 
                     # Save the plot
                     # plt.show()

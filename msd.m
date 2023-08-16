@@ -4,7 +4,7 @@ close all; clf; clear
 set(0,'DefaultFigureWindowStyle','docked')
 set(groot, 'defaultAxesFontSize', 12)
 %folder = "test8";
-v0_arr=["0.04"];% "0.02" "0.04" "0.08" "0.16"];
+v0_arr=["0.01"];% "0.02" "0.04" "0.08" "0.16"];
 k_ecm_arr=["0.005"];% "0.05" "0.5" "5"];
 k_off_arr=["1.0"];
 att_arr=["0.001"];% "0.01" "0.1"];
@@ -67,14 +67,14 @@ for ii=1:length(v0_arr)
                 open(videoWriter);
                 n = size(xCoords,2);
                 voronoiCenterPositions = zeros(size(xCoords,1), 2, n);
-                for timeii = 1:2%size(xCoords,1)
-                    % [vx, vy] = voronoi(xCoords(timeii,:), yCoords(timeii,:));
-                    % figure(2);
-                    % plot(vx,vy,'k')
-                    % axis square equal
-                    % xlim([-2, 20])
-                    % ylim([-2, 20])
-                    % writeVideo(videoWriter, getframe(gcf));
+                for timeii = 1:size(xCoords,1)
+                    [vx, vy] = voronoi(xCoords(timeii,:), yCoords(timeii,:));
+                    figure(2);
+                    plot(vx,vy,'k')
+                    axis square equal
+                    xlim([-2, 20])
+                    ylim([-2, 20])
+                    writeVideo(videoWriter, getframe(gcf));
                     [v, c] = voronoin([xCoords(timeii,:)' yCoords(timeii,:)']);
                     v(isinf(v)) = nan;
                     vn = zeros(n, n);
@@ -124,7 +124,7 @@ for ii=1:length(v0_arr)
                 plot(time(2:end), cumsum(abs(changeInContacts)))
                 nexttile();
                 histogram(neighborDistances);
-                print(output_folder+"msd_tracks.eps",'-depsc')
+                %print(output_folder+"msd_tracks.eps",'-depsc')
             end
         end
     end
