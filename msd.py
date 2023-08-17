@@ -61,7 +61,7 @@ def main():
                         [10**1, 10**-1], [10**2, 10**-0], color='b')
                     # debugpy.breakpoint()
 
-                    # Plot cell tracks
+                    # Load data for cell tracks
                     cellPos = np.loadtxt(filename)[:, 1:]
                     xCoords = cellPos[:, ::2]
                     yCoords = cellPos[:, 1::2]
@@ -72,12 +72,15 @@ def main():
                     axs[1, 0].set_aspect('equal')
                     axs[1, 0].set_axis_off()
 
-                    # Plot Voronoi diagrams
+                    # Initialize neighbor, edge data structures for neighbor exchange, edge length, neighbor lifetime analyses
                     neighborExchangeCount = np.zeros(xCoords.shape[0])
                     cellNeighborList = [dict()
                                         for x in range(xCoords.shape[0])]
                     edgeLengths = []
-                    # Change to `xCoords.shape[0]` for all timesteps
+                    neighborLifetimes = np.zeros(
+                        (np.shape(xCoords)[1], np.shape(xCoords)[1]))
+
+                    # xCoords.shape[0] = # timesteps
                     for timeii in range(0, xCoords.shape[0]):
                         cell_neighbors = defaultdict(set)
                         cells = pyvoro.compute_2d_voronoi(
@@ -105,6 +108,7 @@ def main():
                                         cell['vertices'][edgeVert1]
                                     edgeLength = np.sqrt(np.sum(edgeLength**2))
                                     edgeLengths.append(edgeLength)
+                                    debugpy.breakpoint()
 
                         cellNeighborList[timeii] = cell_neighbors
 
@@ -117,7 +121,6 @@ def main():
                     histAx.set_xlabel('Edge length')
                     histAx.set_ylabel('Counts')
                     plt.show()
-                    debugpy.breakpoint()
 
                     persistThreshold = 3  # look 3 configurations forward
                     for timeii in range(0, xCoords.shape[0]):
