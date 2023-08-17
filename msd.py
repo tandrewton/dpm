@@ -99,7 +99,7 @@ def main():
                             cellNeighbors[i] = {j['adjacent_cell']
                                                 for j in cell['faces']}
                             cellNotNeighbors = np.setdiff1d(
-                                np.arange(0, xCoords.shape[1]-1), list(cellNeighbors[i]))
+                                np.arange(0, xCoords.shape[1]), list(cellNeighbors[i]))
                             # for each neighbor of cell i, record that i-neighbor relationship persists
                             # record if any i-neighbor relationships have ended
                             for adjCellID in cellNeighbors[i]:
@@ -147,8 +147,8 @@ def main():
                     histEdgeLength.set_ylabel('Counts')
 
                     histLifetime = histFig.add_subplot(2, 2, 2)
-                    histLifetime.hist(neighborLifetimesList, bins=2000,
-                                      color='blue', alpha=0.7)
+                    histLifetime.hist(neighborLifetimesList, bins=100,
+                                      color='blue', alpha=0.7, log=True, range=(0, 100))
                     histLifetime.set_xlabel('Neighbor lifetimes')
                     histLifetime.set_ylabel('Counts')
 
@@ -157,10 +157,14 @@ def main():
                                         color='blue', alpha=0.7)
                     histSeparation.set_xlabel('Neighbor separations')
                     histSeparation.set_ylabel('Counts')
+                    # plt.show()
+                    # plt.savefig(output_folder + "histograms.png")
+                    # plt.close()
 
-                    plt.show()
-
-                    persistThreshold = 3  # look 3 configurations forward
+                    persistThreshold = 0  # look persistThreshold # configurations forward, minimum is 1
+                    neighborCounter = 0
+                    neighborCounter2 = 0
+                    neighborCounter3 = 0
                     for timeii in range(0, xCoords.shape[0]):
                         if (timeii > 0 and timeii < xCoords.shape[0] - persistThreshold):
                             # compute differences between neighbors of cell k at time i and time i-1
@@ -168,13 +172,18 @@ def main():
                                 k: cellNeighborList[timeii][k] - cellNeighborList[timeii-1][k] for k in cellNeighborList[timeii]}
                             # for each cell k,
                             for k in neighborDifferences:
+                                neighborCounter += 1
                                 if (all(element >= 0 for element in neighborDifferences[k])):
+                                    neighborCounter2 += 1
                                     # check if neighbor diff nonempty, and k is a new neighbor of some other cell
                                     # note that k is the first cell with a change in neighborlist.
                                     # neighborDifferences[k] is the cell that is a new neighbor of k.
+                                    # ensures we only consider neighbor exchanges where both cells have new neighbors
                                     if (neighborDifferences[k] and any(neighborDifferences[l] for l in neighborDifferences[k])):
+                                        # if (neighborDifferences[k]):
+                                        neighborCounter3 += 1
                                         doesNeighborPersist = True
-                                        for l in range(1, persistThreshold):
+                                        for l in range(1, persistThreshold+1):
                                             # isFutureNeighbor is true if overlap > 0 between sets at different times
                                             isFutureNeighbor = bool(neighborDifferences[
                                                 k] & cellNeighborList[timeii + l][k])
@@ -191,6 +200,8 @@ def main():
                     axs[1, 1].set_xlabel("Time (min)")
                     axs[1, 1].set_ylabel("cumulative NE")
 
+                    print(np.shape(neighborLifetimesList))
+                    debugpy.breakpoint()
                     # Save the plot
                     plt.show()
                     plt.savefig(output_folder + "msd_tracks.png")
