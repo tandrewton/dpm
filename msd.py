@@ -76,13 +76,15 @@ def main():
                     neighborExchangeCount = np.zeros(xCoords.shape[0])
                     cellNeighborList = [dict()
                                         for x in range(xCoords.shape[0])]
-                    edgeLengths = []
-                    neighborLifetimes = np.zeros(
+                    edgeLengthsList = []
+                    neighborLifetimesMatrix = np.zeros(
                         (np.shape(xCoords)[1], np.shape(xCoords)[1]))
+                    neighborLifetimesList = []
+                    deadNeighborSeparationList = []
 
                     # xCoords.shape[0] = # timesteps
                     for timeii in range(0, xCoords.shape[0]):
-                        cell_neighbors = defaultdict(set)
+                        cellNeighbors = defaultdict(set)
                         cells = pyvoro.compute_2d_voronoi(
                             np.column_stack(
                                 (xCoords[timeii, :], yCoords[timeii, :])),
@@ -94,32 +96,68 @@ def main():
                         # axs[1, 0].set_axis_off()
                         for i, cell in enumerate(cells):
                             # store neighbors of cell i
-                            cell_neighbors[i] = {j['adjacent_cell']
-                                                 for j in cells[i]['faces']}
+                            cellNeighbors[i] = {j['adjacent_cell']
+                                                for j in cell['faces']}
+                            cellNotNeighbors = np.setdiff1d(
+                                np.arange(0, xCoords.shape[1]-1), list(cellNeighbors[i]))
+                            # for each neighbor of cell i, record that i-neighbor relationship persists
+                            # record if any i-neighbor relationships have ended
+                            for adjCellID in cellNeighbors[i]:
+                                neighborLifetimesMatrix[i][adjCellID] += 1
+
+                            for nonAdjCellID in cellNotNeighbors:
+                                if (nonAdjCellID != i):
+                                    # if cell i and nonAdjCellID neighbor lifetime is nonzero, then they used to be neighbors until this timepoint
+                                    # record the death of a neighbor relationship: its lifetime, neighbor separation
+                                    # reset lifetime to 0
+                                    if (neighborLifetimesMatrix[i][nonAdjCellID] > 0):
+                                        neighborLifetimesList.append(
+                                            neighborLifetimesMatrix[i][nonAdjCellID])
+                                        cellPos1 = np.array(
+                                            [xCoords[timeii][i], yCoords[timeii][i]])
+                                        cellPos2 = np.array(
+                                            [xCoords[timeii][nonAdjCellID], yCoords[timeii][nonAdjCellID]])
+                                        deadNeighborSeparationList.append(
+                                            np.sqrt(np.sum((cellPos1 - cellPos2)**2)))
+                                        neighborLifetimesMatrix[i][nonAdjCellID] = 0
                             # polygon = cell['vertices']
                             # axs[1, 0].fill(
                             #    *zip(*polygon), facecolor='none', edgecolor='k', lw=0.2)
                             for j, edge in enumerate(cell['faces']):
+                                adjCellID = edge['adjacent_cell']
                                 # only choose edges that involve real cells
-                                if edge['adjacent_cell'] >= 0:
+                                if adjCellID >= 0:
+                                    # for cell i and a neighbor, calculate the edge length
                                     edgeVert0 = edge['vertices'][0]
                                     edgeVert1 = edge['vertices'][1]
                                     edgeLength = cell['vertices'][edgeVert0] - \
                                         cell['vertices'][edgeVert1]
                                     edgeLength = np.sqrt(np.sum(edgeLength**2))
-                                    edgeLengths.append(edgeLength)
-                                    debugpy.breakpoint()
+                                    edgeLengthsList.append(edgeLength)
 
-                        cellNeighborList[timeii] = cell_neighbors
+                        cellNeighborList[timeii] = cellNeighbors
 
-                    edgeLengths = np.asarray(edgeLengths)
+                    edgeLengthsList = np.asarray(edgeLengthsList)
                     # probably have super long edge lengths to filter, or check if cell ID is negative
                     histFig = plt.figure()
-                    histAx = histFig.add_subplot(1, 1, 1)
-                    histAx.hist(edgeLengths, bins=20,
-                                color='blue', alpha=0.7)
-                    histAx.set_xlabel('Edge length')
-                    histAx.set_ylabel('Counts')
+                    histEdgeLength = histFig.add_subplot(2, 2, 1)
+                    histEdgeLength.hist(edgeLengthsList, bins=20,
+                                        color='blue', alpha=0.7)
+                    histEdgeLength.set_xlabel('Edge length')
+                    histEdgeLength.set_ylabel('Counts')
+
+                    histLifetime = histFig.add_subplot(2, 2, 2)
+                    histLifetime.hist(neighborLifetimesList, bins=2000,
+                                      color='blue', alpha=0.7)
+                    histLifetime.set_xlabel('Neighbor lifetimes')
+                    histLifetime.set_ylabel('Counts')
+
+                    histSeparation = histFig.add_subplot(2, 2, 3)
+                    histSeparation.hist(deadNeighborSeparationList, bins=20,
+                                        color='blue', alpha=0.7)
+                    histSeparation.set_xlabel('Neighbor separations')
+                    histSeparation.set_ylabel('Counts')
+
                     plt.show()
 
                     persistThreshold = 3  # look 3 configurations forward
