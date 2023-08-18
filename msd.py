@@ -55,8 +55,8 @@ def main():
                     filename = folder_path + ".msd"
                     time, cellPos = load_cell_positions(filename)
                     # shorten data so code runs faster
-                    time = time[0:len(time)//20]
-                    cellPos = cellPos[0:len(cellPos)//20]
+                    time = time[0:len(time)]
+                    cellPos = cellPos[0:len(cellPos)]
                     msdtime, msd = calculate_msd(
                         cellPos, time, len(cellPos)//4)
 
@@ -221,11 +221,14 @@ def main():
                             2.0  # block size
                         )
                         tessAxs.clear()
+                        time_text = tessAxs.text(
+                            0.05, 0.95, '')
                         create_voronoi_plot(cells, tessFig, tessAxs)
+                        time_text.set_text('time = %.1d' % frame)
 
                     ani2 = animation.FuncAnimation(
                         tessFig, make_animation_step, range(len(time)), interval=100)
-                    ani2.save('tessAnimation2.avi', writer='pillow', fps=100)
+                    ani2.save('tessAnimation2.gif', writer='pillow', fps=100)
                     plt.show()
 
 
