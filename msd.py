@@ -2,6 +2,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
+import matplotlib.animation as animation
 from matplotlib.ticker import LinearLocator
 import pyvoro
 from collections import defaultdict
@@ -27,6 +28,14 @@ def calculate_msd(filename):
     return time[1:maxLag+1], MSD
 
 
+def create_voronoi_plot(cells):
+    fig, ax = plt.subplots()
+    for cell in cells:
+        polygon = cell['vertices']
+        ax.fill(*zip(*polygon), facecolor='none', edgecolor='k', lw=0.2)
+    return fig, ax
+
+
 def main():
     # Set default parameters
     folder = "pipeline/cells/psm/psm_calA01.0_phi0.74_tm10.0_v0"
@@ -40,6 +49,8 @@ def main():
             for k_off in k_off_arr:
                 for att in att_arr:
                     fig, axs = plt.subplots(2, 2, figsize=(10, 8))
+                    tessFig, tessAxs = plt.subplots()
+                    tessFrames = []  # to store tesselation frames and turn into a video
                     folder_path = folder + v0 + "_t_abp1.0k_ecm" + k_ecm + "k_off" + k_off + \
                         "/_N40_dur1000_att" + att + "_start1_end1_sd1"
                     output_folder = "output" + os.path.sep + folder_path[9:]
@@ -73,17 +84,17 @@ def main():
                     axs[1, 0].set_axis_off()
 
                     # Initialize neighbor, edge data structures for neighbor exchange, edge length, neighbor lifetime analyses
-                    neighborExchangeCount = np.zeros(xCoords.shape[0])
+                    neighborExchangeCount = np.zeros(len(cellPos))
                     cellNeighborList = [dict()
-                                        for x in range(xCoords.shape[0])]
+                                        for x in range(len(cellPos))]
                     edgeLengthsList = []
                     neighborLifetimesMatrix = np.zeros(
                         (np.shape(xCoords)[1], np.shape(xCoords)[1]))
                     neighborLifetimesList = []
                     deadNeighborSeparationList = []
 
-                    # xCoords.shape[0] = # timesteps
-                    for timeii in range(0, xCoords.shape[0]):
+                    debugpy.breakpoint()
+                    for timeii in range(0, len(cellPos)):
                         cellNeighbors = defaultdict(set)
                         cells = pyvoro.compute_2d_voronoi(
                             np.column_stack(
@@ -94,6 +105,7 @@ def main():
                         )
                         # axs[1, 0].set_aspect('equal')
                         # axs[1, 0].set_axis_off()
+                        tessAxs.clear()
                         for i, cell in enumerate(cells):
                             # store neighbors of cell i
                             cellNeighbors[i] = {j['adjacent_cell']
@@ -120,9 +132,10 @@ def main():
                                         deadNeighborSeparationList.append(
                                             np.sqrt(np.sum((cellPos1 - cellPos2)**2)))
                                         neighborLifetimesMatrix[i][nonAdjCellID] = 0
-                            # polygon = cell['vertices']
-                            # axs[1, 0].fill(
-                            #    *zip(*polygon), facecolor='none', edgecolor='k', lw=0.2)
+                            # plot the polygons from the voronoi tesselation
+                            polygon = cell['vertices']
+                            tessAxs.fill(
+                                *zip(*polygon), facecolor='none', edgecolor='k', lw=0.2)
                             for j, edge in enumerate(cell['faces']):
                                 adjCellID = edge['adjacent_cell']
                                 # only choose edges that involve real cells
@@ -136,6 +149,7 @@ def main():
                                     edgeLengthsList.append(edgeLength)
 
                         cellNeighborList[timeii] = cellNeighbors
+                        tessFrames.append([tessAxs])
 
                     edgeLengthsList = np.asarray(edgeLengthsList)
                     # probably have super long edge lengths to filter, or check if cell ID is negative
@@ -165,8 +179,8 @@ def main():
                     neighborCounter = 0
                     neighborCounter2 = 0
                     neighborCounter3 = 0
-                    for timeii in range(0, xCoords.shape[0]):
-                        if (timeii > 0 and timeii < xCoords.shape[0] - persistThreshold):
+                    for timeii in range(0, len(cellPos)):
+                        if (timeii > 0 and timeii < len(cellPos) - persistThreshold):
                             # compute differences between neighbors of cell k at time i and time i-1
                             neighborDifferences = {
                                 k: cellNeighborList[timeii][k] - cellNeighborList[timeii-1][k] for k in cellNeighborList[timeii]}
@@ -196,16 +210,36 @@ def main():
                     # account for double counting of neighbor exchanges by symmetry
                     neighborExchangeCount /= 2
                     axs[1, 1].plot(
-                        range(0, xCoords.shape[0]), np.cumsum(neighborExchangeCount))
+                        range(0, len(cellPos)), np.cumsum(neighborExchangeCount))
                     axs[1, 1].set_xlabel("Time (min)")
                     axs[1, 1].set_ylabel("cumulative NE")
 
                     print(np.shape(neighborLifetimesList))
-                    debugpy.breakpoint()
                     # Save the plot
-                    plt.show()
+                    # plt.show()
                     plt.savefig(output_folder + "msd_tracks.png")
-                    plt.close()
+                    # plt.close()
+
+                    for frame in tessFrames:
+                        if isinstance(frame, (plt.Figure, plt.Axes)):
+                            print("Valid Matplotlib object:", type(frame))
+                        else:
+                            print("Not a valid Matplotlib object:", type(frame))
+                    debugpy.breakpoint()
+
+                    print("Number of frames:", len(tessFrames))
+                    ani = animation.ArtistAnimation(
+                        tessFig, tessFrames, interval=100)  # Adjust interval as needed
+                    print("Number of frames in animation:", ani.num_frames())
+
+                    print(np.shape(tessFrames))
+                    print(type(tessFrames))
+                    print(type(tessFrames[1]))
+                    plt.show()
+                    plt.pause(0.05)
+
+                    # Save the animation to a file (e.g., MP4 format)
+                    ani.save('tessAnimation.gif', writer='pillow', fps=100)
 
 
 if __name__ == "__main__":
