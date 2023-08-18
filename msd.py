@@ -9,23 +9,21 @@ from collections import defaultdict
 import debugpy
 
 
-def calculate_msd(filename):
+def load_cell_positions(filename):
     data = np.loadtxt(filename)
     time = data[:, 0]
-    cellPos = data[:, 1:]
-    numCells = cellPos.shape[1] // 2
-    numSteps = cellPos.shape[0]
+    cell_pos = data[:, 1:]
+    return time, cell_pos
 
-    maxLag = numSteps // 4
-    msd_per_particle_per_lag = np.zeros((numCells, maxLag))
 
-    for lag in range(1, maxLag+1):
-        displacements = cellPos[lag:] - cellPos[:-lag]
+def calculate_msd(cell_pos, time, max_lag):
+    msd_per_particle_per_lag = np.zeros((cell_pos.shape[1]//2, max_lag))
+    for lag in range(1, max_lag+1):
+        # displacements = np.diff(cell_pos, axis=0)
+        displacements = cell_pos[lag:] - cell_pos[:-lag]
         msd_per_particle = np.sum(displacements ** 2, axis=1)
         msd_per_particle_per_lag[:, lag-1] = np.mean(msd_per_particle, axis=0)
-
-    MSD = np.mean(msd_per_particle_per_lag, axis=0)
-    return time[1:maxLag+1], MSD
+    return time[1:max_lag+1], np.mean(msd_per_particle_per_lag, axis=0)
 
 
 def create_voronoi_plot(cells):
@@ -57,25 +55,23 @@ def main():
                     print(output_folder)
 
                     filename = folder_path + ".msd"
-                    time, msd = calculate_msd(filename)
+                    time, cellPos = load_cell_positions(filename)
+                    msdtime, msd = calculate_msd(
+                        cellPos, time, len(cellPos)//4)
 
-                    axs[0, 0].plot(time, msd, 'k')
+                    axs[0, 0].plot(msdtime, msd, 'k')
                     axs[0, 0].set_xlabel("Time (min)")
                     axs[0, 0].set_ylabel("MSD(t)/(25$\pi \mu m^2$)")
 
-                    axs[0, 1].loglog(time, msd, 'k')
+                    axs[0, 1].loglog(msdtime, msd, 'k')
                     axs[0, 1].set_xlabel("Time (min)")
                     axs[0, 1].set_ylabel("MSD(t)/(25$\pi \mu m^2$)")
                     axs[0, 1].axline(
                         [10**0, 5*10**-3], [10**1, 5*10**-1], color='r')
                     axs[0, 1].axline(
                         [10**1, 10**-1], [10**2, 10**-0], color='b')
-                    # debugpy.breakpoint()
 
-                    # Load data for cell tracks
-                    cellPos = np.loadtxt(filename)[:, 1:]
-                    xCoords = cellPos[:, ::2]
-                    yCoords = cellPos[:, 1::2]
+                    [xCoords, yCoords] = [cellPos[:, ::2], cellPos[:, 1::2]]
 
                     for i in range(xCoords.shape[1]):
                         axs[1, 0].plot(
@@ -93,7 +89,6 @@ def main():
                     neighborLifetimesList = []
                     deadNeighborSeparationList = []
 
-                    debugpy.breakpoint()
                     for timeii in range(0, len(cellPos)):
                         cellNeighbors = defaultdict(set)
                         cells = pyvoro.compute_2d_voronoi(
@@ -103,9 +98,10 @@ def main():
                              [min(yCoords[timeii, :])-1, max(yCoords[timeii, :])+1]],  # limits
                             2.0  # block size
                         )
+                        tessAxs.clear()
+                        tessFig, tessAxs = create_voronoi_plot(cells)
                         # axs[1, 0].set_aspect('equal')
                         # axs[1, 0].set_axis_off()
-                        tessAxs.clear()
                         for i, cell in enumerate(cells):
                             # store neighbors of cell i
                             cellNeighbors[i] = {j['adjacent_cell']
@@ -132,10 +128,6 @@ def main():
                                         deadNeighborSeparationList.append(
                                             np.sqrt(np.sum((cellPos1 - cellPos2)**2)))
                                         neighborLifetimesMatrix[i][nonAdjCellID] = 0
-                            # plot the polygons from the voronoi tesselation
-                            polygon = cell['vertices']
-                            tessAxs.fill(
-                                *zip(*polygon), facecolor='none', edgecolor='k', lw=0.2)
                             for j, edge in enumerate(cell['faces']):
                                 adjCellID = edge['adjacent_cell']
                                 # only choose edges that involve real cells
@@ -150,6 +142,7 @@ def main():
 
                         cellNeighborList[timeii] = cellNeighbors
                         tessFrames.append([tessAxs])
+                        debugpy.breakpoint()
 
                     edgeLengthsList = np.asarray(edgeLengthsList)
                     # probably have super long edge lengths to filter, or check if cell ID is negative
