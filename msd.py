@@ -26,12 +26,12 @@ def calculate_msd(cell_pos, time, max_lag):
     return time[1:max_lag+1], np.mean(msd_per_particle_per_lag, axis=0)
 
 
-def create_voronoi_plot(cells):
-    fig, ax = plt.subplots()
+def create_voronoi_plot(cells, fig, ax):
+    # fig, ax = plt.subplots()
     for cell in cells:
         polygon = cell['vertices']
         ax.fill(*zip(*polygon), facecolor='none', edgecolor='k', lw=0.2)
-    return fig, ax
+    return None
 
 
 def main():
@@ -47,8 +47,6 @@ def main():
             for k_off in k_off_arr:
                 for att in att_arr:
                     fig, axs = plt.subplots(2, 2, figsize=(10, 8))
-                    tessFig, tessAxs = plt.subplots()
-                    tessFrames = []  # to store tesselation frames and turn into a video
                     folder_path = folder + v0 + "_t_abp1.0k_ecm" + k_ecm + "k_off" + k_off + \
                         "/_N40_dur1000_att" + att + "_start1_end1_sd1"
                     output_folder = "output" + os.path.sep + folder_path[9:]
@@ -56,6 +54,9 @@ def main():
 
                     filename = folder_path + ".msd"
                     time, cellPos = load_cell_positions(filename)
+                    # shorten data so code runs faster
+                    time = time[0:len(time)//20]
+                    cellPos = cellPos[0:len(cellPos)//20]
                     msdtime, msd = calculate_msd(
                         cellPos, time, len(cellPos)//4)
 
@@ -98,8 +99,6 @@ def main():
                              [min(yCoords[timeii, :])-1, max(yCoords[timeii, :])+1]],  # limits
                             2.0  # block size
                         )
-                        tessAxs.clear()
-                        tessFig, tessAxs = create_voronoi_plot(cells)
                         # axs[1, 0].set_aspect('equal')
                         # axs[1, 0].set_axis_off()
                         for i, cell in enumerate(cells):
@@ -141,8 +140,6 @@ def main():
                                     edgeLengthsList.append(edgeLength)
 
                         cellNeighborList[timeii] = cellNeighbors
-                        tessFrames.append([tessAxs])
-                        debugpy.breakpoint()
 
                     edgeLengthsList = np.asarray(edgeLengthsList)
                     # probably have super long edge lengths to filter, or check if cell ID is negative
@@ -168,7 +165,7 @@ def main():
                     # plt.savefig(output_folder + "histograms.png")
                     # plt.close()
 
-                    persistThreshold = 0  # look persistThreshold # configurations forward, minimum is 1
+                    persistThreshold = 1  # look persistThreshold # configurations forward, minimum is 1
                     neighborCounter = 0
                     neighborCounter2 = 0
                     neighborCounter3 = 0
@@ -213,26 +210,23 @@ def main():
                     plt.savefig(output_folder + "msd_tracks.png")
                     # plt.close()
 
-                    for frame in tessFrames:
-                        if isinstance(frame, (plt.Figure, plt.Axes)):
-                            print("Valid Matplotlib object:", type(frame))
-                        else:
-                            print("Not a valid Matplotlib object:", type(frame))
-                    debugpy.breakpoint()
+                    tessFig, tessAxs = plt.subplots()
 
-                    print("Number of frames:", len(tessFrames))
-                    ani = animation.ArtistAnimation(
-                        tessFig, tessFrames, interval=100)  # Adjust interval as needed
-                    print("Number of frames in animation:", ani.num_frames())
+                    def make_animation_step(frame):
+                        cells = pyvoro.compute_2d_voronoi(
+                            np.column_stack(
+                                (xCoords[frame, :], yCoords[frame, :])),
+                            [[min(xCoords[frame, :])-1, max(xCoords[frame, :])+1],
+                             [min(yCoords[frame, :])-1, max(yCoords[frame, :])+1]],  # limits
+                            2.0  # block size
+                        )
+                        tessAxs.clear()
+                        create_voronoi_plot(cells, tessFig, tessAxs)
 
-                    print(np.shape(tessFrames))
-                    print(type(tessFrames))
-                    print(type(tessFrames[1]))
+                    ani2 = animation.FuncAnimation(
+                        tessFig, make_animation_step, range(len(time)), interval=100)
+                    ani2.save('tessAnimation2.avi', writer='pillow', fps=100)
                     plt.show()
-                    plt.pause(0.05)
-
-                    # Save the animation to a file (e.g., MP4 format)
-                    ani.save('tessAnimation.gif', writer='pillow', fps=100)
 
 
 if __name__ == "__main__":
