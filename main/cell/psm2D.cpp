@@ -24,6 +24,20 @@
 ./main/cell/psm2D.o   6   10 1.0  0.53 0.01   10.0    0.05    1.0  0.05    1.0   1    200    test8
 ./main/cell/psm2D.o   100   12 1.0  0.74 0.0   0.0    0.05    1.0  0.05    1.0   1    20    test8
 
+
+./main/cell/psm2D.o   12   25 1.05 0.65 0.01   25.0    0.01    1.0   0.0   1.0   0    400    test0
+./main/cell/psm2D.o   12   25 1.05 0.65 0.01  25.0    0.01    1.0   0.0   1.0   1     400    test1
+./main/cell/psm2D.o   12   25 1.05 0.65 0.01  25.0    0.01    1.0   0.0   1.0   2    400    test2
+./main/cell/psm2D.o   12   25 1.05 0.65 0.01   25.0    0.01    1.0   0.0   1.0   3    400    test3
+./main/cell/psm2D.o   12   25 1.05 0.65 0.01   25.0    0.01    1.0   0.0   1.0   4    400    test4
+./main/cell/psm2D.o   12   25 1.05 0.65 0.01  25.0    0.01    1.0   0.0   1.0   5     400    test5
+./main/cell/psm2D.o   12   25 1.05 0.65 0.01  25.0    0.01    1.0   0.0   1.0   6    400    test6
+./main/cell/psm2D.o   12   25 1.05 0.65 0.01   25.0    0.01    1.0   0.0   1.0   7    400    test7
+./main/cell/psm2D.o   12   25 1.05 0.65 0.01   25.0    0.01    1.0   0.0   1.0   8    400    test8
+./main/cell/psm2D.o   12   25 1.05 0.65 0.01  25.0    0.01    1.0   0.0   1.0   9     400    test9
+
+
+
 */
 //                NCELLS NV  A0  phi att t_maxwell_bd v0  tau_abp k_ecm k_off seed duration outFileStem
 
@@ -77,12 +91,14 @@ int main(int argc, char const* argv[]) {
   string positionFile = outFileStem + ".pos";
   string tissueFile = outFileStem + ".tissue";
   string catchBondFile = outFileStem + ".catchBond";
+  string packFractionFile = outFileStem + ".pf";
 
   int numCellTypes = 2;  // 0 = interior cell type (PSM) and 1 = exterior cell type (boundary)
   cell cell2D(NCELLS, 0.0, 0.0, seed, numCellTypes);
   cell2D.openPosObject(positionFile);
   cell2D.openTissueObject(tissueFile);
   cell2D.openCatchBondObject(catchBondFile);
+  cell2D.openPFObject(packFractionFile);
 
   // set spring constants
   cell2D.setka(1.0);  // set to 1 for initialization and FIRE, then set to larger for dynamic

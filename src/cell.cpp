@@ -2028,6 +2028,18 @@ void cell::addDP(int numVerts, const vector<double>& dp_x, const vector<double>&
   cellTouchesWallsRight.push_back(false);
 }
 
+double cell::tissuePackingFraction() {
+  double cellArea = 0.0, tissueArea = 0.0;
+  for (int ci = 0; ci < NCELLS; ci++) {
+    if (cellID[ci] == 0)
+      cellArea += area(ci);
+    else
+      tissueArea += area(ci);
+  }
+  assert(tissueArea > 0);
+  return cellArea / tissueArea;
+}
+
 // routines
 
 // eventually, call this 4x in order to replace initializeFourTransverseTissues
@@ -3232,14 +3244,13 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double dt0, double duration, doub
       }
       if (cellContactOut.is_open()) {
         std::vector<std::vector<int>> cij_matrix(NCELLS, std::vector<int>(NCELLS, 0));
+        std::vector<int> cij_minimized = calculateMinimizedContacts(forceCall, 1e-6, dt0);
         for (int cj = 0; cj < NCELLS; cj++) {
           for (int ci = 0; ci < NCELLS; ci++) {
             if (ci > cj) {
-              int element = cij[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2];
+              int element = cij_minimized[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2];
               cij_matrix[ci][cj] = element;
-              // cout << element << " ";
             } else
-              // cout << "0 ";
               cij_matrix[ci][cj] = 0;
           }
           // cout << '\n';
@@ -3346,6 +3357,34 @@ void cell::takeTissueMeasurements(int cellBoundaryType) {
   tissueout << simclock << '\t' << boundaryArea << '\t' << totalCellArea << '\n';
 }
 
+std::vector<int> cell::calculateMinimizedContacts(dpmMemFn forceCall, double Ftol, double dt0) {
+  // this will be used in dampedVertexNVE or maybe in printConfiguration2D depending on how frequently I want it printed
+  // its stream name is cellContactOut
+  // step 1: minimize a copy of the current configuration's coordinates
+  std::vector<std::vector<int>> cij_matrix(NCELLS, std::vector<int>(NCELLS, 0));
+  // save current configuration x and (flattened) contact matrix cij
+  std::vector<double> x_original = x;
+  std::vector<int> cij_original = cij;
+  std::vector<int> cij_new;
+  // energy minimize, which will update cij and x
+  vertexFIRE2D(forceCall, Ftol, dt0);
+  cij_new = cij;
+  // restore x and cij
+  x = x_original;
+  cij = cij_original;
+  cout << "cij original\n";
+  for (int i = 0; i < cij.size(); i++) {
+    cout << cij[i] << '\t';
+  }
+  cout << '\n';
+  cout << "cij minimized\n";
+  for (int i = 0; i < cij.size(); i++) {
+    cout << cij[i] << '\t';
+  }
+  cout << '\n';
+  return cij_new;
+}
+
 void cell::printConfiguration2D() {
   // overloaded to print out specific quantities of interest
   // local variables
@@ -3361,6 +3400,8 @@ void cell::printConfiguration2D() {
   } else
     cout << "** In printConfiguration2D, printing particle positions to file..."
          << endl;
+
+  pfout << simclock << '\t' << tissuePackingFraction() << '\n';
 
   // save box sizes
 

@@ -15,7 +15,7 @@ typedef void (cell::*cellMemFn)(void);
 class cell : public dpm {
  protected:
   // output streams for energy, stress, tissue measurements, catch bond positions, mean square displacements
-  std::ofstream enout, stressout, tissueout, catchBondOut, msdout, cellContactOut;
+  std::ofstream enout, stressout, tissueout, catchBondOut, msdout, cellContactOut, pfout;
 
   double simclock;             // accumulator for simulation time
   std::vector<double> VL, XL;  // wall velocity and positions if simulating with wall forces.
@@ -124,11 +124,13 @@ class cell : public dpm {
   void openCatchBondObject(const std::string& filename) { openFile(catchBondOut, filename); }
   void openMSDObject(const std::string& filename) { openFile(msdout, filename); }
   void openCellContactObject(const std::string& filename) { openFile(cellContactOut, filename); }
+  void openPFObject(const std::string& filename) { openFile(pfout, filename); };
 
   // boundary routines
   void scalePolyWallSize(double scaleFactor);
   void replacePolyWallWithDP(int numCellTypes);
   void addDP(int numVerts, const vector<double>& dp_x, const vector<double>& dp_y, int cellTypeIndex, int numCellTypes);
+  double tissuePackingFraction();
 
   // routines
   void initializeFourTransverseTissues(double phi0, double Ftol);
@@ -140,6 +142,7 @@ class cell : public dpm {
   void vertexNVE(dpmMemFn forceCall, double T, double dt0, double duration, double printInterval);
   void dampedVertexNVE(dpmMemFn forceCall, double dt0, double duration, double printInterval);
   void takeTissueMeasurements(int cellBoundaryType);
+  std::vector<int> calculateMinimizedContacts(dpmMemFn forceCall, double Ftol, double dt0);
 
   // printouts
   void printConfiguration2D();
