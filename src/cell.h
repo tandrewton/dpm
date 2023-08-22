@@ -34,6 +34,7 @@ class cell : public dpm {
   // active brownian variables and parameters
   std::vector<double> psi;  // directors
   double v0_ABP, tau_ABP;   // velocity parameter, rotation time constant
+  double v0_ABP_temp;       // stores active parameter when toggling activity on/off
 
   // catch bonds for substrate adhesion parameters
   std::vector<bool> isGiCatchBonded;
@@ -110,6 +111,14 @@ class cell : public dpm {
     std::uniform_real_distribution<> dis(0.0, 2 * PI);
     std::generate(psi.begin(), psi.end(), [&]() { return dis(gen); });
   }
+  void toggleBrownianActivity(bool isActive) {
+    if (isActive) {
+      v0_ABP = v0_ABP_temp;
+    } else {
+      v0_ABP_temp = v0_ABP;
+      v0_ABP = 0.0;
+    }
+  }
   void setkecm(double val) { k_ecm = val; }
   void setkoff(double val) { k_off = val; }
   void brownianCrawlingUpdate();
@@ -142,7 +151,7 @@ class cell : public dpm {
   void vertexNVE(dpmMemFn forceCall, double T, double dt0, double duration, double printInterval);
   void dampedVertexNVE(dpmMemFn forceCall, double dt0, double duration, double printInterval);
   void takeTissueMeasurements(int cellBoundaryType);
-  std::vector<int> calculateMinimizedContacts(dpmMemFn forceCall, double Ftol, double dt0);
+  std::vector<int> calculateMinimizedContacts(dpmMemFn forceCall, double Ftol, double dt0, std::ofstream& xStream, std::ofstream& xMinStream, std::ofstream& cijStream, std::ofstream& cijMinStream);
 
   // printouts
   void printConfiguration2D();

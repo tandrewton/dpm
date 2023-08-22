@@ -16,7 +16,7 @@ def load_cell_positions(filename):
     return time, cell_pos
 
 
-def calculate_msd(cell_pos, time, max_lag):
+def calculate_msd(cell_pos, time, max_lag): 
     msd_per_particle_per_lag = np.zeros((cell_pos.shape[1] // 2, max_lag))
     for lag in range(1, max_lag + 1):
         # displacements = np.diff(cell_pos, axis=0)

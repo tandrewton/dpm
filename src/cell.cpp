@@ -3202,6 +3202,14 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double dt0, double duration, doub
   int NPRINTSKIP = printInterval / dt;
   cout << "NPRINTSKIP = " << NPRINTSKIP << ", dt = " << dt << '\n';
 
+  // open debugging files
+  std::ofstream xStream, xMinStream, cijStream, cijMinStream;
+  openFile(xStream, "xStream.txt");
+  xStream << NCELLS << '\t' << NVTOT << '\n';
+  openFile(xMinStream, "xMinStream.txt");
+  openFile(cijStream, "cijStream.txt");
+  openFile(cijMinStream, "cijMinStream.txt");
+
   // loop over time, print energy
   while (simclock - t0 < duration) {
     // VV POSITION UPDATE
@@ -3230,7 +3238,8 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double dt0, double duration, doub
     // update sim clock
     simclock += dt;
 
-    if (int((simclock - t0) / dt) % int(0.5 / dt) == 0) {
+    if (int((simclock - t0) / dt) % int(1.0 / dt) == 0) {
+      cout << "dampedVertexNVE progress: " << simclock - t0 << " / " << duration << '\n';
       if (msdout.is_open()) {
         msdout << simclock - t0 << '\t';
         double cx = 0, cy = 0;
@@ -3245,7 +3254,7 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double dt0, double duration, doub
       if (cellContactOut.is_open()) {
         std::vector<std::vector<int>> cij_matrix(NCELLS, std::vector<int>(NCELLS, 0));
         cout << "before calculateMinimizedContacts\n";
-        std::vector<int> cij_minimized = calculateMinimizedContacts(forceCall, 1e-6, dt0);
+        std::vector<int> cij_minimized = calculateMinimizedContacts(forceCall, 1e-5, dt0, xStream, xMinStream, cijStream, cijMinStream);
         for (int cj = 0; cj < NCELLS; cj++) {
           for (int ci = 0; ci < NCELLS; ci++) {
             if (ci > cj) {
@@ -3358,32 +3367,34 @@ void cell::takeTissueMeasurements(int cellBoundaryType) {
   tissueout << simclock << '\t' << boundaryArea << '\t' << totalCellArea << '\n';
 }
 
-std::vector<int> cell::calculateMinimizedContacts(dpmMemFn forceCall, double Ftol, double dt0) {
+std::vector<int> cell::calculateMinimizedContacts(dpmMemFn forceCall, double Ftol, double dt0, std::ofstream& xStream, std::ofstream& xMinStream, std::ofstream& cijStream, std::ofstream& cijMinStream) {
   // this will be used in dampedVertexNVE or maybe in printConfiguration2D depending on how frequently I want it printed
   // its stream name is cellContactOut
-  // step 1: minimize a copy of the current configuration's coordinates
+  // step 1: save, then minimize the current configuration
   std::vector<std::vector<int>> cij_matrix(NCELLS, std::vector<int>(NCELLS, 0));
-  // save current configuration x and (flattened) contact matrix cij
   std::vector<double> x_original = x;
   std::vector<int> cij_original = cij;
   std::vector<int> cij_new;
   // energy minimize, which will update cij and x
-  cout << "before minimized contacts FIRE \n\n\n\n";
+  toggleBrownianActivity(false);
+  // note: the forcecall corresponding to vertexFIRE should not use activity
   vertexFIRE2D(forceCall, Ftol, dt0);
+  toggleBrownianActivity(true);
   cij_new = cij;
+  // save x vs x_original, and cij vs cij_original to compare in postprocessing
+  for (int i = 0; i < x.size(); i += 2) {
+    xStream << x_original[i] << '\t' << x_original[i + 1] << '\n';
+    xMinStream << x[i] << '\t' << x[i + 1] << '\n';
+  }
+  for (int i = 0; i < cij.size(); i++) {
+    cijStream << cij_original[i] << '\t';
+    cijMinStream << cij_new[i] << '\t';
+  }
+  cijStream << '\n';
+  cijMinStream << '\n';
   // restore x and cij
   x = x_original;
   cij = cij_original;
-  cout << "cij original\n";
-  for (int i = 0; i < cij.size(); i++) {
-    cout << cij[i] << '\t';
-  }
-  cout << '\n';
-  cout << "cij minimized\n";
-  for (int i = 0; i < cij.size(); i++) {
-    cout << cij[i] << '\t';
-  }
-  cout << '\n';
   return cij_new;
 }
 
