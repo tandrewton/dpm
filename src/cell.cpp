@@ -3244,6 +3244,7 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double dt0, double duration, doub
       }
       if (cellContactOut.is_open()) {
         std::vector<std::vector<int>> cij_matrix(NCELLS, std::vector<int>(NCELLS, 0));
+        cout << "before calculateMinimizedContacts\n";
         std::vector<int> cij_minimized = calculateMinimizedContacts(forceCall, 1e-6, dt0);
         for (int cj = 0; cj < NCELLS; cj++) {
           for (int ci = 0; ci < NCELLS; ci++) {
@@ -3367,6 +3368,7 @@ std::vector<int> cell::calculateMinimizedContacts(dpmMemFn forceCall, double Fto
   std::vector<int> cij_original = cij;
   std::vector<int> cij_new;
   // energy minimize, which will update cij and x
+  cout << "before minimized contacts FIRE \n\n\n\n";
   vertexFIRE2D(forceCall, Ftol, dt0);
   cij_new = cij;
   // restore x and cij
