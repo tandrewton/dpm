@@ -3203,12 +3203,13 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double dt0, double duration, doub
   cout << "NPRINTSKIP = " << NPRINTSKIP << ", dt = " << dt << '\n';
 
   // open debugging files
-  std::ofstream xStream, xMinStream, cijStream, cijMinStream;
+  std::ofstream xStream, xMinStream, cijStream, cijMinStream, comStream;
   openFile(xStream, "xStream.txt");
   xStream << NCELLS << '\t' << NVTOT << '\n';
   openFile(xMinStream, "xMinStream.txt");
   openFile(cijStream, "cijStream.txt");
   openFile(cijMinStream, "cijMinStream.txt");
+  openFile(comStream, "comStream.txt");
 
   // loop over time, print energy
   while (simclock - t0 < duration) {
@@ -3255,13 +3256,15 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double dt0, double duration, doub
         std::vector<std::vector<int>> cij_matrix(NCELLS, std::vector<int>(NCELLS, 0));
         cout << "before calculateMinimizedContacts\n";
         std::vector<int> cij_minimized = calculateMinimizedContacts(forceCall, 1e-5, dt0, xStream, xMinStream, cijStream, cijMinStream);
+        for (int ci = 0; ci < NCELLS; ci++) {
+          double cx, cy;
+          com2D(ci, cx, cy);
+          comStream << ci << '\t' << cx << '\t' << cy << '\n';
+        }
         for (int cj = 0; cj < NCELLS; cj++) {
-          for (int ci = 0; ci < NCELLS; ci++) {
-            if (ci > cj) {
-              int element = cij_minimized[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2];
-              cij_matrix[ci][cj] = element;
-            } else
-              cij_matrix[ci][cj] = 0;
+          for (int ci = cj + 1; ci < NCELLS; ci++) {
+            int element = cij_minimized[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2];
+            cij_matrix[ci][cj] = element;
           }
           // cout << '\n';
         }
@@ -3386,12 +3389,24 @@ std::vector<int> cell::calculateMinimizedContacts(dpmMemFn forceCall, double Fto
     xStream << x_original[i] << '\t' << x_original[i + 1] << '\n';
     xMinStream << x[i] << '\t' << x[i + 1] << '\n';
   }
-  for (int i = 0; i < cij.size(); i++) {
+  /*for (int i = 0; i < cij.size(); i++) {
     cijStream << cij_original[i] << '\t';
     cijMinStream << cij_new[i] << '\t';
   }
   cijStream << '\n';
-  cijMinStream << '\n';
+  cijMinStream << '\n';*/
+  std::vector<std::vector<int>> cij_original_matrix(NCELLS, std::vector<int>(NCELLS, 0));
+  std::vector<std::vector<int>> cij_new_matrix(NCELLS, std::vector<int>(NCELLS, 0));
+  for (int cj = 0; cj < NCELLS; cj++) {
+    for (int ci = cj + 1; ci < NCELLS; ci++) {
+      int element = cij_original[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2];
+      cij_original_matrix[ci][cj] = element;
+      element = cij_new[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2];
+      cij_new_matrix[ci][cj] = element;
+    }
+  }
+  saveMatrixToCSV(cij_original_matrix, cijStream);
+  saveMatrixToCSV(cij_new_matrix, cijMinStream);
   // restore x and cij
   x = x_original;
   cij = cij_original;
