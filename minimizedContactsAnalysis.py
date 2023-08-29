@@ -66,9 +66,9 @@ def main():
     def updateAnimation(frame, array, rowsPerFrame):
         posAx.clear()
         posAx.set_aspect('equal')  # Set aspect ratio to square
-        posAx.set_xlim(0,7)  # Set x range
-        posAx.set_ylim(0,7)  # Set y range
         data = array[frame*rowsPerFrame:(frame+1)*rowsPerFrame]
+        posAx.set_xlim(min(data[:, 0]), max(data[:, 0]))  # Set x range
+        posAx.set_ylim(min(data[:, 1]), max(data[:, 1]))  # Set y range
         posAx.scatter(data[:,0], data[:,1], s = 80)
         for i in range(NCELLS):
             posAx.text(cellCOM[NCELLS*frame + i][1], cellCOM[NCELLS*frame + i][2], int(cellCOM[NCELLS*frame + i][0]))

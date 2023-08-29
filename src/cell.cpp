@@ -3239,7 +3239,7 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double dt0, double duration, doub
     // update sim clock
     simclock += dt;
 
-    if (int((simclock - t0) / dt) % int(1.0 / dt) == 0) {
+    if (int((simclock - t0) / dt) % int(0.5 / dt) == 0) {
       cout << "dampedVertexNVE progress: " << simclock - t0 << " / " << duration << '\n';
       if (msdout.is_open()) {
         msdout << simclock - t0 << '\t';
@@ -3386,8 +3386,8 @@ std::vector<int> cell::calculateMinimizedContacts(dpmMemFn forceCall, double Fto
   cij_new = cij;
   // save x vs x_original, and cij vs cij_original to compare in postprocessing
   for (int i = 0; i < x.size(); i += 2) {
-    xStream << x_original[i] << '\t' << x_original[i + 1] << '\n';
-    xMinStream << x[i] << '\t' << x[i + 1] << '\n';
+    xStream << x_original[i] << '\t' << x_original[i + 1] << '\t' << r[i / 2] << '\n';
+    xMinStream << x[i] << '\t' << x[i + 1] << '\t' << r[i / 2] << '\n';
   }
   /*for (int i = 0; i < cij.size(); i++) {
     cijStream << cij_original[i] << '\t';
