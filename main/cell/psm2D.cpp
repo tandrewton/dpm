@@ -88,17 +88,9 @@ int main(int argc, char const* argv[]) {
   double runTime = parseArg<double>(argv[12]);
   std::string outFileStem = argv[13];
 
-  string positionFile = outFileStem + ".pos";
-  string tissueFile = outFileStem + ".tissue";
-  string catchBondFile = outFileStem + ".catchBond";
-  string packFractionFile = outFileStem + ".pf";
-
   int numCellTypes = 2;  // 0 = interior cell type (PSM) and 1 = exterior cell type (boundary)
   cell cell2D(NCELLS, 0.0, 0.0, seed, numCellTypes);
-  cell2D.openPosObject(positionFile);
-  cell2D.openTissueObject(tissueFile);
-  cell2D.openCatchBondObject(catchBondFile);
-  cell2D.openPFObject(packFractionFile);
+  cell2D.openFileStreams(outFileStem);
 
   // set spring constants
   cell2D.setka(1.0);  // set to 1 for initialization and FIRE, then set to larger for dynamic
@@ -160,7 +152,7 @@ int main(int argc, char const* argv[]) {
   cell2D.resizeCatchBonds();
   cell2D.resizeNeighborLinkedList2D();
 
-  double relaxTime = 250.0;
+  double relaxTime = 25.0;
   cell2D.setka(ka);
   cell2D.dampedVertexNVE(attractiveSmoothForceUpdate, dt0, relaxTime, 0);
   cell2D.setl00();  // set l00 to be l0 before setting maxwell relaxation time
@@ -169,12 +161,8 @@ int main(int argc, char const* argv[]) {
   cell2D.dampedVertexNVE(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, relaxTime, 0);
 
   // begin production run after all of the initialization and equilibration settles
-  std::string msdFile = outFileStem + ".msd";
-  std::string cellContactFile = outFileStem + ".cellContact";
-  cell2D.openMSDObject(msdFile);
-  cell2D.openCellContactObject(cellContactFile);
   // cell2D.dampedVertexNVE(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, 3.0);
-  cell2D.dampedVertexNVE(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, 3.0);
+  cell2D.dampedVertexNVE(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, 0.5);
   cout << "\n** Finished psm.cpp (2D transverse section of pre-somitic mesoderm), ending. " << endl;
 
   return 0;

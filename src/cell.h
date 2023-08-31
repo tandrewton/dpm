@@ -15,7 +15,7 @@ typedef void (cell::*cellMemFn)(void);
 class cell : public dpm {
  protected:
   // output streams for energy, stress, tissue measurements, catch bond positions, mean square displacements
-  std::ofstream enout, stressout, tissueout, catchBondOut, msdout, cellContactOut, pfout;
+  std::ofstream enout, stressOut, tissueOut, catchBondOut, msdOut, cellContactOut, pfOut, xStream, xMinStream, cijStream, cijMinStream, comStream;
 
   double simclock;             // accumulator for simulation time
   std::vector<double> VL, XL;  // wall velocity and positions if simulating with wall forces.
@@ -127,13 +127,21 @@ class cell : public dpm {
   void resizeCatchBonds();
 
   // File openers
-  void openEnergyObject(const std::string& filename) { openFile(enout, filename); }
-  void openStressObject(const std::string& filename) { openFile(stressout, filename); }
-  void openTissueObject(const std::string& filename) { openFile(tissueout, filename); }
-  void openCatchBondObject(const std::string& filename) { openFile(catchBondOut, filename); }
-  void openMSDObject(const std::string& filename) { openFile(msdout, filename); }
-  void openCellContactObject(const std::string& filename) { openFile(cellContactOut, filename); }
-  void openPFObject(const std::string& filename) { openFile(pfout, filename); };
+  void openFileStreams(const std::string& filename) {
+    std::vector<string> fileExt = {".pos", ".tissue", ".catchbond", ".pf", ".msd", ".cellContact",
+                                   ".xStream", ".xMinStream", ".cijStream", ".cijMinStream", ".comStream"};
+    openFile(posout, filename + fileExt[0]);
+    openFile(tissueOut, filename + fileExt[1]);
+    openFile(catchBondOut, filename + fileExt[2]);
+    openFile(pfOut, filename + fileExt[3]);
+    openFile(msdOut, filename + fileExt[4]);
+    openFile(cellContactOut, filename + fileExt[5]);
+    openFile(xStream, filename + fileExt[6]);
+    openFile(xMinStream, filename + fileExt[7]);
+    openFile(cijStream, filename + fileExt[8]);
+    openFile(cijMinStream, filename + fileExt[9]);
+    openFile(comStream, filename + fileExt[10]);
+  }
 
   // boundary routines
   void scalePolyWallSize(double scaleFactor);

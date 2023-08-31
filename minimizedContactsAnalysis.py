@@ -1,12 +1,9 @@
-import os
 import numpy as np
 import csv
 from io import StringIO
 import matplotlib.pyplot as plt
-from matplotlib import cm
 import matplotlib.animation as animation
-from matplotlib.ticker import LinearLocator
-from collections import defaultdict
+from matplotlib.collections import PatchCollection
 import debugpy
 
 def readCSV(filename):
@@ -41,7 +38,10 @@ def calculateNeighborExchanges(contactMatrix):
 
 
 def main():
-    filenames = ["xStream.txt", "xMinStream.txt", "cijStream.txt", "cijMinStream.txt", "comStream.txt"]
+    fileheader = "test6"
+    fileExtensions = [".xStream", ".xMinStream",
+                      ".cijStream", ".cijMinStream", ".comStream"]
+    filenames = [fileheader + ext for ext in fileExtensions]
     cellPos = np.loadtxt(filenames[0])
     cellMinPos = np.loadtxt(filenames[1])
     #cij = np.loadtxt(filenames[2])
@@ -50,12 +50,12 @@ def main():
     cijMin = readCSV(filenames[3])
     cellCOM = np.loadtxt(filenames[4])
 
-    debugpy.breakpoint()
-
     # extract header information from cellPos and then remove header
     NCELLS = int(cellPos[0][0])
     NVTOT = int(cellPos[0][1])
     cellPos = cellPos[1:]
+    globalXLim = [min(cellPos[:,0]), max(cellPos[:,0])]
+    globalYLim = [min(cellPos[:,1]), max(cellPos[:,1])]
 
     # make movies of cellPos and cellMinPos
     posFig, posAx = plt.subplots()
@@ -67,15 +67,19 @@ def main():
         posAx.clear()
         posAx.set_aspect('equal')  # Set aspect ratio to square
         data = array[frame*rowsPerFrame:(frame+1)*rowsPerFrame]
-        posAx.set_xlim(min(data[:, 0]), max(data[:, 0]))  # Set x range
-        posAx.set_ylim(min(data[:, 1]), max(data[:, 1]))  # Set y range
-        posAx.scatter(data[:,0], data[:,1], s = 80)
+        posAx.set_xlim(globalXLim[0], globalXLim[1])  # Set x range
+        posAx.set_ylim(globalYLim[0], globalYLim[1])  # Set y range
+        #posAx.scatter(data[:,0], data[:,1], s = data[:,2])
+        circles = [plt.Circle((xi, yi), radius=data[0,2], linewidth=0)
+                   for xi, yi in zip(data[:,0], data[:,1])]
+        debugpy.breakpoint()
+        c = PatchCollection(circles)
+        posAx.add_collection(c)
         for i in range(NCELLS):
             posAx.text(cellCOM[NCELLS*frame + i][1], cellCOM[NCELLS*frame + i][2], int(cellCOM[NCELLS*frame + i][0]))
         time_text = posAx.text(0.05, 0.95, "")
         time_text.set_text("time = %.1d" % frame)
 
-    debugpy.breakpoint()
     posAni = animation.FuncAnimation(
         posFig, updateAnimation, range(int(cellPos.shape[0]/NVTOT)),fargs=(cellPos, NVTOT), interval=100
     )

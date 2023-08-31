@@ -3065,7 +3065,7 @@ void cell::simulateDampedWithWalls(dpmMemFn forceCall, double dt0, double durati
           enout << endl;
         }
 
-        if (stressout.is_open()) {
+        if (stressOut.is_open()) {
           double shapeStressXX = 0.0, shapeStressYY = 0.0, shapeStressXY = 0.0;
           for (int ci = 0; ci < NCELLS; ci++) {
             shapeStressXX += fieldShapeStressCells[ci][0];
@@ -3076,14 +3076,14 @@ void cell::simulateDampedWithWalls(dpmMemFn forceCall, double dt0, double durati
           cout << "** printing stress" << endl;
           cout << "field shape stresses: " << -shapeStressXX << '\t'
                << -shapeStressYY << '\t' << -shapeStressXY << '\n';
-          stressout << setw(wnum) << left << simclock;
-          stressout << setw(wnum) << -stress[0];
-          stressout << setw(wnum) << -stress[1];
-          stressout << setw(wnum) << -stress[2];
-          stressout << setw(wnum) << -shapeStressXX;
-          stressout << setw(wnum) << -shapeStressYY;
-          stressout << setw(wnum) << -shapeStressXY;
-          stressout << endl;
+          stressOut << setw(wnum) << left << simclock;
+          stressOut << setw(wnum) << -stress[0];
+          stressOut << setw(wnum) << -stress[1];
+          stressOut << setw(wnum) << -stress[2];
+          stressOut << setw(wnum) << -shapeStressXX;
+          stressOut << setw(wnum) << -shapeStressYY;
+          stressOut << setw(wnum) << -shapeStressXY;
+          stressOut << endl;
         }
 
         // print to configuration only if position file is open
@@ -3189,27 +3189,20 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double dt0, double duration, doub
   int i;
   double K, t0 = simclock;
   double temp_simclock = simclock;
-  cout << "inside dampedVertexNVE in Cell class\n";
-  cout << "vertDOF = " << vertDOF << '\n';
-  cout << "x.size() = " << x.size() << '\n';
-  cout << "l0.size() = " << l0.size() << '\n';
-  cout << "l00.size() = " << l00.size() << '\n';
-  cout << "a0.size() = " << a0.size() << '\n';
-  cout << "cellID.size() = " << cellID.size() << '\n';
 
   // set time step magnitude
   setdt(dt0);
   int NPRINTSKIP = printInterval / dt;
   cout << "NPRINTSKIP = " << NPRINTSKIP << ", dt = " << dt << '\n';
 
-  // open debugging files
-  std::ofstream xStream, xMinStream, cijStream, cijMinStream, comStream;
+  /*// open debugging files
   openFile(xStream, "xStream.txt");
-  xStream << NCELLS << '\t' << NVTOT << '\n';
+  xStream << NCELLS << '\t' << NVTOT << '\t' << 0 << '\n';
   openFile(xMinStream, "xMinStream.txt");
   openFile(cijStream, "cijStream.txt");
   openFile(cijMinStream, "cijMinStream.txt");
   openFile(comStream, "comStream.txt");
+  */
 
   // loop over time, print energy
   while (simclock - t0 < duration) {
@@ -3239,43 +3232,10 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double dt0, double duration, doub
     // update sim clock
     simclock += dt;
 
-    if (int((simclock - t0) / dt) % int(0.5 / dt) == 0) {
-      cout << "dampedVertexNVE progress: " << simclock - t0 << " / " << duration << '\n';
-      if (msdout.is_open()) {
-        msdout << simclock - t0 << '\t';
-        double cx = 0, cy = 0;
-        for (int ci = 0; ci < NCELLS; ci++) {
-          if (cellID[ci] == 0) {
-            com2D(ci, cx, cy);
-            msdout << cx << '\t' << cy << '\t';
-          }
-        }
-        msdout << '\n';
-      }
-      if (cellContactOut.is_open()) {
-        std::vector<std::vector<int>> cij_matrix(NCELLS, std::vector<int>(NCELLS, 0));
-        cout << "before calculateMinimizedContacts\n";
-        std::vector<int> cij_minimized = calculateMinimizedContacts(forceCall, 1e-5, dt0, xStream, xMinStream, cijStream, cijMinStream);
-        for (int ci = 0; ci < NCELLS; ci++) {
-          double cx, cy;
-          com2D(ci, cx, cy);
-          comStream << ci << '\t' << cx << '\t' << cy << '\n';
-        }
-        for (int cj = 0; cj < NCELLS; cj++) {
-          for (int ci = cj + 1; ci < NCELLS; ci++) {
-            int element = cij_minimized[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2];
-            cij_matrix[ci][cj] = element;
-          }
-          // cout << '\n';
-        }
-        saveMatrixToCSV(cij_matrix, cellContactOut);
-      }
-    }
-
     // print to console and file
-    if (int(printInterval) != 0) {
+    if (int(printInterval / dt) != 0) {
       if (int((simclock - t0) / dt) % NPRINTSKIP == 0 &&
-          (simclock - temp_simclock) > printInterval / 2.0) {
+          (simclock - temp_simclock) > double(printInterval) / 2.0) {
         temp_simclock = simclock;
         // compute kinetic energy
         K = vertexKineticEnergy();
@@ -3312,7 +3272,7 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double dt0, double duration, doub
           enout << endl;
         }
 
-        if (stressout.is_open()) {
+        if (stressOut.is_open()) {
           double shapeStressXX = 0.0, shapeStressYY = 0.0, shapeStressXY = 0.0;
           for (int ci = 0; ci < NCELLS; ci++) {
             shapeStressXX += fieldShapeStressCells[ci][0];
@@ -3323,14 +3283,14 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double dt0, double duration, doub
           cout << "** printing stress" << endl;
           cout << "field shape stresses: " << -shapeStressXX << '\t'
                << -shapeStressYY << '\t' << -shapeStressXY << '\n';
-          stressout << setw(wnum) << left << simclock;
-          stressout << setw(wnum) << -stress[0];
-          stressout << setw(wnum) << -stress[1];
-          stressout << setw(wnum) << -stress[2];
-          stressout << setw(wnum) << -shapeStressXX;
-          stressout << setw(wnum) << -shapeStressYY;
-          stressout << setw(wnum) << -shapeStressXY;
-          stressout << endl;
+          stressOut << setw(wnum) << left << simclock;
+          stressOut << setw(wnum) << -stress[0];
+          stressOut << setw(wnum) << -stress[1];
+          stressOut << setw(wnum) << -stress[2];
+          stressOut << setw(wnum) << -shapeStressXX;
+          stressOut << setw(wnum) << -shapeStressYY;
+          stressOut << setw(wnum) << -shapeStressXY;
+          stressOut << endl;
         }
 
         // print to configuration only if position file is open
@@ -3339,13 +3299,43 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double dt0, double duration, doub
           cout << "done printing in NVE\n";
         }
 
-        if (tissueout.is_open()) {
+        if (tissueOut.is_open()) {
           int maxCellID = *std::max_element(cellID.begin(), cellID.end());
           if (maxCellID > 0) {
             cout << "printing maxCellID boundary ID tissueMeasurements to file\n";
             // hardcoding boundary ID for now.
             takeTissueMeasurements(maxCellID);
           }
+        }
+
+        cout << "dampedVertexNVE progress: " << simclock - t0 << " / " << duration << '\n';
+        if (msdOut.is_open()) {
+          msdOut << simclock - t0 << '\t';
+          double cx = 0, cy = 0;
+          for (int ci = 0; ci < NCELLS; ci++) {
+            if (cellID[ci] == 0) {
+              com2D(ci, cx, cy);
+              msdOut << cx << '\t' << cy << '\t';
+            }
+          }
+          msdOut << '\n';
+        }
+        if (cellContactOut.is_open()) {
+          std::vector<std::vector<int>> cij_matrix(NCELLS, std::vector<int>(NCELLS, 0));
+          cout << "before calculateMinimizedContacts\n";
+          std::vector<int> cij_minimized = calculateMinimizedContacts(forceCall, 1e-5, dt0, xStream, xMinStream, cijStream, cijMinStream);
+          for (int ci = 0; ci < NCELLS; ci++) {
+            double cx, cy;
+            com2D(ci, cx, cy);
+            comStream << ci << '\t' << cx << '\t' << cy << '\n';
+          }
+          for (int cj = 0; cj < NCELLS; cj++) {
+            for (int ci = cj + 1; ci < NCELLS; ci++) {
+              int element = cij_minimized[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2];
+              cij_matrix[ci][cj] = element;
+            }
+          }
+          saveMatrixToCSV(cij_matrix, cellContactOut);
         }
       }
     }
@@ -3367,7 +3357,7 @@ void cell::takeTissueMeasurements(int cellBoundaryType) {
   if (boundaryArea == 0.0 || totalCellArea == 0.0) {
     cout << "error, could not find either boundary or cells in takeTissueMeasurements\n";
   }
-  tissueout << simclock << '\t' << boundaryArea << '\t' << totalCellArea << '\n';
+  tissueOut << simclock << '\t' << boundaryArea << '\t' << totalCellArea << '\n';
 }
 
 std::vector<int> cell::calculateMinimizedContacts(dpmMemFn forceCall, double Ftol, double dt0, std::ofstream& xStream, std::ofstream& xMinStream, std::ofstream& cijStream, std::ofstream& cijMinStream) {
@@ -3389,12 +3379,6 @@ std::vector<int> cell::calculateMinimizedContacts(dpmMemFn forceCall, double Fto
     xStream << x_original[i] << '\t' << x_original[i + 1] << '\t' << r[i / 2] << '\n';
     xMinStream << x[i] << '\t' << x[i + 1] << '\t' << r[i / 2] << '\n';
   }
-  /*for (int i = 0; i < cij.size(); i++) {
-    cijStream << cij_original[i] << '\t';
-    cijMinStream << cij_new[i] << '\t';
-  }
-  cijStream << '\n';
-  cijMinStream << '\n';*/
   std::vector<std::vector<int>> cij_original_matrix(NCELLS, std::vector<int>(NCELLS, 0));
   std::vector<std::vector<int>> cij_new_matrix(NCELLS, std::vector<int>(NCELLS, 0));
   for (int cj = 0; cj < NCELLS; cj++) {
@@ -3429,7 +3413,7 @@ void cell::printConfiguration2D() {
     cout << "** In printConfiguration2D, printing particle positions to file..."
          << endl;
 
-  pfout << simclock << '\t' << tissuePackingFraction() << '\n';
+  pfOut << simclock << '\t' << tissuePackingFraction() << '\n';
 
   // save box sizes
 
