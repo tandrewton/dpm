@@ -3195,6 +3195,9 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double dt0, double duration, doub
   int NPRINTSKIP = printInterval / dt;
   cout << "NPRINTSKIP = " << NPRINTSKIP << ", dt = " << dt << '\n';
 
+  if (printInterval > 0)
+    xStream << NCELLS << '\t' << NVTOT << '\t' << 0 << '\n';
+
   /*// open debugging files
   openFile(xStream, "xStream.txt");
   xStream << NCELLS << '\t' << NVTOT << '\t' << 0 << '\n';
