@@ -3372,10 +3372,10 @@ std::vector<int> cell::calculateMinimizedContacts(dpmMemFn forceCall, double Fto
   std::vector<int> cij_original = cij;
   std::vector<int> cij_new;
   // energy minimize, which will update cij and x
-  toggleBrownianActivity(false);
+  // toggleBrownianActivity(false);
   // note: the forcecall corresponding to vertexFIRE should not use activity
   vertexFIRE2D(forceCall, Ftol, dt0);
-  toggleBrownianActivity(true);
+  // toggleBrownianActivity(true);
   cij_new = cij;
   // save x vs x_original, and cij vs cij_original to compare in postprocessing
   for (int i = 0; i < x.size(); i += 2) {

@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib.collections import PatchCollection
 import debugpy
+import argparse
 
 def readCSV(filename):
     # currently omits contacts with the boundary
@@ -38,7 +39,18 @@ def calculateNeighborExchanges(contactMatrix):
 
 
 def main():
-    fileheader = "test6"
+    parser = argparse.ArgumentParser(description="Parameter inputs",
+                                    formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("-a", "--attraction", help="cell-cell adhesion")
+    parser.add_argument("-v0", "--activeVelocity", help="active propulsion coefficient")
+    parser.add_argument("-e", "--ecm", help="ecm adhesion")
+    args = parser.parse_args()
+    att = args.attraction
+    v0 = args.activeVelocity
+    k_ecm = args.ecm
+    # fileheader = "test6"
+    fileheader = "pipeline\cells\psm\psm_calA01.0_phi0.74_tm10.0_v0"+v0+"_t_abp1.0k_ecm"+k_ecm+"k_off1.0\_N40_dur100_att"+att+"_start1_end1_sd1"
+    outputFileheader = "output"+fileheader[8:]+"activityOn"
     fileExtensions = [".xStream", ".xMinStream",
                       ".cijStream", ".cijMinStream", ".comStream"]
     filenames = [fileheader + ext for ext in fileExtensions]
@@ -83,16 +95,16 @@ def main():
     posAni = animation.FuncAnimation(
         posFig, updateAnimation, range(int(cellPos.shape[0]/NVTOT)),fargs=(cellPos, NVTOT), interval=100
     )
-    posAni.save('posAnimation.mp4', writer=writervideo, dpi=75)
+    posAni.save(outputFileheader+'posAnimation.mp4', writer=writervideo, dpi=75)
 
     minPosAni = animation.FuncAnimation(
         posFig, updateAnimation, range(int(cellPos.shape[0]/NVTOT)), fargs=(cellMinPos, NVTOT), interval=100
     )
-    minPosAni.save("minPosAnimation.mp4",  writer=writervideo, dpi=75)
+    minPosAni.save(outputFileheader+"minPosAnimation.mp4",
+                   writer=writervideo, dpi=75)
 
     # use cij and minCij to determine neighbor exchanges as a function of time. minCij should feature fewer switches
     print("calculating NE of positions")
-    debugpy.breakpoint()
     NE = calculateNeighborExchanges(cij)
     print("calculating NE of min positions")
     minNE = calculateNeighborExchanges(cijMin)
@@ -101,7 +113,8 @@ def main():
     axNE.plot(np.arange(0, len(NE)), np.cumsum(minNE), 'k')
     axNE.set_xlabel("Time (min)")
     axNE.set_ylabel("Cumulative NEs")
-    plt.show()
+    #plt.show()
+    figNE.savefig(outputFileheader+"cumNE.png")
 
     print("closing program")
 
