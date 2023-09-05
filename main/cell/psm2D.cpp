@@ -152,7 +152,7 @@ int main(int argc, char const* argv[]) {
   cell2D.resizeCatchBonds();
   cell2D.resizeNeighborLinkedList2D();
 
-  double relaxTime = 25.0;
+  double relaxTime = 100.0;
   cell2D.setka(ka);
   cell2D.dampedVertexNVE(attractiveSmoothForceUpdate, dt0, relaxTime, 0);
   cell2D.setl00();  // set l00 to be l0 before setting maxwell relaxation time
