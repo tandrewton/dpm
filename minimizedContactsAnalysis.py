@@ -32,8 +32,8 @@ def calculateNeighborExchanges(contactMatrix):
     for i in range(len(contactMatrix)-1):
         diff[i] = np.count_nonzero(contactMatrix[i+1] - contactMatrix[i])
         nonzeros = np.nonzero(contactMatrix[i+1] - contactMatrix[i])
-        for j in range(len(nonzeros[0])):
-            print("frame", i+1, ", nonzero contact indices: ", nonzeros[0][j], nonzeros[1][j])
+        #for j in range(len(nonzeros[0])):
+        #    print("frame", i+1, ", nonzero contact indices: ", nonzeros[0][j], nonzeros[1][j])
         debugpy.breakpoint()
     return diff
 
@@ -115,6 +115,13 @@ def main():
     axNE.set_ylabel("Cumulative NEs")
     #plt.show()
     figNE.savefig(outputFileheader+"cumNE.png")
+    frameDuration = 0.5
+    print("mean NE = ", np.mean(NE)/(frameDuration)/NCELLS)
+    print("mean minNE = ", np.mean(minNE)/(frameDuration)/NCELLS)
+    with open("NE_overall.txt", "a") as text_file:
+        text_file.write(str(att)+","+str(v0)+","+str(k_ecm)+"\n")
+        text_file.write("mean NE = "+str(np.mean(NE)/(frameDuration)/NCELLS)+"\n")
+        text_file.write("mean minNE = "+str(np.mean(minNE)/(frameDuration)/NCELLS)+"\n\n")
 
     print("closing program")
 
