@@ -50,7 +50,7 @@ def main():
     k_ecm = args.ecm
     # fileheader = "test6"
     fileheader = "pipeline\cells\psm\psm_calA01.0_phi0.74_tm10.0_v0"+v0+"_t_abp1.0k_ecm"+k_ecm+"k_off1.0\_N40_dur100_att"+att+"_start1_end1_sd1"
-    outputFileheader = "output"+fileheader[8:]+"activityOn"
+    outputFileheader = "output"+fileheader[8:]
     fileExtensions = [".xStream", ".xMinStream",
                       ".cijStream", ".cijMinStream", ".comStream"]
     filenames = [fileheader + ext for ext in fileExtensions]
