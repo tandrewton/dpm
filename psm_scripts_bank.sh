@@ -14,7 +14,7 @@ for phi in ${phi_arr[@]}; do
     for v0 in ${v0_arr[@]}; do
       for koff in ${koff_arr[@]}; do
           for kecm in ${kecm_arr[@]}; do
-              echo bash bash/cells/submit_psm.sh 40 20 $calA0 $phi $att 10.0 $v0 1.0 $kecm $koff 100 pi_ohern,day 0-12:00:00 $numSeeds 1 >> joblist_psm_att_v0_koff.txt
+              echo bash bash/cells/submit_psm.sh 40 20 $calA0 $phi $att 10.0 $v0 1.0 $kecm $koff 250 pi_ohern,day 0-12:00:00 $numSeeds 1 >> joblist_psm_att_v0_koff.txt
           done
       done
     done
@@ -43,7 +43,7 @@ close all; clear;
 calA0_arr = ["1.0"];
 att_arr = ["0.001" "0.01" "0.1"];
 phi_arr = ["0.74"]
-v0_arr = ["0.01" "0.02" "0.04" "0.08" "0.16"];
+v0_arr = ["0.02" "0.04" "0.08"];
 k_ecm_arr = ["0.005" "0.05" "0.5" "5"];
 k_off_arr = ["1.0"];
 for ii=1:length(calA0_arr)

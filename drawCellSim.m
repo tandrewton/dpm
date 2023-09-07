@@ -23,14 +23,14 @@ t_maxwell = "10.0";
 %v0 = "0.05";
 t_abp = "1.0";
 %att="0.1";
-Duration="1000";
+Duration="250";
 FSKIP = 1;
 startSeed = 1;
 max_seed = 1;
 att_range = 0.3;
 
 %if makeAMovie is 0, then plot every frame separately
-forImageAnalysis = 1;
+forImageAnalysis = 0;
 if (forImageAnalysis)
     showCatchBonds = 0;
     showverts = 1;
@@ -165,7 +165,7 @@ for seed = startSeed:max_seed
             catchBond = catchBondLocations{ff};
             rx = catchBond(:,1) - catchBond(:,3);
             ry = catchBond(:,2) - catchBond(:,4);
-            [offsetx, offsety] = patchRectangleOffsets(rx, ry, mean(vrad{1}/10));
+            [offsetx, offsety] = patchRectangleOffsets(rx, ry, mean(vrad{1}/2));
             cornerx = [catchBond(:,1) - offsetx, catchBond(:,1) + offsetx, catchBond(:,3) + offsetx, catchBond(:,3) - offsetx];
             cornery = [catchBond(:,2) - offsety, catchBond(:,2) + offsety, catchBond(:,4) + offsety, catchBond(:,4) - offsety];
             patch(cornerx', cornery', 'red', 'linestyle', 'none')

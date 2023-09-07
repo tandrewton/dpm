@@ -2886,9 +2886,6 @@ void cell::shrinkCellVertices(dpmMemFn forceCall, double dt0, double shrinkRatio
   originalVertexRadius = r[0];
 
   while (originalVertexRadius / r[0] < shrinkRatio && it < itmax) {
-    /*if (posout.is_open() && it % NPRINTSKIP == 0)
-      printConfiguration2D();
-    */
 
     // shrink vertices
     for (int gi = 0; gi < NVTOT; gi++) {
@@ -3197,15 +3194,6 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double dt0, double duration, doub
 
   if (printInterval > 0)
     xStream << NCELLS << '\t' << NVTOT << '\t' << 0 << '\n';
-
-  /*// open debugging files
-  openFile(xStream, "xStream.txt");
-  xStream << NCELLS << '\t' << NVTOT << '\t' << 0 << '\n';
-  openFile(xMinStream, "xMinStream.txt");
-  openFile(cijStream, "cijStream.txt");
-  openFile(cijMinStream, "cijMinStream.txt");
-  openFile(comStream, "comStream.txt");
-  */
 
   // loop over time, print energy
   while (simclock - t0 < duration) {

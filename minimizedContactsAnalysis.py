@@ -39,6 +39,7 @@ def calculateNeighborExchanges(contactMatrix):
 
 
 def main():
+    debugpy.breakpoint()
     parser = argparse.ArgumentParser(description="Parameter inputs",
                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-a", "--attraction", help="cell-cell adhesion")
@@ -49,17 +50,15 @@ def main():
     v0 = args.activeVelocity
     k_ecm = args.ecm
     # fileheader = "test6"
-    fileheader = "pipeline\cells\psm\psm_calA01.0_phi0.74_tm10.0_v0"+v0+"_t_abp1.0k_ecm"+k_ecm+"k_off1.0\_N40_dur100_att"+att+"_start1_end1_sd1"
+    fileheader = "pipeline\cells\psm\psm_calA01.0_phi0.74_tm10.0_v0"+v0+"_t_abp1.0k_ecm"+k_ecm+"k_off1.0\_N40_dur250_att"+att+"_start1_end1_sd1"
     outputFileheader = "output"+fileheader[8:]
     fileExtensions = [".xStream", ".xMinStream",
                       ".cijStream", ".cijMinStream", ".comStream"]
     filenames = [fileheader + ext for ext in fileExtensions]
-    cellPos = np.loadtxt(filenames[0])
-    cellMinPos = np.loadtxt(filenames[1])
-    #cij = np.loadtxt(filenames[2])
-    #cijMin = np.loadtxt(filenames[3])
-    cij = readCSV(filenames[2])
-    cijMin = readCSV(filenames[3])
+    cellPos = np.loadtxt(filenames[0]) # coordinates of all vertices
+    cellMinPos = np.loadtxt(filenames[1]) # energy minimized coordinates
+    cij = readCSV(filenames[2]) # cell-cell contact network
+    cijMin = readCSV(filenames[3]) # cell-cell contact network of minimized coordinates
     cellCOM = np.loadtxt(filenames[4])
 
     # extract header information from cellPos and then remove header
@@ -119,9 +118,7 @@ def main():
     print("mean NE = ", np.mean(NE)/(frameDuration)/NCELLS)
     print("mean minNE = ", np.mean(minNE)/(frameDuration)/NCELLS)
     with open("NE_overall.txt", "a") as text_file:
-        text_file.write(str(att)+","+str(v0)+","+str(k_ecm)+"\n")
-        text_file.write("mean NE = "+str(np.mean(NE)/(frameDuration)/NCELLS)+"\n")
-        text_file.write("mean minNE = "+str(np.mean(minNE)/(frameDuration)/NCELLS)+"\n\n")
+        text_file.write(str(att)+","+str(v0)+","+str(k_ecm)+","+str(np.mean(minNE)/(frameDuration)/NCELLS)+"\n")
 
     print("closing program")
 
