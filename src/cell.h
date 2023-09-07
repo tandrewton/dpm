@@ -15,7 +15,7 @@ typedef void (cell::*cellMemFn)(void);
 class cell : public dpm {
  protected:
   // output streams for energy, stress, tissue measurements, catch bond positions, mean square displacements
-  std::ofstream enout, stressOut, tissueOut, catchBondOut, msdOut, cellContactOut, pfOut, xStream, xMinStream, cijStream, cijMinStream, comStream;
+  std::ofstream enout, stressOut, tissueOut, catchBondOut, msdOut, cellContactOut, pfOut, xStream, xMinStream, cijStream, cijMinStream, comStream, shapeStream;
 
   double simclock;             // accumulator for simulation time
   std::vector<double> VL, XL;  // wall velocity and positions if simulating with wall forces.
@@ -129,7 +129,7 @@ class cell : public dpm {
   // File openers
   void openFileStreams(const std::string& filename) {
     std::vector<string> fileExt = {".pos", ".tissue", ".catchbond", ".pf", ".msd", ".cellContact",
-                                   ".xStream", ".xMinStream", ".cijStream", ".cijMinStream", ".comStream"};
+                                   ".xStream", ".xMinStream", ".cijStream", ".cijMinStream", ".comStream", ".shapeStream"};
     openFile(posout, filename + fileExt[0]);
     openFile(tissueOut, filename + fileExt[1]);
     openFile(catchBondOut, filename + fileExt[2]);
@@ -141,6 +141,7 @@ class cell : public dpm {
     openFile(cijStream, filename + fileExt[8]);
     openFile(cijMinStream, filename + fileExt[9]);
     openFile(comStream, filename + fileExt[10]);
+    openFile(shapeStream, filename + fileExt[11]);
   }
 
   // boundary routines

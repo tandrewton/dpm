@@ -2886,7 +2886,6 @@ void cell::shrinkCellVertices(dpmMemFn forceCall, double dt0, double shrinkRatio
   originalVertexRadius = r[0];
 
   while (originalVertexRadius / r[0] < shrinkRatio && it < itmax) {
-
     // shrink vertices
     for (int gi = 0; gi < NVTOT; gi++) {
       r[gi] *= shrinkFactor;
@@ -3300,6 +3299,14 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double dt0, double duration, doub
         }
 
         cout << "dampedVertexNVE progress: " << simclock - t0 << " / " << duration << '\n';
+        if (shapeStream.is_open()) {
+          for (int ci = 0; ci < NCELLS; ci++) {
+            if (cellID[ci] == 0) {
+              shapeStream << pow(perimeter(ci), 2) / (4 * PI * area(ci)) << '\t' << 0 << '\t';
+            }
+          }
+          shapeStream << '\n';
+        }
         if (msdOut.is_open()) {
           msdOut << simclock - t0 << '\t';
           double cx = 0, cy = 0;
