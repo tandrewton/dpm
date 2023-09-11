@@ -2116,19 +2116,11 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
     double maxY = *yMinMax.second;
 
     for (int i = cumNumCells; i < cumNumCells + numCellsInTissue[n]; i++) {
-      /*double dpos_x = tissueRadii[n] * (2 * drand48() - 1) + cx[n];
-      double dpos_y = tissueRadii[n] * (2 * drand48() - 1) + cy[n];
-      while (pow(dpos_x - cx[n], 2) + pow(dpos_y - cy[n], 2) > pow(tissueRadii[n] / scale_radius, 2)) {
-        dpos_x = tissueRadii[n] / scale_radius * (2 * drand48() - 1) + cx[n];
-        dpos_y = tissueRadii[n] / scale_radius * (2 * drand48() - 1) + cy[n];
-      }*/
       double dpos_x, dpos_y;
       bool insidePolygon = false;
       double buffer = r[0] * 10;
 
       while (!insidePolygon) {
-        // dpos_x = tissueRadii[n] * (2 * drand48() - 1) + cx[n];
-        // dpos_y = tissueRadii[n] * (2 * drand48() - 1) + cy[n];
         dpos_x = (maxX - buffer - minX) * drand48() + minX + buffer;
         dpos_y = (maxY - buffer - minY) * drand48() + minY + buffer;
 
@@ -2751,69 +2743,8 @@ void cell::initializeFourTransverseTissues(double phi0, double Ftol) {
   }
 }
 
-void cell::vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0, bool isFIRE) {
-  // same as for dpm, but with less printing at the end
-  // local variables
-  int it = 0, itmax = 1e4;
-  double phi0 = vertexPreferredPackingFraction2D();
-  double scaleFactor = 1.0, P, Sxy;
-
-  // loop while phi0 < phi0Target
-  while (phi0 < phi0Target && it < itmax) {
-    cout << "compressing! it = " << it << '\n';
-    // scale particle sizes
-    scaleParticleSizes2D(scaleFactor);
-
-    // update phi0
-    phi0 = vertexPreferredPackingFraction2D();
-    // relax configuration (pass member function force update)
-    if (isFIRE)
-      vertexFIRE2D(forceCall, Ftol, dt0);
-    else
-      dampedVertexNVE(forceCall, dt0, 10.0, 0);
-
-    // get scale factor
-    scaleFactor = sqrt((phi0 + dphi0) / phi0);
-
-    // get updated pressure
-    P = 0.5 * (stress[0] + stress[1]);
-    Sxy = stress[2];
-
-    // print to console
-    if (it % 5 == 0) {
-      cout << endl
-           << endl;
-      cout << "===============================" << endl;
-      cout << "								"
-           << endl;
-      cout << " 	C O M P R E S S I O N 		" << endl;
-      cout << "								"
-           << endl;
-      cout << "	P R O T O C O L 	  		" << endl;
-      cout << "								"
-           << endl;
-      cout << "===============================" << endl;
-      cout << endl;
-      cout << "	** it 			= " << it << endl;
-      cout << "	** phi0 curr	= " << phi0 << endl;
-      if (phi0 + dphi0 < phi0Target)
-        cout << "	** phi0 next 	= " << phi0 + dphi0 << endl;
-      cout << "	** P 			= " << P << endl;
-      cout << "	** Sxy 			= " << Sxy << endl;
-      cout << "	** U 			= " << U << endl;
-      // printConfiguration2D();
-      cout << endl
-           << endl;
-    }
-
-    // update iterate
-    it++;
-  }
-}
-
-void cell::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0, bool isFIRE) {
-  // TEMPORARY JUST TO USE OVERLOADED PRINTCONFIGURATION2D
-  // same as vertexCompress2Target2D, but with polygonal boundaries (affects packing fraction calculation, and expects forceCall to
+void cell::shrinkPolyWall(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0, bool isFIRE) {
+  // shrink polygonal boundary walls to achieve desired packing fraction. preserves initial DP area, which is important because I scale my simulations using a0=1 and a0~25 micron^2
   //  account for polygonal boundary forces
   // local variables
   int it = 0, itmax = 1e4;
@@ -2823,9 +2754,7 @@ void cell::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, doub
   // loop while phi0 < phi0Target
   while (phi0 < phi0Target && it < itmax) {
     if (it >= itmax)
-      cout << "inside vertexCompress2Target2D_polygon, reached maxit. exiting compression steps\n";
-    // scale particle sizes
-    // scaleParticleSizes2D(scaleFactor);
+      cout << "inside shrinkPolyWall, reached maxit. exiting compression steps\n";
 
     // scale poly boundary size to preserve a0=1
     scalePolyWallSize(1 / scaleFactor);
@@ -2840,7 +2769,7 @@ void cell::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, doub
     if (isFIRE)
       vertexFIRE2D(forceCall, Ftol, dt0);
     else
-      dampedVertexNVE(forceCall, dt0, 10.0, 0);
+      vertexDampedMD(forceCall, dt0, 10.0, 0);
 
     // get scale factor
     scaleFactor = sqrt((phi0 + dphi0) / phi0);
@@ -3180,7 +3109,7 @@ void cell::vertexNVE(dpmMemFn forceCall, double T, double dt0, double duration, 
   }
 }
 
-void cell::dampedVertexNVE(dpmMemFn forceCall, double dt0, double duration, double printInterval) {
+void cell::vertexDampedMD(dpmMemFn forceCall, double dt0, double duration, double printInterval) {
   // make sure velocities exist or are already initialized before calling this
   int i;
   double K, t0 = simclock;
@@ -3298,7 +3227,7 @@ void cell::dampedVertexNVE(dpmMemFn forceCall, double dt0, double duration, doub
           }
         }
 
-        cout << "dampedVertexNVE progress: " << simclock - t0 << " / " << duration << '\n';
+        cout << "vertexDampedMD progress: " << simclock - t0 << " / " << duration << '\n';
         if (shapeStream.is_open()) {
           for (int ci = 0; ci < NCELLS; ci++) {
             if (cellID[ci] == 0) {
@@ -3359,7 +3288,7 @@ void cell::takeTissueMeasurements(int cellBoundaryType) {
 }
 
 std::vector<int> cell::calculateMinimizedContacts(dpmMemFn forceCall, double Ftol, double dt0, std::ofstream& xStream, std::ofstream& xMinStream, std::ofstream& cijStream, std::ofstream& cijMinStream) {
-  // this will be used in dampedVertexNVE or maybe in printConfiguration2D depending on how frequently I want it printed
+  // this will be used in vertexDampedMD or maybe in printConfiguration2D depending on how frequently I want it printed
   // its stream name is cellContactOut
   // step 1: save, then minimize the current configuration
   std::vector<std::vector<int>> cij_matrix(NCELLS, std::vector<int>(NCELLS, 0));

@@ -146,7 +146,7 @@ int main(int argc, char const* argv[]) {
   // compress to desired density
   bool isFIRE = true;  // FIRE or dampedNVE to quench
   cell2D.resizeNeighborLinkedList2D();
-  cell2D.vertexCompress2Target2D_polygon(attractiveSmoothWithPolyWalls, Ftol, dt0, phi, dphi0, isFIRE);
+  cell2D.shrinkPolyWall(attractiveSmoothWithPolyWalls, Ftol, dt0, phi, dphi0, isFIRE);
 
   cell2D.replacePolyWallWithDP(numCellTypes);
   cell2D.resizeCatchBonds();
@@ -154,15 +154,15 @@ int main(int argc, char const* argv[]) {
 
   double relaxTime = 100.0;
   cell2D.setka(ka);
-  cell2D.dampedVertexNVE(attractiveSmoothForceUpdate, dt0, relaxTime, 0);
+  cell2D.vertexDampedMD(attractiveSmoothForceUpdate, dt0, relaxTime, 0);
   cell2D.setl00();  // set l00 to be l0 before setting maxwell relaxation time
   cell2D.setActiveBrownianParameters(v0_abp, tau_abp);
 
-  cell2D.dampedVertexNVE(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, relaxTime, 0);
+  cell2D.vertexDampedMD(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, relaxTime, 0);
 
   // begin production run after all of the initialization and equilibration settles
-  // cell2D.dampedVertexNVE(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, 3.0);
-  cell2D.dampedVertexNVE(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, 1.0);
+  // cell2D.vertexDampedMD(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, 3.0);
+  cell2D.vertexDampedMD(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, 1.0);
   cout << "\n** Finished psm.cpp (2D transverse section of pre-somitic mesoderm), ending. " << endl;
 
   return 0;
