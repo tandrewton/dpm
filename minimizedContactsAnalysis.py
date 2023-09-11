@@ -32,15 +32,13 @@ def calculateNeighborExchanges(contactMatrix):
     for i in range(len(contactMatrix)-1):
         diff[i] = np.count_nonzero(contactMatrix[i+1] - contactMatrix[i])
         nonzeros = np.nonzero(contactMatrix[i+1] - contactMatrix[i])
-        #for j in range(len(nonzeros[0])):
-        #    print("frame", i+1, ", nonzero contact indices: ", nonzeros[0][j], nonzeros[1][j])
         debugpy.breakpoint()
     return diff
 
 
 def main():
-    debugpy.breakpoint()
-    parser = argparse.ArgumentParser(description="Parameter inputs",
+    #python3 .\minimizedContactsAnalysis.py -a 0.01 -v0 0.04 -e 0.005
+    """parser = argparse.ArgumentParser(description="Parameter inputs",
                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-a", "--attraction", help="cell-cell adhesion")
     parser.add_argument("-v0", "--activeVelocity", help="active propulsion coefficient")
@@ -48,18 +46,22 @@ def main():
     args = parser.parse_args()
     att = args.attraction
     v0 = args.activeVelocity
-    k_ecm = args.ecm
+    k_ecm = args.ecm"""
+    att = "0.01"
+    v0 = "0.04"
+    k_ecm = "0.005"
     # fileheader = "test6"
     fileheader = "pipeline\cells\psm\psm_calA01.0_phi0.74_tm10.0_v0"+v0+"_t_abp1.0k_ecm"+k_ecm+"k_off1.0\_N40_dur250_att"+att+"_start1_end1_sd1"
     outputFileheader = "output"+fileheader[8:]
     fileExtensions = [".xStream", ".xMinStream",
-                      ".cijStream", ".cijMinStream", ".comStream"]
+                      ".cijStream", ".cijMinStream", ".comStream", ".shapeStream"]
     filenames = [fileheader + ext for ext in fileExtensions]
     cellPos = np.loadtxt(filenames[0]) # coordinates of all vertices
     cellMinPos = np.loadtxt(filenames[1]) # energy minimized coordinates
     cij = readCSV(filenames[2]) # cell-cell contact network
     cijMin = readCSV(filenames[3]) # cell-cell contact network of minimized coordinates
     cellCOM = np.loadtxt(filenames[4])
+    cellShape = np.loadtxt(filenames[5])
 
     # extract header information from cellPos and then remove header
     NCELLS = int(cellPos[0][0])
@@ -67,6 +69,15 @@ def main():
     cellPos = cellPos[1:]
     globalXLim = [min(cellPos[:,0]), max(cellPos[:,0])]
     globalYLim = [min(cellPos[:,1]), max(cellPos[:,1])]
+    shapeParameters = cellShape[:, 0::2] 
+    # bin them all together and take a distribution
+    plt.figure()
+    plt.hist(np.ravel(shapeParameters), bins = 20, color = "blue", alpha = 0.7)
+    plt.xlabel(r"$\mathcal{A}$", fontsize=16)
+    plt.ylabel(r"P($\mathcal{A})$", fontsize=16)
+    plt.show()
+
+    debugpy.breakpoint()
 
     # make movies of cellPos and cellMinPos
     posFig, posAx = plt.subplots()
