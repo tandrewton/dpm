@@ -1,12 +1,12 @@
 module load dSQ
 #!/bin/bash
-numSeeds=1
+numSeeds=10
 calA0=(1.0)
 phi_arr=(0.74)
 att_arr=(0.001 0.01 0.1)
 #v0_arr=(0.01 0.02 0.04 0.08 0.16)
 v0_arr=(0.02 0.04 0.08)
-kecm_arr=(0.005 0.05 0.5 5)
+kecm_arr=(0.05 0.5 5)
 koff_arr=(1.0)
 rm joblist_psm_att_v0_koff.txt
 for phi in ${phi_arr[@]}; do
@@ -44,7 +44,7 @@ calA0_arr = ["1.0"];
 att_arr = ["0.001" "0.01" "0.1"];
 phi_arr = ["0.74"]
 v0_arr = ["0.02" "0.04" "0.08"];
-k_ecm_arr = ["0.005" "0.05" "0.5" "5"];
+%k_ecm_arr = ["0.005" "0.05" "0.5" "5"];
 k_off_arr = ["1.0"];
 for ii=1:length(calA0_arr)
     for jj=1:length(phi_arr)
