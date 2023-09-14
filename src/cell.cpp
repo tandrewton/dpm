@@ -3312,7 +3312,7 @@ std::vector<int> cell::calculateMinimizedContacts(dpmMemFn forceCall, double Fto
     for (int ci = cj + 1; ci < NCELLS; ci++) {
       int element = cij_original[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2];
       cij_original_matrix[ci][cj] = element;
-      element = cij_new[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2];
+      element = cij_new[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2];  
       cij_new_matrix[ci][cj] = element;
     }
   }
