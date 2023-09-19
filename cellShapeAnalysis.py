@@ -6,6 +6,7 @@ import debugpy
 import csv
 from io import StringIO
 
+
 att_arr = ["0.001", "0.01", "0.1"]
 v0_arr = ["0.02"]
 k_ecm_arr = ["0.05", "0.5", "5"]
@@ -89,6 +90,10 @@ def process_data(att, v0, k_ecm, seed, fileheader):
 def main():
     df_shapes = pd.DataFrame()
     df_NEs = pd.DataFrame()
+    # load packing fraction data into dataframe
+    df_phis = pd.read_csv(f"C:\\Users\\atata\\projects\\psm_extracellular_calculation\\windowedPhiDataFrame.txt")
+
+    # load shape and neighbor exchange data into dataframes
     for att in att_arr:
         for v0 in v0_arr:
             for k_ecm in k_ecm_arr:
@@ -113,17 +118,26 @@ def main():
         [str(row['att']), str(row['k_ecm']), str(row['v0'])]), axis=1)
     df_shapes_means = df_shapes.groupby(
         ["(att, k_ecm, v0)", "seed"]).mean().reset_index()
+    
+    df_phis["(att, k_ecm, v0)"] = df_phis.apply(lambda row: ', '.join(
+        [str(row['att']), str(row['k_ecm']), str(row['v0'])]), axis=1)
+    df_phis_means = df_phis.groupby(
+        ["(att, k_ecm, v0)", "seed"]).mean().reset_index()
 
     # make boxplots of the mean values for each seed for each parameter combo
     sns.catplot(df_NEs_means, x="(att, k_ecm, v0)", y="minNE", kind="box", color="skyblue", height = 8, aspect=2)
     sns.catplot(df_shapes_means, x="(att, k_ecm, v0)",
                 y="shapeParameter", kind="box", color="skyblue", height=8, aspect=2)
+    sns.catplot(df_phis_means, x="(att, k_ecm, v0)",
+                y="phi", kind="box", color="skyblue", height=8, aspect=2)
     
     # make boxplots for each parameter combo, pooling observations from each seed
     sns.catplot(df_NEs, x="(att, k_ecm, v0)",
                 y="minNE", kind="box", color="skyblue", height=8, aspect=2)
     sns.catplot(df_shapes, x="(att, k_ecm, v0)",
                 y="shapeParameter", kind="box", color="skyblue", height=8, aspect=2)
+    sns.catplot(df_phis, x="(att, k_ecm, v0)",
+                y="phi", kind="box", color="skyblue", height=8, aspect=2)
 
     debugpy.breakpoint()
 

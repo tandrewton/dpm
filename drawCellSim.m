@@ -30,7 +30,7 @@ max_seed = 10;
 att_range = 0.3;
 
 %if makeAMovie is 0, then plot every frame separately
-forImageAnalysis = 0;
+forImageAnalysis = 1;
 if (forImageAnalysis)
     showCatchBonds = 0;
     showverts = 1;
