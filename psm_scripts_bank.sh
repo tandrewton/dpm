@@ -1,6 +1,6 @@
 module load dSQ
 #!/bin/bash
-numSeeds=25
+numSeeds=5
 calA0=(1.0)
 phi_arr=(0.74)
 att_arr=(0.001 0.01 0.1)
@@ -43,7 +43,7 @@ close all; clear;
 calA0_arr = ["1.0"];
 att_arr = ["0.001" "0.01" "0.1"];
 phi_arr = ["0.74"]
-v0_arr = ["0.02"];
+v0_arr = ["0.02" "0.04" "0.08"];
 k_ecm_arr = ["0.05" "0.5" "5"];
 k_off_arr = ["1.0"];
 for ii=1:length(calA0_arr)

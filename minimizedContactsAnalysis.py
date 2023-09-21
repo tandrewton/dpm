@@ -38,7 +38,7 @@ def calculateNeighborExchanges(contactMatrix):
 
 def main():
     #python3 .\minimizedContactsAnalysis.py -a 0.01 -v0 0.04 -e 0.005
-    """parser = argparse.ArgumentParser(description="Parameter inputs",
+    parser = argparse.ArgumentParser(description="Parameter inputs",
                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-a", "--attraction", help="cell-cell adhesion")
     parser.add_argument("-v0", "--activeVelocity", help="active propulsion coefficient")
@@ -46,12 +46,13 @@ def main():
     args = parser.parse_args()
     att = args.attraction
     v0 = args.activeVelocity
-    k_ecm = args.ecm"""
-    att = "0.01"
-    v0 = "0.04"
-    k_ecm = "0.005"
+    k_ecm = args.ecm
+    seeds = 25
+    #att = "0.01"
+    #v0 = "0.04"
+    #k_ecm = "0.005"
     # fileheader = "test6"
-    fileheader = "pipeline\cells\psm\psm_calA01.0_phi0.74_tm10.0_v0"+v0+"_t_abp1.0k_ecm"+k_ecm+"k_off1.0\_N40_dur250_att"+att+"_start1_end1_sd1"
+    fileheader = f"pipeline\cells\psm\psm_calA01.0_phi0.74_tm10.0_v0{v0}_t_abp1.0k_ecm{k_ecm}k_off1.0\_N40_dur250_att{att}_start1_end1_sd{seeds}"
     outputFileheader = "output"+fileheader[8:]
     fileExtensions = [".xStream", ".xMinStream",
                       ".cijStream", ".cijMinStream", ".comStream", ".shapeStream"]

@@ -13,30 +13,31 @@
 // run command:
 
 /*
-./main/cell/psm2D.o   12   25 1.05 0.85 0.01  25.0    0.01    1.0   1.0   1.0   1     400    test1
-./main/cell/psm2D.o   12   25 1.05 0.85 0.05  25.0    0.01    1.0   1.0   1.0   1    400    test2
-./main/cell/psm2D.o   12   25 1.05 0.85 0.1   25.0    0.01    1.0   1.0   1.0   1    400    test3
-./main/cell/psm2D.o   12   25 1.05 0.85 0.2   25.0    0.01    1.0   1.0   1.0   1    400    test4
-
 ./main/cell/psm2D.o   12   16 1.05 0.75 0.0   10.0    0.05    10.0  1.0     1.0   1    50    test5
 ./main/cell/psm2D.o   12   16 1.0 0.5 0.01  10.0    0.16    1.0  0.05     1.0   1    100    test6
 ./main/cell/psm2D.o   12   16 1.05 0.75 0.1   10.0    0.05    10.0  0.06    1.0   1    50    test7
 ./main/cell/psm2D.o   6   10 1.0  0.53 0.01   10.0    0.05    1.0  0.05    1.0   1    200    test8
-./main/cell/psm2D.o   100   12 1.0  0.74 0.0   0.0    0.05    1.0  0.05    1.0   1    20    test8
+./main/cell/psm2D.o   40   14 1.0  0.74 0.1   10.0    0.04    1.0  0.01    1.0   1    20    test8
 
+./main/cell/psm2D.o   40   14 1.0 0.75 0.1    10.0    0.04    1.0  0.01    1.0   1    20    test4
+./main/cell/psm2D.o   40   14 1.0 0.75 0.001  10.0    0.04    1.0  0.01    1.0   1    20    test5
+./main/cell/psm2D.o   40   14 1.0 0.8 0.1     10.0    0.04    1.0  0.01    1.0   1    20    test6
+./main/cell/psm2D.o   40   14 1.0 0.8 0.001   10.0    0.04    1.0  0.01    1.0   1    20    test7
+./main/cell/psm2D.o   40   14 1.0 0.85 0.1    10.0    0.04    1.0  0.01    1.0   1    20    test8
+./main/cell/psm2D.o   40   14 1.0 0.85 0.001  10.0    0.04    1.0  0.01    1.0   1    20    test9
 
-./main/cell/psm2D.o   12   25 1.05 0.65 0.01   25.0    0.01    1.0   0.0   1.0   0    400    test0
-./main/cell/psm2D.o   12   25 1.05 0.65 0.01  25.0    0.01    1.0   0.0   1.0   1     400    test1
-./main/cell/psm2D.o   12   25 1.05 0.65 0.01  25.0    0.01    1.0   0.0   1.0   2    400    test2
-./main/cell/psm2D.o   12   25 1.05 0.65 0.01   25.0    0.01    1.0   0.0   1.0   3    400    test3
-./main/cell/psm2D.o   12   25 1.05 0.65 0.01   25.0    0.01    1.0   0.0   1.0   4    400    test4
-./main/cell/psm2D.o   12   25 1.05 0.65 0.01  25.0    0.01    1.0   0.0   1.0   5     400    test5
-./main/cell/psm2D.o   12   25 1.05 0.65 0.01  25.0    0.01    1.0   0.0   1.0   6    400    test6
-./main/cell/psm2D.o   12   25 1.05 0.65 0.01   25.0    0.01    1.0   0.0   1.0   7    400    test7
-./main/cell/psm2D.o   12   25 1.05 0.65 0.01   25.0    0.01    1.0   0.0   1.0   8    400    test8
-./main/cell/psm2D.o   12   25 1.05 0.65 0.01  25.0    0.01    1.0   0.0   1.0   9     400    test9
-
-
+att_arr=(0.001 0.1)
+v0=0.02
+k_ecm=0.005
+phi_arr=(0.85)
+tau_abp_arr=(1.0 10.0 100.0)
+for att in ${att_arr[@]}; do
+  for phi in ${phi_arr[@]}; do
+    for tau_abp in ${tau_abp_arr[@]}; do
+      echo "./main/cell/psm2D.o   18   16 1.0 $phi $att   1e10    $v0    $tau_abp  $k_ecm    1.0   1    100    testa$att$p$phi$t$tau_abp"
+    done
+  done
+done
 
 */
 //                NCELLS NV  A0  phi att t_maxwell_bd v0  tau_abp k_ecm k_off seed duration outFileStem
@@ -70,7 +71,7 @@ const double att_range = 0.3;
 
 int main(int argc, char const* argv[]) {
   // local variables to be read in
-  double B = 1.0, phi0 = 0.5;
+  double B = 1.0, phi0 = 0.75;
   // double ka = 23.6;
   double ka = 2.5;
   //  Read command-line arguments into corresponding variables
@@ -152,7 +153,7 @@ int main(int argc, char const* argv[]) {
   cell2D.resizeCatchBonds();
   cell2D.resizeNeighborLinkedList2D();
 
-  double relaxTime = 100.0;
+  double relaxTime = 50.0;
   cell2D.setka(ka);
   cell2D.vertexDampedMD(attractiveSmoothForceUpdate, dt0, relaxTime, 0);
   cell2D.setl00();  // set l00 to be l0 before setting maxwell relaxation time
@@ -161,8 +162,8 @@ int main(int argc, char const* argv[]) {
   cell2D.vertexDampedMD(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, relaxTime, 0);
 
   // begin production run after all of the initialization and equilibration settles
-  // cell2D.vertexDampedMD(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, 3.0);
-  cell2D.vertexDampedMD(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, 1.0);
+  cell2D.vertexDampedMD(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, 3.0);
+  // cell2D.vertexDampedMD(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, 1.0);
   cout << "\n** Finished psm.cpp (2D transverse section of pre-somitic mesoderm), ending. " << endl;
 
   return 0;

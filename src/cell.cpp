@@ -2092,7 +2092,7 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
   ofstream ip2Stream("initPosSP2.txt");
   for (int n = 0; n < numTissues; n++) {
     cout << "initializing cell centers randomly but rejecting if further than R from the center for tissue " << n << "out of " << numTissues - 1 << "\n";
-    double scale_radius = 1.2;                   // make the polygon radius slightly larger so that it encompasses the circle that points are initialized in
+    double scale_radius = 1;                     // make the polygon radius slightly larger so that it encompasses the circle that points are initialized in
     poly_bd_x.push_back(std::vector<double>());  // make new data for generateCircularBoundary to write a polygon
     poly_bd_y.push_back(std::vector<double>());
 
@@ -2118,7 +2118,7 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
     for (int i = cumNumCells; i < cumNumCells + numCellsInTissue[n]; i++) {
       double dpos_x, dpos_y;
       bool insidePolygon = false;
-      double buffer = r[0] * 10;
+      double buffer = r[0] * 2;
 
       while (!insidePolygon) {
         dpos_x = (maxX - buffer - minX) * drand48() + minX + buffer;
@@ -3312,7 +3312,7 @@ std::vector<int> cell::calculateMinimizedContacts(dpmMemFn forceCall, double Fto
     for (int ci = cj + 1; ci < NCELLS; ci++) {
       int element = cij_original[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2];
       cij_original_matrix[ci][cj] = element;
-      element = cij_new[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2];  
+      element = cij_new[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2];
       cij_new_matrix[ci][cj] = element;
     }
   }

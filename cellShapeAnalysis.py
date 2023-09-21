@@ -8,9 +8,9 @@ from io import StringIO
 
 
 att_arr = ["0.001", "0.01", "0.1"]
-v0_arr = ["0.02"]
+v0_arr = ["0.08"]
 k_ecm_arr = ["0.05", "0.5", "5"]
-seeds = 10
+seeds = 25
 
 def readCSV(filename):
     # currently omits contacts with the boundary
@@ -125,11 +125,16 @@ def main():
         ["(att, k_ecm, v0)", "seed"]).mean().reset_index()
 
     # make boxplots of the mean values for each seed for each parameter combo
-    sns.catplot(df_NEs_means, x="(att, k_ecm, v0)", y="minNE", kind="box", color="skyblue", height = 8, aspect=2)
-    sns.catplot(df_shapes_means, x="(att, k_ecm, v0)",
+    sns_NEs = sns.catplot(df_NEs_means, x="(att, k_ecm, v0)", y="minNE", kind="box", color="skyblue", height = 8, aspect=2)
+    sns_shapes = sns.catplot(df_shapes_means, x="(att, k_ecm, v0)",
                 y="shapeParameter", kind="box", color="skyblue", height=8, aspect=2)
-    sns.catplot(df_phis_means, x="(att, k_ecm, v0)",
+    sns_phis = sns.catplot(df_phis_means, x="(att, k_ecm, v0)",
                 y="phi", kind="box", color="skyblue", height=8, aspect=2)
+    
+    sns_NEs.figure.savefig(f"sns_NEs_{v0_arr[0]}.png")
+    sns_shapes.figure.savefig(f"sns_shapes_{v0_arr[0]}.png")
+    sns_phis.figure.savefig(f"sns_phis_{v0_arr[0]}.png")
+
     
     # make boxplots for each parameter combo, pooling observations from each seed
     sns.catplot(df_NEs, x="(att, k_ecm, v0)",

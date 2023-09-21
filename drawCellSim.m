@@ -1,11 +1,11 @@
 %pwd should give ~/Documents/YalePhd/projects/dpm
-function drawCellSim(N, calA0, phi, att, v0, k_ecm, k_off)
+%function drawCellSim(N, calA0, phi, att, v0, k_ecm, k_off)
 %close all; clear
-isTestData = false; %uncomment if using function call to pipeline data
+%isTestData = false; %uncomment if using function call to pipeline data
 
-%isTestData = true; %uncomment if using test data
-testDataii = 8;
-testDataID = num2str(testDataii);
+isTestData = true; %uncomment if using test data
+testDataID = "a0.0010.851.0";
+%testDataID = "9";
 
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('C:\Users\atata\projects\dpm\bash')
@@ -26,11 +26,11 @@ t_abp = "1.0";
 Duration="250";
 FSKIP = 1;
 startSeed = 1;
-max_seed = 10;
+max_seed = 1;
 att_range = 0.3;
 
 %if makeAMovie is 0, then plot every frame separately
-forImageAnalysis = 1;
+forImageAnalysis = ~isTestData;
 if (forImageAnalysis)
     showCatchBonds = 0;
     showverts = 1;
@@ -271,7 +271,7 @@ for seed = startSeed:max_seed
     end
     cd ../../../../
 end
-end
+%end
 
 function [cornerx, cornery] = patchConnectedRectanglesCorners(midptx, midpty, width)
 %INPUT: midptx, midpty are N x 1 vectors representing N coordinates
