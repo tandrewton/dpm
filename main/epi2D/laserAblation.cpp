@@ -17,7 +17,7 @@
 //./main/epi2D/laserAblation.o 50 30 3 1.05 0.94 0.85 1.0 1.0 0.01 0.2 1.0  0.0  1.0  4.0 1.0  3.0     25.0     0   0 1  500  test
 // ........................... N  NV Nd A0  pMin  pMax  kl ka  kb  att  om   dsq  kps  klp tau dflag  t_stress tauRatio sm sd time file
 // below: purse-string, no crawling
-//./main/epi2D/laserAblation.o 50 30  4 1.05 0.94 0.85 1.0 16.0 0.01 0.1 1.0  4.0  4.0  4.0 1.0  0.0   9830.4  0  1  1 500  test
+//./main/epi2D/laserAblation.o 50 30  5 1.20 0.94 0.85 1.0 16.0 0.01 0.1 1.0  4.0  4.0  4.0 1.0  0.0   9830.4  0  1  1 500  test
 // ........................... N  NV Nd A0  pMin  pMax  kl  ka   kb  att  om  dsq  kps  klp tau dflag t_stress tauRatio sm sd time file
 // below: purse-string, and crawling
 //./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.865 1.0 4.0 0.01 0.1 1.0   2.0  4.0  4.0 1.0  3.0     10.0    0   0 1 1  110  test
@@ -71,7 +71,6 @@ const double dt0 = 0.1;        // initial magnitude of time step in units of MD 
 const double Ptol = 1e-8;
 const double Ftol = 1e-12;
 const double att_range = 0.3;
-bool isPbcOn = false;
 
 int main(int argc, char const* argv[]) {
   // local variables to be read in
@@ -104,19 +103,6 @@ int main(int argc, char const* argv[]) {
   string seed_str = argv[20];
   string time_str = argv[21];
   string outFileStem = argv[22];
-
-  string positionFile = outFileStem + ".pos";
-  string energyFile = outFileStem + ".energy";
-  string stressFile = outFileStem + ".stress";
-  string voidFile = outFileStem + ".void";
-  string edgeFile = outFileStem + ".edge";
-  string purseStringFile = outFileStem + ".purseString";
-  string voidAreaFile = outFileStem + ".voidArea";
-  string bulkCellShapeFile = outFileStem + ".bulkCellShape";
-  string innerCellShapeFile = outFileStem + ".innerCellShape";
-  string woundPropertiesFile = outFileStem + ".woundProperties";
-  string cellIDFile = outFileStem + ".cellID";
-  string debugFile = outFileStem + ".debug";
 
   // using sstreams to get parameters
   stringstream NCELLSss(NCELLS_str);
@@ -171,18 +157,7 @@ int main(int argc, char const* argv[]) {
 
   epi2D epithelial(NCELLS, 0.0, 0.0, strainRate_ps, k_ps, k_LP, tau_LP, deltaSq, maxProtrusionLength, seed);
 
-  epithelial.openPosObject(positionFile);
-  epithelial.openEnergyObject(energyFile);
-  epithelial.openStressObject(stressFile);
-  epithelial.openBoundaryObject(voidFile);
-  epithelial.openEdgeObject(edgeFile);
-  epithelial.openPurseStringObject(purseStringFile);
-  epithelial.openVoidAreaObject(voidAreaFile);
-  epithelial.openBulkCellShapeObject(bulkCellShapeFile);
-  epithelial.openInnerCellShapeObject(innerCellShapeFile);
-  epithelial.openWoundPropertiesObject(woundPropertiesFile);
-  epithelial.openCellIDObject(cellIDFile);
-  epithelial.openDebugObject(debugFile);
+  epithelial.openFileStreams(outFileStem);
 
   // set spring constants
   epithelial.setka(ka_for_equilibration);
@@ -190,10 +165,8 @@ int main(int argc, char const* argv[]) {
   epithelial.setkb(kb_for_equilibration);
   epithelial.setkc(kc);
   epithelial.setB(B);
-
-  epithelial.setpbc(0, isPbcOn);
-  epithelial.setpbc(1, isPbcOn);
-
+  epithelial.setpbc(0, false);
+  epithelial.setpbc(1, false);
   epithelial.setRandPsi();
 
   // set adhesion scale
@@ -231,10 +204,7 @@ int main(int argc, char const* argv[]) {
 
   epithelial.initializeNeighborLinkedList2D(boxLengthScale);
 
-  if (isPbcOn)
-    epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdate, Ftol, dt0, phiMax, dphi0);
-  else
-    epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithCircularWalls, Ftol, dt0, phiMax, dphi0);
+  epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithCircularWalls, Ftol, dt0, phiMax, dphi0);
   epithelial.moveSimulationToPositiveCoordinates();  // positive coordinates make the neighbor list storage work better
 
   epithelial.printConfiguration2D();

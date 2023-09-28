@@ -66,17 +66,8 @@ class epi2D : public dpm {
   std::vector<int> order;
 
   // specific output objects
-  std::ofstream enout;
-  std::ofstream stressout;
-  std::ofstream bout;
-  std::ofstream edgeout;
-  std::ofstream purseout;
-  std::ofstream vout;
-  std::ofstream bulkout;
-  std::ofstream innerout;
-  std::ofstream woundPropertiesout;
-  std::ofstream cellIDout;
-  std::ofstream debugout;  // for whatever debugging purposes I need.
+  std::ofstream enout, stressout, bout, edgeout, purseout,
+      vout, bulkout, innerout, woundPropertiesout, cellIDout, debugout;
 
   // simulation time keeper (accumulates elapsed simulation time during MD
   // routines)
@@ -175,114 +166,21 @@ class epi2D : public dpm {
   };
 
   // File openers
-  void openEnergyObject(std::string& str) {
-    enout.open(str.c_str());
-    if (!enout.is_open()) {
-      std::cout << "	ERROR: file could not open " << str << "..."
-                << std::endl;
-      exit(1);
-    } else
-      std::cout << "** Opening file " << str << " ..." << std::endl;
-  }
 
-  void openStressObject(std::string& str) {
-    stressout.open(str.c_str());
-    if (!stressout.is_open()) {
-      std::cout << "	ERROR: file could not open " << str << "..."
-                << std::endl;
-      exit(1);
-    } else
-      std::cout << "** Opening file " << str << " ..." << std::endl;
-  }
-
-  void openBoundaryObject(std::string& str) {
-    bout.open(str.c_str());
-    if (!bout.is_open()) {
-      std::cerr << "	ERROR: file could not open " << str << "..."
-                << std::endl;
-      exit(1);
-    } else
-      std::cout << "** Opening file " << str << " ..." << std::endl;
-  }
-
-  void openVoidAreaObject(std::string& str) {
-    vout.open(str.c_str());
-    if (!vout.is_open()) {
-      std::cerr << "	ERROR: file could not open " << str << "..."
-                << std::endl;
-      exit(1);
-    } else
-      std::cout << "** Opening file " << str << " ..." << std::endl;
-  }
-
-  void openEdgeObject(std::string& str) {
-    edgeout.open(str.c_str());
-    if (!edgeout.is_open()) {
-      std::cerr << "	ERROR: file could not open " << str << "..."
-                << std::endl;
-      exit(1);
-    } else
-      std::cout << "** Opening file " << str << " ..." << std::endl;
-  }
-
-  void openPurseStringObject(std::string& str) {
-    purseout.open(str.c_str());
-    if (!purseout.is_open()) {
-      std::cerr << "	ERROR: file could not open " << str << "..."
-                << std::endl;
-      exit(1);
-    } else
-      std::cout << "** Opening file " << str << " ..." << std::endl;
-  }
-
-  void openBulkCellShapeObject(std::string& str) {
-    bulkout.open(str.c_str());
-    if (!bulkout.is_open()) {
-      std::cerr << "	ERROR: file could not open " << str << "..."
-                << std::endl;
-      exit(1);
-    } else
-      std::cout << "** Opening file " << str << " ..." << std::endl;
-  }
-
-  void openInnerCellShapeObject(std::string& str) {
-    innerout.open(str.c_str());
-    if (!innerout.is_open()) {
-      std::cerr << "	ERROR: file could not open " << str << "..."
-                << std::endl;
-      exit(1);
-    } else
-      std::cout << "** Opening file " << str << " ..." << std::endl;
-  }
-
-  void openWoundPropertiesObject(std::string& str) {
-    woundPropertiesout.open(str.c_str());
-    if (!woundPropertiesout.is_open()) {
-      std::cerr << "	ERROR: file could not open " << str << "..."
-                << std::endl;
-      exit(1);
-    } else
-      std::cout << "** Opening file " << str << " ..." << std::endl;
-  }
-
-  void openCellIDObject(std::string& str) {
-    cellIDout.open(str.c_str());
-    if (!cellIDout.is_open()) {
-      std::cerr << "	ERROR: file could not open " << str << "..."
-                << std::endl;
-      exit(1);
-    } else
-      std::cout << "** Opening file " << str << " ..." << std::endl;
-  }
-
-  void openDebugObject(std::string& str) {
-    debugout.open(str.c_str());
-    if (!debugout.is_open()) {
-      std::cerr << "	ERROR: file could not open " << str << "..."
-                << std::endl;
-      exit(1);
-    } else
-      std::cout << "** Opening file " << str << " ..." << std::endl;
+  void openFileStreams(const std::string& filename) {
+    std::vector<string> fileExt = {".pos", ".energy", ".stress", ".void", ".edge", ".purseString", ".voidArea", ".bulkCellShape", ".innerCellShape", ".woundProperties", ".cellID", ".debug"};
+    openFile(posout, filename + fileExt[0]);
+    openFile(enout, filename + fileExt[1]);
+    openFile(stressout, filename + fileExt[2]);
+    openFile(bout, filename + fileExt[3]);  // boundary out = bout = .void
+    openFile(edgeout, filename + fileExt[4]);
+    openFile(purseout, filename + fileExt[5]);
+    openFile(vout, filename + fileExt[6]);  // void area out = vout = .voidArea
+    openFile(bulkout, filename + fileExt[7]);
+    openFile(innerout, filename + fileExt[8]);
+    openFile(woundPropertiesout, filename + fileExt[9]);
+    openFile(cellIDout, filename + fileExt[10]);
+    openFile(debugout, filename + fileExt[11]);
   }
 
   // setters

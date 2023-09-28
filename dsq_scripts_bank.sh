@@ -296,3 +296,5 @@ for t_stress in ${t_stress_arr[@]}; do
 done
 
 dsq --job-file joblist_PS_tau_ka.txt   --mem-per-cpu 4g -t 1:00:00 --mail-type NONE --submit --partition scavenge --suppress-stats-file  -o /dev/null
+
+./main/epi2D/laserAblation.o 30 20  5 1.20 0.94 0.85 1.0 16.0 0.01 0.1 1.0  4.0  4.0  4.0 1.0  0.0   9830.4  0  1  1 500  test
