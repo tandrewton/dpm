@@ -204,7 +204,8 @@ int main(int argc, char const* argv[]) {
 
   epithelial.initializeNeighborLinkedList2D(boxLengthScale);
 
-  epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithCircularWalls, Ftol, dt0, phiMax, dphi0);
+  // epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithCircularWalls, Ftol, dt0, phiMax, dphi0);
+  epithelial.shrinkPolyWall(attractiveForceUpdateWithCircularWalls, Ftol, dt0, phiMax, dphi0);
   epithelial.moveSimulationToPositiveCoordinates();  // positive coordinates make the neighbor list storage work better
 
   epithelial.printConfiguration2D();

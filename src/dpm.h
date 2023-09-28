@@ -269,6 +269,9 @@ class dpm {
   std::vector<double> resample_polygon(std::vector<double> px, std::vector<double> py, double perimeter, int numPoints);
   bool isInsidePolygon(double x, double y, const std::vector<double>& poly_x, const std::vector<double>& poly_y);
 
+  void scalePolyWallSize(double scaleFactor);
+  void shrinkPolyWall(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0);
+
   // force definitions
   void resetForcesAndEnergy();
   void shapeForces2D();

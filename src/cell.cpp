@@ -1865,50 +1865,6 @@ void cell::cellPolarityForces(int ci, double k_polarity, std::string direction) 
   }
 }
 
-void cell::scalePolyWallSize(double scaleFactor) {
-  double distanceBeforeScaling, changeInDistance;
-  for (int tissueIt = 0; tissueIt < poly_bd_x.size(); tissueIt++) {
-    double cx = 0, cy = 0, tempx = 0, tempy = 0;
-    vector<double> poly_x = poly_bd_x[tissueIt];
-    vector<double> poly_y = poly_bd_y[tissueIt];
-    // calculate the center of the polygon
-    for (int i = 0; i < poly_x.size(); i++) {
-      cx += poly_x[i];
-      cy += poly_y[i];
-    }
-    cx /= poly_x.size();
-    cy /= poly_x.size();
-
-    // record vertex where distance has max change, in order to scale the scaleFactor to less than a vertex size
-    // this will prevent compression of boundaries from phasing through vertices
-    double maxChangeInDistance = 0, maxDistanceBeforeScaling = 0;
-    int vertexOfMaxChange = -1;
-    for (int i = 0; i < poly_bd_x[tissueIt].size(); i++) {
-      tempx = poly_bd_x[tissueIt][i] - cx;
-      tempy = poly_bd_y[tissueIt][i] - cy;
-      distanceBeforeScaling = sqrt(pow(tempx, 2) + pow(tempy, 2));
-      changeInDistance = fabs(sqrt(pow(tempx * scaleFactor, 2) + pow(tempy * scaleFactor, 2)) - distanceBeforeScaling);
-      if (changeInDistance > maxChangeInDistance) {
-        vertexOfMaxChange = i;
-        maxDistanceBeforeScaling = distanceBeforeScaling;
-        maxChangeInDistance = changeInDistance;
-      }
-    }
-    if (maxChangeInDistance > r[0] / 2) {
-      // must have scaleFactor move boundary less than a vertex radius.
-      scaleFactor = 1 - r[0] / (2 * maxDistanceBeforeScaling);
-      cout << "modifying scaleFactor to be " << scaleFactor << '\n';
-    }
-
-    // new vertex is given by scaling the separation vector between center and vertex,
-    //    and then adding it to the center
-    for (int i = 0; i < poly_x.size(); i++) {
-      poly_bd_x[tissueIt][i] = (poly_x[i] - cx) * scaleFactor + cx;
-      poly_bd_y[tissueIt][i] = (poly_y[i] - cy) * scaleFactor + cy;
-    }
-  }
-}
-
 // boundary routines
 void cell::replacePolyWallWithDP(int numCellTypes) {
   // take a polyWall in poly_bd_x and poly_bd_y, create data to replace the polywall with a DP of the same size and shape, then delete the polywall. Assign the new DP a cellTypeIndex of numCellTypes - 1.
@@ -2740,61 +2696,6 @@ void cell::initializeFourTransverseTissues(double phi0, double Ftol) {
       x.at(NDIM * gi) = dtmp * cos((2.0 * PI * vi) / nv.at(ci)) + dpos.at(NDIM * ci) + 1e-2 * l0[gi] * drand48();
       x.at(NDIM * gi + 1) = dtmp * sin((2.0 * PI * vi) / nv.at(ci)) + dpos.at(NDIM * ci + 1) + 1e-2 * l0[gi] * drand48();
     }
-  }
-}
-
-void cell::shrinkPolyWall(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0, bool isFIRE) {
-  // shrink polygonal boundary walls to achieve desired packing fraction. preserves initial DP area, which is important because I scale my simulations using a0=1 and a0~25 micron^2
-  //  account for polygonal boundary forces
-  // local variables
-  int it = 0, itmax = 1e4;
-  double phi0 = vertexPreferredPackingFraction2D_polygon();
-  double scaleFactor = 1.0, P, Sxy;
-
-  // loop while phi0 < phi0Target
-  while (phi0 < phi0Target && it < itmax) {
-    if (it >= itmax)
-      cout << "inside shrinkPolyWall, reached maxit. exiting compression steps\n";
-
-    // scale poly boundary size to preserve a0=1
-    scalePolyWallSize(1 / scaleFactor);
-    cout << "scalePolyWallSize by factor of " << 1.0 / scaleFactor << "\n";
-    cout << "vertex size = " << r[0] << '\n';
-    cout << "cell size = " << a0[0] << '\n';
-
-    // update phi0
-    phi0 = vertexPreferredPackingFraction2D_polygon();
-    // relax configuration (pass member function force update)
-    // make sure that forceCall is a force routine that includes a call to evaluatePolygonalWallForces
-    if (isFIRE)
-      vertexFIRE2D(forceCall, Ftol, dt0);
-    else
-      vertexDampedMD(forceCall, dt0, 10.0, 0);
-
-    // get scale factor
-    scaleFactor = sqrt((phi0 + dphi0) / phi0);
-
-    // get updated pressure
-    P = 0.5 * (stress[0] + stress[1]);
-    Sxy = stress[2];
-
-    // print to console
-    if (it % NSKIP == 0) {
-      cout << " 	C O M P R E S S I O N 		" << endl;
-      cout << "	** it 			= " << it << endl;
-      cout << "	** phi0 curr	= " << phi0 << endl;
-      if (phi0 + dphi0 < phi0Target)
-        cout << "	** phi0 next 	= " << phi0 + dphi0 << endl;
-      cout << "	** P 			= " << P << endl;
-      cout << "	** Sxy 			= " << Sxy << endl;
-      cout << "	** U 			= " << U << endl;
-      cout << endl
-           << endl;
-    }
-    // printConfiguration2D();
-
-    // update iterate
-    it++;
   }
 }
 

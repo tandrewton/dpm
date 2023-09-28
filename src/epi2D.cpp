@@ -2177,7 +2177,6 @@ void epi2D::circularApertureForces(double radius) {
 }
 
 void epi2D::vertexCompress2Target2D_polygon(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0) {
-  // TEMPORARY JUST TO USE PRINTCONFIGURATION2D in epi2D overload
   // same as vertexCompress2Target2D, but with polygonal boundaries (affects packing fraction calculation, and expects forceCall to
   //  account for polygonal boundary forces
   // local variables

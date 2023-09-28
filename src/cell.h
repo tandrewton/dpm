@@ -145,7 +145,6 @@ class cell : public dpm {
   }
 
   // boundary routines
-  void scalePolyWallSize(double scaleFactor);
   void replacePolyWallWithDP(int numCellTypes);
   void addDP(int numVerts, const vector<double>& dp_x, const vector<double>& dp_y, int cellTypeIndex, int numCellTypes);
   double tissuePackingFraction();
@@ -153,7 +152,6 @@ class cell : public dpm {
   // routines
   void initializeFourTransverseTissues(double phi0, double Ftol);
   void initializeTransverseTissue(double phi0, double Ftol, int polyShapeID = 0);
-  void shrinkPolyWall(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0, bool isFIRE = true);
   void shrinkCellVertices(dpmMemFn forceCall, double dt0, double shrinkRatio);
   void simulateDampedWithWalls(dpmMemFn forceCall, double dt0, double duration, double printInterval, double pressureRate, double adhesionRate, bool wallsOn, bool leftOpen, bool bottomOpen, bool rightOpen, bool topOpen, double trueStrainRateX = 0.0, double trueStrainRateY = 0.0, double appliedUniaxialPressure = 0.0);
   void vertexNVE(dpmMemFn forceCall, double T, double dt0, double duration, double printInterval);

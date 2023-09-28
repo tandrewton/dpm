@@ -145,9 +145,8 @@ int main(int argc, char const* argv[]) {
   // cell2D.replaceCircularBoundary(rectangleID, 2.0);
 
   // compress to desired density
-  bool isFIRE = true;  // FIRE or dampedNVE to quench
   cell2D.resizeNeighborLinkedList2D();
-  cell2D.shrinkPolyWall(attractiveSmoothWithPolyWalls, Ftol, dt0, phi, dphi0, isFIRE);
+  cell2D.shrinkPolyWall(attractiveSmoothWithPolyWalls, Ftol, dt0, phi, dphi0);
 
   cell2D.replacePolyWallWithDP(numCellTypes);
   cell2D.resizeCatchBonds();
