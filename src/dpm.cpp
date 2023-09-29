@@ -766,17 +766,6 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
       dpos.at(i * NDIM) = dpos_x;
       dpos.at(i * NDIM + 1) = dpos_y;
     }
-
-    /*for (i = 0; i < NCELLS; i++) {
-      double dpos_x = tissueRadius * (2 * drand48() - 1) + cx;
-      double dpos_y = tissueRadius * (2 * drand48() - 1) + cy;
-      while (pow(dpos_x - cx, 2) + pow(dpos_y - cy, 2) > pow(tissueRadius - r[0], 2)) {
-        dpos_x = tissueRadius * (2 * drand48() - 1) + cx;
-        dpos_y = tissueRadius * (2 * drand48() - 1) + cy;
-      }
-      dpos.at(i * NDIM) = dpos_x;
-      dpos.at(i * NDIM + 1) = dpos_y;
-    }*/
   }
 
   // set radii of SP disks

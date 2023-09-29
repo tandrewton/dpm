@@ -246,7 +246,6 @@ int main(int argc, char const* argv[]) {
 
   // rigidify cell areas before running NVE dynamics
   epithelial.vertexNVE(customForceUpdate_inactive, dt0, 1.0 * relaxTime / dt0, 0);
-  // epithelial.dampedNP0(customForceUpdate_inactive_with_circular_walls, dt0, 2.0 * relaxTime, 0);
   // energy minimize without walls to get proper cell shapes
   epithelial.dampedNP0(customForceUpdate_inactive, dt0, 1.0 * relaxTime, 0);
 

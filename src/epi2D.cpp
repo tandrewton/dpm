@@ -266,14 +266,6 @@ void epi2D::repulsiveForceUpdateWithWalls() {
   wallForces(false, false, false, false, a, b, c, d);
 }
 
-void epi2D::repulsiveForceWithCircularApertureWall() {
-  double radius = 2.0;
-  resetForcesAndEnergy();
-  shapeForces2D();
-  vertexRepulsiveForces2D();
-  circularApertureForces(radius);
-}
-
 void epi2D::repulsiveForceUpdateWithPolyWall() {
   resetForcesAndEnergy();
   shapeForces2D();
@@ -1833,8 +1825,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double dt0, double duration, double pr
   // loop over time, print energy
   while (simclock - t0 < duration) {
     // VV POSITION UPDATE
-
-    for (i = 0; i < vertDOF; i++) {
+    /*for (i = 0; i < vertDOF; i++) {
       // update position
       x[i] += dt * v[i] + 0.5 * dt * dt * F[i];
       // recenter in box
@@ -1842,7 +1833,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double dt0, double duration, double pr
         x[i] -= L[i % NDIM];
       else if (x[i] < 0 && pbc[i % NDIM])
         x[i] += L[i % NDIM];
-    }
+    }*/
 
     // FORCE UPDATE
     boundaries();  // build vnn for void detection, only intracellularly. The rest (due to adhesion) is done in forceCall.
@@ -1987,11 +1978,15 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double dt0, double duration, double pr
       }
     }
 
-    // VV VELOCITY UPDATE #2
+    /*// VV VELOCITY UPDATE #2
     for (i = 0; i < vertDOF; i++) {
       F[i] -= (B * v[i] + B * F_old[i] * dt / 2);
       F[i] /= (1 + B * dt / 2);
       v[i] += 0.5 * (F[i] + F_old[i]) * dt;
+    }*/
+    // overdamped integration update
+    for (i = 0; i < vertDOF; i++) {
+      x[i] += F[i] / B * dt;
     }
 
     // update sim clock
@@ -2137,42 +2132,6 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double dt0, double duration, double pr
     }
     woundPropertiesout << healingTime << '\t' << finalCellsInCenterOfWound.size() << '\n';
     alreadyRecordedFinalCells = true;
-  }
-}
-
-void epi2D::circularApertureForces(double radius) {
-  // if any cells have their centers inside the aperture, force them away from
-  // the aperture
-  double cx, cy, gi, s, cut, shell, rx, ry, disti, overlap, theta;
-  for (int ci = 0; ci < NCELLS; ci++) {
-    com2D(ci, cx, cy);
-    cx -= L[0] / 2;
-    cy -= L[1] / 2;
-    if (cx * cx + cy * cy < radius * radius) {
-      for (int vi = 0; vi < nv[ci]; vi++) {
-        gi = gindex(ci, vi);
-        F[gi * NDIM] += -0.5 * (L[0] / 2 - cx);
-        F[gi * NDIM + 1] += -0.5 * (L[1] / 2 - cy);
-      }
-    }
-  }
-
-  // aperture has volume exclusion with any vertices.
-  for (int gi = 0; gi < NVTOT; gi++) {
-    s = 2 * r[gi];
-    cut = (1.0 + l1) * s;
-    shell = (1.0 + l2) * s;
-    rx = x[gi * NDIM];
-    ry = x[gi * NDIM + 1];
-    rx -= L[0] / 2;
-    ry -= L[1] / 2;
-    disti = sqrt(rx * rx + ry * ry);
-    overlap = disti - fabs(radius - r[gi]);
-    if (disti < 0) {
-      theta = atan2(rx, ry);
-      F[gi * NDIM] += 0.5 * overlap / s * cos(theta);
-      F[gi * NDIM + 1] += 0.5 * overlap / s * sin(theta);
-    }
   }
 }
 
@@ -4463,18 +4422,6 @@ void epi2D::integratePurseString() {
       cout << "VV vel update: F_ps[" << i << "] = nan\n";
     }
   }
-}
-
-void epi2D::sortPurseStringVariables() {
-  // call this periodically because inserting vertices has some unwanted edge cases
-  // list of data to handle: x_ps, v_ps, F_ps, l0_ps, isSpringBroken, psContacts
-  // psContacts is an out of order vector, such as
-  //    psContacts = 117 220 221 222 224 223 390 391 225 226 207 392
-  //  it should be sorted to 117 220 221 222 223 224 225 226 207 390 391 392 ...
-  //    or something equivalent to that.
-  // also, psContacts[i] corresponds to l0_ps[i] and x_ps[NDIM*i] and x_ps[NDIM*i + 1].
-  //  when sorting psContacts, make sure to also sort l0_ps, x_ps, v_ps, F_ps, isSpringBroken accordingly
-  //
 }
 
 bool epi2D::isFitBetween(int gi, int gl, int gr, int ci) {
