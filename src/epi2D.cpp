@@ -1987,6 +1987,7 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double dt0, double duration, double pr
     // overdamped integration update
     for (i = 0; i < vertDOF; i++) {
       x[i] += F[i] / B * dt;
+      // B has units of?
     }
 
     // update sim clock
