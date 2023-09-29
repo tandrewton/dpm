@@ -41,15 +41,14 @@ FSKIP = 1;
 
 etaStr = " ";
 startSeed = 1;
-max_seed = 25;
+max_seed = 1;
 no_plots = 0;
-makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
+makeAMovie = 0; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
 %plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
 plotCells = 1;
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
 showWoundAndShapeProperties = 0; 
-
 
 showverts = 0;
 showBoundaries = 0;
@@ -72,7 +71,7 @@ showVoid = 0;
 showVoidBlack = 0; % print void in larger black circles to see easier
 showVoidLite = 1; % print void, but in a way that works with printConfiguration on its own
 showCornersOrEdges = 0;
-if (str2num(deltaSq) > 0.0 && ~no_plots)
+if (str2double(deltaSq) > 0.0 && ~no_plots)
     showPurseString = 0;
 else
     showPurseString = 0;
@@ -81,8 +80,12 @@ showProtrusion = 1;
 showShapeHistogram = 0;
  
 %PC directory
-%pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
-pc_dir="C:\Users\atata\projects\dpm\";
+if ispc
+    pc_dir="C:\Users\atata\projects\dpm\";
+else
+    pc_dir = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/";
+end
+
 %pipeline is the location of data generated during simulations
 subdir_pipeline = pc_dir + "pipeline/cells/"+runType+"/";
 
@@ -97,7 +100,7 @@ txt='test';
 
 fnum = 1;
 figure(13), clf, hold on, box on;
-for seed = startSeed+5:max_seed
+for seed = startSeed:max_seed
     seed
     if (isTestData)
         run_name = runType+txt;     

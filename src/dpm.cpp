@@ -708,7 +708,7 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
   // aspectRatio is the ratio L[0] / L[1]
   int i, d, ci, cj, vi, gi, cellDOF = NDIM * NCELLS;
   int numEdges = 20;  // number of edges in the polygonal walls to approximate a circle
-  double areaSum, xtra = 1.1;
+  double areaSum, xtra = 1.0;
   std::vector<double> aspects = {1.0 * aspectRatio, 1.0 / aspectRatio};
 
   // local disk vectors
@@ -745,7 +745,7 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
     }
   } else {
     cout << "setUpCircularBoundary is enabled, so initializing cell centers randomly but rejecting if further than R = L/2 from the center (which is (L/2,L/2))\n";
-    double scale_radius = 1.1;                   // make the polygon radius slightly larger so that it encompasses the circle that points are initialized in
+    double scale_radius = 1.0;                   // make the polygon radius slightly larger so that it encompasses the circle that points are initialized in
     poly_bd_x.push_back(std::vector<double>());  // make new data for generateCircularBoundary to write a polygon
     poly_bd_y.push_back(std::vector<double>());
     double cx = L[0] / 2, cy = L[1] / 2, tissueRadius = L[0] / 2;
@@ -753,20 +753,36 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
     generateCircularBoundary(numEdges, scale_radius * tissueRadius, cx, cy, poly_bd_x[0], poly_bd_y[0]);
 
     for (i = 0; i < NCELLS; i++) {
-      double dpos_x = tissueRadius * (2 * drand48() - 1) + cx, dpos_y = tissueRadius * (2 * drand48() - 1) + cy;
-      while (pow(dpos_x - cx, 2) + pow(dpos_y - cy, 2) > pow(tissueRadius, 2)) {
+      double dpos_x, dpos_y;
+      bool insidePolygon = false;
+      while (!insidePolygon) {
+        dpos_x = tissueRadius * (2 * drand48() - 1) + cx;
+        dpos_y = tissueRadius * (2 * drand48() - 1) + cy;
+        // Check if the generated position is inside the polygon
+        if (isInsidePolygon(dpos_x, dpos_y, poly_bd_x[0], poly_bd_y[0])) {
+          insidePolygon = true;
+        }
+      }
+      dpos.at(i * NDIM) = dpos_x;
+      dpos.at(i * NDIM + 1) = dpos_y;
+    }
+
+    /*for (i = 0; i < NCELLS; i++) {
+      double dpos_x = tissueRadius * (2 * drand48() - 1) + cx;
+      double dpos_y = tissueRadius * (2 * drand48() - 1) + cy;
+      while (pow(dpos_x - cx, 2) + pow(dpos_y - cy, 2) > pow(tissueRadius - r[0], 2)) {
         dpos_x = tissueRadius * (2 * drand48() - 1) + cx;
         dpos_y = tissueRadius * (2 * drand48() - 1) + cy;
       }
       dpos.at(i * NDIM) = dpos_x;
       dpos.at(i * NDIM + 1) = dpos_y;
-    }
+    }*/
   }
 
   // set radii of SP disks
   for (ci = 0; ci < NCELLS; ci++) {
     if (setUpCircularBoundary)
-      xtra = 1.1;  // disks should have radius similar to the final particle radius, or could modify vrad[i] condition in wall calculation later
+      xtra = 1.0;  // disks should have radius similar to the final particle radius, or could modify vrad[i] condition in wall calculation later
     drad.at(ci) = xtra * sqrt((2.0 * a0.at(ci)) / (nv.at(ci) * sin(2.0 * PI / nv.at(ci))));
   }
 
@@ -776,7 +792,7 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
   double vnorm = 0;
   double alpha = alpha0;
 
-  double dt0 = 1e-2;
+  double dt0 = 0.01;
   double dtmax = 10 * dt0;
   double dtmin = 1e-8 * dt0;
 
@@ -911,7 +927,34 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
       }
     }
     // FIRE step 4.1 Compute wall forces
-    if (isFixedBoundary) {
+    if (setUpCircularBoundary) {
+      for (int k = 0; k < poly_bd_x.size(); k++) {
+        std::vector<double> poly_x = poly_bd_x[k];
+        std::vector<double> poly_y = poly_bd_y[k];
+        int n = poly_x.size();
+        double distanceParticleWall, Rx, Ry, dw, K = 1;
+        double bound_x1, bound_x2, bound_y1, bound_y2;
+        // loop over boundary bars
+        // loop over particles
+        //  compute particle-boundary bar overlaps
+        //  if overlap, Fx += K * dw * Rx/R, where K is a constant, dw = diameter/2 - R, Rx = x - px, R = sqrt(Rx^2 + Ry^2)
+        for (int bound_i = 0; bound_i < n; bound_i++) {
+          // use distanceLineAndPoint to get R, Rx, and Ry
+          bound_x1 = poly_x[bound_i];
+          bound_x2 = poly_x[(bound_i + 1) % n];
+          bound_y1 = poly_y[bound_i];
+          bound_y2 = poly_y[(bound_i + 1) % n];
+          for (i = 0; i < cellDOF / NDIM; i++) {
+            distanceParticleWall = distanceLinePointComponents(bound_x1, bound_y1, bound_x2, bound_y2, dpos[i * NDIM], dpos[i * NDIM + 1], Rx, Ry);
+            dw = drad[i] - distanceParticleWall;
+            if (distanceParticleWall <= drad[i]) {
+              dF[i * NDIM] += K * dw * Rx / distanceParticleWall;
+              dF[i * NDIM + 1] += K * dw * Ry / distanceParticleWall;
+            }
+          }
+        }
+      }
+    } else if (isFixedBoundary) {
       for (i = 0; i < cellDOF; i++) {
         bool collideTopOrRight = dpos[i] > L[i % NDIM] - drad[i];
         bool collideBottomOrLeft = dpos[i] < drad[i];
@@ -921,31 +964,6 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
         }
         if (collideBottomOrLeft) {
           dF[i] += 1 * (drad[i] - dpos[i]);
-        }
-      }
-    } else if (setUpCircularBoundary) {  // use a polygon as a boundary condition
-      std::vector<double> poly_x = poly_bd_x[0];
-      std::vector<double> poly_y = poly_bd_y[0];
-      int n = poly_x.size();
-      double distanceParticleWall, Rx, Ry, dw, K = 1;
-      double bound_x1, bound_x2, bound_y1, bound_y2;
-      // loop over boundary bars
-      // loop over particles
-      //  compute particle-boundary bar overlaps
-      //  if overlap, Fx += K * dw * Rx/R, where K is a constant, dw = diameter/2 - R, Rx = x - px, R = sqrt(Rx^2 + Ry^2)
-      for (int bound_i = 0; bound_i < n; bound_i++) {
-        // use distanceLineAndPoint to get R, Rx, and Ry
-        bound_x1 = poly_x[bound_i];
-        bound_x2 = poly_x[(bound_i + 1) % n];
-        bound_y1 = poly_y[bound_i];
-        bound_y2 = poly_y[(bound_i + 1) % n];
-        for (i = 0; i < cellDOF / NDIM; i++) {
-          distanceParticleWall = distanceLinePointComponents(bound_x1, bound_y1, bound_x2, bound_y2, dpos[i * NDIM], dpos[i * NDIM + 1], Rx, Ry);
-          dw = drad[i] - distanceParticleWall;
-          if (distanceParticleWall <= drad[i]) {
-            dF[i * NDIM] += K * dw * Rx / distanceParticleWall;
-            dF[i * NDIM + 1] += K * dw * Ry / distanceParticleWall;
-          }
         }
       }
     }
@@ -1015,8 +1033,8 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
       // get global vertex index
       gi = gindex(ci, vi);
 
-      // length from center to vertex
-      dtmp = sqrt((2.0 * a0.at(ci)) / (nv.at(ci) * sin((2.0 * PI) / nv.at(ci))));
+      // length from center to vertex minus 1/2 the vertex radius to prevent overlaps
+      dtmp = sqrt((2.0 * a0.at(ci)) / (nv.at(ci) * sin((2.0 * PI) / nv.at(ci)))) - r[gi] / 2.0;
 
       // set positions
       x.at(NDIM * gi) = dtmp * cos((2.0 * PI * vi) / nv.at(ci)) + dpos.at(NDIM * ci) + 1e-2 * l0[gi] * drand48();

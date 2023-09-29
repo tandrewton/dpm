@@ -27,18 +27,18 @@
 
 //
 // Parameter input list
-// 1. NCELLS: 			number of particles
-// 2. nsmall: 			number of vertices on small particles
-// 3. ndelete:      number of cells to delete
-// 4. calA0: 			  preferred shape parameter for all particles
-// 5. phiMin: 			p
-// 6. phiMax: 			p
+// 1. NCELLS: 			number of DPs
+// 2. nsmall: 			minimum number of vertices (small DPs)
+// 3. ndelete:      number of DPs to delete
+// 4. calA0: 			  preferred shape parameter for all DPs
+// 5. phiMin: 			packing fraction initial
+// 6. phiMax: 			packing fraction final after compression
 // 7. kl: 				  perimeter spring constant
 // 8. ka:           area spring constant
 // 9. kb:           bending spring constant
 // 10. att:         attraction strength parameter
 // 11. omega:       true strain rate for shrinking pursestring segments
-// 12. deltaSq:     yield length squared for purse-string springs (in units of vertex diameter squared). auto set to 0 if omega is also 0
+// 12. deltaSq:     yield length squared for purse-string springs (units=vertex diameter squared). auto 0 if omega is 0
 // 13. k_ps:        spring constant for purse string virtual particle to wound vertex
 // 14. k_lp:        spring constant for flag to nearest vertex on wound edge for crawling
 // 15. tau_lp:      protrusion time constant (controls stochastic lifetime of a protrusion)
@@ -65,8 +65,7 @@ const double dphi0 = 0.005;      // packing fraction increment
 double kc = 1.0;                    // interaction force spring constant (should be unit)
 const double boxLengthScale = 2.5;  // neighbor list box size in units of initial l0
 // const double phi0 = 0.5;            // initial packing fraction
-const double smallfrac = 0.5;  // fraction of small particles
-const double sizeratio = 1.4;  // size ratio between small and large particles
+const double sizeratio = 1.0;  // size ratio between small and large particles
 const double dt0 = 0.1;        // initial magnitude of time step in units of MD time
 const double Ptol = 1e-8;
 const double Ftol = 1e-12;
@@ -172,12 +171,9 @@ int main(int argc, char const* argv[]) {
   // set adhesion scale
   epithelial.setl1(att);
   epithelial.setl2(att_range);
-  if (att > att_range) {
+  if (att > att_range || fabs(att - att_range) < 1e-5) {
     cout << "attraction longer than attraction range; discontinuous adhesive potential; error, exiting\n";
-    return 1;
-  }
-  if (fabs(att - att_range) < 1e-5) {
-    cout << "adhesion lengthscales are the same, so we will divide by zero; error, exiting\n";
+    cout << ", or,  adhesion lengthscales are the same, so we will divide by zero; error, exiting \n";
     return 1;
   }
 
@@ -204,6 +200,9 @@ int main(int argc, char const* argv[]) {
 
   epithelial.initializeNeighborLinkedList2D(boxLengthScale);
 
+  epithelial.setka(ka);
+  epithelial.setkb(kb);
+
   // epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithCircularWalls, Ftol, dt0, phiMax, dphi0);
   epithelial.shrinkPolyWall(attractiveForceUpdateWithCircularWalls, Ftol, dt0, phiMax, dphi0);
   epithelial.moveSimulationToPositiveCoordinates();  // positive coordinates make the neighbor list storage work better
@@ -211,8 +210,8 @@ int main(int argc, char const* argv[]) {
   epithelial.printConfiguration2D();
 
   // after FIRE, restore spring constants and stress relaxation time to specified value
-  epithelial.setka(ka);
-  epithelial.setkb(kb);
+  // epithelial.setka(ka);
+  // epithelial.setkb(kb);
   if (t_stress > 9e4) {  //     cout << "t_stress is large, setting to infinity\n";
     t_stress = INFINITY;
   }
