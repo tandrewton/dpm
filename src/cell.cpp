@@ -2079,11 +2079,8 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
       while (!insidePolygon) {
         dpos_x = (maxX - buffer - minX) * drand48() + minX + buffer;
         dpos_y = (maxY - buffer - minY) * drand48() + minY + buffer;
-
         // Check if the generated position is inside the polygon
-        if (isInsidePolygon(dpos_x, dpos_y, poly_bd_x[n], poly_bd_y[n])) {
-          insidePolygon = true;
-        }
+        insidePolygon = isInsidePolygon(dpos_x, dpos_y, poly_bd_x[n], poly_bd_y[n]);
       }
 
       dpos.at(i * NDIM) = dpos_x;

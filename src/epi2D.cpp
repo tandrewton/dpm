@@ -4393,7 +4393,7 @@ void epi2D::integratePurseString() {
 
   // VV position update
   int virtualDOF = psContacts.size() * NDIM;
-  for (int i = 0; i < virtualDOF; i++) {
+  /*for (int i = 0; i < virtualDOF; i++) {
     x_ps[i] += dt * v_ps[i] + 0.5 * dt * dt * F_ps[i];
     if (std::isnan(x_ps[i])) {
       cout << "x_ps[i] = nan\n";
@@ -4408,13 +4408,13 @@ void epi2D::integratePurseString() {
       x_ps[i] -= L[i % NDIM];
     else if (x_ps[i] < 0 && pbc[i % NDIM])
       x_ps[i] += L[i % NDIM];
-  }
+  }*/
 
   // force update
   std::vector<double> F_ps_old = F_ps;
   evaluatePurseStringForces();
 
-  // VV VELOCITY UPDATE #2
+  /*// VV VELOCITY UPDATE #2
   for (int i = 0; i < virtualDOF; i++) {
     F_ps[i] -= (B * v_ps[i] + B * F_ps_old[i] * dt / 2);
     F_ps[i] /= (1 + B * dt / 2);
@@ -4422,6 +4422,9 @@ void epi2D::integratePurseString() {
     if (std::isnan(F_ps[i])) {
       cout << "VV vel update: F_ps[" << i << "] = nan\n";
     }
+  }*/
+  for (int i = 0; i < virtualDOF; i++) {
+    x_ps[i] += F_ps[i] / B * dt;
   }
 }
 

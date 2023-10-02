@@ -756,12 +756,10 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
       double dpos_x, dpos_y;
       bool insidePolygon = false;
       while (!insidePolygon) {
-        dpos_x = tissueRadius * (2 * drand48() - 1) + cx;
-        dpos_y = tissueRadius * (2 * drand48() - 1) + cy;
+        dpos_x = (tissueRadius - r[0]) * (2 * drand48() - 1) + cx;
+        dpos_y = (tissueRadius - r[0]) * (2 * drand48() - 1) + cy;
         // Check if the generated position is inside the polygon
-        if (isInsidePolygon(dpos_x, dpos_y, poly_bd_x[0], poly_bd_y[0])) {
-          insidePolygon = true;
-        }
+        insidePolygon = isInsidePolygon(dpos_x, dpos_y, poly_bd_x[0], poly_bd_y[0]);
       }
       dpos.at(i * NDIM) = dpos_x;
       dpos.at(i * NDIM + 1) = dpos_y;

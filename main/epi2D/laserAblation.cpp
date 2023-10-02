@@ -199,19 +199,14 @@ int main(int argc, char const* argv[]) {
   epithelial.printConfiguration2D();
 
   epithelial.initializeNeighborLinkedList2D(boxLengthScale);
-
   epithelial.setka(ka);
   epithelial.setkb(kb);
 
   // epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithCircularWalls, Ftol, dt0, phiMax, dphi0);
   epithelial.shrinkPolyWall(attractiveForceUpdateWithCircularWalls, Ftol, dt0, phiMax, dphi0);
   epithelial.moveSimulationToPositiveCoordinates();  // positive coordinates make the neighbor list storage work better
-
   epithelial.printConfiguration2D();
 
-  // after FIRE, restore spring constants and stress relaxation time to specified value
-  // epithelial.setka(ka);
-  // epithelial.setkb(kb);
   if (t_stress > 9e4) {  //     cout << "t_stress is large, setting to infinity\n";
     t_stress = INFINITY;
   }

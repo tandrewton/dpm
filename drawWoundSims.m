@@ -71,11 +71,7 @@ showVoid = 0;
 showVoidBlack = 0; % print void in larger black circles to see easier
 showVoidLite = 1; % print void, but in a way that works with printConfiguration on its own
 showCornersOrEdges = 0;
-if (str2double(deltaSq) > 0.0 && ~no_plots)
-    showPurseString = 0;
-else
-    showPurseString = 0;
-end
+showPurseString = 1;
 showProtrusion = 1;
 showShapeHistogram = 0;
  
@@ -567,7 +563,7 @@ for seed = startSeed:max_seed
                         %    ,2, 0, 0.1);
                         %plot(xs,ys,'LineWidth', 1,'Color' ,'black');
                     end
-                    if (ff == 7)
+                    if (ff == 6)
                         % plot purse-string in a new figure on its own for the
                         % paper
                         figure(10001); clf; hold on;
