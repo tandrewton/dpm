@@ -90,6 +90,11 @@ for seed = startSeed:max_seed
     disp(nvestr)
     [trajectoryData, cell_count] = readCellClassPosOutput(nvestr);
 
+    % set up, clear files for writing
+    shapeFile = run_name + fileheader + 'shape.csv';
+    fopen(shapeFile,'w');
+    shapes = [];
+
     if showCatchBonds
         catchBondLocations = readDataBlocks(catchBondStr, 4);
     end
@@ -136,6 +141,8 @@ for seed = startSeed:max_seed
         area = trajectoryData.area(ff,:);
         perimeter = trajectoryData.perimeter(ff,:);
         shape = 1/(4*pi)*perimeter.^2./area;
+        shapes = [shapes; shape];
+        %writematrix(shape(1:end-1), shapeFile, 'WriteMode','append');
 
         if ~makeAMovie
             fnum = fnum+1;
@@ -151,7 +158,6 @@ for seed = startSeed:max_seed
         l0 = trajectoryData.l0(ff,:);
         vrad = trajectoryData.vrad(ff,:);
         psi = trajectoryData.psi(ff,:);
-        cellarea = trajectoryData.area(ff,:);
 
         %if L is not constant, use the next 3 lines
         L = trajectoryData.L(ff,:);
@@ -181,7 +187,7 @@ for seed = startSeed:max_seed
             psitmp = psi(nn);
             costmp = cos(psitmp);
             sintmp = sin(psitmp);
-            areatmp = cellarea(nn);
+            areatmp = area(nn);
 
             %clr = cellCLR(IC(nn),:);
             colors = ['r','g','b','c','m','y','k'];
@@ -270,6 +276,7 @@ for seed = startSeed:max_seed
         close(vobj);
     end
     cd ../../../../
+    writematrix(shapes(:,1:end-1), shapeFile, 'WriteMode','append');
 end
 %end
 

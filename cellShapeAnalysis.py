@@ -6,12 +6,6 @@ import debugpy
 import csv
 from io import StringIO
 
-
-att_arr = ["0.001", "0.01", "0.1"]
-v0_arr = ["0.08"]
-k_ecm_arr = ["0.05", "0.5", "5"]
-seeds = 25
-
 def readCSV(filename):
     # currently omits contacts with the boundary
     with open(filename, 'r') as file:
@@ -88,6 +82,11 @@ def process_data(att, v0, k_ecm, seed, fileheader):
 
 
 def main():
+    att_arr = ["0.001", "0.01", "0.1"]
+    v0_arr = ["0.08"]
+    k_ecm_arr = ["0.05", "0.5", "5"]
+    seeds = 25
+
     df_shapes = pd.DataFrame()
     df_NEs = pd.DataFrame()
     # load packing fraction data into dataframe
