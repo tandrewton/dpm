@@ -1986,7 +1986,8 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double dt0, double duration, double pr
     }*/
     // overdamped integration update
     for (i = 0; i < vertDOF; i++) {
-      x[i] += F[i] / B * dt;
+      v[i] = F[i] / B;  // solely used for energy calculation purposes, serves no integration purpose
+      x[i] += v[i] * dt;
       // B has units of?
     }
 
@@ -4423,8 +4424,10 @@ void epi2D::integratePurseString() {
       cout << "VV vel update: F_ps[" << i << "] = nan\n";
     }
   }*/
+  // overdamped integration update
   for (int i = 0; i < virtualDOF; i++) {
     x_ps[i] += F_ps[i] / B * dt;
+    v_ps[i] = F_ps[i] / B;
   }
 }
 

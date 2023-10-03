@@ -3023,27 +3023,20 @@ void cell::vertexDampedMD(dpmMemFn forceCall, double dt0, double duration, doubl
 
   // loop over time, print energy
   while (simclock - t0 < duration) {
-    // VV POSITION UPDATE
-    for (i = 0; i < vertDOF; i++) {
-      // update position
-      x[i] += dt * v[i] + 0.5 * dt * dt * F[i];
-      // recenter in box
-      if (x[i] > L[i % NDIM] && pbc[i % NDIM])
-        x[i] -= L[i % NDIM];
-      else if (x[i] < 0 && pbc[i % NDIM])
-        x[i] += L[i % NDIM];
-    }
-
     // FORCE UPDATE
     std::vector<double> F_old = F;
     CALL_MEMBER_FN(*this, forceCall)
     ();
 
-    // VV VELOCITY UPDATE #2
+    // overdamped integration update
     for (i = 0; i < vertDOF; i++) {
-      F[i] -= (B * v[i] + B * F_old[i] * dt / 2);
-      F[i] /= (1 + B * dt / 2);
-      v[i] += 0.5 * (F[i] + F_old[i]) * dt;
+      v[i] = F[i] / B;  // solely used for energy calculation purposes, serves no integration purpose
+      x[i] += v[i] * dt;
+      // B units?
+      if (x[i] > L[i % NDIM] && pbc[i % NDIM])
+        x[i] -= L[i % NDIM];
+      else if (x[i] < 0 && pbc[i % NDIM])
+        x[i] += L[i % NDIM];
     }
 
     // update sim clock
@@ -3057,24 +3050,9 @@ void cell::vertexDampedMD(dpmMemFn forceCall, double dt0, double duration, doubl
         // compute kinetic energy
         K = vertexKineticEnergy();
 
-        // print to console
-        cout << endl
-             << endl;
-        cout << "===============================" << endl;
-        cout << "	D P M  						"
-             << endl;
-        cout << " 			 				"
-                "	"
-             << endl;
-        cout << "		N V E (DAMPED) 				"
-                "	"
-             << endl;
-        cout << "===============================" << endl;
         cout << endl;
         cout << "	** simclock - t0 / duration	= " << double(simclock - t0)
              << " / " << duration << endl;
-
-        cout << " **  dt   = " << setprecision(12) << dt << endl;
         cout << "	** U 		= " << setprecision(12) << U << endl;
         cout << "	** K 		= " << setprecision(12) << K << endl;
         cout << "	** E 		= " << setprecision(12) << U + K
