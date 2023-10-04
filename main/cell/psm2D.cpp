@@ -30,11 +30,11 @@ att_arr=(0.001 0.1)
 v0=0.02
 k_ecm=0.005
 phi_arr=(0.8)
-tau_abp_arr=(1.0 10.0 100.0)
+tau_abp_arr=(10.0 100.0)
 for att in ${att_arr[@]}; do
   for phi in ${phi_arr[@]}; do
     for tau_abp in ${tau_abp_arr[@]}; do
-      echo "./main/cell/psm2D.o   40  30 1.15 $phi $att   1e10    $v0    $tau_abp  $k_ecm    1.0   1    100    testa"$att"p"$phi"t"$tau_abp
+      echo "./main/cell/psm2D.o   40  30 1.15 $phi $att   10000.0    $v0    $tau_abp  $k_ecm    1.0   1    100    testa"$att"p"$phi"t"$tau_abp
     done
   done
 done
