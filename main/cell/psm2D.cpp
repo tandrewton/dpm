@@ -29,7 +29,7 @@
 att_arr=(0.001 0.1)
 v0=0.02
 k_ecm=0.005
-phi_arr=(0.8)
+phi_arr=(0.85)
 tau_abp_arr=(10.0 100.0)
 for att in ${att_arr[@]}; do
   for phi in ${phi_arr[@]}; do
@@ -66,12 +66,12 @@ const double boxLengthScale = 2.5;  // neighbor list box size in units of initia
 // const double phi0 = 0.91;           // initial preferred packing fraction
 const double dt0 = 0.1;  // initial magnitude of time step in units of MD time
 const double Ptol = 1e-5;
-const double Ftol = 1e-6;
+const double Ftol = 1e-4;
 const double att_range = 0.3;
 
 int main(int argc, char const* argv[]) {
   // local variables to be read in
-  double B = 1.0, phi0 = 0.8;
+  double B = 1.0, phi0 = 0.7;
   // double ka = 23.6;
   double ka = 2.5;
   //  Read command-line arguments into corresponding variables
@@ -147,6 +147,7 @@ int main(int argc, char const* argv[]) {
   // compress to desired density
   cell2D.resizeNeighborLinkedList2D();
   cell2D.shrinkPolyWall(attractiveSmoothWithPolyWalls, Ftol, dt0, phi, dphi0);
+  // cell2D.shrinkPolyWall(repulsiveForceUpdateWithPolyWalls, Ftol, dt0, phi, dphi0);
 
   cell2D.replacePolyWallWithDP(numCellTypes);
   cell2D.resizeCatchBonds();

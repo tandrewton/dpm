@@ -17,7 +17,7 @@
 //./main/epi2D/laserAblation.o 50 30 3 1.05 0.94 0.85 1.0 1.0 0.01 0.2 1.0  0.0  1.0  4.0 1.0  3.0     25.0     0   0 1  500  test
 // ........................... N  NV Nd A0  pMin  pMax  kl ka  kb  att  om   dsq  kps  klp tau dflag  t_stress tauRatio sm sd time file
 // below: purse-string, no crawling
-//./main/epi2D/laserAblation.o 50 30  5 1.20 0.94 0.85 1.0 16.0 0.01 0.1 1.0  4.0  4.0  4.0 1.0  0.0   9830.4  0  1  1 500  test
+//./main/epi2D/laserAblation.o 50 30  5 1.20 0.94 0.99 1.0 16.0 0.01 0.1 1.0  4.0  4.0  4.0 1.0  0.0   76.8  0  1  1 500  test
 // ........................... N  NV Nd A0  pMin  pMax  kl  ka   kb  att  om  dsq  kps  klp tau dflag t_stress tauRatio sm sd time file
 // below: purse-string, and crawling
 //./main/epi2D/laserAblation.o 20 20 4 1.10 0.92 0.865 1.0 4.0 0.01 0.1 1.0   2.0  4.0  4.0 1.0  3.0     10.0    0   0 1 1  110  test
@@ -66,7 +66,7 @@ double kc = 1.0;                    // interaction force spring constant (should
 const double boxLengthScale = 2.5;  // neighbor list box size in units of initial l0
 // const double phi0 = 0.5;            // initial packing fraction
 const double sizeratio = 1.0;  // size ratio between small and large particles
-const double dt0 = 0.1;        // initial magnitude of time step in units of MD time
+const double dt0 = 0.05;       // initial magnitude of time step in units of MD time
 const double Ptol = 1e-8;
 const double Ftol = 1e-12;
 const double att_range = 0.3;
@@ -203,7 +203,8 @@ int main(int argc, char const* argv[]) {
   epithelial.setkb(kb);
 
   // epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithCircularWalls, Ftol, dt0, phiMax, dphi0);
-  epithelial.shrinkPolyWall(attractiveForceUpdateWithCircularWalls, Ftol, dt0, phiMax, dphi0);
+  double attractiveFtol = Ftol;
+  epithelial.shrinkPolyWall(attractiveForceUpdateWithCircularWalls, attractiveFtol, dt0, phiMax, dphi0);
   epithelial.moveSimulationToPositiveCoordinates();  // positive coordinates make the neighbor list storage work better
   epithelial.printConfiguration2D();
 

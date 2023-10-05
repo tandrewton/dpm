@@ -36,13 +36,13 @@ boundaryType = "0";
 tau_s = "0";
 B="1.0";
 boolCIL="0";
-Duration="1400";
+Duration="2000";
 FSKIP = 1;
 
 etaStr = " ";
 startSeed = 1;
-max_seed = 1;
-no_plots = 0;
+max_seed = 3;
+no_plots = 1;
 makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
 %plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
 plotCells = 1;

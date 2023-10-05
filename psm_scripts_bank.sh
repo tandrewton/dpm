@@ -40,10 +40,10 @@ for a in ${att_arr[@]}; do
 done
 
 close all; clear;
-calA0_arr = ["1.0"];
+calA0_arr = ["1.15"];
 att_arr = ["0.001" "0.1"];
-phi_arr = ["0.8" "0.85" "0.9"]
-v0_arr = ["0.02" "0.04"];
+phi_arr = ["0.75"]
+v0_arr = ["0.02"];
 k_ecm_arr = ["0.005" "0.5"];
 k_off_arr = ["1.0"];
 for ii=1:length(calA0_arr)

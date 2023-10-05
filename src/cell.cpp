@@ -1992,8 +1992,10 @@ double cell::tissuePackingFraction() {
     else
       tissueArea += area(ci);
   }
-  assert(tissueArea > 0);
-  return cellArea / tissueArea;
+  if (tissueArea > 0)
+    return cellArea / tissueArea;
+  else
+    return NAN;
 }
 
 // routines

@@ -2859,6 +2859,7 @@ void dpm::vertexFIRE2D(dpmMemFn forceCall, double Ftol, double dt0) {
       cout << endl;
       cout << "	** fireit 	= " << fireit << endl;
       cout << "	** fcheck 	= " << fcheck << endl;
+      cout << " ** Ftol     = " << Ftol << endl;
       cout << "	** U 		= " << U << endl;
       cout << "	** dt 		= " << dt << endl;
       cout << "	** P 		= " << P << endl;
@@ -3191,8 +3192,15 @@ void dpm::shrinkPolyWall(dpmMemFn forceCall, double Ftol, double dt0, double phi
   double phi0 = vertexPreferredPackingFraction2D_polygon();
   double scaleFactor = 1.0, P, Sxy;
 
+  string shrinkPositionsFile = "shrinkPositions.txt";
+  ofstream shrinkStream(shrinkPositionsFile);
+
   // loop while phi0 < phi0Target
   while (phi0 < phi0Target && it < itmax) {
+    for (int i = 0; i < NVTOT; i++) {
+      shrinkStream << x[i * NDIM] << '\t' << x[i * NDIM + 1] << '\n';
+    }
+
     if (it >= itmax)
       cout << "inside shrinkPolyWall, reached maxit. exiting compression steps\n";
 

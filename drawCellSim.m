@@ -1,10 +1,10 @@
 %pwd should give ~/Documents/YalePhd/projects/dpm
 %function drawCellSim(N, calA0, phi, att, v0, k_ecm, k_off)
-%close all; clear
+close all; clear
 %isTestData = false; %uncomment if using function call to pipeline data
 
 isTestData = true; %uncomment if using test data
-testDataID = "a10.0";
+testDataID = "a0.001p0.85t10.0";
 %testDataID = "9";
 
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
@@ -19,15 +19,15 @@ set(0,'DefaultFigureWindowStyle','docked')
 runType = "psm";
 %N="100";
 %calA0="1.05";
-t_maxwell = "10.0";
+t_maxwell = "10000.0";
 %v0 = "0.05";
-t_abp = "1.0";
+t_abp = "100.0";
 %att="0.1";
 Duration="250";
 FSKIP = 1;
 startSeed = 1;
 max_seed = 1;
-att_range = 0.3;
+%att_range = 0.3;
 
 %if makeAMovie is 0, then plot every frame separately
 forImageAnalysis = ~isTestData;
