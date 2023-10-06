@@ -2007,7 +2007,7 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
   // polyShapeID = 0 corresponds to a circle, 1 corresponds to a rectangle
   int cj, vi, vj, gi, cellDOF = NDIM * NCELLS, cumNumCells = 0;
   int numEdges = 20;
-  double areaSum = 0.0, xtra = 1.1;
+  double areaSum = 0.0;
 
   // local disk vectors
   vector<double> drad(NCELLS, 0.0), dpos(cellDOF, 0.0), dv(cellDOF, 0.0), dF(cellDOF, 0.0);
@@ -2094,9 +2094,8 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
   }
 
   cout << "setting radii of SP disks\n";
-  // set radii of SP disks
+  double xtra = 1.1;  // disks should have radius similar to the final particle radius
   for (int ci = 0; ci < NCELLS; ci++) {
-    xtra = 1.0;  // disks should have radius similar to the final particle radius
     drad.at(ci) = xtra * sqrt((2.0 * a0.at(ci)) / (nv.at(ci) * sin(2.0 * PI / nv.at(ci))));
   }
 
@@ -2342,8 +2341,8 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
       dtmp = sqrt((2.0 * a0.at(ci)) / (nv.at(ci) * sin((2.0 * PI) / nv.at(ci)))) - r[gi] / 2.0;
 
       // set positions
-      x.at(NDIM * gi) = dtmp * cos((2.0 * PI * vi) / nv.at(ci)) + dpos.at(NDIM * ci) + 1e-2 * r[gi] * drand48();
-      x.at(NDIM * gi + 1) = dtmp * sin((2.0 * PI * vi) / nv.at(ci)) + dpos.at(NDIM * ci + 1) + 1e-2 * r[gi] * drand48();
+      x.at(NDIM * gi) = dtmp * cos((2.0 * PI * vi) / nv.at(ci)) + dpos.at(NDIM * ci) + 1e-2 * l0[gi] * drand48();
+      x.at(NDIM * gi + 1) = dtmp * sin((2.0 * PI * vi) / nv.at(ci)) + dpos.at(NDIM * ci + 1) + 1e-2 * l0[gi] * drand48();
       if (x.at(NDIM * gi) < left)
         x.at(NDIM * gi) = left + r[0];
       if (x.at(NDIM * gi) > right)
