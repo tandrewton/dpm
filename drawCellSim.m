@@ -4,7 +4,7 @@ close all; clear
 %isTestData = false; %uncomment if using function call to pipeline data
 
 isTestData = true; %uncomment if using test data
-testDataID = "a0.001p0.85t10.0";
+testDataID = "a0.001p0.85t10.00";
 %testDataID = "9";
 
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')

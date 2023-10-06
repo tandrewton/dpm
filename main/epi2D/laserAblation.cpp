@@ -203,8 +203,7 @@ int main(int argc, char const* argv[]) {
   epithelial.setkb(kb);
 
   // epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithCircularWalls, Ftol, dt0, phiMax, dphi0);
-  double attractiveFtol = Ftol;
-  epithelial.shrinkPolyWall(attractiveForceUpdateWithCircularWalls, attractiveFtol, dt0, phiMax, dphi0);
+  epithelial.shrinkPolyWall(attractiveForceUpdateWithCircularWalls, Ftol, dt0, phiMax, dphi0);
   epithelial.moveSimulationToPositiveCoordinates();  // positive coordinates make the neighbor list storage work better
   epithelial.printConfiguration2D();
 

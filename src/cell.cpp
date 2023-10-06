@@ -2050,7 +2050,7 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
   ofstream ip2Stream("initPosSP2.txt");
   for (int n = 0; n < numTissues; n++) {
     cout << "initializing cell centers randomly but rejecting if further than R from the center for tissue " << n << "out of " << numTissues - 1 << "\n";
-    double scale_radius = 1;                     // make the polygon radius slightly larger so that it encompasses the circle that points are initialized in
+    double scale_radius = 1.0;                   // make the polygon radius slightly larger so that it encompasses the circle that points are initialized in
     poly_bd_x.push_back(std::vector<double>());  // make new data for generateCircularBoundary to write a polygon
     poly_bd_y.push_back(std::vector<double>());
 
@@ -2076,7 +2076,7 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
     for (int i = cumNumCells; i < cumNumCells + numCellsInTissue[n]; i++) {
       double dpos_x, dpos_y;
       bool insidePolygon = false;
-      double buffer = r[0] * 2;
+      double buffer = r[0] * 4;
 
       while (!insidePolygon) {
         dpos_x = (maxX - buffer - minX) * drand48() + minX + buffer;
@@ -2342,8 +2342,8 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
       dtmp = sqrt((2.0 * a0.at(ci)) / (nv.at(ci) * sin((2.0 * PI) / nv.at(ci)))) - r[gi] / 2.0;
 
       // set positions
-      x.at(NDIM * gi) = dtmp * cos((2.0 * PI * vi) / nv.at(ci)) + dpos.at(NDIM * ci) + 1e-2 * l0[gi] * drand48();
-      x.at(NDIM * gi + 1) = dtmp * sin((2.0 * PI * vi) / nv.at(ci)) + dpos.at(NDIM * ci + 1) + 1e-2 * l0[gi] * drand48();
+      x.at(NDIM * gi) = dtmp * cos((2.0 * PI * vi) / nv.at(ci)) + dpos.at(NDIM * ci) + 1e-2 * r[gi] * drand48();
+      x.at(NDIM * gi + 1) = dtmp * sin((2.0 * PI * vi) / nv.at(ci)) + dpos.at(NDIM * ci + 1) + 1e-2 * r[gi] * drand48();
       if (x.at(NDIM * gi) < left)
         x.at(NDIM * gi) = left + r[0];
       if (x.at(NDIM * gi) > right)

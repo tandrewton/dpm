@@ -1896,11 +1896,11 @@ void epi2D::dampedNP0(dpmMemFn forceCall, double dt0, double duration, double pr
         purseStringContraction();
       } else {                                      // purse-string can't shrink anymore
         if (isPurseStringDoneShrinking == false) {  // if purse-string can't shrink anymore, set this flag to true and stop straining the pursestring
-          cout << "disassembling purse-string, lengths are too short to shrink further \n";
+          cerr << "disassembling purse-string, lengths are too short to shrink further \n";
           isPurseStringDoneShrinking = true;
           strainRate_ps = 0.0;
-          cout << "max_ps = " << max_ps << '\t' << ", min_ps = " << min_ps << '\n';
-          cout << "simclock = " << simclock << '\n';
+          cerr << "max_ps = " << max_ps << '\t' << ", min_ps = " << min_ps << '\n';
+          cerr << "simclock = " << simclock << '\n';
           assert(false);
         }
         purseStringContraction();
@@ -3366,12 +3366,22 @@ void epi2D::getWoundVertices(int nthLargestCluster) {
   cout << "previous_vertex size = " << previous_vertex.size() << '\n';
   if (checkWoundClosedPolygon(temporaryWoundIndices)) {
     sortedWoundIndices = temporaryWoundIndices;
+    for (auto i : temporaryWoundIndices)
+      cout << i << '\t';
+    cout << '\n';
+    cout << "wound is a closed polygon, proceeding with purse-string initialization\n";
   } else {
     cout << "temporaryWoundIndices size = " << temporaryWoundIndices.size() << '\n';
     for (auto i : temporaryWoundIndices)
       cout << i << '\t';
     cout << '\n';
-    cout << "wound was not a closed polygon, not returning any values for sortedWoundIndices, program should terminate soon\n";
+    if (temporaryWoundIndices.size() > nv[0]) {
+      cout << "might have enough vertices, try initialize PS anyway\n";
+      sortedWoundIndices = temporaryWoundIndices;
+    } else {
+      cout << "wound was not a closed polygon, not returning any values for sortedWoundIndices, program should terminate\n";
+      assert(false);
+    }
   }
 }
 
@@ -4032,7 +4042,6 @@ void epi2D::updatePurseStringContacts() {
               // cout << "gi of right neighbor = " << neighbor_gi << ", differences of right neighbor with its neighbors = " << neighbor_gi - psContacts[(neighbor_index + 1 + psContacts.size()) % psContacts.size()] << ", " << neighbor_gi - psContacts[(neighbor_index - 1 + psContacts.size()) % psContacts.size()] << '\n';
             }
             continue;
-            // assert(false);
           }
 
           // reset variables to match new first and second indices

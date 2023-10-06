@@ -58,20 +58,20 @@ T parseArg(const std::string& arg) {
 
 // global constants
 const bool plotCompression = 0;     // whether or not to plot configuration during compression protocol (0 saves memory)
-const double dphi0 = 0.05;          // packing fraction increment
+const double dphi0 = 0.005;         // packing fraction increment
 const double kc = 1.0;              // interaction force spring constant (should be unit)
 const double kb = 0.01;             // bending energy spring constant (should be zero)
 const double kl = 1.0;              // segment length interaction force (should be unit)
 const double boxLengthScale = 2.5;  // neighbor list box size in units of initial l0
 // const double phi0 = 0.91;           // initial preferred packing fraction
-const double dt0 = 0.1;  // initial magnitude of time step in units of MD time
+const double dt0 = 0.05;  // initial magnitude of time step in units of MD time
 const double Ptol = 1e-5;
 const double Ftol = 1e-4;
 const double att_range = 0.3;
 
 int main(int argc, char const* argv[]) {
   // local variables to be read in
-  double B = 1.0, phi0 = 0.7;
+  double B = 1.0, phi0 = 0.8;
   // double ka = 23.6;
   double ka = 2.5;
   //  Read command-line arguments into corresponding variables

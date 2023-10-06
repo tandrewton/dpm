@@ -3200,6 +3200,7 @@ void dpm::shrinkPolyWall(dpmMemFn forceCall, double Ftol, double dt0, double phi
     for (int i = 0; i < NVTOT; i++) {
       shrinkStream << x[i * NDIM] << '\t' << x[i * NDIM + 1] << '\n';
     }
+    shrinkStream << 0 << '\t' << 0 << '\n';
 
     if (it >= itmax)
       cout << "inside shrinkPolyWall, reached maxit. exiting compression steps\n";
