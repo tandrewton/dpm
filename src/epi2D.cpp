@@ -4151,6 +4151,11 @@ void epi2D::purseStringContraction() {
       // l0_ps[psi] *= exp(-strainRate_ps * dt); // constant strain rate
       l0_ps[psi] -= strainRate_ps * dt;  // constantly increasing tension until length < r[0], the smallest physical lengthscale
     }
+    if (isnan(l0_ps[psi])) {
+      cerr << "l0_ps[psi] = nan!\n"
+           << ", simclock = " << simclock << '\n';
+      cerr << "l0_ps.size, psContacts.size = " << l0_ps.size() << '\t' << psContacts.size() << '\n';
+    }
   }
 }
 
@@ -4338,7 +4343,7 @@ void epi2D::evaluatePurseStringForces() {
     purseStringTension += sqrt(pow(fx, 2) + pow(fy, 2));
     // cout << "F_ps_x due to segment length = " << fx << '\t' << fy << '\n';
     if (l0_ps.size() != psContacts.size()) {
-      cout << "contradiction: l0_ps.size != psContacts.size() : " << l0_ps.size() << '\t' << psContacts.size() << '\n';
+      cerr << "contradiction: l0_ps.size != psContacts.size() : " << l0_ps.size() << '\t' << psContacts.size() << '\n';
       assert(l0_ps.size() == psContacts.size());
     }
     if (std::isnan(F_ps[NDIM * psi])) {
