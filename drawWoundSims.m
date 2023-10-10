@@ -36,21 +36,21 @@ boundaryType = "0";
 tau_s = "0";
 B="1.0";
 boolCIL="0";
-Duration="2000";
+Duration="1000";
 FSKIP = 1;
 
 etaStr = " ";
 startSeed = 1;
 max_seed = 3;
-no_plots = 1;
-makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
+no_plots = 0;
+makeAMovie = 0; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
 %plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
 plotCells = 1;
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
 showWoundAndShapeProperties = 0; 
 
-showverts = 0;
+showverts = 1;
 showBoundaries = 0;
 showcirculoline = 0; % show line segments of circulo-lines
 isReadAndPlotTrajectoryQualities = 1; % read nvestr and plot associated quantities
@@ -66,7 +66,7 @@ viewBottom = 1.0;
 
 %disable showVoid if using printConfig on its own, outside of
 %dampedNVE/dampedNP0 routines
-showGlobalIndex = 0;
+showGlobalIndex = 1;
 showVoid = 0;
 showVoidBlack = 0; % print void in larger black circles to see easier
 showVoidLite = 1; % print void, but in a way that works with printConfiguration on its own
@@ -96,7 +96,7 @@ txt='test';
 
 fnum = 1;
 figure(13), clf, hold on, box on;
-for seed = startSeed:max_seed
+for seed = startSeed+1:max_seed
     seed
     if (isTestData)
         run_name = runType+txt;     

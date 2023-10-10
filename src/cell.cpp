@@ -3127,7 +3127,7 @@ void cell::vertexDampedMD(dpmMemFn forceCall, double dt0, double duration, doubl
         if (cellContactOut.is_open()) {
           std::vector<std::vector<int>> cij_matrix(NCELLS, std::vector<int>(NCELLS, 0));
           cout << "before calculateMinimizedContacts\n";
-          std::vector<int> cij_minimized = calculateMinimizedContacts(forceCall, 1e-5, dt0, xStream, xMinStream, cijStream, cijMinStream);
+          // std::vector<int> cij_minimized = calculateMinimizedContacts(forceCall, 1e-4, dt0, xStream, xMinStream, cijStream, cijMinStream);
           for (int ci = 0; ci < NCELLS; ci++) {
             double cx, cy;
             com2D(ci, cx, cy);
@@ -3135,7 +3135,8 @@ void cell::vertexDampedMD(dpmMemFn forceCall, double dt0, double duration, doubl
           }
           for (int cj = 0; cj < NCELLS; cj++) {
             for (int ci = cj + 1; ci < NCELLS; ci++) {
-              int element = cij_minimized[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2];
+              // int element = cij_minimized[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2];
+              int element = 0;
               cij_matrix[ci][cj] = element;
             }
           }
@@ -3170,6 +3171,8 @@ std::vector<int> cell::calculateMinimizedContacts(dpmMemFn forceCall, double Fto
   // step 1: save, then minimize the current configuration
   std::vector<std::vector<int>> cij_matrix(NCELLS, std::vector<int>(NCELLS, 0));
   std::vector<double> x_original = x;
+  std::vector<double> F_original = F;
+  std::vector<double> v_original = v;
   std::vector<int> cij_original = cij;
   std::vector<int> cij_new;
   // energy minimize, which will update cij and x
@@ -3197,7 +3200,13 @@ std::vector<int> cell::calculateMinimizedContacts(dpmMemFn forceCall, double Fto
   saveMatrixToCSV(cij_new_matrix, cijMinStream);
   // restore x and cij
   x = x_original;
+  F = F_original;
+  v = v_original;
   cij = cij_original;
+  cerr << "printed minimized coordinates!\n";
+  /*for (int i = 0; i < x.size(); i += 2) {
+    cout << x[i] << '\t' << x[i + 1] << '\n';
+  }*/
   return cij_new;
 }
 

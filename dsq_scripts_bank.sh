@@ -291,7 +291,7 @@ for t_stress in ${t_stress_arr[@]}; do
     for att in 0.1; do
       for kl in 1.0; do
         for ka in ${ka_arr[@]}; do
-            echo bash bash/epi2D/submit_laserAblation.sh 50 30 5 1.20 0.94 0.99 $kl $ka 0.01 $att 1.0 4.0 $k_ps 4.0 1.0 0.0 $t_stress $taur 1 2000 pi_ohern,day 0-24:00:00 $numSeeds 1 >> joblist_PS_tau_ka.txt
+            echo bash bash/epi2D/submit_laserAblation.sh 50 30 5 1.20 0.94 0.99 $kl $ka 0.01 $att 1.0 4.0 $k_ps 4.0 1.0 0.0 $t_stress $taur 1 1000 pi_ohern,day 0-24:00:00 $numSeeds 1 >> joblist_PS_tau_ka.txt
         done
       done
     done
