@@ -89,7 +89,7 @@ def main():
     k_ecm_arr = ["0.005", "0.5"]
     seeds = 5
 
-    df_shapes = pd.DataFrame()
+    df_shapes = pd.DataFrame() 
     df_NEs = pd.DataFrame()
     # load packing fraction data into dataframe
     df_phis = pd.read_csv(f"C:\\Users\\atata\\projects\\psm_extracellular_calculation\\windowedPhiDataFrame.txt")
