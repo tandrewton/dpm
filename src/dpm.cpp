@@ -756,8 +756,8 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
       double dpos_x, dpos_y;
       bool insidePolygon = false;
       while (!insidePolygon) {
-        dpos_x = (tissueRadius - r[0]) * (2 * drand48() - 1) + cx;
-        dpos_y = (tissueRadius - r[0]) * (2 * drand48() - 1) + cy;
+        dpos_x = (tissueRadius - 2 * r[0]) * (2 * drand48() - 1) + cx;
+        dpos_y = (tissueRadius - 2 * r[0]) * (2 * drand48() - 1) + cy;
         // Check if the generated position is inside the polygon
         insidePolygon = isInsidePolygon(dpos_x, dpos_y, poly_bd_x[0], poly_bd_y[0]);
       }
@@ -769,7 +769,7 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
   // set radii of SP disks
   for (ci = 0; ci < NCELLS; ci++) {
     if (setUpCircularBoundary)
-      xtra = 1.0;  // disks should have radius similar to the final particle radius, or could modify vrad[i] condition in wall calculation later
+      xtra = 1.01;  // disks should have radius similar to the final particle radius, or could modify vrad[i] condition in wall calculation later
     drad.at(ci) = xtra * sqrt((2.0 * a0.at(ci)) / (nv.at(ci) * sin(2.0 * PI / nv.at(ci))));
   }
 

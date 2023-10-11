@@ -2,7 +2,7 @@ module load dSQ
 #!/bin/bash
 numSeeds=5
 calA0=(1.15)
-phi_arr=(0.75 0.8 0.85)
+phi_arr=(0.85)
 att_arr=(0.001 0.1)
 #v0_arr=(0.01 0.02 0.04 0.08 0.16)
 v0_arr=(0.02 0.08)
@@ -14,7 +14,7 @@ for phi in ${phi_arr[@]}; do
     for v0 in ${v0_arr[@]}; do
       for koff in ${koff_arr[@]}; do
           for kecm in ${kecm_arr[@]}; do
-              echo bash bash/cells/submit_psm.sh 40 30 $calA0 $phi $att 10000.0 $v0 100.0 $kecm $koff 250 pi_ohern,day 0-12:00:00 $numSeeds 1 >> joblist_psm_att_v0_koff.txt
+              echo bash bash/cells/submit_psm.sh 40 30 $calA0 $phi $att 10000.0 $v0 100.0 $kecm $koff 100 pi_ohern,day 0-12:00:00 $numSeeds 1 >> joblist_psm_att_v0_koff.txt
           done
       done
     done

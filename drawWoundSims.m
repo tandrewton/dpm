@@ -43,14 +43,14 @@ etaStr = " ";
 startSeed = 1;
 max_seed = 3;
 no_plots = 0;
-makeAMovie = 0; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
+makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
 %plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
 plotCells = 1;
 set(0,'DefaultFigureWindowStyle','docked')
 showPeriodicImages = 0;
 showWoundAndShapeProperties = 0; 
 
-showverts = 1;
+showverts = 0;
 showBoundaries = 0;
 showcirculoline = 0; % show line segments of circulo-lines
 isReadAndPlotTrajectoryQualities = 1; % read nvestr and plot associated quantities
@@ -96,7 +96,7 @@ txt='test';
 
 fnum = 1;
 figure(13), clf, hold on, box on;
-for seed = startSeed+1:max_seed
+for seed = startSeed:max_seed
     seed
     if (isTestData)
         run_name = runType+txt;     
