@@ -763,10 +763,6 @@ void dpm::initializePositions2D(double phi0, double Ftol, bool isFixedBoundary, 
       }
       dpos.at(i * NDIM) = dpos_x;
       dpos.at(i * NDIM + 1) = dpos_y;
-      cout << "dpos [i] = " << dpos_x << '\t' << dpos_y << '\n';
-    }
-    for (int bi = 0; bi < poly_bd_x[0].size(); bi++) {
-      cout << "poly_bd [bi] = " << poly_bd_x[0][bi] << '\t' << poly_bd_y[0][bi] << '\n';
     }
   }
 
