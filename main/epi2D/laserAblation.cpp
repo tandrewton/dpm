@@ -24,6 +24,14 @@
 // ........................... N  NV Nd A0  pMin  pMax  kl ka  kb  att  om   dsq  kps  klp tau dflag  t_stress tauRatio sm sd time file
 
 // bash bash/epi2D/submit_laserAblation.sh 40 20 6 1.10 0.92 0.925 1.0 1.0 0.2 1.0  0.0 4.0 4.0 1.0 3.0 1.0 0.5 0 0 400 pi_ohern,day,scavenge 0-24:00:00 1 1
+/*
+seeds=(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20)
+for sd in ${seeds[@]}; do
+  echo "./main/epi2D/laserAblation.o 30 20 3 1.20 0.94 0.99 1.0 1.0 0.01 0.1 1.0 4.0 4.0 4.0 1.0 0.0 76.8 0 1 $sd 40 test > out_$sd.txt"
+done
+
+
+*/
 
 //
 // Parameter input list
