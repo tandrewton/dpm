@@ -5,7 +5,7 @@
 
 %function drawWoundSims(N, calA0, t_stress, att, strainRate_ps, ...
 %    k_l, k_a, k_b, deltaSq, d_flag) %uncomment if using function call to pipeline data
-
+close all
 %isTestData = false; %uncomment if using function call to pipeline data
 
 isTestData = true; %uncomment if using test data
@@ -42,8 +42,8 @@ FSKIP = 1;
 etaStr = " ";
 startSeed = 1;
 max_seed = 1;
-no_plots = 1;
-makeAMovie = 0; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
+no_plots = 0;
+makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
 %plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
 plotCells = 1;
 set(0,'DefaultFigureWindowStyle','docked')
@@ -323,25 +323,7 @@ for seed = startSeed:max_seed
             if showPurseString
                 purseLocations = readDataBlocks(purseStr, 2);
             end
-        
-    %         zc = trajectoryData.zc; % # cell contacts
-    %         zv = trajectoryData.zv; % # vertex contacts
-    %         figure(2)
-    %         yyaxis left
-    %         plot(time-time(1), mean(zc,2), 'r', 'linewidth', 4,'DisplayName', 'zc')
-    %         xlabel('$t/\tau$','Interpreter','latex','fontsize', 36);
-    %         ylabel('$\langle zc \rangle$','Interpreter','LaTeX','Fontsize',36)
-    %     
-    %     
-    %         yyaxis right
-    %         plot(time-time(1), mean(zv,2), 'b', 'linewidth', 4,'DisplayName', 'zv')
-    %         %xlabel('$t/\tau$','Interpreter','latex','fontsize', 36);
-    %         ylabel('$\langle zv \rangle$','Interpreter','LaTeX','Fontsize',36)
-    %         legend('location','Southeast')
-    %     
-    %         saveas(gcf, 'contacts'+runType+fileheader_short+'_'+max_seed+ ...
-    %              '.eps', 'epsc')
-        
+
             figure(3)
             area = mean(trajectoryData.area,2);
             perimeter = mean(trajectoryData.perimeter,2);

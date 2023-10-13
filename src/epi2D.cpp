@@ -413,11 +413,11 @@ void epi2D::vertexAttractiveForces2D_2() {
                 if (ci == cj)
                   break;
 
-                if (vnn[gi][i] < 0) {
+                if (vnn[gi][i] < 0 && vnn[gi][i] != gj) {
                   vnn[gi][i] = gj;  // set the first unused array element to gj, in gi's neighbor list
 
                   for (int j = 0; j < vnn[gj].size(); j++) {
-                    if (vnn[gj][j] < 0) {
+                    if (vnn[gj][j] < 0 && vnn[gj][j] != gi) {
                       vnn[gj][j] = gi;  // set the first unused array element to gi, in gj's neighbor list
                       break;
                     }
@@ -534,11 +534,11 @@ void epi2D::vertexAttractiveForces2D_2() {
 
                 if (ci != cj) {
                   for (int i = 0; i < vnn[gi].size(); i++) {
-                    if (vnn[gi][i] < 0) {
+                    if (vnn[gi][i] < 0 && vnn[gi][i] != gj) {
                       vnn[gi][i] = gj;  // set the first unused array element to gj, in gi's neighbor list
 
                       for (int j = 0; j < vnn[gj].size(); j++) {
-                        if (vnn[gj][j] < 0) {
+                        if (vnn[gj][j] < 0 && vnn[gj][j] != gi) {
                           vnn[gj][j] = gi;  // set the first unused array element to gi, in gj's neighbor list
                           break;
                         }
@@ -1036,11 +1036,11 @@ void epi2D::calculateSmoothInteraction(double& rx, double& ry, double& sij, doub
             break;
 
           // gj should probably be "middle" here
-          if (vnn[gi][i] < 0) {
+          if (vnn[gi][i] < 0 && vnn[gi][i] != gj) {
             vnn[gi][i] = gj;  // set the first unused array element to gj, in gi's neighbor list
 
             for (int j = 0; j < vnn[gj].size(); j++) {
-              if (vnn[gj][j] < 0) {
+              if (vnn[gj][j] < 0 && vnn[gj][j] != gi) {
                 vnn[gj][j] = gi;  // set the first unused array element to gi, in gj's neighbor list
                 break;
               }
@@ -1624,9 +1624,6 @@ void epi2D::dampedNVE2D(dpmMemFn forceCall, double dt0, double duration, double 
           printBoundaries();
           cout << "done printing in NVE\n";
         }
-
-        cerr << "Number of polarization deflections: " << polarizationCounter
-             << '\n';
       }
     }
   }
@@ -2814,7 +2811,7 @@ void epi2D::boundaries() {
   }
 }
 
-std::vector<int> epi2D::refineBoundaries() {
+std::vector<int> epi2D::refineBoundaries(bool isForceSmooth) {
   // refine the boundaries, return site occupations for Newman-Ziff.
   std::vector<int> voidFacingVertexIndices;
   int c1, c2, c3, v1, v2, v3;  // stores dangling_end_labels for neighbor decision later
@@ -2834,6 +2831,9 @@ std::vector<int> epi2D::refineBoundaries() {
               "this vertex!!\n";
     else if (counter == 2) {
       vnn_label[gi] = 0;
+    } else if (isForceSmooth && counter == 3) {
+      vnn_label[gi] = 0;
+      // with smooth forces, void adjacent vertices might actually have 3 neighbors.
     }
   }
 
@@ -3071,6 +3071,10 @@ void epi2D::printBoundaries(int nthLargestCluster) {
   for (int gi = 0; gi < NVTOT; gi++) {
     if (vnn_label[gi] == 0 || vnn_label[gi] == 2 || vnn_label[gi] == 1 || vnn_label[gi] == -1 || vnn_label[gi] == -2 || vnn_label[gi] == -3) {
       edgeout << x[gi * NDIM] << '\t' << x[gi * NDIM + 1] << '\t' << vnn_label[gi] + (findRoot(gi, ptr) == mode) * 10 << '\n';
+      /*cout << "corners and edges\t" << gi << '\t' << x[gi * NDIM] << '\t' << x[gi * NDIM + 1] << '\t' << vnn_label[gi] + (findRoot(gi, ptr) == mode) * 10 << '\n';
+      for (auto i : vnn[gi]) {
+        cout << "vnn[" << gi << "] = " << i << '\n';
+      }*/
     }
   }
 
@@ -3281,6 +3285,7 @@ void epi2D::getWoundVertices(int nthLargestCluster) {
     }
   }
   while (previous_vertex.size() != big && stopSignal == false) {
+    // cout << "current_vertex = " << current_vertex << '\n';
     // move current vertex to list of old vertices
     if (previous_vertex.size() < 2 ||
         previous_vertex.end()[-1] != current_vertex) {
@@ -3289,14 +3294,32 @@ void epi2D::getWoundVertices(int nthLargestCluster) {
     }
 
     for (auto i : vnn[current_vertex]) {
-      // if i == -1, then we've found a dead end. backtrack (go back by one current_vertex) and try again
-      // another possibility is if i==-1, then we've closed the wound. Check for this
+      // cout << "inside vnn[current], i = " << i << '\n';
+      //  if i == -1, we either have a dead end or we need to check if either ip1[current] or im1[current]
+      //     could potentially continue the chain
+      //  then we've found a dead end. backtrack (go back by one current_vertex) and try again
+      //     another possibility is if i==-1, then we've closed the wound. Check for this
       if (i == -1) {
-        current_vertex = previous_vertex.end()[-2];
-        if (checkWoundClosedPolygon(temporaryWoundIndices)) {
-          tempWoundIsClosedPolygon = true;
+        if (vnn[im1[current_vertex]][0] != -1 &&
+            std::find(previous_vertex.begin(), previous_vertex.end(), im1[current_vertex]) == previous_vertex.end()) {
+          current_vertex = im1[current_vertex];
+          temporaryWoundIndices.push_back(current_vertex);
+          cout << "backdoor 1, " << current_vertex << '\t' << im1[current_vertex] << "\n";
+          break;
+        } else if (vnn[ip1[current_vertex]][0] != -1 &&
+                   std::find(previous_vertex.begin(), previous_vertex.end(), ip1[current_vertex]) == previous_vertex.end()) {
+          current_vertex = ip1[current_vertex];
+          temporaryWoundIndices.push_back(current_vertex);
+          cout << "backdoor 2, " << current_vertex << '\t' << ip1[current_vertex] << "\n";
+          break;
+        } else {
+          current_vertex = previous_vertex.end()[-2];
+          if (checkWoundClosedPolygon(temporaryWoundIndices)) {
+            tempWoundIsClosedPolygon = true;
+          }
+          cout << "dead end\n";
+          break;
         }
-        break;
       }
 
       // check i valid neighbor, points to the biggest cluster, and is not
@@ -3306,10 +3329,9 @@ void epi2D::getWoundVertices(int nthLargestCluster) {
               previous_vertex.end()) {
         // switch focus to new vertex
         current_vertex = i;
-
         temporaryWoundIndices.push_back(current_vertex);
+        cout << "adding to wound indices: " << current_vertex << '\n';
         break;
-
       } else if (it > middleit) {  // we have formed a closed loop, but have not
                                    // traversed the entire cluster.
                                    // if the closed loop is large enough, we'll accept it as the main

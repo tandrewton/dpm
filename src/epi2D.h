@@ -261,7 +261,7 @@ class epi2D : public dpm {
   // void detection algorithms (Newman-Ziff)
   void initializevnn();
   void boundaries();
-  std::vector<int> refineBoundaries();
+  std::vector<int> refineBoundaries(bool isForceSmooth = true);
   void NewmanZiff(std::vector<int>& ptr, int empty, int& mode, int& big, std::vector<int>& order);
   void printBoundaries(int nthLargestCluster = 1);
   void getWoundVertices(int nthLargestCluster = 1);
