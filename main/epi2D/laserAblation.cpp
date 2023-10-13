@@ -162,7 +162,7 @@ int main(int argc, char const* argv[]) {
   if (strainRate_ps < 1e-20)
     deltaSq = 0.0;
 
-  epi2D epithelial(NCELLS, 0.0, 0.0, strainRate_ps, k_ps, k_LP, tau_LP, deltaSq, maxProtrusionLength, seed + 100);
+  epi2D epithelial(NCELLS, 0.0, 0.0, strainRate_ps, k_ps, k_LP, tau_LP, deltaSq, maxProtrusionLength, seed);
 
   epithelial.openFileStreams(outFileStem);
 
