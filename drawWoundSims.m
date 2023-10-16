@@ -3,12 +3,12 @@
 % different from drawLoadingSims.m because it plots psi information
 %pwd should give ~/Documents/YalePhd/projects/dpm
 
-%function drawWoundSims(N, calA0, t_stress, att, strainRate_ps, ...
-%    k_l, k_a, k_b, deltaSq, d_flag) %uncomment if using function call to pipeline data
+function drawWoundSims(N, calA0, t_stress, att, strainRate_ps, ...
+    k_l, k_a, k_b, deltaSq, d_flag) %uncomment if using function call to pipeline data
 close all
-%isTestData = false; %uncomment if using function call to pipeline data
+isTestData = false; %uncomment if using function call to pipeline data
 
-isTestData = true; %uncomment if using test data
+%isTestData = true; %uncomment if using test data
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('C:\Users\atata\projects\dpm\bash')
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
@@ -41,7 +41,7 @@ FSKIP = 1;
 
 etaStr = " ";
 startSeed = 1;
-max_seed = 1;
+max_seed = 25;
 no_plots = 0;
 makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
 %plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether

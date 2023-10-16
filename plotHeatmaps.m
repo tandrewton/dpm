@@ -6,7 +6,13 @@ isPlottingAreaVelocity = true;
 isPlottingShapes = ~isPlottingAreaVelocity;
 assert((isPlottingAreaVelocity && isPlottingShapes) == false);
 %%
-folderPath = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/output/cells/ablate/array_output_figures/heatmaps/";
+%PC directory
+if ispc
+    folderPath = "/Users/atata/projects/dpm/output/cells/ablate/array_output_figures/heatmaps/";
+else
+    folderPath = "/Users/AndrewTon/Documents/YalePhD/projects/dpm/output/cells/ablate/array_output_figures/heatmaps/";
+end
+
 if (isPlottingAreaVelocity)
     heatmapFile = "arealVelocityPStrue-calA01.20_tau-ka.mat";
 else
