@@ -277,17 +277,17 @@ t_stress_arr=(2.4 4.8 9.6 19.2 76.8 307.2 1228.8 4915.2 9830.4 39321.6)
 
 #ka_arr=(20.0)
 #ka_arr=(16.0 24.0 32.0)
-ka_arr=(0.25 0.5 1.0 2.0 4.0 8.0 16.0 32.0 64.0 128.0 256.0)
+#ka_arr=(0.25 0.5 1.0 2.0 4.0 8.0 16.0 32.0 64.0 128.0 256.0)
 #ka_arr=(1.0 16.0 64.0)
 #ka_arr=(0.25 0.5 1.0 2.0 4.0 8.0)
-#ka_arr=(16.0 20.0 32.0 64.0 128.0 256.0)
+ka_arr=(16.0 20.0 32.0 64.0 128.0 256.0)
 #tauRatio_arr=(0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5)
 #tauRatio_arr=(0.1)
 tauRatio_arr=(0)
 k_ps=(4.0)
 rm joblist_PS_tau_ka.txt
 for t_stress in ${t_stress_arr[@]}; do 
-  for taur in ${tauRatio_arr[@]}; do
+  for taur in ${tauRatio_arr[@]}; do 
     for att in 0.1; do
       for kl in 1.0; do
         for ka in ${ka_arr[@]}; do
