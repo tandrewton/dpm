@@ -76,7 +76,7 @@ double kc = 1.0;                    // interaction force spring constant (should
 const double boxLengthScale = 2.5;  // neighbor list box size in units of initial l0
 // const double phi0 = 0.5;            // initial packing fraction
 const double sizeratio = 1.0;  // size ratio between small and large particles
-const double dt0 = 0.01;       // initial magnitude of time step in units of MD time
+double dt0 = 0.05;             // initial magnitude of time step in units of MD time, gets modified to be smaller if ka small
 const double Ptol = 1e-8;
 const double Ftol = 1e-12;
 const double att_range = 0.3;
@@ -85,6 +85,7 @@ int main(int argc, char const* argv[]) {
   // local variables to be read in
   int NCELLS, nsmall, seed, ndelete;
   double calA0, kl, ka = 1.0, kb, phiMin, phiMax, att, B = 1.0, t_stress, time_dbl, tauRatio;
+  // ka large => slower simulations => for faster equilibration, set ka lower for now.
   double ka_for_equilibration = 2.0, kb_for_equilibration = 0.0;
   bool boolSmooth, purseStringOn = true;
   double strainRate_ps, k_ps, k_LP, tau_LP, deltaSq, maxProtrusionLength;
@@ -210,6 +211,9 @@ int main(int argc, char const* argv[]) {
 
   epithelial.initializeNeighborLinkedList2D(boxLengthScale);
   epithelial.setka(ka);
+  // reduce dt0 if ka is small, in order to produce more stable integration
+  if (ka < 1.0)
+    dt0 /= 5.0;
   epithelial.setkb(kb);
 
   // epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithCircularWalls, Ftol, dt0, phiMax, dphi0);
