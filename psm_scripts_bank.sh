@@ -26,6 +26,7 @@ dsq --job-file joblist_psm_att_v0_koff.txt   --mem-per-cpu 4g -t 1:00:00 --mail-
 bash bash/cells/submit_psm.sh 40 20 1.05 0.9 0 0.0 0.05 50.0 1.0 10.0 1000 pi_ohern,day 0-4:00:00 1 1
 
 rsync -rav --inplace --progress at965@transfer-grace.hpc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm /mnt/c/Users/atata/projects/dpm/pipeline/cells/. 
+rsync -rav --inplace --progress at965@transfer-grace.hpc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm_zipped_10_17_23.zip /mnt/c/Users/atata/projects/dpm/pipeline/cells/. 
 
 # use bash to echo a series of commands that I can copy and paste into a windows terminal to run a python code..
 att_arr=(0.001 0.01 0.1)
@@ -41,8 +42,8 @@ done
 
 close all; clear;
 calA0_arr = ["1.15"];
-att_arr = ["0.001" "0.1"];
-phi_arr = ["0.85"]
+att_arr = ["0.001" "0.01" "0.1"];
+phi_arr = ["0.85"];
 v0_arr = ["0.02"];
 k_ecm_arr = ["0.005" "0.5"];
 k_off_arr = ["1.0"];
