@@ -24,6 +24,9 @@
 // ........................... N  NV Nd A0  pMin  pMax  kl ka  kb  att  om   dsq  kps  klp tau dflag  t_stress tauRatio sm sd time file
 
 // bash bash/epi2D/submit_laserAblation.sh 40 20 6 1.10 0.92 0.925 1.0 1.0 0.2 1.0  0.0 4.0 4.0 1.0 3.0 1.0 0.5 0 0 400 pi_ohern,day,scavenge 0-24:00:00 1 1
+
+//./main/epi2D/laserAblation.o 50 30 5 1.20 0.94 0.99 1.0 1.0 0.01 0.1 1.0 4.0 4.0 4.0 1.0 0.0 2.4 0 1 9 2000 test
+
 /*
 seeds=(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20)
 k_a=0.5
@@ -76,7 +79,7 @@ double kc = 1.0;                    // interaction force spring constant (should
 const double boxLengthScale = 2.5;  // neighbor list box size in units of initial l0
 // const double phi0 = 0.5;            // initial packing fraction
 const double sizeratio = 1.0;  // size ratio between small and large particles
-double dt0 = 0.05;             // initial magnitude of time step in units of MD time, gets modified to be smaller if ka small
+double dt0 = 0.01;             // initial magnitude of time step in units of MD time, gets modified to be smaller if ka small
 const double Ptol = 1e-8;
 const double Ftol = 1e-12;
 const double att_range = 0.3;
@@ -211,9 +214,6 @@ int main(int argc, char const* argv[]) {
 
   epithelial.initializeNeighborLinkedList2D(boxLengthScale);
   epithelial.setka(ka);
-  // reduce dt0 if ka is small, in order to produce more stable integration
-  if (ka < 1.0)
-    dt0 /= 5.0;
   epithelial.setkb(kb);
 
   // epithelial.vertexCompress2Target2D_polygon(repulsiveForceUpdateWithCircularWalls, Ftol, dt0, phiMax, dphi0);
