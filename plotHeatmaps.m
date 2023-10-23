@@ -2,7 +2,7 @@
 % directory
 clear;close all;
 set(0,'DefaultFigureWindowStyle','docked')
-isPlottingAreaVelocity = false;
+isPlottingAreaVelocity = true;
 isPlottingShapes = ~isPlottingAreaVelocity;
 assert((isPlottingAreaVelocity && isPlottingShapes) == false);
 %%
