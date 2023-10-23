@@ -491,13 +491,13 @@ void cell::attractiveSmoothForceUpdateWithPolyWall() {
     evaluatePolygonalWallForces(poly_bd_x[i], poly_bd_y[i]);
 }
 
-void cell::attractiveSmoothForceUpdateWithCrawling() {
+void cell::attractiveSmoothActive() {
   attractiveSmoothForceUpdate();
   brownianCrawlingUpdate();
 }
 
 void cell::attractiveSmoothActiveCatchBonds() {
-  attractiveSmoothForceUpdateWithCrawling();
+  attractiveSmoothActive();
   catchBondsUpdate();
 }
 

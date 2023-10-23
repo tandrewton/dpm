@@ -274,8 +274,8 @@ t_stress_arr=(2.4 9.6 76.8 1228.2 9830.4)
 #ka_arr=(20.0)
 #ka_arr=(16.0 24.0 32.0)
 #ka_arr=(0.25 0.5 1.0 2.0 4.0 8.0 16.0 32.0 64.0 128.0 256.0)
-ka_arr=(0.25 1.0 4.0 16.0)
-#ka_arr=(64.0 256.0)
+#ka_arr=(0.25 1.0 4.0 16.0)
+ka_arr=(64.0 256.0)
 #tauRatio_arr=(0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5)
 #tauRatio_arr=(0.1)
 tauRatio_arr=(0)
@@ -286,7 +286,14 @@ for t_stress in ${t_stress_arr[@]}; do
     for att in 0.1; do
       for kl in 1.0; do
         for ka in ${ka_arr[@]}; do
-            echo bash bash/epi2D/submit_laserAblation.sh 50 30 5 1.20 0.94 0.99 $kl $ka 0.01 $att 1.0 4.0 $k_ps 4.0 1.0 0.0 $t_stress $taur 1 2000 pi_ohern,day 0-24:00:00 $numSeeds 1 >> joblist_PS_tau_ka.txt
+            if [ "$(echo "$ka < 50.0" | bc)" -eq 1 ]; then 
+              clusters="pi_ohern, day"
+              runtime="0-24:00:00"
+            else
+              clusters="week"
+              runtime="3-24:00:00"
+            fi
+            echo bash bash/epi2D/submit_laserAblation.sh 50 30 5 1.20 0.94 0.99 $kl $ka 0.01 $att 1.0 4.0 $k_ps 4.0 1.0 0.0 $t_stress $taur 1 2000 $clusters $runtime $numSeeds 1 >> joblist_PS_tau_ka.txt
         done
       done
     done

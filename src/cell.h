@@ -86,7 +86,7 @@ class cell : public dpm {
   // void repulsiveForceUpdateWithoutTopWall();
   void attractiveForceUpdate();
   void attractiveForceUpdateWithCrawling();
-  void attractiveSmoothForceUpdateWithCrawling();
+  void attractiveSmoothActive();
   void attractiveSmoothActiveCatchBonds();
   void attractiveSmoothForceUpdate();
   void attractiveSmoothForceUpdateWithPolyWall();

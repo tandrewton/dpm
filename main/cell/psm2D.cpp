@@ -13,34 +13,22 @@
 // run command:
 
 /*
-./main/cell/psm2D.o   12   16 1.05 0.75 0.0   10.0    0.05    10.0  1.0     1.0   1    50    test5
-./main/cell/psm2D.o   12   16 1.0 0.5 0.01  10.0    0.16    1.0  0.05     1.0   1    100    test6
-./main/cell/psm2D.o   12   16 1.05 0.75 0.1   10.0    0.05    10.0  0.06    1.0   1    50    test7
-./main/cell/psm2D.o   6   10 1.0  0.53 0.01   10.0    0.05    1.0  0.05    1.0   1    200    test8
-./main/cell/psm2D.o   40   14 1.0  0.74 0.1   10.0    0.04    1.0  0.01    1.0   1    20    test8
-
-./main/cell/psm2D.o   40   14 1.0 0.75 0.1    10.0    0.04    1.0  0.01    1.0   1    20    test4
-./main/cell/psm2D.o   40   14 1.0 0.75 0.001  10.0    0.04    1.0  0.01    1.0   1    20    test5
-./main/cell/psm2D.o   40   14 1.0 0.8 0.1     10.0    0.04    1.0  0.01    1.0   1    20    test6
-./main/cell/psm2D.o   40   14 1.0 0.8 0.001   10.0    0.04    1.0  0.01    1.0   1    20    test7
-./main/cell/psm2D.o   40   14 1.0 0.85 0.1    10.0    0.04    1.0  0.01    1.0   1    20    test8
-./main/cell/psm2D.o   40   14 1.0 0.85 0.001  10.0    0.04    1.0  0.01    1.0   1    20    test9
-
 att_arr=(0.001 0.1)
+att2_arr=(0.2)
 v0=0.02
-k_ecm=0.005
 phi_arr=(0.85)
 tau_abp_arr=(10.0 100.0)
 for att in ${att_arr[@]}; do
-  for phi in ${phi_arr[@]}; do
-    for tau_abp in ${tau_abp_arr[@]}; do
-      echo "./main/cell/psm2D.o   40  30 1.15 $phi $att   10000.0    $v0    $tau_abp  $k_ecm    1.0   1    100    testa"$att"p"$phi"t"$tau_abp
+  for att2 in ${att2_arr[@]}; do
+    for phi in ${phi_arr[@]}; do
+      for tau_abp in ${tau_abp_arr[@]}; do
+        echo "./main/cell/psm2D.o   20  30 1.15 $phi $att $att2 10000.0    $v0    $tau_abp    1    100    testa"$att"a2"$att2"p"$phi"t"$tau_abp
+      done
     done
   done
 done
-
 */
-//                NCELLS NV  A0  phi att t_maxwell_bd v0  tau_abp k_ecm k_off seed duration outFileStem
+//                NCELLS NV  A0  phi att att2 t_maxwell_bd v0  tau_abp seed duration outFileStem
 
 #include <sstream>
 #include "cell.h"
@@ -64,7 +52,7 @@ const double kb = 0.01;             // bending energy spring constant (should be
 const double kl = 1.0;              // segment length interaction force (should be unit)
 const double boxLengthScale = 2.5;  // neighbor list box size in units of initial l0
 // const double phi0 = 0.91;           // initial preferred packing fraction
-const double dt0 = 0.01;  // initial magnitude of time step in units of MD time
+const double dt0 = 0.05;  // initial magnitude of time step in units of MD time
 const double Ptol = 1e-5;
 const double Ftol = 1e-4;
 const double att_range = 0.3;
@@ -80,14 +68,13 @@ int main(int argc, char const* argv[]) {
   double calA0 = parseArg<double>(argv[3]);
   double phi = parseArg<double>(argv[4]);
   double att = parseArg<double>(argv[5]);
-  double t_stress = parseArg<double>(argv[6]);
-  double v0_abp = parseArg<double>(argv[7]);
-  double tau_abp = parseArg<double>(argv[8]);
-  double k_ecm = parseArg<double>(argv[9]);
-  double k_off = parseArg<double>(argv[10]);
-  int seed = parseArg<int>(argv[11]);
-  double runTime = parseArg<double>(argv[12]);
-  std::string outFileStem = argv[13];
+  double att2 = parseArg<double>(argv[6]);
+  double t_stress = parseArg<double>(argv[7]);
+  double v0_abp = parseArg<double>(argv[8]);
+  double tau_abp = parseArg<double>(argv[9]);
+  int seed = parseArg<int>(argv[10]);
+  double runTime = parseArg<double>(argv[11]);
+  std::string outFileStem = argv[12];
 
   int numCellTypes = 2;  // 0 = interior cell type (PSM) and 1 = exterior cell type (boundary)
   cell cell2D(NCELLS, 0.0, 0.0, seed, numCellTypes);
@@ -98,8 +85,8 @@ int main(int argc, char const* argv[]) {
   cell2D.setkl(kl);
   cell2D.setkb(kb);
   cell2D.setkc(kc);
-  cell2D.setkecm(k_ecm);
-  cell2D.setkoff(k_off);
+  cell2D.setkecm(1.0);
+  cell2D.setkoff(1.0);
   cell2D.setB(B);
   if (t_stress > 0.0)
     cell2D.setMaxwellRelaxationTime(t_stress);  // t_stress is infinity unless this is uncommented
@@ -107,12 +94,12 @@ int main(int argc, char const* argv[]) {
   cell2D.setpbc(1, false);
   cell2D.setl1(att);  // set adhesion scales
   cell2D.setl2(att_range);
-  assert(att < att_range);  // required to have a differentiable, finite adhesive potential
+  assert(att < att_range && att2 < att_range);  // required to have a differentiable, finite adhesive potential
 
   dpmMemFn repulsiveForceUpdate = &dpm::repulsiveForceUpdate;
   dpmMemFn attractiveForceUpdate = static_cast<void (dpm::*)()>(&cell::attractiveForceUpdate);
   dpmMemFn attractionWithActiveBrownianUpdate = static_cast<void (dpm::*)()>(&cell::attractiveForceUpdateWithCrawling);
-  dpmMemFn attractionSmoothWithActiveBrownianUpdate = static_cast<void (dpm::*)()>(&cell::attractiveSmoothForceUpdateWithCrawling);
+  dpmMemFn attractionSmoothActive = static_cast<void (dpm::*)()>(&cell::attractiveSmoothActive);
   dpmMemFn attractionSmoothActiveBrownianCatchBondsUpdate = static_cast<void (dpm::*)()>(&cell::attractiveSmoothActiveCatchBonds);
   dpmMemFn attractiveSmoothForceUpdate = static_cast<void (dpm::*)()>(&cell::attractiveSmoothForceUpdate);
   dpmMemFn attractiveSmoothWithPolyWalls = static_cast<void (dpm::*)()>(&cell::attractiveSmoothForceUpdateWithPolyWall);
@@ -127,9 +114,10 @@ int main(int argc, char const* argv[]) {
       // if either cellID is a boundary, set it to 0 (no attraction with boundaries)
       // otherwise, one of the cellIDs must not be a boundary. If the cells are the same, they should attract (set to 1).
       double boundaryID = numCellTypes - 1;
+      double attractionRatio = (att > 0) ? att2 / att : 0.0;
       double attractionModifier =
-          (cellIDi == boundaryID || cellIDj == boundaryID) ? 0.0 : (cellIDi == cellIDj) ? 1.0
-                                                                                        : 0.0;
+          (cellIDi == boundaryID || cellIDj == boundaryID) ? att2 / att : (cellIDi == cellIDj) ? 1.0
+                                                                                               : 0.0;
       cell2D.setCellTypeAttractionModifiers(cellIDi, cellIDj, attractionModifier);
     }
   }
@@ -159,10 +147,10 @@ int main(int argc, char const* argv[]) {
   cell2D.setl00();  // set l00 to be l0 before setting maxwell relaxation time
   cell2D.setActiveBrownianParameters(v0_abp, tau_abp);
 
-  cell2D.vertexDampedMD(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, relaxTime, 0);
+  cell2D.vertexDampedMD(attractionSmoothActive, dt0, relaxTime, 0);
 
   // begin production run after all of the initialization and equilibration settles
-  cell2D.vertexDampedMD(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, 3.0);
+  cell2D.vertexDampedMD(attractionSmoothActive, dt0, runTime, 3.0);
   // cell2D.vertexDampedMD(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, 1.0);
   cout << "\n** Finished psm.cpp (2D transverse section of pre-somitic mesoderm), ending. " << endl;
 

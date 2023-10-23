@@ -1,27 +1,26 @@
 module load dSQ
 #!/bin/bash
-numSeeds=10
+numSeeds=5
 calA0=(1.15)
 phi_arr=(0.75 0.8 0.85)
 att_arr=(0.001 0.01 0.1)
+att2_arr=(0.001 0.01 0.1 0.2)
 #v0_arr=(0.01 0.02 0.04 0.08 0.16)
 v0_arr=(0.02)
-kecm_arr=(0.005 0.05 0.5)
-koff_arr=(1.0)
-rm joblist_psm_att_v0_koff.txt
+rm joblist_psm_att_v0.txt
 for phi in ${phi_arr[@]}; do
   for att in ${att_arr[@]}; do 
     for v0 in ${v0_arr[@]}; do
       for koff in ${koff_arr[@]}; do
           for kecm in ${kecm_arr[@]}; do
-              echo bash bash/cells/submit_psm.sh 40 30 $calA0 $phi $att 10000.0 $v0 100.0 $kecm $koff 500 pi_ohern,day 0-12:00:00 $numSeeds 1 >> joblist_psm_att_v0_koff.txt
+              echo bash bash/cells/submit_psm.sh 40 30 $calA0 $phi $att $att2 10000.0 $v0 100.0 500 pi_ohern,day 0-12:00:00 $numSeeds 1 >> joblist_psm_att_v0.txt
           done
       done
     done
   done
 done
 
-dsq --job-file joblist_psm_att_v0_koff.txt   --mem-per-cpu 4g -t 1:00:00 --mail-type NONE --submit --partition scavenge --suppress-stats-file  -o /dev/null
+dsq --job-file joblist_psm_att_v0.txt   --mem-per-cpu 4g -t 1:00:00 --mail-type NONE --submit --partition scavenge --suppress-stats-file  -o /dev/null
 
 bash bash/cells/submit_psm.sh 40 20 1.05 0.9 0 0.0 0.05 50.0 1.0 10.0 1000 pi_ohern,day 0-4:00:00 1 1
 

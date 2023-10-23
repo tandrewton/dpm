@@ -1,10 +1,10 @@
 %pwd should give ~/Documents/YalePhd/projects/dpm
-function drawCellSim(N, calA0, phi, att, v0, k_ecm, k_off)
-%close all; clear
-isTestData = false; %uncomment if using function call to pipeline data
+%function drawCellSim(N, calA0, phi, att, v0, k_ecm, k_off)
+close all; clear
+%isTestData = false; %uncomment if using function call to pipeline data
 
-%isTestData = true; %uncomment if using test data
-%testDataID = "a0.001p0.85t100.0";
+isTestData = true; %uncomment if using test data
+testDataID = "a0.1a20.2p0.85t10.0";
 %testDataID = "9";
 
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
@@ -279,7 +279,7 @@ for seed = startSeed:max_seed
     cd ../../../../
     writematrix(shapes(:,1:end-1), shapeFile, 'WriteMode','append');
 end
-end
+%end
 
 function [cornerx, cornery] = patchConnectedRectanglesCorners(midptx, midpty, width)
 %INPUT: midptx, midpty are N x 1 vectors representing N coordinates
