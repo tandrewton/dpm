@@ -1,10 +1,10 @@
 %pwd should give ~/Documents/YalePhd/projects/dpm
-%function drawCellSim(N, calA0, phi, att, v0, k_ecm, k_off)
+%function drawCellSim(N, calA0, phi, att, att2, v0)
 close all; clear
 %isTestData = false; %uncomment if using function call to pipeline data
 
 isTestData = true; %uncomment if using test data
-testDataID = "a0.1a20.2p0.85t10.0";
+testDataID = "a0.001a20.2p0.85t3.0";
 %testDataID = "9";
 
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
@@ -26,12 +26,12 @@ t_abp = "100.0";
 Duration="500";
 FSKIP = 1;
 startSeed = 1;
-max_seed = 10;
+max_seed = 1;
 %att_range = 0.3;
 
 %if makeAMovie is 0, then plot every frame separately
-forImageAnalysis = ~isTestData;
-%forImageAnalysis = false;
+%forImageAnalysis = ~isTestData;
+forImageAnalysis = false;
 if (forImageAnalysis)
     showCatchBonds = 0;
     showverts = 1;
@@ -73,12 +73,12 @@ for seed = startSeed:max_seed
         %psm/psm_calA01.05_tm0.0_v00.1_t_abp50.0
         %k_off1000.0/_N40_dur1000_att0_start1_end1_sd1.tissue
         run_name =runType+"_calA0"+calA0+'_phi'+phi+'_tm'+t_maxwell...
-            +'_v0'+v0+'_t_abp'+t_abp+'k_ecm'+k_ecm+'k_off'+k_off;
+            +'_v0'+v0+'_t_abp'+t_abp;
         pipeline_dir =  subdir_pipeline + run_name + "/";
         output_dir = subdir_output + run_name + "/";
-        fileheader="_N"+N+"_dur"+Duration+"_att"+att+"_start"+ ...
+        fileheader="_N"+N+"_dur"+Duration+"_att"+att+"_att2"+att2+"_start"+ ...
             startSeed+"_end"+max_seed+"_sd"+seed;
-        fileheader_short = "_N"+N+"_dur"+Duration+"_att"+att+"_sd"+seed;
+        fileheader_short = "_N"+N+"_dur"+Duration+"_att"+att+"_att2"+att2+"_sd"+seed;
         nvestr = pipeline_dir+fileheader+'.pos';
         energystr = pipeline_dir+fileheader+'.energy';
         stressstr = pipeline_dir+fileheader+'.stress';

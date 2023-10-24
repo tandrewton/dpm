@@ -58,7 +58,7 @@ calA0_arr = ["1.20"];           %ii
 %t_stress_arr = ["9830.4" "39321.6"]; %iii
 %t_stress_arr = ["19.2" "4915.2" "9830.4"];
 %t_stress_arr = ["4.8" "1228.8"];
-t_stress_arr=["2.4" "4.8" "9.6" "19.2" "76.8" "307.2" "1228.8" "4915.2" "9830.4" "39321.6"];
+t_stress_arr=["2.4" "9.6" "76.8" "1228.8" "9830.4"];
 %t_stress_arr=["2.4" "4.8" "9.6" "19.2" "76.8" "307.2" "1228.8" "4915.2" "9830.4" "39321.6"];
 att_arr = ["0.1"]; % j
 om_arr = ["1.0"]; %jj
@@ -67,7 +67,8 @@ kl_arr = ["1.0"]; %jjj
 %ka_arr=["0.25" "0.5" "1.0" "2.0" "4.0" "8.0" "16.0" "20.0" "32.0" "64.0" "128.0" "256.0"]; %k
 %ka_arr=["0.5" "1.0" "2.5" "5.0" "12.5" "25.0" "50.0"];
 %ka_arr=["20.0" "256.0"];
-ka_arr=["0.25" "0.5" "1.0" "2.0" "4.0" "8.0" "16.0" "32.0" "64.0" "128.0" "256.0"];
+%ka_arr=["0.25" "0.5" "1.0" "2.0" "4.0" "8.0" "16.0" "32.0"];% "64.0" "128.0" "256.0"];
+ka_arr=["0.25" "1.0" "4.0" "16.0"];
 kb_arr = ["0.01"]; %kk
 deltaSq_arr = ["4.0"];          %kkk
 %d_flag_arr = ["0.0"];           %l
@@ -246,11 +247,9 @@ for i=1:length(N_arr)
                                             fileheader="_N"+N+"_Dur"+Duration+"_att"+att+"_sd"+ ...
                                                 startSeed+"_sd"+max_seed+"_sd"+seed;
                                             fileheader_short = "_N"+N+"_Dur"+Duration+"_att"+att+"_sd"+seed;
-                                            nvestr = pipeline_dir+fileheader+'.pos';
-                                            energystr = pipeline_dir+fileheader+'.energy';
-                                            stressstr = pipeline_dir+fileheader+'.stress';
-                                            boundaryStr = pipeline_dir+fileheader+ ".void";
-                                            edgeStr = pipeline_dir+fileheader+ '.edge';
+                                            if showLastFrameOfSimulations
+                                                nvestr = pipeline_dir+fileheader+'.pos';
+                                            end
                                             purseStr = pipeline_dir+fileheader+ '.purseString';
                                             voidAreaStr = pipeline_dir+fileheader+ '.voidArea';
                                             innerStr = pipeline_dir+fileheader+ '.innerCellShape';

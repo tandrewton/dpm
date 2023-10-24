@@ -15,14 +15,14 @@
 /*
 att_arr=(0.001 0.1)
 att2_arr=(0.2)
-v0=0.02
-phi_arr=(0.85)
-tau_abp_arr=(10.0 100.0)
+v0=0.1
+phi_arr=(0.75)
+tau_abp_arr=(0.14)
 for att in ${att_arr[@]}; do
   for att2 in ${att2_arr[@]}; do
     for phi in ${phi_arr[@]}; do
       for tau_abp in ${tau_abp_arr[@]}; do
-        echo "./main/cell/psm2D.o   20  30 1.15 $phi $att $att2 10000.0    $v0    $tau_abp    1    100    testa"$att"a2"$att2"p"$phi"t"$tau_abp
+        echo "./main/cell/psm2D.o   20  30 1.15 $phi $att $att2 10000.0    $v0    $tau_abp    1    50    testa"$att"a2"$att2"p"$phi"t"$tau_abp
       done
     done
   done
@@ -52,7 +52,7 @@ const double kb = 0.01;             // bending energy spring constant (should be
 const double kl = 1.0;              // segment length interaction force (should be unit)
 const double boxLengthScale = 2.5;  // neighbor list box size in units of initial l0
 // const double phi0 = 0.91;           // initial preferred packing fraction
-const double dt0 = 0.05;  // initial magnitude of time step in units of MD time
+const double dt0 = 0.005;  // initial magnitude of time step in units of MD time
 const double Ptol = 1e-5;
 const double Ftol = 1e-4;
 const double att_range = 0.3;
@@ -150,7 +150,7 @@ int main(int argc, char const* argv[]) {
   cell2D.vertexDampedMD(attractionSmoothActive, dt0, relaxTime, 0);
 
   // begin production run after all of the initialization and equilibration settles
-  cell2D.vertexDampedMD(attractionSmoothActive, dt0, runTime, 3.0);
+  cell2D.vertexDampedMD(attractionSmoothActive, dt0, runTime, 1.0);
   // cell2D.vertexDampedMD(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, 1.0);
   cout << "\n** Finished psm.cpp (2D transverse section of pre-somitic mesoderm), ending. " << endl;
 
