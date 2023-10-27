@@ -13,16 +13,16 @@
 // run command:
 
 /*
-att_arr=(0.001 0.1)
-att2_arr=(0.2)
+att_arr=(0.0006 0.006 0.06)
+att2_arr=(0.0012 0.012)
 v0=0.1
 phi_arr=(0.75)
-tau_abp_arr=(0.14)
+tau_abp_arr=(1)
 for att in ${att_arr[@]}; do
   for att2 in ${att2_arr[@]}; do
     for phi in ${phi_arr[@]}; do
       for tau_abp in ${tau_abp_arr[@]}; do
-        echo "./main/cell/psm2D.o   20  30 1.15 $phi $att $att2 10000.0    $v0    $tau_abp    1    50    testa"$att"a2"$att2"p"$phi"t"$tau_abp
+        echo "./main/cell/psm2D.o   20  30 1.15 $phi $att $att2 0    $v0    $tau_abp    1    200    testa_"$att"_a2_"$att2_"p_"$phi"_t_"$tau_abp
       done
     done
   done
@@ -48,11 +48,11 @@ T parseArg(const std::string& arg) {
 const bool plotCompression = 0;     // whether or not to plot configuration during compression protocol (0 saves memory)
 const double dphi0 = 0.005;         // packing fraction increment
 const double kc = 1.0;              // interaction force spring constant (should be unit)
-const double kb = 0.01;             // bending energy spring constant (should be zero)
+const double kb = 0.1;              // bending energy spring constant (should be zero)
 const double kl = 1.0;              // segment length interaction force (should be unit)
 const double boxLengthScale = 2.5;  // neighbor list box size in units of initial l0
 // const double phi0 = 0.91;           // initial preferred packing fraction
-const double dt0 = 0.005;  // initial magnitude of time step in units of MD time
+const double dt0 = 0.05;  // initial magnitude of time step in units of MD time
 const double Ptol = 1e-5;
 const double Ftol = 1e-4;
 const double att_range = 0.3;
@@ -61,7 +61,7 @@ int main(int argc, char const* argv[]) {
   // local variables to be read in
   double B = 1.0, phi0 = 0.8;
   // double ka = 23.6;
-  double ka = 2.5;
+  double ka = 10.0;
   //  Read command-line arguments into corresponding variables
   int NCELLS = parseArg<int>(argv[1]);
   int nv = parseArg<int>(argv[2]);
@@ -141,16 +141,17 @@ int main(int argc, char const* argv[]) {
   cell2D.resizeCatchBonds();
   cell2D.resizeNeighborLinkedList2D();
 
+  double shortRelaxTime = 10.0;
   double relaxTime = 50.0;
   cell2D.setka(ka);
-  cell2D.vertexDampedMD(attractiveSmoothForceUpdate, dt0, relaxTime, 0);
+  cell2D.vertexDampedMD(attractiveSmoothForceUpdate, dt0, shortRelaxTime, 0);
   cell2D.setl00();  // set l00 to be l0 before setting maxwell relaxation time
   cell2D.setActiveBrownianParameters(v0_abp, tau_abp);
 
   cell2D.vertexDampedMD(attractionSmoothActive, dt0, relaxTime, 0);
 
   // begin production run after all of the initialization and equilibration settles
-  cell2D.vertexDampedMD(attractionSmoothActive, dt0, runTime, 1.0);
+  cell2D.vertexDampedMD(attractionSmoothActive, dt0, runTime, 3.0);
   // cell2D.vertexDampedMD(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, 1.0);
   cout << "\n** Finished psm.cpp (2D transverse section of pre-somitic mesoderm), ending. " << endl;
 

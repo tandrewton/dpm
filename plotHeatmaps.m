@@ -2,7 +2,7 @@
 % directory
 clear;close all;
 set(0,'DefaultFigureWindowStyle','docked')
-isPlottingAreaVelocity = true;
+isPlottingAreaVelocity = false;
 isPlottingShapes = ~isPlottingAreaVelocity;
 assert((isPlottingAreaVelocity && isPlottingShapes) == false);
 %%
@@ -33,11 +33,12 @@ areaVelocityConvert = constrictionRate*sqrt(cellArea)*60; %micron^2/min
 
 hfile = load(folderPath + heatmapFile);
 hfile = hfile.h;
-hfile.ColorData(isnan(hfile.ColorData)) = 0;
+%hfile.ColorData(isnan(hfile.ColorData)) = 0;
 xpoints = cellfun(@str2num,convertCharsToStrings(hfile.XData));
 %xinds = 1:length(xpoints);
 
-hfile.YData = hfile.YData(1:end);
+hfile.YData = hfile.YData(2:end);
+hfile.ColorData = hfile.ColorData(2:end, :);
 ypoints = cellfun(@str2num,convertCharsToStrings(hfile.YData(1:end)));
 %ypoints = [ypoints; inf];
 %yinds = 1:length(ypoints);
@@ -110,7 +111,7 @@ figure(3); clf; hold on;
 %contourf(interpX,interpY, interpData, 12, 'LineStyle', 'none'); colormap jet(20);
 
 % avoid all of the above by using contourf, which already interpolates
-contourf(xpoints*bulkModulusConvert, ypoints*timeConvert, im', 12, 'LineStyle', 'none'); colormap jet(16);
+contourf(xpoints*bulkModulusConvert, ypoints*timeConvert, im', 10, 'LineStyle', 'none'); colormap jet(16);
 colorbar;
 
 % scatter squares below the grid points representing parameter choices
@@ -153,7 +154,8 @@ else
     a.Label.Rotation = 90;
 end
 fontsize(gcf,22,"points")
-
+axis square
+set(gca,'TickDir','out');
 % 
 % %integer format for x and y ticks
 % yt = get(gca,'ytick');

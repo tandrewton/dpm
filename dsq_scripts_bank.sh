@@ -265,8 +265,8 @@ module load dSQ
 # testing stress relaxation, attraction, boundaries on
 #bd0 P
 #!/bin/bash
-numSeeds=25
-t_stress_arr=(2.4 4.8 9.6 19.2 76.8 307.2 1228.8 4915.2 9830.4 39321.6)
+numSeeds=50
+t_stress_arr=(4.8 9.6 19.2 76.8 307.2 1228.8 9830.4 39321.6)
 #t_stress_arr=(2.4 9.6 76.8 1228.2 9830.4)
 #t_stress_arr=(19.2 38.4 76.8) #embryo
 #t_stress_arr=(4915.2 9830.4) # wing disc
@@ -288,7 +288,7 @@ for t_stress in ${t_stress_arr[@]}; do
       for kl in 1.0; do
         for ka in ${ka_arr[@]}; do
             if [ "$(echo "$ka < 50.0" | bc)" -eq 1 ]; then 
-              clusters="pi_ohern, day"
+              clusters="pi_ohern,day"
               runtime="0-24:00:00"
             else
               clusters="week"

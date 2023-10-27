@@ -58,17 +58,17 @@ calA0_arr = ["1.20"];           %ii
 %t_stress_arr = ["9830.4" "39321.6"]; %iii
 %t_stress_arr = ["19.2" "4915.2" "9830.4"];
 %t_stress_arr = ["4.8" "1228.8"];
-t_stress_arr=["2.4" "9.6" "76.8" "1228.8" "9830.4"];
-%t_stress_arr=["2.4" "4.8" "9.6" "19.2" "76.8" "307.2" "1228.8" "4915.2" "9830.4" "39321.6"];
+%t_stress_arr=["2.4" "9.6" "76.8" "1228.8" "9830.4"];
+t_stress_arr_omit=["4.8" "19.2" "307.2" "4915.2" "39321.6"];
+t_stress_arr=["4.8" "9.6" "19.2" "76.8" "307.2" "1228.8" "4915.2" "9830.4" "39321.6"];
+%t_stress_arr=["2.4" "4915.2" "9830.4"];
 att_arr = ["0.1"]; % j
 om_arr = ["1.0"]; %jj
-kl_arr = ["1.0"]; %jjj
-%ka_arr = ["0.25" "1.0" "5.0" "10.0" "50.0"];               %k
-%ka_arr=["0.25" "0.5" "1.0" "2.0" "4.0" "8.0" "16.0" "20.0" "32.0" "64.0" "128.0" "256.0"]; %k
-%ka_arr=["0.5" "1.0" "2.5" "5.0" "12.5" "25.0" "50.0"];
-%ka_arr=["20.0" "256.0"];
+kl_arr = ["1.0"]; %jjj;              
+ka_arr=["0.25" "0.5" "1.0" "2.0" "4.0" "8.0" "16.0" "20.0" "32.0"]; %k
+%ka_arr=["4.0" "256.0"]; %k
 %ka_arr=["0.25" "0.5" "1.0" "2.0" "4.0" "8.0" "16.0" "32.0"];% "64.0" "128.0" "256.0"];
-ka_arr=["0.25" "1.0" "4.0" "16.0"];
+%ka_arr=["0.25" "1.0" "4.0" "16.0"];
 kb_arr = ["0.01"]; %kk
 deltaSq_arr = ["4.0"];          %kkk
 %d_flag_arr = ["0.0"];           %l
@@ -157,14 +157,14 @@ figure(heatmap_fig_num+4); clf; % initial shape parameters of rosette cells
 figure(heatmap_fig_num+5); clf; % areal velocity from A_max-A_0.05 / (t_0.05 - t_max)
 
 numHeatmaps = 6;
-heatmap1 = zeros(length(pm1), length(pm2)); 
-heatmap2 = zeros(length(pm1), length(pm2));
-heatmap3 = zeros(length(pm1), length(pm2));
-heatmap4 = zeros(length(pm1), length(pm2)); 
-heatmap4_std = zeros(length(pm1), length(pm2));
-heatmap5 = zeros(length(pm1), length(pm2)); 
-heatmap5_std = zeros(length(pm1), length(pm2));
-heatmap6 = zeros(length(pm1), length(pm2));
+heatmap1 = nan(length(pm1), length(pm2)); 
+heatmap2 = nan(length(pm1), length(pm2));
+heatmap3 = nan(length(pm1), length(pm2));
+heatmap4 = nan(length(pm1), length(pm2)); 
+heatmap4_std = nan(length(pm1), length(pm2));
+heatmap5 = nan(length(pm1), length(pm2)); 
+heatmap5_std = nan(length(pm1), length(pm2));
+heatmap6 = nan(length(pm1), length(pm2));
 
 numItsTotal = 1;
 
@@ -185,6 +185,9 @@ for i=1:length(N_arr)
                         k_l = kl_arr(jjj);
                         for k=1:length(ka_arr)
                             k_a = ka_arr(k);
+                            if (ismember(k_a, ["64.0", "256.0"]) && ismember(t_stress, t_stress_arr_omit))
+                                continue
+                            end
                             for kk=1:length(kb_arr)
                                 k_b = kb_arr(kk);
                                 for kkk=1:length(deltaSq_arr)

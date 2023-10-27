@@ -276,6 +276,8 @@ void cell::shapeForces2D() {
 
       F[NDIM * gi] += forceX;
       F[NDIM * gi + 1] += forceY;
+      if (simclock > 60 && simclock < 60 + 2 * dt)
+        cout << "area force = " << forceX << '\t' << forceY << '\n';
 
       fieldShapeStress[gi][0] += unwrappedX * forceX;
       fieldShapeStress[gi][1] += unwrappedY * forceY;
@@ -357,6 +359,8 @@ void cell::shapeForces2D() {
       // add to force
       F[NDIM * gi] += fb * (ddtim1 * nim1x + ddti * nix);
       F[NDIM * gi + 1] += fb * (ddtim1 * nim1y + ddti * niy);
+      if (simclock > 60 && simclock < 60 + 2 * dt)
+        cout << "bending force = " << fb * (ddtim1 * nim1x + ddti * nix) << '\t' << fb * (ddtim1 * nim1y + ddti * niy) << '\n';
 
       // update potential energy
       U += 0.5 * kb * (dti * dti);
@@ -512,6 +516,10 @@ void cell::brownianCrawlingUpdate() {
     double randNum = (float)(rand()) / (float)(RAND_MAX);  // random number between 0 and 1
     for (int vi = 0; vi < nv[ci]; vi++) {
       gi = gindex(ci, vi);
+      if (simclock > 60 && simclock < 60 + 2 * dt) {
+        cout << "random v0 force = " << randNum * 2 * v0_ABP / nv[ci] * cos(director) << '\t' << randNum * 2 * v0_ABP / nv[ci] * sin(director) << '\n';
+        cout << "non-v0 force = " << F[gi * NDIM] << '\t' << F[gi * NDIM + 1] << '\n';
+      }
       // it's possible that this force needs a proportionality constant like 1/N_v or something. do the math
       // when measuring MSD, test it on one particle and see if linear displacement is off by a factor of N_v.?
       F[gi * NDIM] += randNum * 2 * v0_ABP * cos(director);

@@ -4,7 +4,28 @@ close all; clear
 %isTestData = false; %uncomment if using function call to pipeline data
 
 isTestData = true; %uncomment if using test data
-testDataID = "a0.001a20.2p0.85t3.0";
+testDataIDs = ["a_0.0006_a2_p_0.75_t_0.1"
+    "a_0.0006_a2_p_0.75_t_0.5"
+    "a_0.0006_a2_p_0.75_t_1.0"
+    "a_0.0006_a2_p_0.75_t_0.1"
+    "a_0.0006_a2_p_0.75_t_0.5"
+    "a_0.0006_a2_p_0.75_t_1.0"
+    "a_0.006_a2_p_0.75_t_0.1"
+    "a_0.006_a2_p_0.75_t_0.5"
+    "a_0.006_a2_p_0.75_t_1.0"
+    "a_0.006_a2_p_0.75_t_0.1"
+    "a_0.006_a2_p_0.75_t_0.5"
+    "a_0.006_a2_p_0.75_t_1.0"
+    "a_0.06_a2_p_0.75_t_0.1"
+    "a_0.06_a2_p_0.75_t_0.5"
+    "a_0.06_a2_p_0.75_t_1.0"
+    "a_0.06_a2_p_0.75_t_0.1"
+    "a_0.06_a2_p_0.75_t_0.5"
+    "a_0.06_a2_p_0.75_t_1.0"];
+for i=1:length(testDataIDs)
+    testDataID = testDataIDs(i);
+
+%testDataID = "a0.001a20.002p0.75t0.14";
 %testDataID = "9";
 
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
@@ -278,6 +299,7 @@ for seed = startSeed:max_seed
     end
     cd ../../../../
     writematrix(shapes(:,1:end-1), shapeFile, 'WriteMode','append');
+end
 end
 %end
 
