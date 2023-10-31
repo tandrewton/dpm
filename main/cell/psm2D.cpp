@@ -22,7 +22,7 @@ for att in ${att_arr[@]}; do
   for att2 in ${att2_arr[@]}; do
     for phi in ${phi_arr[@]}; do
       for tau_abp in ${tau_abp_arr[@]}; do
-        echo "./main/cell/psm2D.o   20  30 1.15 $phi $att $att2 0    $v0    $tau_abp    1    200    testa_"$att"_a2_"$att2_"p_"$phi"_t_"$tau_abp
+        echo "./main/cell/psm2D.o   20  30 1.15 $phi $att $att2 0    $v0    $tau_abp    1    200    testa_"$att"_a2_"$att2"_p_"$phi"_t_"$tau_abp
       done
     done
   done

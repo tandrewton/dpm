@@ -4,24 +4,13 @@ close all; clear
 %isTestData = false; %uncomment if using function call to pipeline data
 
 isTestData = true; %uncomment if using test data
-testDataIDs = ["a_0.0006_a2_p_0.75_t_0.1"
-    "a_0.0006_a2_p_0.75_t_0.5"
-    "a_0.0006_a2_p_0.75_t_1.0"
-    "a_0.0006_a2_p_0.75_t_0.1"
-    "a_0.0006_a2_p_0.75_t_0.5"
-    "a_0.0006_a2_p_0.75_t_1.0"
-    "a_0.006_a2_p_0.75_t_0.1"
-    "a_0.006_a2_p_0.75_t_0.5"
-    "a_0.006_a2_p_0.75_t_1.0"
-    "a_0.006_a2_p_0.75_t_0.1"
-    "a_0.006_a2_p_0.75_t_0.5"
-    "a_0.006_a2_p_0.75_t_1.0"
-    "a_0.06_a2_p_0.75_t_0.1"
-    "a_0.06_a2_p_0.75_t_0.5"
-    "a_0.06_a2_p_0.75_t_1.0"
-    "a_0.06_a2_p_0.75_t_0.1"
-    "a_0.06_a2_p_0.75_t_0.5"
-    "a_0.06_a2_p_0.75_t_1.0"];
+testDataIDs = ["a_0.0006_a2_p_0.75_t_1"
+"a_0.0006_a2_p_0.75_t_1"
+"a_0.006_a2_p_0.75_t_1"
+"a_0.006_a2_p_0.75_t_1"
+"a_0.06_a2_p_0.75_t_1"
+"a_0.06_a2_p_0.75_t_1"];
+
 for i=1:length(testDataIDs)
     testDataID = testDataIDs(i);
 
