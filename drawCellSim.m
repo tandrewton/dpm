@@ -1,18 +1,18 @@
 %pwd should give ~/Documents/YalePhd/projects/dpm
-%function drawCellSim(N, calA0, phi, att, att2, v0)
-close all; clear
-%isTestData = false; %uncomment if using function call to pipeline data
+function drawCellSim(N, calA0, phi, att, att2, v0)
+%close all; clear
+isTestData = false; %uncomment if using function call to pipeline data
 
-isTestData = true; %uncomment if using test data
-testDataIDs = ["a_0.0006_a2_p_0.75_t_1"
-"a_0.0006_a2_p_0.75_t_1"
-"a_0.006_a2_p_0.75_t_1"
-"a_0.006_a2_p_0.75_t_1"
-"a_0.06_a2_p_0.75_t_1"
-"a_0.06_a2_p_0.75_t_1"];
+%isTestData = true; %uncomment if using test data
+%testDataIDs = ["a_0.0006_a2_0.0012_p_0.75_t_1"
+%"a_0.0006_a2_0.012_p_0.75_t_1"
+%"a_0.006_a2_0.0012_p_0.75_t_1"
+%"a_0.006_a2_0.012_p_0.75_t_1"
+%"a_0.06_a2_0.0012_p_0.75_t_1"
+%"a_0.06_a2_0.012_p_0.75_t_1"];
 
-for i=1:length(testDataIDs)
-    testDataID = testDataIDs(i);
+%for i=1:length(testDataIDs)
+%    testDataID = testDataIDs(i);
 
 %testDataID = "a0.001a20.002p0.75t0.14";
 %testDataID = "9";
@@ -29,19 +29,19 @@ set(0,'DefaultFigureWindowStyle','docked')
 runType = "psm";
 %N="100";
 %calA0="1.05";
-t_maxwell = "10000.0";
+t_maxwell = "0";
 %v0 = "0.05";
-t_abp = "100.0";
+t_abp = "1.0";
 %att="0.1";
-Duration="500";
+Duration="200";
 FSKIP = 1;
 startSeed = 1;
-max_seed = 1;
+max_seed = 10;
 %att_range = 0.3;
 
 %if makeAMovie is 0, then plot every frame separately
 %forImageAnalysis = ~isTestData;
-forImageAnalysis = false;
+forImageAnalysis = true;
 if (forImageAnalysis)
     showCatchBonds = 0;
     showverts = 1;

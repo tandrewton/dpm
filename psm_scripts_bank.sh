@@ -38,10 +38,10 @@ done
 
 close all; clear;
 calA0_arr = ["1.15"];
-att_arr = ["0.001" "0.01" "0.1"];
-att2_arr = ["0.001" "0.01" "0.1" "0.2"];
+att_arr = ["0.0006" "0.006" "0.06"];
+att2_arr = ["0.0012" "0.012"];
 phi_arr = ["0.8"];
-v0_arr = ["0.02"];
+v0_arr = ["0.1"];
 
 for ii=1:length(calA0_arr)
     for jj=1:length(phi_arr)
