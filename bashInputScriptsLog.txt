@@ -173,6 +173,6 @@ rsync -r at965@transfer-grace.hpc.yale.edu:/gpfs/gibbs/project/fas/ohern/at965/d
 rsync -rav --inplace --progress at965@transfer-grace.hpc.yale.edu:/gpfs/gibbs/project/fas/ohern/at965/dpm/ablate /mnt/c/Users/atata/projects/dpm/pipeline/cells/.
 rsync -rav --inplace --progress at965@transfer-grace.hpc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/ablate /mnt/c/Users/atata/projects/dpm/pipeline/cells/. 
 
-rsync -rav --inplace --progress --include '*/' --include '*.purseString' --include '*.voidArea' --include '*.innerCellShape' --include '*.bulkCellShape' --include '*.woundProperties' --include '*.cellID' --exclude '*' at965@transfer-grace.hpc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/ablate/ /mnt/c/Users/atata/projects/dpm/pipeline/cells/
+rsync -rav --inplace --progress --include '*/' --include '*.purseString' --include '*.voidArea' --include '*.innerCellShape' --include '*.bulkCellShape' --include '*.woundProperties' --include '*.cellID' --exclude '*' at965@transfer-grace.hpc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/ablate /mnt/c/Users/atata/projects/dpm/pipeline/cells/.
 
-rsync -rav --inplace --progress --include '*/' --include '*.pos' --exclude '*' at965@transfer-grace.hpc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/ablate/ /mnt/c/Users/atata/projects/dpm/pipeline/cells/
+rsync -rav --inplace --progress --include '*/' --include '*.pos' --exclude '*' at965@transfer-grace.hpc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/ablate /mnt/c/Users/atata/projects/dpm/pipeline/cells/.
