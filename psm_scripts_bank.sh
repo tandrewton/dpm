@@ -1,18 +1,18 @@
 module load dSQ
 #!/bin/bash
-numSeeds=1
+numSeeds=10
 calA0=(1.15)
-phi_arr=(0.75 0.8 0.85)
-att_arr=(0.001 0.01 0.1)
-att2_arr=(0.001 0.01 0.1 0.2)
+phi_arr=(0.8)
+att_arr=(0.0006 0.006 0.06)
+att2_arr=(0.0012 0.012)
 #v0_arr=(0.01 0.02 0.04 0.08 0.16)
-v0_arr=(0.02)
+v0_arr=(0.1)
 rm joblist_psm_att_v0.txt
 for phi in ${phi_arr[@]}; do
   for att in ${att_arr[@]}; do 
     for att2 in ${att2_arr[@]}; do
       for v0 in ${v0_arr[@]}; do
-        echo bash bash/cells/submit_psm.sh 40 30 $calA0 $phi $att $att2 10000.0 $v0 100.0 500 pi_ohern,day 0-12:00:00 $numSeeds 1 >> joblist_psm_att_v0.txt
+        echo bash bash/cells/submit_psm.sh 40 30 $calA0 $phi $att $att2 0 $v0 1.0 200 pi_ohern,day 0-12:00:00 $numSeeds 1 >> joblist_psm_att_v0.txt
       done
     done
   done

@@ -151,7 +151,7 @@ int main(int argc, char const* argv[]) {
   cell2D.vertexDampedMD(attractionSmoothActive, dt0, relaxTime, 0);
 
   // begin production run after all of the initialization and equilibration settles
-  cell2D.vertexDampedMD(attractionSmoothActive, dt0, runTime, 3.0);
+  cell2D.vertexDampedMD(attractionSmoothActive, dt0, runTime, 10.0);
   // cell2D.vertexDampedMD(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, 1.0);
   cout << "\n** Finished psm.cpp (2D transverse section of pre-somitic mesoderm), ending. " << endl;
 
