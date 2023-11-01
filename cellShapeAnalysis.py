@@ -35,7 +35,7 @@ def calculateNeighborExchanges(contactMatrix):
         nonzeros = np.nonzero(contactMatrix[i+1] - contactMatrix[i])
     return diff
 
-def process_data(att, v0, k_ecm, seed, fileheader):
+def process_data(att, v0, att2, seed, fileheader):
     # fileheader = "test6"
     outputFileheader = "output" + fileheader[8:]
     fileExtensions = [".xStream", ".xMinStream",
@@ -44,11 +44,11 @@ def process_data(att, v0, k_ecm, seed, fileheader):
     # coordinates of all vertices
     cellPos = np.loadtxt(filenames[0])
     # energy minimized coordinates
-    cellMinPos = np.loadtxt(filenames[1])
+    #cellMinPos = np.loadtxt(filenames[1])
     #cij = readCSV(filenames[2])  # cell-cell contact network
     # contact of minimized coordinates
     #cijMin = readCSV(filenames[3])
-    cellCOM = np.loadtxt(filenames[4])
+    #cellCOM = np.loadtxt(filenames[4])
     cellShape = np.loadtxt(filenames[5])
 
     # extract header information from cellPos and then remove header
@@ -63,7 +63,7 @@ def process_data(att, v0, k_ecm, seed, fileheader):
         'shapeParameter': shapeParameters,
         'att': float(att),
         'v0': float(v0),
-        'k_ecm': float(k_ecm),
+        'att2': float(att2),
         'seed': seed
     }
     df_shape = pd.DataFrame(data_shape)
@@ -74,7 +74,7 @@ def process_data(att, v0, k_ecm, seed, fileheader):
         'minNE': minNE,
         'att': float(att),
         'v0': float(v0),
-        'k_ecm': float(k_ecm),
+        'att2': float(att2),
         'seed': seed
     }
     #df_NE = pd.DataFrame(data_NE)
@@ -84,10 +84,14 @@ def process_data(att, v0, k_ecm, seed, fileheader):
 
 
 def main():
-    att_arr = ["0.001", "0.1"]
-    v0_arr = ["0.02"]
-    k_ecm_arr = ["0.005", "0.5"]
-    seeds = 5
+    att_arr = ["0.0006", "0.006", "0.06"]
+    v0_arr = ["0.1"]
+    att2_arr = ["0.0012", "0.012"]
+    t_abp = "1.0"
+    phi = "0.8"
+    seeds = 10
+
+    # psm_calA01.15_phi0.8_tm0_v00.1_t_abp1.0/_N40_dur200_att0.06_att20.012_start1_end10_sd10
 
     df_shapes = pd.DataFrame() 
     df_NEs = pd.DataFrame()
@@ -97,11 +101,11 @@ def main():
     # load shape and neighbor exchange data into dataframes
     for att in att_arr:
         for v0 in v0_arr:
-            for k_ecm in k_ecm_arr:
+            for att2 in att2_arr:
                 for seed in range(1, seeds+1):
-                    fileheader = f"pipeline\\cells\\psm\\psm_calA01.15_phi0.75_tm10000.0_v0{v0}_t_abp100.0k_ecm{k_ecm}k_off1.0\\_N40_dur250_att{att}_start1_end{seeds}_sd{seed}"
-                    #df_shape, df_NE = process_data(att, v0, k_ecm, seed, fileheader)
-                    df_shape = process_data(att, v0, k_ecm, seed, fileheader)
+                    fileheader = f"pipeline\\cells\\psm\\psm_calA01.15_phi{phi}_tm0_v0{v0}_t_abp{t_abp}\\_N40_dur200_att{att}_att2{att2}_start1_end{seeds}_sd{seed}"
+                    #df_shape, df_NE = process_data(att, v0, att2, seed, fileheader)
+                    df_shape = process_data(att, v0, att2, seed, fileheader)
                     df_shapes = pd.concat([df_shapes, df_shape])
                     #df_NEs = pd.concat([df_NEs, df_NE])
 
@@ -112,25 +116,25 @@ def main():
     #  then join the strings into one string so it can be read through seaborn
     # group the dataframe by combo parameters, then average over matching seeds and return a dataframe
 
-    #df_NEs["(att, k_ecm, v0)"] = df_NEs.apply(lambda row: ', '.join(
-    #    [str(row['att']), str(row['k_ecm']), str(row['v0'])]), axis=1)    
-    #df_NEs_means = df_NEs.groupby(["(att, k_ecm, v0)", "seed"]).mean().reset_index()
+    #df_NEs["(att, att2, v0)"] = df_NEs.apply(lambda row: ', '.join(
+    #    [str(row['att']), str(row['att2']), str(row['v0'])]), axis=1)    
+    #df_NEs_means = df_NEs.groupby(["(att, att2, v0)", "seed"]).mean().reset_index()
 
-    df_shapes["(att, k_ecm, v0)"] = df_shapes.apply(lambda row: ', '.join(
-        [str(row['att']), str(row['k_ecm']), str(row['v0'])]), axis=1)
+    df_shapes["(att, att2, v0)"] = df_shapes.apply(lambda row: ', '.join(
+        [str(row['att']), str(row['att2']), str(row['v0'])]), axis=1)
     df_shapes_means = df_shapes.groupby(
-        ["(att, k_ecm, v0)", "seed"]).mean().reset_index()
+        ["(att, att2, v0)", "seed"]).mean().reset_index()
     
-    df_phis["(att, k_ecm, v0)"] = df_phis.apply(lambda row: ', '.join(
-        [str(row['att']), str(row['k_ecm']), str(row['v0'])]), axis=1)
+    df_phis["(att, att2, v0)"] = df_phis.apply(lambda row: ', '.join(
+        [str(row['att']), str(row['att2']), str(row['v0'])]), axis=1)
     df_phis_means = df_phis.groupby(
-        ["(att, k_ecm, v0)", "seed"]).mean().reset_index()
+        ["(att, att2, v0)", "seed"]).mean().reset_index()
 
     # make boxplots of the mean values for each seed for each parameter combo
-    #sns_NEs = sns.catplot(df_NEs_means, x="(att, k_ecm, v0)", y="minNE", kind="box", color="skyblue", height = 8, aspect=2)
-    sns_shapes = sns.catplot(df_shapes_means, x="(att, k_ecm, v0)",
+    #sns_NEs = sns.catplot(df_NEs_means, x="(att, att2, v0)", y="minNE", kind="box", color="skyblue", height = 8, aspect=2)
+    sns_shapes = sns.catplot(df_shapes_means, x="(att, att2, v0)",
                 y="shapeParameter", kind="box", color="skyblue", height=8, aspect=2)
-    sns_phis = sns.catplot(df_phis_means, x="(att, k_ecm, v0)",
+    sns_phis = sns.catplot(df_phis_means, x="(att, att2, v0)",
                 y="phi", kind="box", color="skyblue", height=8, aspect=2)
     
     #sns_NEs.figure.savefig(f"sns_NEs_{v0_arr[0]}.png")
@@ -139,11 +143,11 @@ def main():
 
     
     # make boxplots for each parameter combo, pooling observations from each seed
-    #sns.catplot(df_NEs, x="(att, k_ecm, v0)",
+    #sns.catplot(df_NEs, x="(att, att2, v0)",
     #            y="minNE", kind="box", color="skyblue", height=8, aspect=2)
-    sns.catplot(df_shapes, x="(att, k_ecm, v0)",
+    sns.catplot(df_shapes, x="(att, att2, v0)",
                 y="shapeParameter", kind="box", color="skyblue", height=8, aspect=2)
-    sns.catplot(df_phis, x="(att, k_ecm, v0)",
+    sns.catplot(df_phis, x="(att, att2, v0)",
                 y="phi", kind="box", color="skyblue", height=8, aspect=2)
 
     debugpy.breakpoint()

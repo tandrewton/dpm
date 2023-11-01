@@ -3,7 +3,7 @@ function drawCellSim(N, calA0, phi, att, att2, v0)
 %close all; clear
 isTestData = false; %uncomment if using function call to pipeline data
 
-%isTestData = true; %uncomment if using test data
+%isTestData = true; %uncomme nt if using test data
 %testDataIDs = ["a_0.0006_a2_0.0012_p_0.75_t_1"
 %"a_0.0006_a2_0.012_p_0.75_t_1"
 %"a_0.006_a2_0.0012_p_0.75_t_1"

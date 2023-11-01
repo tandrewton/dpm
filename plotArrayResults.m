@@ -57,16 +57,15 @@ N_arr = ["50"];                 %i
 calA0_arr = ["1.20"];           %ii
 %t_stress_arr = ["9830.4" "39321.6"]; %iii
 %t_stress_arr = ["19.2" "4915.2" "9830.4"];
-t_stress_arr = ["9.6" "9830.4"];
+t_stress_arr = ["9.6" "1228.8"];
 %t_stress_arr=["2.4" "9.6" "76.8" "1228.8" "9830.4"];
-%t_stress_arr_omit=["4.8" "19.2" "307.2" "4915.2" "39321.6"];
 %t_stress_arr=["4.8" "9.6" "19.2" "76.8" "307.2" "1228.8" "9830.4" "39321.6"];
 %t_stress_arr=["2.4" "4915.2" "9830.4"];
 att_arr = ["0.1"]; % j
 om_arr = ["1.0"]; %jj
 kl_arr = ["1.0"]; %jjj;              
 %ka_arr=["0.25" "0.5" "1.0" "2.0" "4.0" "8.0" "16.0" "32.0"]; %k
-ka_arr=["4.0" "32.0"]; %k
+ka_arr=["16.0" "32.0"]; %k
 %ka_arr=["0.25" "0.5" "1.0" "2.0" "4.0" "8.0" "16.0" "32.0"];% "64.0" "128.0" "256.0"];
 %ka_arr=["0.25" "1.0" "4.0" "16.0"];
 kb_arr = ["0.01"]; %kk
@@ -185,9 +184,6 @@ for i=1:length(N_arr)
                         k_l = kl_arr(jjj);
                         for k=1:length(ka_arr)
                             k_a = ka_arr(k);
-                            if (ismember(k_a, ["64.0", "256.0"]) && ismember(t_stress, t_stress_arr_omit))
-                                continue
-                            end
                             for kk=1:length(kb_arr)
                                 k_b = kb_arr(kk);
                                 for kkk=1:length(deltaSq_arr)
@@ -195,14 +191,14 @@ for i=1:length(N_arr)
                                     for l=1:length(tau_s_arr)
                                         tau_s = tau_s_arr(l);
                                         if (isProductionRun)
-                                            %hardcoding some things
-                                            %depending on if its for
-                                            %production
-                                            if (t_stress == "19.2")
+                                            %hardcoding k_a for production
+                                            %runs is the easiest way to get
+                                            %plots with different k_a
+                                            if (t_stress == "9.6")
                                                 tau_s = "0";
-                                                k_a = "20.0";
-                                            elseif (t_stress == "4915.2")
-                                                k_a = "32.0";
+                                                k_a = ka_arr(1);
+                                            elseif (t_stress == "1228.8")
+                                                k_a = ka_arr(2);
                                             end
                                         end
 
@@ -210,6 +206,8 @@ for i=1:length(N_arr)
 
                                         pm1_ind = iterator_arr(pm1_ind_num);
                                         pm2_ind = iterator_arr(pm2_ind_num);
+                                        disp("pm1_ind"+pm1_ind)
+                                        disp("pm2_ind"+pm2_ind)
 
                                         voidArea = zeros(0,4);
                                         meanInnerShapes = NaN(0,1);
@@ -417,7 +415,10 @@ for i=1:length(N_arr)
 
                                         if (showPlots)
                                             % plot area vs time 
-                                            figure(pm1_ind) 
+                                            figure(pm1_ind)
+                                            disp("pm1_ind")
+                                            disp(pm1_ind)
+                                            disp(displayStr)
                                             colorList = ['r', 'k'];
                                             % if plotting reduced number of
                                             % parameters, then it's for a
@@ -427,12 +428,15 @@ for i=1:length(N_arr)
                                             % coordinate
                                             if (isProductionRun)
                                                 figure(pm2_ind)
+                                                disp("pm2_ind")
+                                                disp(pm2_ind)
+                                                disp(displayStr)
                                                 % want (tau_1, B1) and (tau_2, B1). 
                                                 % plot void area vs time
                                                 %plot(voidArea(:,1)*timeConvert(pm1_ind), voidArea(:,2)*cellArea(pm1_ind),...
                                                 %    'linewidth',5, 'Color', colorList(pm1_ind),'DisplayName', displayStr)
                                                 n = 100;
-                                                skipInt = length(voidArea(:,1))/n; % keep n points to plot 
+                                                skipInt = round(length(voidArea(:,1))/n); % keep n points to plot 
                                                 %scatter(voidArea(1:skipInt:end,1)*timeConvert(pm1_ind), voidArea(1:skipInt:end,2)*cellArea(pm1_ind),...
                                                 %    20,
                                                 %    colorList(pm1_ind),
@@ -470,8 +474,11 @@ for i=1:length(N_arr)
                                                 % plot shape vs time
                                                
                                                 figure(pm2_ind+2);
+                                                disp("pm2_ind+2")
+                                                disp(pm2_ind+2)
+                                                disp(displayStr)
                             
-                                                skipInt = length(meanInnerShapes)/n;
+                                                skipInt = round(length(meanInnerShapes)/n);
                                                 meanInnerShapes = mean(innerShapeArr,'omitnan');
                                                 %plot(timeInnerShapes(1:skipInt:end)*timeConvert(pm1_ind),meanInnerShapes(1:skipInt:end),...
                                                 %    '-','linewidth',3, 'Color', colorList(pm1_ind),'DisplayName', displayStr)
@@ -503,7 +510,7 @@ for i=1:length(N_arr)
                                                 t=shapeAll(:,1);
                                                 %sma = movmean(y,20); % simple moving average
                                                 sma = distanceSMA(t, y, 10.0);
-                                                skipInt = length(sma)/n;
+                                                skipInt = round(length(sma)/n);
                                                 %plot(t,movmean(y,20),'-','linewidth',2,'Color', colorList(pm1_ind))
                                                 %scatter(t(1:skipInt:end), sma(1:skipInt:end), 5, colorList(pm1_ind), 'filled')
                                                 %scatter(t, sma, 10, colorList(pm1_ind), 'filled')

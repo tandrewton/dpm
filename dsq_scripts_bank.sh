@@ -266,18 +266,19 @@ module load dSQ
 #bd0 P
 #!/bin/bash
 numSeeds=50
-t_stress_arr=(4.8 9.6 19.2 76.8 307.2 1228.8 9830.4 39321.6)
+#t_stress_arr=(4.8 9.6 19.2 76.8 307.2 1228.8 9830.4 39321.6) #full range
 
-#t_stress_arr=(2.4 9.6 76.8 1228.2 9830.4)
 #t_stress_arr=(19.2 38.4 76.8) #embryo
 #t_stress_arr=(4915.2 9830.4) # wing disc
+t_stress_arr=(1228.8)
 
 #ka_arr=(0.25 0.5 1.0 2.0)
-ka_arr=(4.0 8.0 16.0 32.0)
+#ka_arr=(4.0 8.0 16.0 32.0)
+ka_arr=(32.0)
 
-#tauRatio_arr=(0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5)
+tauRatio_arr=(0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5)
 #tauRatio_arr=(0.1)
-tauRatio_arr=(0)
+#tauRatio_arr=(0)
 k_ps=(4.0)
 rm joblist_PS_tau_ka.txt
 for t_stress in ${t_stress_arr[@]}; do 
