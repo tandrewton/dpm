@@ -270,13 +270,13 @@ numSeeds=50
 
 #t_stress_arr=(19.2 38.4 76.8) #embryo
 #t_stress_arr=(4915.2 9830.4) # wing disc
-t_stress_arr=(1228.8)
+t_stress_arr=(1228.8 9830.4)
 
 #ka_arr=(0.25 0.5 1.0 2.0)
 #ka_arr=(4.0 8.0 16.0 32.0)
 ka_arr=(32.0)
 
-tauRatio_arr=(0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5)
+tauRatio_arr=(0.1 0.15 0.2 0.3 0.4 0.5)
 #tauRatio_arr=(0.1)
 #tauRatio_arr=(0)
 k_ps=(4.0)
