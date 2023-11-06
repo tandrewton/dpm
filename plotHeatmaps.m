@@ -34,11 +34,11 @@ areaVelocityConvert = constrictionRate*sqrt(cellArea)*60; %micron^2/min
 hfile = load(folderPath + heatmapFile);
 hfile = hfile.h;
 %hfile.ColorData(isnan(hfile.ColorData)) = 0;
-xpoints = cellfun(@str2num,convertCharsToStrings(hfile.XData));
+xpoints = cellfun(@str2num,convertCharsToStrings(hfile.XData(3:end)));
 %xinds = 1:length(xpoints);
 
-hfile.YData = hfile.YData(2:end);
-hfile.ColorData = hfile.ColorData(2:end, :);
+hfile.YData = hfile.YData(1:end);
+hfile.ColorData = hfile.ColorData(1:end, :);
 ypoints = cellfun(@str2num,convertCharsToStrings(hfile.YData(1:end)));
 %ypoints = [ypoints; inf];
 %yinds = 1:length(ypoints);
@@ -106,8 +106,8 @@ colormap jet(8);
 colorbar;
 
 % scatter squares below the grid points representing parameter choices
-parameterSelectionB = [0.8 1.28];
-parameterSelectionTau = [5.33 2730.67];
+parameterSelectionB = [0.64 1.28];
+parameterSelectionTau = [2.667 341.333];
 
 scatter(parameterSelectionB(1), parameterSelectionTau(1), 450, "black", ...
     "square",'filled','MarkerFaceColor', 'red', 'MarkerEdgeColor', 'white', 'linewidth', 1);
