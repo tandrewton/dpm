@@ -56,18 +56,14 @@ array_output_dir = subdir_output + "array_output_figures/";
 N_arr = ["50"];                 %i
 calA0_arr = ["1.20"];           %ii
 %t_stress_arr = ["9830.4" "39321.6"]; %iii
-%t_stress_arr = ["19.2" "4915.2" "9830.4"];
-%t_stress_arr = ["9.6" "1228.8"];
-%t_stress_arr=["1228.8" "9830.4"];
-t_stress_arr=["4.8" "9.6" "19.2" "76.8" "307.2" "1228.8" "9830.4" "39321.6"];
-%t_stress_arr=["4.8" "19.2" "9830.4" "39321.6"];
-%t_stress_arr=["2.4" "4915.2" "9830.4"];
+%t_stress_arr=["9.6" "4915.2"];
+t_stress_arr=["9.6" "1228.8"];
+%t_stress_arr=["4.8" "9.6" "19.2" "76.8" "307.2" "1228.8" "4915.2" "9830.4" "39321.6"];
 att_arr = ["0.1"]; % j
 om_arr = ["1.0"]; %jj
 kl_arr = ["1.0"]; %jjj;              
-%ka_arr=["0.25" "0.5" "1.0" "2.0" "4.0" "8.0" "16.0" "32.0"]; %k
-%ka_arr=["16.0" "32.0"]; %k
-ka_arr=["2.0" "4.0" "8.0" "16.0" "32.0"];% "64.0" "128.0" "256.0"];
+ka_arr=["16.0" "32.0"]; %k
+%ka_arr=["2.0" "4.0" "8.0" "16.0" "32.0" "40.0"];
 %ka_arr=["0.25" "0.5" "1.0" "4.0" "16.0" "32.0"];
 kb_arr = ["0.01"]; %kk
 deltaSq_arr = ["4.0"];          %kkk
@@ -75,6 +71,7 @@ deltaSq_arr = ["4.0"];          %kkk
 %tau_s_arr=["19.2" "76.8" "307.2" "1228.8" "4915.2" "9830.4"]; %l
 %tau_s_arr=["0.3"];
 %tau_s_arr=["0.1" "0.15" "0.2" "0.25" "0.3"];
+%tau_s_arr=["0.1"];
 tau_s_arr=["0"];
 
 d_flag = "0.0"; 
@@ -196,10 +193,10 @@ for i=1:length(N_arr)
                                             %runs is the easiest way to get
                                             %plots with different k_a
                                             if (t_stress == "9.6")
-                                                tau_s = "0";
-                                                k_a = ka_arr(1);
-                                            elseif (t_stress == "1228.8")
-                                                k_a = ka_arr(2);
+                                               tau_s = "0";
+                                               k_a = ka_arr(1);
+                                            elseif (t_stress == "4915.2")
+                                               k_a = ka_arr(2);
                                             end
                                         end
 
@@ -529,10 +526,11 @@ for i=1:length(N_arr)
                                                 save(array_output_dir+'woundHealingPlotData/shape_time_pm1_'+pm1(pm1_ind)+'_pm2_'+pm2(pm2_ind)+'taus_'+tau_s+'.mat', 'timeInnerShapes')
                                                 save(array_output_dir+'woundHealingPlotData/area_pm1_'+pm1(pm1_ind)+'_pm2_'+pm2(pm2_ind)+'taus_'+tau_s+'.mat', 'voidArea')
                                             
-                                                if (false) % execute this code when producing plot for wound healing paper
-                                                    % taus is 0, default
+                                                %if (isProductionRun && isPlottingVariableTauS) % execute this code when producing plot for wound healing paper
+                                                if (false)
+                                                % taus is 0, default
                                                     % value. but I want to show some results %where taus is nonzero as well on top
-                                                    paramsToOverlay = "_pm1_"+"4915.2"+"_pm2_"+"32.0"+"taus_"+"0.1"; 
+                                                    paramsToOverlay = "_pm1_"+"4915.2"+"_pm2_"+"32.0"+"taus_"+"0.3"; 
                                                     figure(4)
                                                     load(array_output_dir+'woundHealingPlotData/shape'+paramsToOverlay+'.mat');
                                                     load(array_output_dir+'woundHealingPlotData/shape_time'+paramsToOverlay+'.mat');

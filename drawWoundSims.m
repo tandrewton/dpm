@@ -41,9 +41,9 @@ FSKIP = 1;
 
 etaStr = " ";
 startSeed = 1;
-max_seed = 25;
+max_seed = 50;
 no_plots = 1;
-makeAMovie = 1; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
+makeAMovie = 0; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
 %plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
 plotCells = 1;
 set(0,'DefaultFigureWindowStyle','docked')
@@ -96,7 +96,7 @@ txt='test';
 
 fnum = 1;
 figure(13), clf, hold on, box on;
-for seed = startSeed:max_seed
+for seed = startSeed+1:max_seed
     seed
     if (isTestData)
         run_name = runType+txt;     

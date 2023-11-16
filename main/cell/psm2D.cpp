@@ -142,7 +142,7 @@ int main(int argc, char const* argv[]) {
   cell2D.resizeNeighborLinkedList2D();
 
   double shortRelaxTime = 10.0;
-  double relaxTime = 50.0;
+  double relaxTime = 100.0;
   cell2D.setka(ka);
   cell2D.vertexDampedMD(attractiveSmoothForceUpdate, dt0, shortRelaxTime, 0);
   cell2D.setl00();  // set l00 to be l0 before setting maxwell relaxation time

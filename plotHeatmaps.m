@@ -2,7 +2,7 @@
 % directory
 clear;close all;
 set(0,'DefaultFigureWindowStyle','docked')
-isPlottingAreaVelocity = true;
+isPlottingAreaVelocity = false;
 isPlottingShapes = ~isPlottingAreaVelocity;
 assert((isPlottingAreaVelocity && isPlottingShapes) == false);
 %%
@@ -34,7 +34,7 @@ areaVelocityConvert = constrictionRate*sqrt(cellArea)*60; %micron^2/min
 hfile = load(folderPath + heatmapFile);
 hfile = hfile.h;
 %hfile.ColorData(isnan(hfile.ColorData)) = 0;
-xpoints = cellfun(@str2num,convertCharsToStrings(hfile.XData(3:end)));
+xpoints = cellfun(@str2num,convertCharsToStrings(hfile.XData(1:end)));
 %xinds = 1:length(xpoints);
 
 hfile.YData = hfile.YData(1:end);
@@ -101,13 +101,13 @@ h.GridVisible = 'off';
 figure(3); clf; hold on;
 
 % avoid all of the above by using contourf, which already interpolates
-contourf(xpoints*bulkModulusConvert, ypoints*timeConvert, im', 8, 'LineStyle', 'none');
-colormap jet(8);
+contourf(xpoints*bulkModulusConvert, ypoints*timeConvert, im', 10, 'LineStyle', 'none');
+colormap jet(10);
 colorbar;
 
 % scatter squares below the grid points representing parameter choices
 parameterSelectionB = [0.64 1.28];
-parameterSelectionTau = [2.667 341.333];
+parameterSelectionTau = [2.667 1365.3];
 
 scatter(parameterSelectionB(1), parameterSelectionTau(1), 450, "black", ...
     "square",'filled','MarkerFaceColor', 'red', 'MarkerEdgeColor', 'white', 'linewidth', 1);
