@@ -128,6 +128,7 @@ class dpm {
     file.open(filename.c_str());
     if (!file.is_open()) {
       std::cerr << "ERROR: Could not open file " << filename << std::endl;
+      std::cerr << "ERROR: Could not open file " << filename.c_str() << std::endl;
       exit(1);
     }
     std::cout << "** Opening file " << filename << " ..." << std::endl;

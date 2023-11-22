@@ -1,10 +1,10 @@
 module load dSQ
 #!/bin/bash
 numSeeds=10
-calA0=(1.15)
+calA0=(1.20)
 phi_arr=(0.8)
 att_arr=(0.0006 0.006 0.06)
-att2_arr=(0.0012 0.012)
+att2_arr=(0.0006 0.006 0.06)
 #v0_arr=(0.01 0.02 0.04 0.08 0.16)
 v0_arr=(0.1)
 rm joblist_psm_att_v0.txt
@@ -37,9 +37,9 @@ for a in ${att_arr[@]}; do
 done
 
 close all; clear;
-calA0_arr = ["1.15"];
+calA0_arr = ["1.20"];
 att_arr = ["0.0006" "0.006" "0.06"];
-att2_arr = ["0.0012" "0.012"];
+att2_arr = ["0.0006" "0.006" "0.06"];
 phi_arr = ["0.8"];
 v0_arr = ["0.1"];
 
