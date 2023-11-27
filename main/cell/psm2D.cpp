@@ -18,11 +18,14 @@ att2_arr=(0.0012 0.012)
 v0=0.1
 phi_arr=(0.75)
 tau_abp_arr=(1)
+kl=1.0
+ka=10.0
+kb=0.1
 for att in ${att_arr[@]}; do
   for att2 in ${att2_arr[@]}; do
     for phi in ${phi_arr[@]}; do
       for tau_abp in ${tau_abp_arr[@]}; do
-        echo "./main/cell/psm2D.o   20  30 1.15 $phi $att $att2 0    $v0    $tau_abp    1    200    testa_"$att"_a2_"$att2"_p_"$phi"_t_"$tau_abp
+        echo "./main/cell/psm2D.o   20  30 1.20 $phi $kl $ka $kb $att $att2 0    $v0    $tau_abp    1    200    testa_"$att"_a2_"$att2"_p_"$phi"_t_"$tau_abp
       done
     done
   done
@@ -61,20 +64,23 @@ int main(int argc, char const* argv[]) {
   // local variables to be read in
   double B = 1.0, phi0 = 0.8;
   // double ka = 23.6;
-  double ka = 10.0;
+  // double ka = 10.0;
   //  Read command-line arguments into corresponding variables
   int NCELLS = parseArg<int>(argv[1]);
   int nv = parseArg<int>(argv[2]);
   double calA0 = parseArg<double>(argv[3]);
   double phi = parseArg<double>(argv[4]);
-  double att = parseArg<double>(argv[5]);
-  double att2 = parseArg<double>(argv[6]);
-  double t_stress = parseArg<double>(argv[7]);
-  double v0_abp = parseArg<double>(argv[8]);
-  double tau_abp = parseArg<double>(argv[9]);
-  int seed = parseArg<int>(argv[10]);
-  double runTime = parseArg<double>(argv[11]);
-  std::string outFileStem = argv[12];
+  double kl = parseArg<double>(argv[5]);
+  double ka = parseArg<double>(argv[6]);
+  double kb = parseArg<double>(argv[7]);
+  double att = parseArg<double>(argv[8]);
+  double att2 = parseArg<double>(argv[9]);
+  double t_stress = parseArg<double>(argv[10]);
+  double v0_abp = parseArg<double>(argv[11]);
+  double tau_abp = parseArg<double>(argv[12]);
+  int seed = parseArg<int>(argv[13]);
+  double runTime = parseArg<double>(argv[14]);
+  std::string outFileStem = argv[15];
 
   int numCellTypes = 2;  // 0 = interior cell type (PSM) and 1 = exterior cell type (boundary)
   cell cell2D(NCELLS, 0.0, 0.0, seed, numCellTypes);

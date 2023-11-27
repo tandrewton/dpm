@@ -26,23 +26,26 @@ NCELLS=$1
 NV=$2
 calA0=$3
 phi=$4
-att=$5
-att2=$6
-t_maxwell=$7
-v0=$8
-t_abp=$9
-duration="${10}"
-partition="${11}"
-time="${12}"
-numRuns="${13}"
-startSeed="${14}"
+kl=$5
+ka=$6
+kb=$7
+att=$8
+att2=$9
+t_maxwell="${10}"
+v0="${11}"
+t_abp="${12}"
+duration="${13}"
+partition="${14}"
+time="${15}"
+numRuns="${16}"
+startSeed="${17}"
 
 numSeedsPerRun=1
 let numSeeds=$numSeedsPerRun*$numRuns
 let endSeed=$startSeed+$numSeeds-1
 
 # name strings
-basestr=psm_calA0"$calA0"_phi"$phi"_tm"$t_maxwell"_v0"$v0"_t_abp"$t_abp"
+basestr=psm_calA0"$calA0"_phi"$phi"_tm"$t_maxwell"_v0"$v0"_t_abp"$t_abp"_kl"$kl"_ka"$ka"_"kb"$kb
 # name of file (not unique, but is unique within its subdirectory)
 file_basename=_N"$NCELLS"_dur"$duration"_att"$att"_att2"$att2"_start"$startSeed"_end"$endSeed"
 # name of run (must be unique, distinguishes from other runs on slurm)
@@ -64,6 +67,9 @@ echo NCELLS = "$NCELLS" >> $configFile
 echo NV = "$NV" >> $configFile
 echo calA0 = "$calA0" >> $configFile
 echo phi = "$phi" >> $configFile
+echo kl = "$kl" >> $configFile
+echo ka = "$ka" >> $configFile
+echo kb = "$kb" >> $configFile
 echo att = "$att" >> $configFile
 echo att2 = "$att2" >> $configFile
 echo t_maxwell = "$t_maxwell" >> $configFile
@@ -115,7 +121,7 @@ for seed in `seq $startSeed $numSeedsPerRun $endSeed`; do
         outFileStem=$simdatadir/$filestr
 
         # append to runString
-        runString="$runString ; ./$binf $NCELLS $NV $calA0 $phi $att $att2 $t_maxwell $v0 $t_abp $seed $duration $outFileStem"
+        runString="$runString ; ./$binf $NCELLS $NV $calA0 $phi $kl $ka $kb $att $att2 $t_maxwell $v0 $t_abp $seed $duration $outFileStem"
     done
 
     # finish off run string

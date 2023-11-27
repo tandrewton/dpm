@@ -269,14 +269,15 @@ numSeeds=50
 #t_stress_arr=(4.8 9.6 19.2 76.8 307.2 1228.8 4915.2 9830.4 39321.6) #full range
 #t_stress_arr=(19.2 38.4 76.8) #embryo
 #t_stress_arr=(4915.2 9830.4) # wing disc
-t_stress_arr=(307.2 614.4)
+#t_stress_arr=(307.2 614.4)
+t_stress_arr=(1228.8)
 
 #ka_arr=(0.5 1.0 2.0 4.0 8.0 16.0 32.0 40.0)
 ka_arr=(32.0)
 
-#tauRatio_arr=(0.1 0.2 0.3 0.4)
-#tauRatio_arr=(0.1 0.4)
-tauRatio_arr=(0 0.1 0.2 0.3 0.4)
+#tauRatio_arr=(0 0.1 0.2 0.3 0.4)
+#tauRatio_arr=(0.2 0.4 0.6 0.8)
+tauRatio_arr=(0.6 0.8 1.0 1.2 1.4)
 k_ps=(4.0)
 rm joblist_PS_tau_ka.txt
 for t_stress in ${t_stress_arr[@]}; do 
