@@ -362,8 +362,8 @@ void cell::shapeForces2D() {
       // add to force
       F[NDIM * gi] += fb * (ddtim1 * nim1x + ddti * nix);
       F[NDIM * gi + 1] += fb * (ddtim1 * nim1y + ddti * niy);
-      if (simclock > 60 && simclock < 60 + 2 * dt)
-        cout << "bending force = " << fb * (ddtim1 * nim1x + ddti * nix) << '\t' << fb * (ddtim1 * nim1y + ddti * niy) << '\n';
+      // if (simclock > 60 && simclock < 60 + 2 * dt)
+      //   cout << "bending force = " << fb * (ddtim1 * nim1x + ddti * nix) << '\t' << fb * (ddtim1 * nim1y + ddti * niy) << '\n';
 
       // update potential energy
       U += 0.5 * kb * (dti * dti);
