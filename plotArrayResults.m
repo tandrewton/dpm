@@ -57,7 +57,7 @@ N_arr = ["50"];                 %i
 calA0_arr = ["1.20"];           %ii
 %t_stress_arr = ["9830.4" "39321.6"]; %iii
 %t_stress_arr=["9.6" "4915.2"];
-t_stress_arr=["9.6" "614.4"];
+t_stress_arr=["9.6" "307.2"];
 %t_stress_arr=["4.8" "9.6" "19.2" "76.8" "307.2" "1228.8" "4915.2" "9830.4" "39321.6"];
 att_arr = ["0.1"]; % j
 om_arr = ["1.0"]; %jj
@@ -195,7 +195,7 @@ for i=1:length(N_arr)
                                             if (t_stress == "9.6")
                                                tau_s = "0";
                                                k_a = ka_arr(1);
-                                            elseif (t_stress == "614.4")
+                                            elseif (t_stress == "307.2")
                                                k_a = ka_arr(2);
                                             end
                                         end

@@ -3,16 +3,23 @@ module load dSQ
 numSeeds=10
 calA0=(1.20)
 phi_arr=(0.8)
+kl=1.0
+ka_arr=(5.0 20.0)
+kb_arr=(0.01 0.1)
 att_arr=(0.0006 0.006 0.06)
 att2_arr=(0.0006 0.006 0.06)
 #v0_arr=(0.01 0.02 0.04 0.08 0.16)
 v0_arr=(0.1)
 rm joblist_psm_att_v0.txt
 for phi in ${phi_arr[@]}; do
-  for att in ${att_arr[@]}; do 
-    for att2 in ${att2_arr[@]}; do
-      for v0 in ${v0_arr[@]}; do
-        echo bash bash/cells/submit_psm.sh 40 30 $calA0 $phi $att $att2 0 $v0 1.0 200 pi_ohern,day 0-12:00:00 $numSeeds 1 >> joblist_psm_att_v0.txt
+  for ka in ${ka_arr[@]}; do
+    for kb in ${kb_arr[@]}; do
+      for att in ${att_arr[@]}; do 
+        for att2 in ${att2_arr[@]}; do
+          for v0 in ${v0_arr[@]}; do
+            echo bash bash/cells/submit_psm.sh 40 30 $calA0 $phi $kl $ka $kb $att $att2 0 $v0 1.0 200 pi_ohern,day 0-12:00:00 $numSeeds 1 >> joblist_psm_att_v0.txt
+          done
+        done
       done
     done
   done
@@ -38,19 +45,29 @@ done
 
 close all; clear;
 calA0_arr = ["1.20"];
-att_arr = ["0.0006" "0.006" "0.06"];
-att2_arr = ["0.0006" "0.006" "0.06"];
+%att_arr = ["0.0006" "0.006" "0.06"];
+%att2_arr = ["0.0006" "0.006" "0.06"];
+att_arr = ["0.006" "0.06"];
+att2_arr = ["0.006" "0.06"];
 phi_arr = ["0.8"];
+ka_arr = ["5.0" "20.0"];
+%ka_arr = ["5.0"];
+%kb_arr = ["0.01" "0.1"];
+kb_arr = ["0.1"];
 v0_arr = ["0.1"];
 
 for ii=1:length(calA0_arr)
     for jj=1:length(phi_arr)
         for kk=1:length(att_arr)
           for ll=1:length(att2_arr)
-            for jj=1:length(v0_arr)
-                    drawCellSim("40", calA0_arr(ii), phi_arr(jj), att_arr(kk), att2_arr(ll), v0_arr(jj))
+            for mm=1:length(v0_arr)
+              for nn=1:length(ka_arr)
+                for oo=1:length(kb_arr)
+                    drawCellSim("40", calA0_arr(ii), phi_arr(jj), ka_arr(nn), kb_arr(oo), att_arr(kk), att2_arr(ll), v0_arr(mm))
                 end
+              end
             end
+          end
         end
     end
 end

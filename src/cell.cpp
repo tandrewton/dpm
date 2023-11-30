@@ -276,8 +276,6 @@ void cell::shapeForces2D() {
 
       F[NDIM * gi] += forceX;
       F[NDIM * gi + 1] += forceY;
-      if (simclock > 60 && simclock < 60 + 2 * dt)
-        cout << "area force = " << forceX << '\t' << forceY << '\n';
 
       fieldShapeStress[gi][0] += unwrappedX * forceX;
       fieldShapeStress[gi][1] += unwrappedY * forceY;

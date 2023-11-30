@@ -1,5 +1,5 @@
 %pwd should give ~/Documents/YalePhd/projects/dpm
-function drawCellSim(N, calA0, phi, att, att2, v0)
+function drawCellSim(N, calA0, phi, ka, kb, att, att2, v0)
 %close all; clear
 isTestData = false; %uncomment if using function call to pipeline data
 
@@ -32,6 +32,7 @@ runType = "psm";
 t_maxwell = "0";
 %v0 = "0.05";
 t_abp = "1.0";
+kl = "1.0";
 %att="0.1";
 Duration="200";
 FSKIP = 1;
@@ -67,7 +68,7 @@ txt='test';
 theta = linspace(0, 2*pi, 100); % Adjust the number of points as needed
 fnum = 1;
 fnum_boundary = 1000;
-for seed = startSeed:max_seed
+for seed = startSeed+5:max_seed
     if (isTestData)
         run_name = runType+txt;     
         pipeline_dir =  subdir_pipeline + run_name + "/";
@@ -83,7 +84,7 @@ for seed = startSeed:max_seed
         %psm/psm_calA01.05_tm0.0_v00.1_t_abp50.0
         %k_off1000.0/_N40_dur1000_att0_start1_end1_sd1.tissue
         run_name =runType+"_calA0"+calA0+'_phi'+phi+'_tm'+t_maxwell...
-            +'_v0'+v0+'_t_abp'+t_abp;
+            +'_v0'+v0+'_t_abp'+t_abp+'_kl'+kl+'_ka'+ka+'_kb'+kb;
         pipeline_dir =  subdir_pipeline + run_name + "/";
         output_dir = subdir_output + run_name + "/";
         fileheader="_N"+N+"_dur"+Duration+"_att"+att+"_att2"+att2+"_start"+ ...
@@ -99,6 +100,10 @@ for seed = startSeed:max_seed
     mkdir(output_dir)
     % read in position data
     disp(nvestr)
+    % if (seed==7)
+    %     "hello"
+    % end
+
     [trajectoryData, cell_count] = readCellClassPosOutput(nvestr);
 
     % set up, clear files for writing
