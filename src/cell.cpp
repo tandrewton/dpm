@@ -133,7 +133,7 @@ void cell::maxwellRelaxationRestLengths(std::vector<double>& l, std::vector<int>
     cindices(ci, vi, i);
     if (std::find(viscoelasticCellTypes.begin(), viscoelasticCellTypes.end(), cellID[ci]) != viscoelasticCellTypes.end()) {
       // if cellID[ci] is a viscoelastic cell type, then integrate its preferred length according to viscoelastic equations of motion
-      li = l[i];
+      /*li = l[i];
       al0 = Fl0[i];  // make sure al0 and al0_old have different addresses
       al0_old = al0;
 
@@ -147,7 +147,12 @@ void cell::maxwellRelaxationRestLengths(std::vector<double>& l, std::vector<int>
       Fl0[i] = (Fl0[i] - B * (vl0[i] + al0_old * dt / 2)) / (1 + B * dt / 2);
 
       // velocity verlet velocity update
-      vl0[i] += (al0_old + al0) * dt / 2;
+      vl0[i] += (al0_old + al0) * dt / 2;*/
+
+      // overdamped integration of rest length relaxation
+      vl0[i] = kl / maxwellRelaxationTime * (li - l0[i]);
+      vl0[i] += kl / taus * (l00[i] - li);
+      l0[i] += vl0[i] * dt;
     }
   }
 }
