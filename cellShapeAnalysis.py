@@ -92,10 +92,13 @@ def process_data(att, v0, att2, seed, fileheader):
 
 
 def main():
-    calA0 = "1.20"
-    att_arr = ["0.0006", "0.006", "0.06"]
+    calA0 = "1.0"
+    att_arr = ["0.006", "0.06"]
+    kl = "1.0"
+    ka = "20.0"
+    kb = "0.1"
     v0_arr = ["0.1"]
-    att2_arr = ["0.0006", "0.006", "0.06"]
+    att2_arr = ["0.006", "0.06"]
     t_abp = "1.0"
     phi = "0.8"
     seeds = 10
@@ -106,7 +109,7 @@ def main():
     df_NEs = pd.DataFrame()
     # load packing fraction data into dataframe
     df_phis = pd.read_csv(
-        f"C:\\Users\\atata\\projects\\psm_extracellular_calculation\\windowedPhiDataFrame.txt"
+        f"C:\\Users\\atata\\projects\\psm_extracellular_calculation\\windowedPhiDataFrame_ka{ka}_kb{kb}.txt"
     )
 
     # load shape and neighbor exchange data into dataframes
@@ -114,7 +117,7 @@ def main():
         for v0 in v0_arr:
             for att2 in att2_arr:
                 for seed in range(1, seeds + 1):
-                    fileheader = f"pipeline\\cells\\psm\\psm_calA0{calA0}_phi{phi}_tm0_v0{v0}_t_abp{t_abp}\\_N40_dur200_att{att}_att2{att2}_start1_end{seeds}_sd{seed}"
+                    fileheader = f"pipeline\\cells\\psm\\psm_calA0{calA0}_phi{phi}_tm0_v0{v0}_t_abp{t_abp}_kl{kl}_ka{ka}_kb{kb}\\_N40_dur200_att{att}_att2{att2}_start1_end{seeds}_sd{seed}"
                     # df_shape, df_NE = process_data(att, v0, att2, seed, fileheader)
                     df_shape = process_data(att, v0, att2, seed, fileheader)
                     df_shapes = pd.concat([df_shapes, df_shape])

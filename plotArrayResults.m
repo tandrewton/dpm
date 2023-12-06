@@ -33,7 +33,7 @@ B="1.0";
 boolCIL="0";
 Duration="2000";
 
-numSeeds = 50;
+numSeeds = 25;
 startSeed = 1;
 max_seed = numSeeds;
 set(0,'DefaultFigureWindowStyle','docked')
@@ -55,24 +55,21 @@ array_output_dir = subdir_output + "array_output_figures/";
 
 N_arr = ["50"];                 %i
 calA0_arr = ["1.20"];           %ii
-%t_stress_arr = ["9830.4" "39321.6"]; %iii
-%t_stress_arr=["9.6" "4915.2"];
-t_stress_arr=["9.6" "307.2"];
+%t_stress_arr=["9.6" "4915.2"]; %iii
+t_stress_arr=["307.2" "1228.8"];
 %t_stress_arr=["4.8" "9.6" "19.2" "76.8" "307.2" "1228.8" "4915.2" "9830.4" "39321.6"];
 att_arr = ["0.1"]; % j
 om_arr = ["1.0"]; %jj
 kl_arr = ["1.0"]; %jjj;              
-ka_arr=["16.0" "32.0"]; %k
+%ka_arr=["16.0" "32.0"]; %k
+ka_arr=["32.0"]; 
+%ka_arr=["1.0" "2.0" "4.0" "8.0" "16.0" "32.0" "40.0"];
 %ka_arr=["2.0" "4.0" "8.0" "16.0" "32.0" "40.0"];
-%ka_arr=["0.25" "0.5" "1.0" "4.0" "16.0" "32.0"];
 kb_arr = ["0.01"]; %kk
 deltaSq_arr = ["4.0"];          %kkk
-%d_flag_arr = ["0.0"];           %l
-%tau_s_arr=["19.2" "76.8" "307.2" "1228.8" "4915.2" "9830.4"]; %l
-%tau_s_arr=["0.3"];
-%tau_s_arr=["0.1" "0.15" "0.2" "0.25" "0.3"];
-%tau_s_arr=["0.1"];
-tau_s_arr=["0.4"];
+%tau_s_arr=["0.1"];%l
+tau_s_arr=["0" "0.2" "0.4" "0.6" "0.8" "1.0"];
+%tau_s_arr=["0"];
 
 d_flag = "0.0"; 
 
@@ -195,7 +192,7 @@ for i=1:length(N_arr)
                                             if (t_stress == "9.6")
                                                tau_s = "0";
                                                k_a = ka_arr(1);
-                                            elseif (t_stress == "307.2")
+                                            elseif (t_stress == "1228.8")
                                                k_a = ka_arr(2);
                                             end
                                         end
@@ -433,7 +430,7 @@ for i=1:length(N_arr)
                                                 % plot void area vs time
                                                 %plot(voidArea(:,1)*timeConvert(pm1_ind), voidArea(:,2)*cellArea(pm1_ind),...
                                                 %    'linewidth',5, 'Color', colorList(pm1_ind),'DisplayName', displayStr)
-                                                n = 100;
+                                                n = 50;
                                                 skipInt = round(length(voidArea(:,1))/n); % keep n points to plot 
                                                 %scatter(voidArea(1:skipInt:end,1)*timeConvert(pm1_ind), voidArea(1:skipInt:end,2)*cellArea(pm1_ind),...
                                                 %    20,
@@ -441,7 +438,7 @@ for i=1:length(N_arr)
                                                 %    "^") % wound area in
                                                 %    micron^2
                                                 scatter(voidArea(1:skipInt:end,1)*timeConvert(pm1_ind), voidArea(1:skipInt:end,2)/(voidArea(1,2)),...
-                                                    30, colorList(pm1_ind), "^") % wound area in area fraction
+                                                    25, colorList(pm1_ind), "^") % wound area in area fraction
                                                 legend off
                                                 xlabel('Time t (min)','Interpreter', 'latex','fontsize', 24);
                                                 ylabel('Wound area $\frac{A(t)}{A(0)}$','Interpreter', 'latex','fontsize', 24);
@@ -454,7 +451,7 @@ for i=1:length(N_arr)
                                                 %ylim([0 inf])
                                                 xlim([0 255]) % wing disc time range (largest time range)
                                                 ylim([0 1]) % area fraction range
-                                                pbaspect([1 1.3 1])
+                                                pbaspect([1.5 1 1])
                                                 %set(gca, 'YScale', 'log')
 
                                                 % plot void area vs time,
@@ -481,7 +478,7 @@ for i=1:length(N_arr)
                                                 %plot(timeInnerShapes(1:skipInt:end)*timeConvert(pm1_ind),meanInnerShapes(1:skipInt:end),...
                                                 %    '-','linewidth',3, 'Color', colorList(pm1_ind),'DisplayName', displayStr)
                                                 scatter(timeInnerShapes(1:skipInt:end)*timeConvert(pm1_ind),meanInnerShapes(1:skipInt:end),...
-                                                     30, colorList(pm1_ind), "^") 
+                                                     25, colorList(pm1_ind), "^") 
                                                 xlabel('Time t (min)','Interpreter','latex','fontsize', 24);
                                                 ylabel('Cell shape parameter $\mathcal{A}(t)$','Interpreter','latex','fontsize', 24);
                                                 %legend('location','southeast','fontsize', 6)
@@ -493,7 +490,7 @@ for i=1:length(N_arr)
                                                 fontsize(gcf, 20, "points")
                                                 %xlim([0 inf])
                                                 %ylim([-inf inf])
-                                                pbaspect([1 1.3 1])
+                                                pbaspect([1.5 1 1])
 
                                                 % look for files called
                                                 % shapeAll.mat, which
@@ -530,22 +527,22 @@ for i=1:length(N_arr)
                                                 if (false)
                                                 % taus is 0, default
                                                     % value. but I want to show some results %where taus is nonzero as well on top
-                                                    paramsToOverlay = "_pm1_"+"4915.2"+"_pm2_"+"32.0"+"taus_"+"0.3"; 
+                                                    paramsToOverlay = "_pm1_"+"1228.8"+"_pm2_"+"32.0"+"taus_"+"0.4"; 
                                                     figure(4)
                                                     load(array_output_dir+'woundHealingPlotData/shape'+paramsToOverlay+'.mat');
                                                     load(array_output_dir+'woundHealingPlotData/shape_time'+paramsToOverlay+'.mat');
                                                     skipInt = length(meanInnerShapes)/n;
                                                     scatter(timeInnerShapes(1:skipInt:end)*timeConvert(pm1_ind),meanInnerShapes(1:skipInt:end),...
-                                                     30, colorList(pm1_ind), "square")
+                                                     35, colorList(pm1_ind), "square")
                                                     fontsize(gcf, 18, "points")
                                                     yticks([1.2 1.4 1.6 1.8])
 
                                                     figure(2)
                                                     load(array_output_dir+'woundHealingPlotData/area'+paramsToOverlay+'.mat');
-                                                    n = 100;
+                                                    n = 50;
                                                     skipInt = length(voidArea(:,1))/n; % keep n points to plot 
                                                     scatter(voidArea(1:skipInt:end,1)*timeConvert(pm1_ind), voidArea(1:skipInt:end,2)/(voidArea(1,2)),...
-                                                    30, colorList(pm1_ind), "square") % wound area in area fraction
+                                                    35, colorList(pm1_ind), "square") % wound area in area fraction
                                                     fontsize(gcf, 18, "points")
                                                     yticks([0 0.5 1])
                                                 end

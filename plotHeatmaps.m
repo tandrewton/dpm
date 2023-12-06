@@ -2,7 +2,7 @@
 % directory
 clear;close all;
 set(0,'DefaultFigureWindowStyle','docked')
-isPlottingAreaVelocity = false;
+isPlottingAreaVelocity = true;
 isPlottingShapes = ~isPlottingAreaVelocity;
 assert((isPlottingAreaVelocity && isPlottingShapes) == false);
 %%
@@ -107,7 +107,7 @@ colorbar;
 
 % scatter squares below the grid points representing parameter choices
 parameterSelectionB = [0.64 1.28];
-parameterSelectionTau = [2.667 1365.3];
+parameterSelectionTau = [2.667 341.33];
 
 scatter(parameterSelectionB(1), parameterSelectionTau(1), 450, "black", ...
     "square",'filled','MarkerFaceColor', 'red', 'MarkerEdgeColor', 'white', 'linewidth', 1);

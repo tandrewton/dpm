@@ -69,10 +69,10 @@ while ~feof(fid)
         % get cell pos and asphericity
         cInfoTmp        = textscan(fid,'CINFO %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f',1);
         fline           = fgetl(fid);     % goes to next line in file
-        nn
-        nf
-        cInfoTmp{1}
-        cInfoTmp{6}
+        %nn
+        %nf
+        %cInfoTmp{1}
+        %cInfoTmp{6}
         cellID(nf,nn)   = cInfoTmp{1};
         NVTMP           = cInfoTmp{2};
         nv(nf,nn)       = NVTMP;

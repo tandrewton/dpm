@@ -42,7 +42,7 @@ max_seed = 10;
 
 %if makeAMovie is 0, then plot every frame separately
 %forImageAnalysis = ~isTestData;
-forImageAnalysis = true;
+forImageAnalysis = false;
 if (forImageAnalysis)
     showCatchBonds = 0;
     showverts = 1;
@@ -51,7 +51,7 @@ if (forImageAnalysis)
 else
     showCatchBonds = 0;
     showverts = 1;
-    showcirculoline = 1;
+    showcirculoline = 0;
     makeAMovie = 1;
 end
 
@@ -68,7 +68,7 @@ txt='test';
 theta = linspace(0, 2*pi, 100); % Adjust the number of points as needed
 fnum = 1;
 fnum_boundary = 1000;
-for seed = startSeed+5:max_seed
+for seed = startSeed:max_seed
     if (isTestData)
         run_name = runType+txt;     
         pipeline_dir =  subdir_pipeline + run_name + "/";
@@ -110,6 +110,7 @@ for seed = startSeed+5:max_seed
     shapeFile = run_name + fileheader + 'shape.csv';
     fopen(shapeFile,'w');
     shapes = [];
+    speeds = [];
 
     if showCatchBonds
         catchBondLocations = readDataBlocks(catchBondStr, 4);
@@ -145,6 +146,7 @@ for seed = startSeed+5:max_seed
     boxAxLow = 0;
     boxAxHigh = 1;
 
+
     for ff = FSTART:FSTEP:FEND
         %nv can change, so recompute color map each frame
         [nvUQ, ~, IC] = unique(nonzeros(nv(ff,:)));
@@ -153,6 +155,26 @@ for seed = startSeed+5:max_seed
         %NUQ = 8; % 1<- use for single colored configurations
         cellCLR = jet(NUQ);
         NCELLS = cell_count(ff);
+
+
+        % calculate the cell speeds
+        if ff~=FEND
+            xpos_current = trajectoryData.xpos(ff,:);
+            xpos_next = trajectoryData.xpos(ff+1,:);
+            ypos_current = trajectoryData.ypos(ff,:);
+            ypos_next = trajectoryData.ypos(ff+1,:);
+            for nn=1:NCELLS
+                cx_current = mean(xpos_current{nn});
+                cy_current = mean(ypos_current{nn});
+                cx_next = mean(xpos_next{nn});
+                cy_next = mean(ypos_current{nn});
+                speed = sqrt((cx_next - cx_current)^2 + (cy_next - cy_current)^2);
+                speed = speed / (time(ff+1) - time(ff));
+                speeds = [speeds; speed];
+            end
+        end
+
+        % make a histogram of speeds, see how it looks here.
         
         area = trajectoryData.area(ff,:);
         perimeter = trajectoryData.perimeter(ff,:);
@@ -241,6 +263,10 @@ for seed = startSeed+5:max_seed
                     boundaryX = xtmp + vradtmp * cos(theta);
                     boundaryY = ytmp + vradtmp * sin(theta);
                     patch(boundaryX', boundaryY', clr, 'linestyle', 'none')
+                else
+                    boundaryX = xtmp + vradtmp * cos(theta);
+                    boundaryY = ytmp + vradtmp * sin(theta);
+                    patch(boundaryX', boundaryY', 'k', 'linestyle', 'none')                   
                 end
                 % calculate coordinates of a rectangle representing 
                 % the line segment between successive vertices in a DP

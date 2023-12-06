@@ -1,15 +1,15 @@
 module load dSQ
 #!/bin/bash
 numSeeds=10
-calA0=(1.20)
+calA0=(1.0)
 phi_arr=(0.8)
 kl=1.0
-ka_arr=(5.0 20.0)
-kb_arr=(0.01 0.1)
-att_arr=(0.0006 0.006 0.06)
-att2_arr=(0.0006 0.006 0.06)
+ka_arr=(1.0 5.0 20.0)
+kb_arr=(0.001 0.01 0.1)
+att_arr=(0.006 0.06)
+att2_arr=(0.006 0.06)
 #v0_arr=(0.01 0.02 0.04 0.08 0.16)
-v0_arr=(0.1)
+v0_arr=(0.0)
 rm joblist_psm_att_v0.txt
 for phi in ${phi_arr[@]}; do
   for ka in ${ka_arr[@]}; do
@@ -29,7 +29,7 @@ dsq --job-file joblist_psm_att_v0.txt   --mem-per-cpu 4g -t 1:00:00 --mail-type 
 
 bash bash/cells/submit_psm.sh 40 20 1.05 0.9 0 0.0 0.05 50.0 1.0 10.0 1000 pi_ohern,day 0-4:00:00 1 1
 
-rsync -rav --inplace --progress at965@transfer-grace.hpc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm /mnt/c/Users/atata/projects/dpm/pipeline/cells/. 
+rsync -rav --inplace --progress at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm /mnt/c/Users/atata/projects/dpm/pipeline/cells/. 
 
 # use bash to echo a series of commands that I can copy and paste into a windows terminal to run a python code..
 att_arr=(0.001 0.01 0.1)
@@ -44,14 +44,14 @@ for a in ${att_arr[@]}; do
 done
 
 close all; clear;
-calA0_arr = ["1.20"];
-%att_arr = ["0.0006" "0.006" "0.06"];
-%att2_arr = ["0.0006" "0.006" "0.06"];
-att_arr = ["0.006" "0.06"];
-att2_arr = ["0.006" "0.06"];
+calA0_arr = ["1.0"];
+%att_arr = ["0.006" "0.06"];
+%att2_arr = ["0.006" "0.06"];
+att_arr = ["0.006"];
+att2_arr = ["0.06"];
 phi_arr = ["0.8"];
-ka_arr = ["5.0" "20.0"];
-%ka_arr = ["5.0"];
+%ka_arr = ["1.0" "5.0" "20.0"];
+ka_arr = ["1.0"];
 %kb_arr = ["0.01" "0.1"];
 kb_arr = ["0.1"];
 v0_arr = ["0.1"];
