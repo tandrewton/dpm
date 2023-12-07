@@ -175,6 +175,7 @@ for seed = startSeed:max_seed
         end
 
         % make a histogram of speeds, see how it looks here.
+        histogram(speeds)
         
         area = trajectoryData.area(ff,:);
         perimeter = trajectoryData.perimeter(ff,:);
