@@ -55,6 +55,11 @@ else
     makeAMovie = 1;
 end
 
+lengthscale = sqrt(25 * pi); % micron
+timescale = 3; % minute
+forceScale = 1; % nanonewton
+speedConversionFactor = lengthscale / timescale; % micron/min
+
 %PC directory
 %pipeline is the location of data generated during simulations
 subdir_pipeline = "pipeline/cells/"+runType+"/";
@@ -158,7 +163,7 @@ for seed = startSeed:max_seed
 
 
         % calculate the cell speeds
-        if ff~=FEND
+        if (ff~=FEND && ff~=1) 
             xpos_current = trajectoryData.xpos(ff,:);
             xpos_next = trajectoryData.xpos(ff+1,:);
             ypos_current = trajectoryData.ypos(ff,:);
@@ -172,10 +177,13 @@ for seed = startSeed:max_seed
                 speed = speed / (time(ff+1) - time(ff));
                 speeds = [speeds; speed];
             end
+            % make a histogram of speeds, see how it looks here.
+            figure(2)
+            histogram(speeds*speedConversionFactor)
+            xlabel('v (μm/min)')
+            ylabel('# cells')
         end
 
-        % make a histogram of speeds, see how it looks here.
-        histogram(speeds)
         
         area = trajectoryData.area(ff,:);
         perimeter = trajectoryData.perimeter(ff,:);

@@ -2,7 +2,7 @@
 % directory
 clear;close all;
 set(0,'DefaultFigureWindowStyle','docked')
-isPlottingAreaVelocity = true;
+isPlottingAreaVelocity = false;
 isPlottingShapes = ~isPlottingAreaVelocity;
 assert((isPlottingAreaVelocity && isPlottingShapes) == false);
 %%
@@ -14,9 +14,9 @@ else
 end
 
 if (isPlottingAreaVelocity)
-    heatmapFile = "arealVelocityPStrue-calA01.20_tau-ka.mat";
+    heatmapFile = "arealVelocityPStrue-calA01.20_tau-ka-rebuttal.mat";
 else
-    heatmapFile = "rosetteCellsFinalShapePStrue-calA01.20_tau-ka.mat";
+    heatmapFile = "rosetteCellsFinalShapePStrue-calA01.20_tau-ka-rebuttal.mat";
 end
 %shapeFile = "rosetteCellsFinalShapePStrue-activity-ka.mat";
 %heatmapFile = "rosetteCellsFinalShapePStrue-calA01.20_tau-ka.mat";
@@ -144,9 +144,18 @@ else
     a.Ticks=[1.4 1.5 1.6 1.7]
     a.Label.Rotation = 90;
 end
-fontsize(gcf,22,"points")
+fontsize(gcf,13,"points")
 axis square
 set(gca,'TickDir','out');
+
+
+if (isPlottingAreaVelocity)
+    saveas(gcf, "arealVelocity_heatmap_rebuttal.eps", 'epsc')
+else
+    saveas(gcf, "rosetteCellsFinalShape_heatmap_rebuttal.eps", 'epsc')
+end
+
+
 % 
 % %integer format for x and y ticks
 % yt = get(gca,'ytick');

@@ -56,20 +56,20 @@ array_output_dir = subdir_output + "array_output_figures/";
 N_arr = ["50"];                 %i
 calA0_arr = ["1.20"];           %ii
 %t_stress_arr=["9.6" "4915.2"]; %iii
-t_stress_arr=["307.2" "1228.8"];
+t_stress_arr=["9.6" "1228.8"];
 %t_stress_arr=["4.8" "9.6" "19.2" "76.8" "307.2" "1228.8" "4915.2" "9830.4" "39321.6"];
 att_arr = ["0.1"]; % j
 om_arr = ["1.0"]; %jj
 kl_arr = ["1.0"]; %jjj;              
-%ka_arr=["16.0" "32.0"]; %k
-ka_arr=["32.0"]; 
+ka_arr=["16.0" "32.0"]; %k
+%ka_arr=["32.0"]; 
 %ka_arr=["1.0" "2.0" "4.0" "8.0" "16.0" "32.0" "40.0"];
 %ka_arr=["2.0" "4.0" "8.0" "16.0" "32.0" "40.0"];
 kb_arr = ["0.01"]; %kk
 deltaSq_arr = ["4.0"];          %kkk
 %tau_s_arr=["0.1"];%l
-tau_s_arr=["0" "0.2" "0.4" "0.6" "0.8" "1.0"];
-%tau_s_arr=["0"];
+%tau_s_arr=["0" "0.2" "0.4" "0.6" "0.8" "1.0"];
+tau_s_arr=["0"];
 
 d_flag = "0.0"; 
 
@@ -437,6 +437,12 @@ for i=1:length(N_arr)
                                                 %    colorList(pm1_ind),
                                                 %    "^") % wound area in
                                                 %    micron^2
+                                                % subsample pm1_ind
+                                                % (embryo) for better plot
+                                                % clarity
+                                                if (pm1_ind == 1)
+                                                    skipInt = skipInt * 2;
+                                                end
                                                 scatter(voidArea(1:skipInt:end,1)*timeConvert(pm1_ind), voidArea(1:skipInt:end,2)/(voidArea(1,2)),...
                                                     25, colorList(pm1_ind), "^") % wound area in area fraction
                                                 legend off
@@ -451,7 +457,7 @@ for i=1:length(N_arr)
                                                 %ylim([0 inf])
                                                 xlim([0 255]) % wing disc time range (largest time range)
                                                 ylim([0 1]) % area fraction range
-                                                pbaspect([1.5 1 1])
+                                                pbaspect([1.5 0.75 1])
                                                 %set(gca, 'YScale', 'log')
 
                                                 % plot void area vs time,
@@ -474,6 +480,9 @@ for i=1:length(N_arr)
                                                 disp(displayStr)
                             
                                                 skipInt = round(length(meanInnerShapes)/n);
+                                                if (pm1_ind == 1)
+                                                    skipInt = skipInt * 2;
+                                                end
                                                 meanInnerShapes = mean(innerShapeArr,'omitnan');
                                                 %plot(timeInnerShapes(1:skipInt:end)*timeConvert(pm1_ind),meanInnerShapes(1:skipInt:end),...
                                                 %    '-','linewidth',3, 'Color', colorList(pm1_ind),'DisplayName', displayStr)
@@ -490,7 +499,7 @@ for i=1:length(N_arr)
                                                 fontsize(gcf, 20, "points")
                                                 %xlim([0 inf])
                                                 %ylim([-inf inf])
-                                                pbaspect([1.5 1 1])
+                                                pbaspect([1.5 0.75 1])
 
                                                 % look for files called
                                                 % shapeAll.mat, which

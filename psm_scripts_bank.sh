@@ -4,12 +4,11 @@ numSeeds=10
 calA0=(1.0)
 phi_arr=(0.8)
 kl=1.0
-ka_arr=(1.0 5.0 20.0)
-kb_arr=(0.001 0.01 0.1)
+ka_arr=(5.0)
+kb_arr=(0.01 0.1)
 att_arr=(0.006 0.06)
 att2_arr=(0.006 0.06)
-#v0_arr=(0.01 0.02 0.04 0.08 0.16)
-v0_arr=(0.0)
+v0_arr=(0.0 0.05 0.1 0.15 0.2)
 rm joblist_psm_att_v0.txt
 for phi in ${phi_arr[@]}; do
   for ka in ${ka_arr[@]}; do
