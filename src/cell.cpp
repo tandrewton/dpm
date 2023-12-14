@@ -318,6 +318,24 @@ void cell::shapeForces2D() {
     U += 0.5 * kl * (dli * dli);
     cellU[ci_real] += 0.5 * kl * (dli * dli);
 
+    // surface tension forces
+    // surfaceTension is a matrix of coefficients (1.0, 0.0)
+    //    and gamma * surfaceTension is a matrix of surface tensions
+    if (surfaceTension.size() > 0) {
+      forceX = surfaceTension[gi] * lix / li - surfaceTension[im1[gi]] * lim1x / lim1;
+      forceY = surfaceTension[gi] * liy / li - surfaceTension[im1[gi]] * lim1y / lim1;
+      F[NDIM * gi] += gamma * forceX;
+      F[NDIM * gi + 1] += gamma * forceY;
+
+      fieldShapeStress[gi][0] += unwrappedX * forceX;
+      fieldShapeStress[gi][1] += unwrappedY * forceY;
+      fieldShapeStress[gi][2] += unwrappedX * forceY;
+
+      // update potential energy
+      U += surfaceTension[gi] * li;
+      cellU[ci_real] += surfaceTension[gi] * li;
+    }
+
     // -- Bending force
     if (kb > 0 && (cellID[ci_real] == 0 || cellID[ci_real] == 1)) {
       // if (kb > 0) {
@@ -519,10 +537,6 @@ void cell::brownianCrawlingUpdate() {
     double randNum = (float)(rand()) / (float)(RAND_MAX);  // random number between 0 and 1
     for (int vi = 0; vi < nv[ci]; vi++) {
       gi = gindex(ci, vi);
-      if (simclock > 60 && simclock < 60 + 2 * dt) {
-        cout << "random v0 force = " << randNum * 2 * v0_ABP / nv[ci] * cos(director) << '\t' << randNum * 2 * v0_ABP / nv[ci] * sin(director) << '\n';
-        cout << "non-v0 force = " << F[gi * NDIM] << '\t' << F[gi * NDIM + 1] << '\n';
-      }
       // it's possible that this force needs a proportionality constant like 1/N_v or something. do the math
       // when measuring MSD, test it on one particle and see if linear displacement is off by a factor of N_v.?
       F[gi * NDIM] += randNum * 2 * v0_ABP * cos(director);
@@ -718,6 +732,9 @@ void cell::circuloLineAttractiveForces() {
 
                   F[NDIM * gj] += fx;
                   F[NDIM * gj + 1] += fy;
+
+                  if (cellID[ci] != cellID[cj])
+                    surfaceTension[gi] = 1;
                 }
               }
             }
@@ -812,6 +829,8 @@ void cell::circuloLineAttractiveForces() {
 
                     F[NDIM * gj] += fx;
                     F[NDIM * gj + 1] += fy;
+                    if (cellID[ci] != cellID[cj])
+                      surfaceTension[gi] = 1;
                   }
                 }
               }
@@ -1013,6 +1032,9 @@ void cell::calculateSmoothInteraction(double rx, double ry, double sij, double s
           cellU[cj] += energytmp / 2;
           U += energytmp;
 
+          if (cellID[ci] != cellID[cj])
+            surfaceTension[gi] = 1;
+
           // haven't calculated the virial stress, otherwise that would go here.
 
           if (cellID[ci] == 0 && cellID[cj] == 0) {
@@ -1048,6 +1070,8 @@ void cell::calculateSmoothInteraction(double rx, double ry, double sij, double s
                   ftmp = kc * (1 - xij) / sij;
                   energytmp = 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
                 }
+                if (cellID[ci] != cellID[cj])
+                  surfaceTension[gi] = 1;
               }
             }
           }
@@ -1905,6 +1929,7 @@ void cell::replacePolyWallWithDP(int numCellTypes) {
   }
 
   numVertexContacts.resize(NVTOT, std::vector<int>(NVTOT, 0.0));
+  surfaceTension.resize(NVTOT, 0.0);
 }
 
 void cell::addDP(int numVerts, const vector<double>& dp_x, const vector<double>& dp_y, int cellTypeIndex, int numCellTypes) {
@@ -1984,6 +2009,8 @@ void cell::addDP(int numVerts, const vector<double>& dp_x, const vector<double>&
   fieldStressCells.push_back(vector<double>(3, 0.0));
   fieldShapeStressCells.push_back(vector<double>(3, 0.0));
   cij.resize(NCELLS * (NCELLS - 1) / 2);
+
+  surfaceTension.resize(NVTOT, 0.0);
 
   // cellID, cellTouchesLeft, cellTouchesRight in Cell class need to be resized, then I should be good
   cellID.push_back(cellTypeIndex);
@@ -3019,7 +3046,7 @@ void cell::vertexNVE(dpmMemFn forceCall, double T, double dt0, double duration, 
   }
 }
 
-void cell::vertexDampedMD(dpmMemFn forceCall, double dt0, double duration, double printInterval) {
+void cell::vertexDampedMD(dpmMemFn forceCall, double dt0, double duration, double printInterval, double v0_decay_rate, double min_v0) {
   // make sure velocities exist or are already initialized before calling this
   int i;
   double K, t0 = simclock;
@@ -3053,6 +3080,9 @@ void cell::vertexDampedMD(dpmMemFn forceCall, double dt0, double duration, doubl
 
     // update sim clock
     simclock += dt;
+
+    // decay active force v0 according to decay parameters
+    v0_ABP = std::max(v0_ABP - v0_decay_rate * dt, min_v0);
 
     // print to console and file
     if (int(printInterval / dt) != 0) {

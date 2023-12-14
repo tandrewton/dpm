@@ -26,6 +26,8 @@ class cell : public dpm {
   std::vector<int> cellID;                          // 0/1/2/... = NT/PSM1/NC/PSM2/cell0/cell1/cell2/cell3
   std::vector<std::vector<double>> cellTypeIntMat;  // size(cellID) x size(cellID) matrix where (i,j)th entry is the force modifier for interactions between cell types i and j
   double originalVertexRadius;
+  std::vector<double> surfaceTension;  // lambda matrix of surface tension coefficients, size(NVTOT)
+  double gamma;                        // cell-ECM surface tension
 
   // activity data
   std::vector<bool> cellTouchesWallsLeft;
@@ -121,6 +123,7 @@ class cell : public dpm {
   }
   void setkecm(double val) { k_ecm = val; }
   void setkoff(double val) { k_off = val; }
+  void setgamma(double val) { gamma = val; };
   void brownianCrawlingUpdate();
   void directorDiffusion();
   void catchBondsUpdate();
@@ -155,7 +158,7 @@ class cell : public dpm {
   void shrinkCellVertices(dpmMemFn forceCall, double dt0, double shrinkRatio);
   void simulateDampedWithWalls(dpmMemFn forceCall, double dt0, double duration, double printInterval, double pressureRate, double adhesionRate, bool wallsOn, bool leftOpen, bool bottomOpen, bool rightOpen, bool topOpen, double trueStrainRateX = 0.0, double trueStrainRateY = 0.0, double appliedUniaxialPressure = 0.0);
   void vertexNVE(dpmMemFn forceCall, double T, double dt0, double duration, double printInterval);
-  void vertexDampedMD(dpmMemFn forceCall, double dt0, double duration, double printInterval);
+  void vertexDampedMD(dpmMemFn forceCall, double dt0, double duration, double printInterval, double v0_decay_rate = 0, double min_v0 = 0);
   void takeTissueMeasurements(int cellBoundaryType);
   std::vector<int> calculateMinimizedContacts(dpmMemFn forceCall, double Ftol, double dt0, std::ofstream& xStream, std::ofstream& xMinStream, std::ofstream& cijStream, std::ofstream& cijMinStream);
 

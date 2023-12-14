@@ -1,9 +1,9 @@
 %pwd should give ~/Documents/YalePhd/projects/dpm
-function drawCellSim(N, calA0, phi, ka, kb, att, att2, v0)
-%close all; clear
-isTestData = false; %uncomment if using function call to pipeline data
+%function drawCellSim(N, calA0, phi, ka, kb, att, att2, v0)
+close all; clear
+%isTestData = false; %uncomment if using function call to pipeline data
 
-%isTestData = true; %uncomment if using test data
+isTestData = true; %uncomment if using test data
 %testDataIDs = ["a_0.0006_a2_0.0012_p_0.75_t_1"
 %"a_0.0006_a2_0.012_p_0.75_t_1"
 %"a_0.006_a2_0.0012_p_0.75_t_1"
@@ -14,7 +14,7 @@ isTestData = false; %uncomment if using function call to pipeline data
 %for i=1:length(testDataIDs)
 %    testDataID = testDataIDs(i);
 
-%testDataID = "a0.001a20.002p0.75t0.14";
+testDataID = "a_0.05_a2_0.05_p_0.8_t_1.0_gamma_0.01";
 %testDataID = "9";
 
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
@@ -41,8 +41,9 @@ max_seed = 10;
 %att_range = 0.3;
 
 %if makeAMovie is 0, then plot every frame separately
-%forImageAnalysis = ~isTestData;
-forImageAnalysis = false;
+forImageAnalysis = ~isTestData;
+%forImageAnalysis = true;
+skipPlottingCells = false;
 if (forImageAnalysis)
     showCatchBonds = 0;
     showverts = 1;
@@ -51,7 +52,7 @@ if (forImageAnalysis)
 else
     showCatchBonds = 0;
     showverts = 1;
-    showcirculoline = 0;
+    showcirculoline = 1;
     makeAMovie = 1;
 end
 
@@ -105,15 +106,14 @@ for seed = startSeed:max_seed
     mkdir(output_dir)
     % read in position data
     disp(nvestr)
-    % if (seed==7)
-    %     "hello"
-    % end
 
     [trajectoryData, cell_count] = readCellClassPosOutput(nvestr);
 
     % set up, clear files for writing
-    shapeFile = run_name + fileheader + 'shape.csv';
+    shapeFile = output_dir + fileheader + 'shape.csv';
     fopen(shapeFile,'w');
+    speedFile = output_dir + fileheader + 'speed.csv';
+    fopen(speedFile,'w');
     shapes = [];
     speeds = [];
 
@@ -133,7 +133,7 @@ for seed = startSeed:max_seed
     FSTEP = FSKIP;
     FEND = NFRAMES;
 
-    if makeAMovie == 1
+    if makeAMovie && ~skipPlottingCells
         movieName = runType+fileheader_short+'.mp4';
         exist(movieName, 'file')
         runType+fileheader+movieName
@@ -168,6 +168,7 @@ for seed = startSeed:max_seed
             xpos_next = trajectoryData.xpos(ff+1,:);
             ypos_current = trajectoryData.ypos(ff,:);
             ypos_next = trajectoryData.ypos(ff+1,:);
+            speed_ff = [];
             for nn=1:NCELLS
                 cx_current = mean(xpos_current{nn});
                 cy_current = mean(ypos_current{nn});
@@ -175,21 +176,25 @@ for seed = startSeed:max_seed
                 cy_next = mean(ypos_current{nn});
                 speed = sqrt((cx_next - cx_current)^2 + (cy_next - cy_current)^2);
                 speed = speed / (time(ff+1) - time(ff));
-                speeds = [speeds; speed];
+                speed_ff = [speed_ff; speed];
             end
+            speeds = [speeds; mean(speed_ff)];
             % make a histogram of speeds, see how it looks here.
-            figure(2)
-            histogram(speeds*speedConversionFactor)
-            xlabel('v (μm/min)')
-            ylabel('# cells')
+            %figure(2)
+            %histogram(speeds*speedConversionFactor)
+            %xlabel('v (μm/min)')
+            %ylabel('# cells')
         end
-
         
         area = trajectoryData.area(ff,:);
         perimeter = trajectoryData.perimeter(ff,:);
         shape = 1/(4*pi)*perimeter.^2./area;
         shapes = [shapes; shape];
         %writematrix(shape(1:end-1), shapeFile, 'WriteMode','append');
+
+        if skipPlottingCells
+            continue
+        end
 
         if ~makeAMovie
             fnum = fnum+1;
@@ -271,11 +276,7 @@ for seed = startSeed:max_seed
                 if (cellID(nn) == 0)
                     boundaryX = xtmp + vradtmp * cos(theta);
                     boundaryY = ytmp + vradtmp * sin(theta);
-                    patch(boundaryX', boundaryY', clr, 'linestyle', 'none')
-                else
-                    boundaryX = xtmp + vradtmp * cos(theta);
-                    boundaryY = ytmp + vradtmp * sin(theta);
-                    patch(boundaryX', boundaryY', 'k', 'linestyle', 'none')                   
+                    patch(boundaryX', boundaryY', clr, 'linestyle', 'none')                 
                 end
                 % calculate coordinates of a rectangle representing 
                 % the line segment between successive vertices in a DP
@@ -300,7 +301,7 @@ for seed = startSeed:max_seed
         %plot([viewLxLow viewLx viewLx viewLxLow viewLxLow], [viewLyLow viewLyLow viewLy viewLy viewLyLow], 'k-', 'linewidth', 1.5);
 
         % if making a movie, save frame
-        if makeAMovie == 1
+        if makeAMovie && ~skipPlottingCells
             currframe = getframe(gcf);
             writeVideo(vobj,currframe);
         end
@@ -321,15 +322,16 @@ for seed = startSeed:max_seed
         end
     end
 
-
     % close video object
-    if makeAMovie == 1
+    if makeAMovie && ~skipPlottingCells
         close(vobj);
     end
     cd ../../../../
     writematrix(shapes(:,1:end-1), shapeFile, 'WriteMode','append');
+    writematrix(speeds, speedFile, 'WriteMode', 'append');
+    fclose('all');
 end
-end
+%end
 %end
 
 function [cornerx, cornery] = patchConnectedRectanglesCorners(midptx, midpty, width)

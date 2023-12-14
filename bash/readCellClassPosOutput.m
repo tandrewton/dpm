@@ -69,10 +69,6 @@ while ~feof(fid)
         % get cell pos and asphericity
         cInfoTmp        = textscan(fid,'CINFO %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f',1);
         fline           = fgetl(fid);     % goes to next line in file
-        %nn
-        %nf
-        %cInfoTmp{1}
-        %cInfoTmp{6}
         cellID(nf,nn)   = cInfoTmp{1};
         NVTMP           = cInfoTmp{2};
         nv(nf,nn)       = NVTMP;
@@ -96,9 +92,10 @@ while ~feof(fid)
         
         % get vertex positions
         vPosTmp = textscan(fid,'VINFO %*f %*f %f %f %f %f %f %f %f %f %f %f %f %f',NVTMP); 
+
+
         % note : %*f means ignore that entry.
         fline = fgetl(fid);     % goes to next line in file
-
         % parse data      
         xposTmp = vPosTmp{1};
         yposTmp = vPosTmp{2};

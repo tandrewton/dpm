@@ -93,12 +93,13 @@ def process_data(att, v0, att2, seed, fileheader):
 
 def main():
     calA0 = "1.0"
-    att_arr = ["0.006", "0.06"]
+    att_arr = ["0.01", "0.02", "0.03", "0.04", "0.05"]
     kl = "1.0"
-    ka = "20.0"
-    kb = "0.1"
-    v0_arr = ["0.1"]
-    att2_arr = ["0.006", "0.06"]
+    ka = "5.0"
+    kb = "0.01"
+    v0_arr = ["0.0", "0.025", "0.05", "0.075", "0.1", "0.125", "0.15", "0.175", "0.2"]
+    # att2_arr = ["0.005", "0.05"]
+    att2_arr = ["0.005"]
     t_abp = "1.0"
     phi = "0.8"
     seeds = 10
@@ -122,6 +123,30 @@ def main():
                     df_shape = process_data(att, v0, att2, seed, fileheader)
                     df_shapes = pd.concat([df_shapes, df_shape])
                     # df_NEs = pd.concat([df_NEs, df_NE])
+
+    # drop df_phis rows that don't match att in att_arr, v0 in v0_arr, att2 in att2_arr
+    df_phis = df_phis[df_phis["att"].isin([float(i) for i in att_arr])]
+    df_phis = df_phis[df_phis["att2"].isin([float(i) for i in att2_arr])]
+    df_phis = df_phis[df_phis["v0"].isin([float(i) for i in v0_arr])]
+
+    df_phis_grouped_means = df_phis.groupby(["att", "att2", "v0"]).mean().reset_index()
+    # Plot all curves on the same axes using hue
+    plt.figure(figsize=(10, 6))  # Adjust the figure size as needed
+    sns.lineplot(data=df_phis_grouped_means, x="v0", y="phi", marker="o", hue="att")
+
+    # drop df_shapes rows that don't match att in att_arr, v0 in v0_arr, att2 in att2_arr
+    df_shapes = df_shapes[df_shapes["att"].isin([float(i) for i in att_arr])]
+    df_shapes = df_shapes[df_shapes["att2"].isin([float(i) for i in att2_arr])]
+    df_shapes = df_shapes[df_shapes["v0"].isin([float(i) for i in v0_arr])]
+
+    df_shapes_grouped_means = (
+        df_shapes.groupby(["att", "att2", "v0"]).mean().reset_index()
+    )
+    # Plot all curves on the same axes using hue
+    plt.figure(figsize=(10, 6))  # Adjust the figure size as needed
+    sns.lineplot(
+        data=df_shapes_grouped_means, x="v0", y="shapeParameter", marker="o", hue="att"
+    )
 
     # Perform grouping on dataframes in order to make summary plots.
 
@@ -159,6 +184,10 @@ def main():
         height=8,
         aspect=2,
     )
+
+    plt.xticks(rotation=45, ha="right")
+    plt.tight_layout()
+
     sns_phis = sns.catplot(
         df_phis_means,
         x="(att, att2, v0)",
@@ -168,6 +197,9 @@ def main():
         height=8,
         aspect=2,
     )
+
+    plt.xticks(rotation=45, ha="right")
+    plt.tight_layout()
 
     # sns_NEs.figure.savefig(f"sns_NEs_{v0_arr[0]}.png")
     sns_shapes.figure.savefig(f"sns_shapes_{v0_arr[0]}.png")
@@ -185,6 +217,10 @@ def main():
         height=8,
         aspect=2,
     )
+
+    plt.xticks(rotation=45, ha="right")
+    plt.tight_layout()
+
     sns.catplot(
         df_phis,
         x="(att, att2, v0)",
@@ -195,7 +231,10 @@ def main():
         aspect=2,
     )
 
-    debugpy.breakpoint()
+    plt.xticks(rotation=45, ha="right")
+    plt.tight_layout()
+
+    # rather than catplots, should just plot as a function of v0 now.
 
     plt.show()
 

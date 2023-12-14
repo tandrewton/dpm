@@ -13,25 +13,26 @@
 // run command:
 
 /*
-att_arr=(0.0006 0.006 0.06)
-att2_arr=(0.0012 0.012)
+att_arr=(0.05)
+att2_arr=(0.05)
 v0=0.1
-phi_arr=(0.75)
-tau_abp_arr=(1)
+phi_arr=(0.8)
+tau_abp=1.0
+gamma_arr=(0.01 0.1 1.0 10.0 100.0)
 kl=1.0
-ka=10.0
-kb=0.1
+ka=5.0
+kb=0.01
 for att in ${att_arr[@]}; do
   for att2 in ${att2_arr[@]}; do
     for phi in ${phi_arr[@]}; do
-      for tau_abp in ${tau_abp_arr[@]}; do
-        echo "./main/cell/psm2D.o   20  30 1.20 $phi $kl $ka $kb $att $att2 0    $v0    $tau_abp    1    200    testa_"$att"_a2_"$att2"_p_"$phi"_t_"$tau_abp
+      for gamma in ${gamma_arr[@]}; do
+        echo "./main/cell/psm2D.o   24  30 1.0 $phi $kl $ka $kb $att $att2 0    $v0    $tau_abp  $gamma  1    200    testa_"$att"_a2_"$att2"_p_"$phi"_t_"$tau_abp"_gamma_"$gamma
       done
     done
   done
 done
 */
-//                NCELLS NV  A0  phi att att2 t_maxwell_bd v0  tau_abp seed duration outFileStem
+//                NCELLS NV  A0  phi att att2 t_maxwell_bd v0  tau_abp gamma seed duration outFileStem
 
 #include <sstream>
 #include "cell.h"
@@ -55,7 +56,7 @@ const double kb = 0.1;              // bending energy spring constant (should be
 const double kl = 1.0;              // segment length interaction force (should be unit)
 const double boxLengthScale = 2.5;  // neighbor list box size in units of initial l0
 // const double phi0 = 0.91;           // initial preferred packing fraction
-const double dt0 = 0.05;  // initial magnitude of time step in units of MD time
+const double dt0 = 0.1;  // initial magnitude of time step in units of MD time
 const double Ptol = 1e-5;
 const double Ftol = 1e-4;
 const double att_range = 0.3;
@@ -78,9 +79,10 @@ int main(int argc, char const* argv[]) {
   double t_stress = parseArg<double>(argv[10]);
   double v0_abp = parseArg<double>(argv[11]);
   double tau_abp = parseArg<double>(argv[12]);
-  int seed = parseArg<int>(argv[13]);
-  double runTime = parseArg<double>(argv[14]);
-  std::string outFileStem = argv[15];
+  double gamma = parseArg<double>(argv[13]);
+  int seed = parseArg<int>(argv[14]);
+  double runTime = parseArg<double>(argv[15]);
+  std::string outFileStem = argv[16];
 
   int numCellTypes = 2;  // 0 = interior cell type (PSM) and 1 = exterior cell type (boundary)
   cell cell2D(NCELLS, 0.0, 0.0, seed, numCellTypes);
@@ -93,6 +95,7 @@ int main(int argc, char const* argv[]) {
   cell2D.setkc(kc);
   cell2D.setkecm(1.0);
   cell2D.setkoff(1.0);
+  cell2D.setgamma(gamma);
   cell2D.setB(B);
   if (t_stress > 0.0)
     cell2D.setMaxwellRelaxationTime(t_stress);  // t_stress is infinity unless this is uncommented
@@ -157,7 +160,9 @@ int main(int argc, char const* argv[]) {
   cell2D.vertexDampedMD(attractionSmoothActive, dt0, relaxTime, 0);
 
   // begin production run after all of the initialization and equilibration settles
-  cell2D.vertexDampedMD(attractionSmoothActive, dt0, runTime, 10.0);
+  // double v0_decay_rate = 0.002,    v0_min = 0.01;
+  double v0_decay_rate = 0, v0_min = 0;
+  cell2D.vertexDampedMD(attractionSmoothActive, dt0, runTime, 10.0, v0_decay_rate * v0_abp, v0_min);
   // cell2D.vertexDampedMD(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, 1.0);
   cout << "\n** Finished psm.cpp (2D transverse section of pre-somitic mesoderm), ending. " << endl;
 
