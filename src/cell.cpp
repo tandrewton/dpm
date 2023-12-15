@@ -322,8 +322,8 @@ void cell::shapeForces2D() {
     // surfaceTension is a matrix of coefficients (1.0, 0.0)
     //    and gamma * surfaceTension is a matrix of surface tensions
     if (surfaceTension.size() > 0) {
-      forceX = surfaceTension[gi] * lix / li - surfaceTension[im1[gi]] * lim1x / lim1;
-      forceY = surfaceTension[gi] * liy / li - surfaceTension[im1[gi]] * lim1y / lim1;
+      forceX = -surfaceTension[gi] * lix / li + surfaceTension[im1[gi]] * lim1x / lim1;
+      forceY = -surfaceTension[gi] * liy / li + surfaceTension[im1[gi]] * lim1y / lim1;
       F[NDIM * gi] += gamma * forceX;
       F[NDIM * gi + 1] += gamma * forceY;
 
