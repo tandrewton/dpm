@@ -1,9 +1,9 @@
 %pwd should give ~/Documents/YalePhd/projects/dpm
-%function drawCellSim(N, calA0, phi, ka, kb, att, att2, v0)
-close all; clear
-%isTestData = false; %uncomment if using function call to pipeline data
+function drawCellSim(N, calA0, phi, ka, kb, att, att2, v0, gamma)
+%close all; clear
+isTestData = false; %uncomment if using function call to pipeline data
 
-isTestData = true; %uncomment if using test data
+%isTestData = true; %uncomment if using test data
 %testDataIDs = ["a_0.0006_a2_0.0012_p_0.75_t_1"
 %"a_0.0006_a2_0.012_p_0.75_t_1"
 %"a_0.006_a2_0.0012_p_0.75_t_1"
@@ -14,7 +14,7 @@ isTestData = true; %uncomment if using test data
 %for i=1:length(testDataIDs)
 %    testDataID = testDataIDs(i);
 
-testDataID = "a_0.05_a2_0.05_p_0.8_t_1.0_gamma_0.01";
+%testDataID = "a_0.05_a2_0.05_p_0.8_t_1.0_gamma_0.01";
 %testDataID = "9";
 
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
@@ -37,12 +37,13 @@ kl = "1.0";
 Duration="200";
 FSKIP = 1;
 startSeed = 1;
-max_seed = 10;
+max_seed = 1;
 %att_range = 0.3;
 
 %if makeAMovie is 0, then plot every frame separately
-forImageAnalysis = ~isTestData;
+%forImageAnalysis = ~isTestData;
 %forImageAnalysis = true;
+forImageAnalysis=false;
 skipPlottingCells = false;
 if (forImageAnalysis)
     showCatchBonds = 0;
@@ -90,7 +91,7 @@ for seed = startSeed:max_seed
         %psm/psm_calA01.05_tm0.0_v00.1_t_abp50.0
         %k_off1000.0/_N40_dur1000_att0_start1_end1_sd1.tissue
         run_name =runType+"_calA0"+calA0+'_phi'+phi+'_tm'+t_maxwell...
-            +'_v0'+v0+'_t_abp'+t_abp+'_kl'+kl+'_ka'+ka+'_kb'+kb;
+            +'_v0'+v0+'_t_abp'+t_abp+'_gamma'+gamma+'_kl'+kl+'_ka'+ka+'_kb'+kb;
         pipeline_dir =  subdir_pipeline + run_name + "/";
         output_dir = subdir_output + run_name + "/";
         fileheader="_N"+N+"_dur"+Duration+"_att"+att+"_att2"+att2+"_start"+ ...
@@ -331,7 +332,7 @@ for seed = startSeed:max_seed
     writematrix(speeds, speedFile, 'WriteMode', 'append');
     fclose('all');
 end
-%end
+end
 %end
 
 function [cornerx, cornery] = patchConnectedRectanglesCorners(midptx, midpty, width)

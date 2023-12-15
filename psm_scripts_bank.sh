@@ -1,14 +1,18 @@
 module load dSQ
 #!/bin/bash
-numSeeds=10
+numSeeds=1
 calA0=(1.0)
 phi_arr=(0.8)
 kl=1.0
 ka_arr=(5.0)
 kb_arr=(0.01)
-att_arr=(0.005 0.01 0.015 0.02 0.025 0.03 0.035 0.04 0.045 0.05)
+#att_arr=(0.005 0.01 0.015 0.02 0.025 0.03 0.035 0.04 0.045 0.05)
+#att2_arr=(0.005 0.05)
+#v0_arr=(0.0 0.025 0.05 0.075 0.1 0.125 0.15 0.175 0.2)
+att_arr=(0.005 0.05)
 att2_arr=(0.005 0.05)
-v0_arr=(0.0 0.025 0.05 0.075 0.1 0.125 0.15 0.175 0.2)
+v0_arr=(0.0 0.05 0.1)
+gamma_arr=(0.0 0.01 0.1 1.0 10.0)
 rm joblist_psm_att_v0.txt
 for phi in ${phi_arr[@]}; do
   for ka in ${ka_arr[@]}; do
@@ -16,7 +20,9 @@ for phi in ${phi_arr[@]}; do
       for att in ${att_arr[@]}; do 
         for att2 in ${att2_arr[@]}; do
           for v0 in ${v0_arr[@]}; do
-            echo bash bash/cells/submit_psm.sh 40 30 $calA0 $phi $kl $ka $kb $att $att2 0 $v0 1.0 200 pi_ohern,day 0-12:00:00 $numSeeds 1 >> joblist_psm_att_v0.txt
+            for gamma in ${gamma_arr[@]}; do
+              echo bash bash/cells/submit_psm.sh 40 30 $calA0 $phi $kl $ka $kb $att $att2 0 $v0 1.0 $gamma 200 pi_ohern,day 0-12:00:00 $numSeeds 1 >> joblist_psm_att_v0.txt
+            done
           done
         done
       done
@@ -46,8 +52,9 @@ done
 
 close all; clear;
 calA0_arr = ["1.0"];
-att_arr = ["0.01" "0.02" "0.03" "0.04" "0.05"];
+%att_arr = ["0.01" "0.02" "0.03" "0.04" "0.05"];
 %att_arr = ["0.035" "0.04" "0.045" "0.05"];
+att_arr = ["0.005" "0.05"];
 att2_arr = ["0.005" "0.05"];
 phi_arr = ["0.8"];
 %ka_arr = ["1.0" "5.0" "20.0"];
@@ -55,20 +62,25 @@ ka_arr = ["5.0"];
 kb_arr = ["0.01"];
 %kb_arr = ["0.1"];
 %v0_arr = ["0.1"];
-v0_arr = ["0.0" "0.025" "0.05" "0.075" "0.1" "0.125" "0.15" "0.175" "0.2"];
+%v0_arr = ["0.0" "0.025" "0.05" "0.075" "0.1" "0.125" "0.15" "0.175" "0.2"];
+v0_arr = ["0.0" "0.05" "0.1"];
+gamma_arr = ["0.0" "0.01" "0.1" "1.0" "10.0"];
+
 
 for ii=1:length(calA0_arr)
-    for jj=1:length(phi_arr)
-        for kk=1:length(att_arr)
-          for ll=1:length(att2_arr)
-            for mm=1:length(v0_arr)
-              for nn=1:length(ka_arr)
-                for oo=1:length(kb_arr)
-                    drawCellSim("40", calA0_arr(ii), phi_arr(jj), ka_arr(nn), kb_arr(oo), att_arr(kk), att2_arr(ll), v0_arr(mm))
-                end
+  for jj=1:length(phi_arr)
+    for kk=1:length(att_arr)
+      for ll=1:length(att2_arr)
+        for mm=1:length(v0_arr)
+          for nn=1:length(ka_arr)
+            for oo=1:length(kb_arr)
+              for pp=1:length(gamma_arr)
+                drawCellSim("40", calA0_arr(ii), phi_arr(jj), ka_arr(nn), kb_arr(oo), att_arr(kk), att2_arr(ll), v0_arr(mm), gamma_arr(pp))
               end
             end
           end
         end
+      end
     end
+  end
 end

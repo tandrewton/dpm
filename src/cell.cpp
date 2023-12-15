@@ -507,6 +507,8 @@ void cell::attractiveForceUpdateWithCrawling() {
 void cell::attractiveSmoothForceUpdate() {
   resetForcesAndEnergy();
   shapeForces2D();
+  // clear surface tension coefficient matrix before updating in force call
+  std::fill(surfaceTension.begin(), surfaceTension.end(), 0.0);
   circuloLineAttractiveForces();
 }
 
