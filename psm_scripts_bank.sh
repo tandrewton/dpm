@@ -4,15 +4,12 @@ numSeeds=1
 calA0=(1.0)
 phi_arr=(0.8)
 kl=1.0
-ka_arr=(5.0)
-kb_arr=(0.01)
-#att_arr=(0.005 0.01 0.015 0.02 0.025 0.03 0.035 0.04 0.045 0.05)
-#att2_arr=(0.005 0.05)
-#v0_arr=(0.0 0.025 0.05 0.075 0.1 0.125 0.15 0.175 0.2)
+ka_arr=(1.0 5.0 10.0)
+kb_arr=(0.01 0.1)
 att_arr=(0.005 0.05)
 att2_arr=(0.005 0.05)
 v0_arr=(0.0 0.05 0.1)
-gamma_arr=(0.0 0.01 0.1 1.0 10.0)
+gamma_arr=(0 0.25 0.5 0.75 1.0 1.25 1.5 1.75 2.0)
 rm joblist_psm_att_v0.txt
 for phi in ${phi_arr[@]}; do
   for ka in ${ka_arr[@]}; do
@@ -21,7 +18,7 @@ for phi in ${phi_arr[@]}; do
         for att2 in ${att2_arr[@]}; do
           for v0 in ${v0_arr[@]}; do
             for gamma in ${gamma_arr[@]}; do
-              echo bash bash/cells/submit_psm.sh 40 30 $calA0 $phi $kl $ka $kb $att $att2 0 $v0 1.0 $gamma 200 pi_ohern,day 0-12:00:00 $numSeeds 1 >> joblist_psm_att_v0.txt
+              echo bash bash/cells/submit_psm.sh 20 30 $calA0 $phi $kl $ka $kb $att $att2 0 $v0 1.0 $gamma 100 pi_ohern,day 0-12:00:00 $numSeeds 1 >> joblist_psm_att_v0.txt
             done
           done
         done

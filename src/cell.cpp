@@ -322,8 +322,12 @@ void cell::shapeForces2D() {
     // surfaceTension is a matrix of coefficients (1.0, 0.0)
     //    and gamma * surfaceTension is a matrix of surface tensions
     if (surfaceTension.size() > 0) {
-      forceX = -surfaceTension[gi] * lix / li + surfaceTension[im1[gi]] * lim1x / lim1;
-      forceY = -surfaceTension[gi] * liy / li + surfaceTension[im1[gi]] * lim1y / lim1;
+      // if (surfaceTension[gi] > 0)
+      //   cout << "fli * dly = " << fli * dli << ", flim1 * dlim1 = " << flim1 * dlim1 << " surfaceTension[gi], [im1[gi]] = " << surfaceTension[gi] << ", " << surfaceTension[im1[gi]] << '\n';
+      flim1 = surfaceTension[im1[gi]] * (rho0 / l0im1);
+      fli = surfaceTension[gi] * (rho0 / l0i);
+      forceX = fli * lix / li - flim1 * lim1x / lim1;
+      forceY = fli * liy / li - flim1 * lim1y / lim1;
       F[NDIM * gi] += gamma * forceX;
       F[NDIM * gi + 1] += gamma * forceY;
 
@@ -2739,6 +2743,7 @@ void cell::initializeFourTransverseTissues(double phi0, double Ftol) {
 
 void cell::shrinkCellVertices(dpmMemFn forceCall, double dt0, double shrinkRatio) {
   // quasistatically shrink r by a factor of shrinkRatio while keeping l0 fixed. this will give more sliding room for laterally mobile adhesion
+  // shrinkRatio = r0/r so 2.0 means final r is half the original value
   int it = 0, itmax = 1e4;
   // local variables
   int t, i, relaxTime = 1;
