@@ -50,7 +50,7 @@ if (forImageAnalysis)
 else
     showCatchBonds = 0;
     showverts = 1;
-    showcirculoline = 1;
+    showcirculoline = 0;
     makeAMovie = 1;
 end
 
@@ -271,7 +271,7 @@ for seed = startSeed:max_seed
                 end
             end
             if showverts == 1
-                if (cellID(nn) == 0)
+                if (cellID(nn) == 0 || cellID(nn) == 1)
                     boundaryX = xtmp + vradtmp * cos(theta);
                     boundaryY = ytmp + vradtmp * sin(theta);
                     patch(boundaryX', boundaryY', clr, 'linestyle', 'none')                 
