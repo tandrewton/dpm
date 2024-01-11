@@ -66,6 +66,7 @@ while ~feof(fid)
     NCELLS = cell_count(nf);
     % get info about deformable particle
     for nn = 1:NCELLS
+        %disp("nn = "+nn)
         % get cell pos and asphericity
         cInfoTmp        = textscan(fid,'CINFO %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f',1);
         fline           = fgetl(fid);     % goes to next line in file
@@ -91,8 +92,14 @@ while ~feof(fid)
         %l0(nf,nn)       = sqrt(4.0*pi*calA0(nf,nn)*a0(nf,nn))/nv(nf,nn);
         
         % get vertex positions
+        %disp("NVTMP = "+NVTMP)
         vPosTmp = textscan(fid,'VINFO %*f %*f %f %f %f %f %f %f %f %f %f %f %f %f',NVTMP); 
-
+        %vPosTmp
+        if (length(vPosTmp{1}) ~= NVTMP)
+            disp("NVTMP = "+NVTMP)
+            disp("vPosTmp{1} = "+length(vPosTmp{1}))
+            error('vPosTmp size does not match requested size of NVTMP, error, check for illegal characters in text file');
+        end
 
         % note : %*f means ignore that entry.
         fline = fgetl(fid);     % goes to next line in file
@@ -125,6 +132,7 @@ while ~feof(fid)
     end
     % increment frame count
     nf = nf + 1;
+    %disp("nf = "+nf)
     
     % read in/discard trash information
     % NOTE: IF HOPPER GEOMETRY/NUMBER OF PARTICLES/ANYTHING ELSE CHANGES
@@ -158,6 +166,7 @@ while ~feof(fid)
         %phi(nf)         = phi0{1};
         phi0            = phi0{1};
         fline = fgetl(fid);
+        %disp("phi0 = "+phi0)
         
         % update box size - note for cellClass, there are now 4 outputs
         Ltmp            = textscan(fid,'BOXSZ %f %f %f %f',1);

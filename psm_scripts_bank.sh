@@ -7,9 +7,9 @@ kl=1.0
 ka_arr=(1.0 5.0 10.0)
 kb_arr=(0.01 0.1)
 att_arr=(0.005 0.05)
-att2_arr=(0.005 0.05)
+att2_arr=(0.05)
 v0_arr=(0.0 0.05 0.1)
-gamma_arr=(0 0.25 0.5 0.75 1.0 1.25 1.5 1.75 2.0)
+gamma_arr=(0 0.25 0.5 1.0 1.5 2.0)
 rm joblist_psm_att_v0.txt
 for phi in ${phi_arr[@]}; do
   for ka in ${ka_arr[@]}; do
@@ -49,20 +49,20 @@ done
 
 close all; clear;
 calA0_arr = ["1.0"];
-%att_arr = ["0.01" "0.02" "0.03" "0.04" "0.05"];
-%att_arr = ["0.035" "0.04" "0.045" "0.05"];
 att_arr = ["0.005" "0.05"];
-att2_arr = ["0.005" "0.05"];
+att2_arr = ["0.05"];
 phi_arr = ["0.8"];
-%ka_arr = ["1.0" "5.0" "20.0"];
-ka_arr = ["5.0"];
-kb_arr = ["0.01"];
-%kb_arr = ["0.1"];
-%v0_arr = ["0.1"];
-%v0_arr = ["0.0" "0.025" "0.05" "0.075" "0.1" "0.125" "0.15" "0.175" "0.2"];
+ka_arr = ["1.0" "5.0"];
+kb_arr = ["0.01" "0.1"];
 v0_arr = ["0.0" "0.05" "0.1"];
-%gamma_arr = ["0.0" "0.01" "0.1" "1.0" "10.0"];
-gamma_arr = ["0.1" "10.0"];
+gamma_arr = ["0" "0.25" "0.5" "1.0"];
+
+%att_arr = ["0.005"];
+%ka_arr = ["1.0"];
+%kb_arr = ["0.1"];
+%v0_arr = ["0.05"];
+%gamma_arr = ["1.0"];
+
 
 for ii=1:length(calA0_arr)
   for jj=1:length(phi_arr)
@@ -72,7 +72,7 @@ for ii=1:length(calA0_arr)
           for nn=1:length(ka_arr)
             for oo=1:length(kb_arr)
               for pp=1:length(gamma_arr)
-                drawCellSim("40", calA0_arr(ii), phi_arr(jj), ka_arr(nn), kb_arr(oo), att_arr(kk), att2_arr(ll), v0_arr(mm), gamma_arr(pp))
+                drawCellSim("20", calA0_arr(ii), phi_arr(jj), ka_arr(nn), kb_arr(oo), att_arr(kk), att2_arr(ll), v0_arr(mm), gamma_arr(pp))
               end
             end
           end
