@@ -8,7 +8,7 @@ ka_arr=(5.0)
 kb_arr=(0.1)
 att_arr=(0.05)
 att2_arr=(0.05)
-t_stress_arr=(0 0.1 1.0 10.0 100.0 1000.0)
+t_stress_arr=(100.0 1000.0 10000.0)
 v0_arr=(0.0 0.1)
 gamma_arr=(0 0.25 0.5)
 rm joblist_psm_att_v0.txt
@@ -20,7 +20,7 @@ for phi in ${phi_arr[@]}; do
           for t_stress in ${t_stress_arr[@]}; do
             for v0 in ${v0_arr[@]}; do
               for gamma in ${gamma_arr[@]}; do
-                echo bash bash/cells/submit_psm.sh 40 30 $calA0 $phi $kl $ka $kb $att $att2 $t_stress $v0 1.0 $gamma 100 pi_ohern,day 0-12:00:00 $numSeeds 1 >> joblist_psm_att_v0.txt
+                echo bash bash/cells/submit_psm.sh 20 30 $calA0 $phi $kl $ka $kb $att $att2 $t_stress $v0 1.0 $gamma 100 pi_ohern,day 0-12:00:00 $numSeeds 1 >> joblist_psm_att_v0.txt
               done
             done
           done
@@ -75,7 +75,7 @@ for ii=1:length(calA0_arr)
           for nn=1:length(ka_arr)
             for oo=1:length(kb_arr)
               for pp=1:length(gamma_arr)
-                drawCellSim("40, calA0_arr(ii), phi_arr(jj), ka_arr(nn), kb_arr(oo), att_arr(kk), att2_arr(ll), v0_arr(mm), gamma_arr(pp))
+                drawCellSim("20", calA0_arr(ii), phi_arr(jj), ka_arr(nn), kb_arr(oo), att_arr(kk), att2_arr(ll), v0_arr(mm), gamma_arr(pp))
               end
             end
           end

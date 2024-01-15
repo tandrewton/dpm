@@ -15,18 +15,21 @@ run command:
 att_arr=(0.05)
 att2_arr=(0.05)
 #v0=0.1
+t_stress_arr=(100.0 1000.0 10000.0)
 v0=0.0
 phi_arr=(0.8)
 tau_abp=1.0
-gamma_arr=(0 0.25 0.5 0.75 1.0 1.25 1.5 1.75 2.0)
+gamma_arr=(0 0.5)
 kl=1.0
-ka=(1.0 5.0 10.0)
+ka=(5.0)
 kb=0.1
 for att in ${att_arr[@]}; do
   for att2 in ${att2_arr[@]}; do
     for phi in ${phi_arr[@]}; do
-      for gamma in ${gamma_arr[@]}; do
-        echo "./main/cell/psm2D.o   16  30 1.0 $phi $kl $ka $kb $att $att2 0    $v0    $tau_abp  $gamma  1    100    testa_"$att"_a2_"$att2"_p_"$phi"_t_"$tau_abp"_gamma_"$gamma
+      for t_stress in ${t_stress_arr[@]}; do
+        for gamma in ${gamma_arr[@]}; do
+          echo "./main/cell/psm2D.o   20  30 1.0 $phi $kl $ka $kb $att $att2 $t_stress    $v0    $tau_abp  $gamma  1    100    testa_"$att"_a2_"$att2"_tm_"$t_stress"_p_"$phi"_t_"$tau_abp"_gamma_"$gamma
+        done
       done
     done
   done
@@ -157,6 +160,7 @@ int main(int argc, char const* argv[]) {
   cell2D.setl00();  // set l00 to be l0 before setting maxwell relaxation time
   cell2D.setMaxwellRelaxationTime(t_stress);
   cell2D.setActiveBrownianParameters(v0_abp, tau_abp);
+  cell2D.resizeNeighborLinkedList2D();
 
   cell2D.setgamma(gamma);
   cell2D.vertexDampedMD(attractionSmoothActive, dt0, relaxTime, 0);
