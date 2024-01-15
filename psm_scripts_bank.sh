@@ -52,13 +52,14 @@ done
 
 close all; clear;
 calA0_arr = ["1.0"];
-att_arr = ["0.005" "0.05"];
+att_arr = ["0.05"];
 att2_arr = ["0.05"];
 phi_arr = ["0.8"];
 %ka_arr = ["1.0" "5.0"];
 %kb_arr = ["0.01" "0.1"];
-v0_arr = ["0.0" "0.05" "0.1"];
+v0_arr = ["0.0" "0.1"];
 gamma_arr = ["0" "0.25" "0.5"];
+t_stress_arr = ["100.0" "1000.0" "10000.0"];
 
 %att_arr = ["0.05"];
 ka_arr = ["5.0"];
@@ -74,8 +75,10 @@ for ii=1:length(calA0_arr)
         for mm=1:length(v0_arr)
           for nn=1:length(ka_arr)
             for oo=1:length(kb_arr)
-              for pp=1:length(gamma_arr)
-                drawCellSim("20", calA0_arr(ii), phi_arr(jj), ka_arr(nn), kb_arr(oo), att_arr(kk), att2_arr(ll), v0_arr(mm), gamma_arr(pp))
+              for pp=1:length(t_stress_arr)
+                for qq=1:length(gamma_arr)
+                  drawCellSim("20", calA0_arr(ii), phi_arr(jj), ka_arr(nn), kb_arr(oo), att_arr(kk), att2_arr(ll), v0_arr(mm), t_stress_arr(pp), gamma_arr(qq))
+                end
               end
             end
           end

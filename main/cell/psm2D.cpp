@@ -12,8 +12,8 @@ Compilation command:
 g++ -O3 --std=c++11 -g -I src main/cell/psm2D.cpp src/dpm.cpp src/cell.cpp -o main/cell/psm2D.o
 run command:
 
-att_arr=(0.05)
-att2_arr=(0.05)
+att_arr=(0.001 0.05)
+att2_arr=(0.001 0.05)
 #v0=0.1
 t_stress_arr=(100.0 1000.0 10000.0)
 v0=0.0

@@ -133,22 +133,6 @@ void cell::maxwellRelaxationRestLengths(std::vector<double>& l, std::vector<int>
     cindices(ci, vi, i);
     if (std::find(viscoelasticCellTypes.begin(), viscoelasticCellTypes.end(), cellID[ci]) != viscoelasticCellTypes.end()) {
       // if cellID[ci] is a viscoelastic cell type, then integrate its preferred length according to viscoelastic equations of motion
-      /*li = l[i];
-      al0 = Fl0[i];  // make sure al0 and al0_old have different addresses
-      al0_old = al0;
-
-      // velocity verlet position update
-      l0[i] += vl0[i] * dt + al0_old * dt * dt / 2;
-
-      // force on l0. kl/tau is the effective mass of the preferred length spring
-      Fl0[i] = kl / maxwellRelaxationTime * (li - l0[i]);
-
-      // correction for velocity dependent force with damping
-      Fl0[i] = (Fl0[i] - B * (vl0[i] + al0_old * dt / 2)) / (1 + B * dt / 2);
-
-      // velocity verlet velocity update
-      vl0[i] += (al0_old + al0) * dt / 2;*/
-
       // overdamped integration of rest length relaxation
       vl0[i] = kl / maxwellRelaxationTime * (li - l0[i]);
       vl0[i] += kl / taus * (l00[i] - li);
@@ -274,10 +258,16 @@ void cell::shapeForces2D() {
 
     // -- Area force (comes from a cross product) only applies to cellID 0 = ordinary cells, not boundaries
     // letting both cellID = 0 and = 1 have area and bending forces. ignore the above comment for now.
-    // if (cellID[ci_real] == 0 || cellID[ci_real] == 1) {
-    if (cellID[ci_real] == 0) {
+    if (cellID[ci_real] == 0 || cellID[ci_real] == 1) {
+      // if (cellID[ci_real] == 0) {
       forceX = 0.5 * fa * (rim1y - rip1y);
       forceY = 0.5 * fa * (rip1x - rim1x);
+
+      if (cellID[ci_real] == 1) {
+        // boundary area force has ka effectively 1% of cell's ka, testing for now.
+        forceX /= 100;
+        forceY /= 100;
+      }
 
       F[NDIM * gi] += forceX;
       F[NDIM * gi + 1] += forceY;
