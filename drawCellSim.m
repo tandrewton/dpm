@@ -50,7 +50,7 @@ if (forImageAnalysis)
 else
     showCatchBonds = 0;
     showverts = 1;
-    showcirculoline = 0;
+    showcirculoline = 1;
     makeAMovie = 1;
 end
 

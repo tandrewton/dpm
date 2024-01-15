@@ -155,6 +155,7 @@ int main(int argc, char const* argv[]) {
   cell2D.shrinkCellVertices(attractiveSmoothForceUpdate, dt0, 2.0);
 
   cell2D.setl00();  // set l00 to be l0 before setting maxwell relaxation time
+  cell2D.setMaxwellRelaxationTime(t_stress);
   cell2D.setActiveBrownianParameters(v0_abp, tau_abp);
 
   cell2D.setgamma(gamma);
