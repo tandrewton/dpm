@@ -264,9 +264,9 @@ void cell::shapeForces2D() {
       forceY = 0.5 * fa * (rip1x - rim1x);
 
       if (cellID[ci_real] == 1) {
-        // boundary area force has ka effectively 1% of cell's ka, testing for now.
-        forceX /= 100;
-        forceY /= 100;
+        // boundary area force has ka effectively 100% of cell's ka, testing for now.
+        forceX /= 1;
+        forceY /= 1;
       }
 
       F[NDIM * gi] += forceX;
