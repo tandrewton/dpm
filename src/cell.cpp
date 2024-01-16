@@ -133,10 +133,12 @@ void cell::maxwellRelaxationRestLengths(std::vector<double>& l, std::vector<int>
     cindices(ci, vi, i);
     if (std::find(viscoelasticCellTypes.begin(), viscoelasticCellTypes.end(), cellID[ci]) != viscoelasticCellTypes.end()) {
       // if cellID[ci] is a viscoelastic cell type, then integrate its preferred length according to viscoelastic equations of motion
+      li = l[i];
       // overdamped integration of rest length relaxation
       vl0[i] = kl / maxwellRelaxationTime * (li - l0[i]);
       vl0[i] += kl / taus * (l00[i] - li);
       l0[i] += vl0[i] * dt;
+      // cout << "maxwell boundary evaluation: maxwellRelaxationTime, taus, li, l0[i], vl0[i] = " << maxwellRelaxationTime << '\t' << taus << '\t' << li << '\t' << l0[i] << '\t' << vl0[i] << '\n';
     }
   }
 }
@@ -258,8 +260,8 @@ void cell::shapeForces2D() {
 
     // -- Area force (comes from a cross product) only applies to cellID 0 = ordinary cells, not boundaries
     // letting both cellID = 0 and = 1 have area and bending forces. ignore the above comment for now.
-    if (cellID[ci_real] == 0 || cellID[ci_real] == 1) {
-      // if (cellID[ci_real] == 0) {
+    // if (cellID[ci_real] == 0 || cellID[ci_real] == 1) {
+    if (cellID[ci_real] == 0) {
       forceX = 0.5 * fa * (rim1y - rip1y);
       forceY = 0.5 * fa * (rip1x - rim1x);
 

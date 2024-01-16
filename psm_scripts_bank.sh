@@ -55,17 +55,12 @@ calA0_arr = ["1.0"];
 att_arr = ["0.05"];
 att2_arr = ["0.05"];
 phi_arr = ["0.8"];
-%ka_arr = ["1.0" "5.0"];
-%kb_arr = ["0.01" "0.1"];
 v0_arr = ["0.0"];
 gamma_arr = ["0" "0.25" "0.5"];
 t_stress_arr = ["100.0" "1000.0" "10000.0"];
-
-%att_arr = ["0.05"];
 ka_arr = ["5.0"];
 kb_arr = ["0.1"];
 %v0_arr = ["0.1"];
-%gamma_arr = ["0"];
 
 
 for ii=1:length(calA0_arr)
