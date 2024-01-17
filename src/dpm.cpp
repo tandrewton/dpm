@@ -2255,23 +2255,6 @@ void dpm::maxwellRelaxationRestLengths(std::vector<double>& l) {
   double li;
   for (int i = 0; i < l0.size(); i++) {
     li = l[i];
-    /*al0 = Fl0[i];  // make sure al0 and al0_old have different addresses
-    al0_old = al0;
-
-    // velocity verlet position updatem n
-    l0[i] += vl0[i] * dt + al0_old * dt * dt / 2;
-
-    // force on l0. tau is the effective mass of the preferred length spring
-    // Fl0[i] = kl / maxwellRelaxationTime * (li - l0[i] + li - l00[i]);
-    Fl0[i] = kl / maxwellRelaxationTime * (li - l0[i]);
-    // Fl0[i] += kl / taus * (l00[i] - l0[i]);
-    Fl0[i] += kl / taus * (l00[i] - li);
-
-    // correction for velocity dependent force with damping
-    Fl0[i] = (Fl0[i] - B * (vl0[i] + al0_old * dt / 2)) / (1 + B * dt / 2);
-
-    // velocity verlet velocity update
-    vl0[i] += (al0_old + al0) * dt / 2;*/
 
     // overdamped integration of rest length relaxation
     vl0[i] = kl / maxwellRelaxationTime * (li - l0[i]);
