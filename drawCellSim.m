@@ -150,8 +150,9 @@ for seed = startSeed:max_seed
           delete(movieName);
         end
         moviestr = movieName;
-        vobj = VideoWriter(moviestr, 'MPEG-4');
-        if isunix
+        if ~isunix
+            vobj = VideoWriter(moviestr, 'MPEG-4');
+        else
             vobj = VideoWriter(moviestr, 'Motion JPEG AVI');
         end
         vobj.Quality = 100;
