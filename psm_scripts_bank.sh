@@ -86,6 +86,19 @@ end
 # can I make movies on the cluster?
 # turn this into a bash script and use dsq to submit on cluster. 
 
+#!/bin/bash
+#SBATCH --job-name myjob
+#SBATCH --cpus-per-task 4
+#SBATCH --mem 18G
+#SBATCH -t 8:00:00
+
+module load MATLAB/2023a
+# assuming you have your_script.m in the current directory
+matlab -batch "drawCellSim("40", "1.0", "0.8", "5.0", "0.1", "0.001", "0.001", "0.1", "10000.0", "0")"
+
+# if using MATLAB older than R2019a
+# matlab -nojvm -nodisplay -nosplash < your_script.m
+
 Name=psm_calA01.0_phi0.8_tm1000.0_v00.1_t_abp1.0_gamma0.25_kl1.0_ka5.0_kb0.1_N40_dur100_att0.001_att20.01_start1_end1 
 Name=psm_calA01.0_phi0.8_tm1000.0_v00.1_t_abp1.0_gamma0_kl1.0_ka5.0_kb0.1_N40_dur100_att0.05_att20.001_start1_end1
 

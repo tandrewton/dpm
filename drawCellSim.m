@@ -16,8 +16,10 @@ isTestData = false; %uncomment if using function call to pipeline data
 
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
 addpath('C:\Users\atata\projects\dpm\bash')
+addpath('/home/at965/bash')
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
 addpath('C:\Users\atata\projects\dpm\matlab_funcs')
+addpath('/home/at965/matlab_funcs')
 set(0,'DefaultFigureWindowStyle','docked')
 
 %psm/psm_calA01.05_t_maxwell25.0_v00.05_t_abp1.0_sm1
