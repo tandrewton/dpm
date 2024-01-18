@@ -155,7 +155,7 @@ for seed = startSeed:max_seed
         if ~isunix
             vobj = VideoWriter(moviestr, 'MPEG-4');
         else
-            vobj = VideoWriter(moviestr, 'Motion JPEG AVI');
+            vobj = VideoWriter(moviestr, 'Uncompressed AVI');
         end
         vobj.Quality = 100;
         vobj.FrameRate = 5;

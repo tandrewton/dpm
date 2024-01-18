@@ -11,7 +11,7 @@ att2_arr=(0.001 0.05)
 t_stress_arr=(1.0 10000.0)
 v0_arr=(0.0 0.1)
 gamma_arr=(0 0.25 0.5)
-rm joblist_psm_att_v0.txt
+rm joblist_psm.txt
 for phi in ${phi_arr[@]}; do
   for ka in ${ka_arr[@]}; do
     for kb in ${kb_arr[@]}; do
@@ -20,7 +20,7 @@ for phi in ${phi_arr[@]}; do
           for t_stress in ${t_stress_arr[@]}; do
             for v0 in ${v0_arr[@]}; do
               for gamma in ${gamma_arr[@]}; do
-                echo bash bash/cells/submit_psm.sh 40 30 $calA0 $phi $kl $ka $kb $att $att2 $t_stress $v0 1.0 $gamma 200 pi_ohern,day 0-12:00:00 $numSeeds 1 >> joblist_psm_att_v0.txt
+                echo bash bash/cells/submit_psm.sh 40 30 $calA0 $phi $kl $ka $kb $att $att2 $t_stress $v0 1.0 $gamma 200 pi_ohern,day 0-12:00:00 $numSeeds 1 >> joblist_psm.txt
               done
             done
           done
@@ -30,9 +30,28 @@ for phi in ${phi_arr[@]}; do
   done
 done
 
-dsq --job-file joblist_psm_att_v0.txt   --mem-per-cpu 4g -t 1:00:00 --mail-type NONE --submit --partition scavenge --suppress-stats-file  -o /dev/null
+dsq --job-file joblist_psm.txt   --mem-per-cpu 4g -t 1:00:00 --mail-type NONE --submit --partition scavenge --suppress-stats-file  -o /dev/null
 
-bash bash/cells/submit_psm.sh 40 20 1.05 0.9 0 0.0 0.05 50.0 1.0 10.0 1000 pi_ohern,day 0-4:00:00 1 1
+rm joblist_psm_drawCellSim.txt
+for phi in ${phi_arr[@]}; do
+  for ka in ${ka_arr[@]}; do
+    for kb in ${kb_arr[@]}; do
+      for att in ${att_arr[@]}; do 
+        for att2 in ${att2_arr[@]}; do
+          for t_stress in ${t_stress_arr[@]}; do
+            for v0 in ${v0_arr[@]}; do
+              for gamma in ${gamma_arr[@]}; do
+                echo "module load MATLAB/2023a; matlab -batch \"drawCellSim(\\\"40\\\", \\\"$calA0\\\", \\\"$phi\\\", \\\"$ka\\\", \\\"$kb\\\", \\\"$att\\\", \\\"$att2\\\", \\\"$v0\\\", \\\"$t_stress\\\", \\\"$gamma\\\")\"" >> joblist_psm_drawCellSim.txt
+              done
+            done
+          done
+        done
+      done
+    done
+  done
+done
+
+dsq --job-file joblist_psm_drawCellSim.txt --mem-per-cpu 4g -t 1:00:00 --mail-type NONE --submit --partition scavenge --suppress-stats-file  -o /dev/null
 
 rsync -rav --inplace --progress at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm /mnt/c/Users/atata/projects/dpm/pipeline/cells/. 
 
