@@ -141,6 +141,9 @@ for seed = startSeed:max_seed
 
     if makeAMovie && ~skipPlottingCells
         movieName = runType+fileheader_short+'.mp4';
+        if isunix
+            movieName = runType+fileheader_short+'.avi';
+        end
         exist(movieName, 'file')
         runType+fileheader+movieName
         if exist(movieName, 'file')==2
@@ -148,6 +151,9 @@ for seed = startSeed:max_seed
         end
         moviestr = movieName;
         vobj = VideoWriter(moviestr, 'MPEG-4');
+        if isunix
+            vobj = VideoWriter(moviestr, 'Motion JPEG AVI');
+        end
         vobj.Quality = 100;
         vobj.FrameRate = 5;
         open(vobj);

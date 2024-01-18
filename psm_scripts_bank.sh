@@ -99,6 +99,19 @@ matlab -batch "drawCellSim("40", "1.0", "0.8", "5.0", "0.1", "0.001", "0.001", "
 # if using MATLAB older than R2019a
 # matlab -nojvm -nodisplay -nosplash < your_script.m
 
+
+>> profiles = VideoWriter.getProfiles()
+  Summary of installed VideoWriter profiles:
+
+          Name                                     Description
+    ---------------- -----------------------------------------------------------------------
+    Archival         Video file compression with JPEG 2000 codec with lossless mode enabled.
+    Grayscale AVI    An AVI file with Grayscale Video Data
+    Indexed AVI      An AVI file with Indexed Video Data
+    Motion JPEG 2000 Video file compression with JPEG 2000 codec.
+    Motion JPEG AVI  An AVI file with Motion JPEG compression
+    Uncompressed AVI An AVI file with uncompressed RGB24 video data
+
 Name=psm_calA01.0_phi0.8_tm1000.0_v00.1_t_abp1.0_gamma0.25_kl1.0_ka5.0_kb0.1_N40_dur100_att0.001_att20.01_start1_end1 
 Name=psm_calA01.0_phi0.8_tm1000.0_v00.1_t_abp1.0_gamma0_kl1.0_ka5.0_kb0.1_N40_dur100_att0.05_att20.001_start1_end1
 
