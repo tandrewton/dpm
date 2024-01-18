@@ -57,7 +57,7 @@ att2_arr = ["0.001" "0.05"];
 phi_arr = ["0.8"];
 v0_arr = ["0.0" "0.1"];
 gamma_arr = ["0" "0.25" "0.5"];
-t_stress_arr = ["1.0" "100.0" "10000.0" ];
+t_stress_arr = ["1.0" "10000.0" ];
 ka_arr = ["5.0"];
 kb_arr = ["0.1"];
 %v0_arr = ["0.1"];
@@ -83,10 +83,13 @@ for ii=1:length(calA0_arr)
   end
 end
 
+# can I make movies on the cluster?
+# turn this into a bash script and use dsq to submit on cluster. 
+
 Name=psm_calA01.0_phi0.8_tm1000.0_v00.1_t_abp1.0_gamma0.25_kl1.0_ka5.0_kb0.1_N40_dur100_att0.001_att20.01_start1_end1 
 Name=psm_calA01.0_phi0.8_tm1000.0_v00.1_t_abp1.0_gamma0_kl1.0_ka5.0_kb0.1_N40_dur100_att0.05_att20.001_start1_end1
 
-drawCellSim("40", "1.0", "0.8", "5.0", "0.1", "0.001", "0.01", "0.1", "1000.0", "0")
+drawCellSim("40", "1.0", "0.8", "5.0", "0.1", "0.001", "0.001", "0.1", "10000.0", "0")
 drawCellSim("40", "1.0", "0.8", "5.0", "0.1", "0.001", "0.01", "0.1", "1000.0", "0.25")
 drawCellSim("40", "1.0", "0.8", "5.0", "0.1", "0.001", "0.01", "0.1", "1000.0", "0.5")
 

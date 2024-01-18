@@ -31,16 +31,16 @@ runType = "psm";
 t_abp = "1.0";
 kl = "1.0";
 %att="0.1";
-Duration="100";
+Duration="200";
 FSKIP = 1;
 startSeed = 1;
-max_seed = 1;
+max_seed = 10;
 %att_range = 0.3;
 
 %if makeAMovie is 0, then plot every frame separately
-%forImageAnalysis = ~isTestData;
+forImageAnalysis = ~isTestData;
 %forImageAnalysis = true;
-forImageAnalysis=false;
+%forImageAnalysis=false;
 skipPlottingCells = false;
 if (forImageAnalysis)
     showCatchBonds = 0;
@@ -62,9 +62,15 @@ speedConversionFactor = lengthscale / timescale; % micron/min
 %PC directory
 %pipeline is the location of data generated during simulations
 subdir_pipeline = "pipeline/cells/"+runType+"/";
-
 %output is location of results of this postprocessing
 subdir_output = "output/cells/"+runType+"/";
+
+if isunix
+    % for cluster runs
+    subdir_pipeline = "/gpfs/gibbs/pi/ohern/at965/dpm/"+runType+"/";
+    subdir_output = "/gpfs/gibbs/pi/ohern/at965/dpm/"+runType+"/output/";
+end
+
 mkdir(subdir_pipeline);
 mkdir(subdir_output);
 txt='test';
@@ -271,7 +277,7 @@ for seed = startSeed:max_seed
                 end
             end
             if showverts == 1
-                if (cellID(nn) == 0 || cellID(nn) == 1)
+                if (cellID(nn) == 0)
                     boundaryX = xtmp + vradtmp * cos(theta);
                     boundaryY = ytmp + vradtmp * sin(theta);
                     patch(boundaryX', boundaryY', clr, 'linestyle', 'none')                 
