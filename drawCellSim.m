@@ -20,7 +20,9 @@ addpath('/home/at965/dpm/bash')
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/matlab_funcs')
 addpath('C:\Users\atata\projects\dpm\matlab_funcs')
 addpath('/home/at965/dpm/matlab_funcs')
-set(0,'DefaultFigureWindowStyle','docked')
+if ~isunix
+    set(0,'DefaultFigureWindowStyle','docked')
+end
 
 %psm/psm_calA01.05_t_maxwell25.0_v00.05_t_abp1.0_sm1
 % /_NCELLS10_dur100_att0.1_startsd1_endsd1_sd1.tissue
