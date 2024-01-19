@@ -154,10 +154,10 @@ for seed = startSeed:max_seed
         moviestr = movieName;
         if ~isunix
             vobj = VideoWriter(moviestr, 'MPEG-4');
+            vobj.Quality = 100;
         else
             vobj = VideoWriter(moviestr, 'Uncompressed AVI');
         end
-        vobj.Quality = 100;
         vobj.FrameRate = 5;
         open(vobj);
     end

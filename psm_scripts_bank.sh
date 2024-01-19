@@ -51,9 +51,15 @@ for phi in ${phi_arr[@]}; do
   done
 done
 
-dsq --job-file joblist_psm_drawCellSim.txt --mem-per-cpu 4g -t 1:00:00 --mail-type NONE --submit --partition scavenge --suppress-stats-file  -o /dev/null
+dsq --job-file joblist_psm_drawCellSim.txt --mem-per-cpu 4g -t 1:00:00 --mail-type ALL --submit --partition scavenge --suppress-stats-file 
 
+#dsq --job-file joblist_psm_drawCellSim.txt --mem-per-cpu 4g -t 1:00:00 --mail-type ALL --submit --partition scavenge --suppress-stats-file  -o /dev/null
+
+# send files from mccleary file system to local filesystems
 rsync -rav --inplace --progress at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm /mnt/c/Users/atata/projects/dpm/pipeline/cells/. 
+
+# send files from mccleary output folder (where I store postprocessed files that I ran on the cluster) to local
+rsync -rav --inplace --progress at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm/output/ /mnt/c/Users/atata/projects/dpm/output/cells/psm/.
 
 rsync -rav --inplace --progress at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm /Users/AndrewTon/Documents/YalePhD/projects/dpm/pipeline/cells/. 
 
