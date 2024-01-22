@@ -12,7 +12,7 @@ Compilation command:
 g++ -O3 --std=c++11 -g -I src main/cell/psm2D.cpp src/dpm.cpp src/cell.cpp -o main/cell/psm2D.o
 run command:
 
-att_arr=(0.001 0.05 0.25)
+att_arr=(0.001 0.05 0.1 0.2 0.4)
 att2_arr=(0.0)
 #v0=0.1
 t_stress_arr=(10000.0)
@@ -60,7 +60,7 @@ const double boxLengthScale = 2.5;  // neighbor list box size in units of initia
 const double dt0 = 0.02;  // initial magnitude of time step in units of MD time
 const double Ptol = 1e-5;
 const double Ftol = 1e-4;
-const double att_range = 0.3;
+const double att_range = 0.5;
 
 int main(int argc, char const* argv[]) {
   // local variables to be read in

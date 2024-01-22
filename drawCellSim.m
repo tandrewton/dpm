@@ -4,7 +4,7 @@
 %isTestData = false; %uncomment if using function call to pipeline data
 
 isTestData = true; %uncomment if using test data
-testDataIDs = ["a_0.05_a2_0.001_tm_10000.0_p_0.6_t_1.0_gamma_0"];
+testDataIDs = ["a_0.001_a2_0.0_tm_10000.0_p_0.6_t_1.0_gamma_0"];
 %"a_0.05_a2_0.05_p_0.8_t_1.0_gamma_1.0"
 %"a_0.05_a2_0.05_p_0.8_t_1.0_gamma_10.0"];
 
