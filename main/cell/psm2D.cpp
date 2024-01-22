@@ -12,14 +12,14 @@ Compilation command:
 g++ -O3 --std=c++11 -g -I src main/cell/psm2D.cpp src/dpm.cpp src/cell.cpp -o main/cell/psm2D.o
 run command:
 
-att_arr=(0.05)
-att2_arr=(0.05)
+att_arr=(0.001 0.05 0.25)
+att2_arr=(0.0)
 #v0=0.1
-t_stress_arr=(10.0 10000.0)
-v0=0.0
-phi_arr=(0.8)
+t_stress_arr=(10000.0)
+v0=0.1
+phi_arr=(0.6)
 tau_abp=1.0
-gamma_arr=(0 0.5)
+gamma_arr=(0)
 kl=1.0
 ka=(5.0)
 kb=0.1
@@ -28,7 +28,7 @@ for att in ${att_arr[@]}; do
     for phi in ${phi_arr[@]}; do
       for t_stress in ${t_stress_arr[@]}; do
         for gamma in ${gamma_arr[@]}; do
-          echo "./main/cell/psm2D.o   12  24 1.0 $phi $kl $ka $kb $att $att2 $t_stress    $v0    $tau_abp  $gamma  1    100    testa_"$att"_a2_"$att2"_tm_"$t_stress"_p_"$phi"_t_"$tau_abp"_gamma_"$gamma
+          echo "./main/cell/psm2D.o   36  24 1.0 $phi $kl $ka $kb $att $att2 $t_stress    $v0    $tau_abp  $gamma  1    200    testa_"$att"_a2_"$att2"_tm_"$t_stress"_p_"$phi"_t_"$tau_abp"_gamma_"$gamma
         done
       done
     done
@@ -167,7 +167,7 @@ int main(int argc, char const* argv[]) {
 
   // begin production run after all of the initialization and equilibration settles
   // double v0_decay_rate = 0.002,    v0_min = 0.01;
-  double v0_decay_rate = 0.002, v0_min = 0.01;
+  double v0_decay_rate = 0.0, v0_min = 0.01;
   cell2D.vertexDampedMD(attractionSmoothActive, dt0, runTime, 5.0, v0_decay_rate * v0_abp, v0_min);
   // cell2D.vertexDampedMD(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, 1.0);
   cout << "\n** Finished psm.cpp (2D transverse section of pre-somitic mesoderm), ending. " << endl;

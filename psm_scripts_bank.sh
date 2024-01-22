@@ -9,8 +9,8 @@ kb_arr=(0.1)
 att_arr=(0.001 0.05)
 att2_arr=(0.001 0.05)
 t_stress_arr=(1.0 10000.0)
-v0_arr=(0.0 0.1)
-gamma_arr=(0 0.25 0.5)
+v0_arr=(0.1)
+gamma_arr=(0 0.5)
 rm joblist_psm.txt
 for phi in ${phi_arr[@]}; do
   for ka in ${ka_arr[@]}; do
@@ -51,9 +51,9 @@ for phi in ${phi_arr[@]}; do
   done
 done
 
-dsq --job-file joblist_psm_drawCellSim.txt --mem-per-cpu 4g -t 1:00:00 --mail-type ALL --submit --partition scavenge --suppress-stats-file 
+dsq --job-file joblist_psm_drawCellSim.txt --mem-per-cpu 8g -t 1:00:00 --mail-type NONE --submit --partition scavenge --suppress-stats-file -o /dev/null
 
-#dsq --job-file joblist_psm_drawCellSim.txt --mem-per-cpu 4g -t 1:00:00 --mail-type ALL --submit --partition scavenge --suppress-stats-file  -o /dev/null
+#dsq --job-file joblist_psm_drawCellSim.txt --mem-per-cpu 4g -t 1:00:00 --mail-type NONE --submit --partition scavenge --suppress-stats-file  -o /dev/null
 
 # send files from mccleary file system to local filesystems
 rsync -rav --inplace --progress at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm /mnt/c/Users/atata/projects/dpm/pipeline/cells/. 
@@ -80,7 +80,7 @@ calA0_arr = ["1.0"];
 att_arr = ["0.001" "0.05"];
 att2_arr = ["0.001" "0.05"];
 phi_arr = ["0.8"];
-v0_arr = ["0.0" "0.1"];
+v0_arr = ["0.1"];
 gamma_arr = ["0" "0.25" "0.5"];
 t_stress_arr = ["1.0" "10000.0" ];
 ka_arr = ["5.0"];

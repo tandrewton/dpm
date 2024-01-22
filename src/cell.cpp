@@ -3161,7 +3161,7 @@ void cell::vertexDampedMD(dpmMemFn forceCall, double dt0, double duration, doubl
         if (cellContactOut.is_open()) {
           std::vector<std::vector<int>> cij_matrix(NCELLS, std::vector<int>(NCELLS, 0));
           cout << "before calculateMinimizedContacts\n";
-          // std::vector<int> cij_minimized = calculateMinimizedContacts(forceCall, 1e-4, dt0, xStream, xMinStream, cijStream, cijMinStream);
+          std::vector<int> cij_minimized = calculateMinimizedContacts(forceCall, 1e-4, dt0, xStream, xMinStream, cijStream, cijMinStream);
           for (int ci = 0; ci < NCELLS; ci++) {
             double cx, cy;
             com2D(ci, cx, cy);

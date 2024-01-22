@@ -37,9 +37,29 @@ def calculateNeighborExchanges(contactMatrix):
     return diff
 
 
-def process_data(att, v0, att2, seed, fileheader):
+def filter_df(df, att_arr, att2_arr, v0_arr, tm_arr, gamma_arr):
+    # Convert arrays to float and filter the DataFrame
+    float_att_arr = [float(i) for i in att_arr]
+    float_att2_arr = [float(i) for i in att2_arr]
+    float_v0_arr = [float(i) for i in v0_arr]
+    float_tm_arr = [float(i) for i in tm_arr]
+    float_gamma_arr = [float(i) for i in gamma_arr]
+
+    df_filtered = df[
+        df["att"].isin(float_att_arr)
+        & df["att2"].isin(float_att2_arr)
+        & df["v0"].isin(float_v0_arr)
+        & df["tm"].isin(float_tm_arr)
+        & df["gamma"].isin(float_gamma_arr)
+    ]
+
+    return df_filtered
+
+
+def process_data(att, v0, att2, tm, gamma, seed, fileheader):
     # fileheader = "test6"
     outputFileheader = "output" + fileheader[8:]
+    speedFile = outputFileheader + "speed.csv"
     fileExtensions = [
         ".xStream",
         ".xMinStream",
@@ -55,9 +75,11 @@ def process_data(att, v0, att2, seed, fileheader):
     # cellMinPos = np.loadtxt(filenames[1])
     # cij = readCSV(filenames[2])  # cell-cell contact network
     # contact of minimized coordinates
-    # cijMin = readCSV(filenames[3])
+    print(filenames[3])
+    cijMin = readCSV(filenames[3])
     # cellCOM = np.loadtxt(filenames[4])
     cellShape = np.loadtxt(filenames[5])
+    cellSpeed = np.loadtxt(speedFile)
 
     # extract header information from cellPos and then remove header
     # NCELLS = int(cellPos[0][0])
@@ -72,42 +94,63 @@ def process_data(att, v0, att2, seed, fileheader):
         "att": float(att),
         "v0": float(v0),
         "att2": float(att2),
+        "tm": float(tm),
+        "gamma": float(gamma),
         "seed": seed,
     }
     df_shape = pd.DataFrame(data_shape)
 
-    # minNE = calculateNeighborExchanges(cijMin)
-    minNE = 0
+    minNE = calculateNeighborExchanges(cijMin)
+    # minNE = 0
     data_NE = {
         "minNE": minNE,
         "att": float(att),
         "v0": float(v0),
         "att2": float(att2),
+        "tm": float(tm),
+        "gamma": float(gamma),
         "seed": seed,
     }
-    # df_NE = pd.DataFrame(data_NE)
+    df_NE = pd.DataFrame(data_NE)
 
+    speed = 0
+    data_speed = {
+        "speed": cellSpeed,
+        "att": float(att),
+        "v0": float(v0),
+        "att2": float(att2),
+        "tm": float(tm),
+        "gamma": float(gamma),
+        "seed": seed,
+    }
+    df_speed = pd.DataFrame(data_speed)
+
+    return df_shape, df_NE, df_speed
     # return df_shape, df_NE
-    return df_shape
+    # return df_shape
 
 
 def main():
     calA0 = "1.0"
-    att_arr = ["0.01", "0.02", "0.03", "0.04", "0.05"]
+    att_arr = ["0.001", "0.05"]
     kl = "1.0"
     ka = "5.0"
-    kb = "0.01"
-    v0_arr = ["0.0", "0.025", "0.05", "0.075", "0.1", "0.125", "0.15", "0.175", "0.2"]
-    # att2_arr = ["0.005", "0.05"]
-    att2_arr = ["0.005"]
+    kb = "0.1"
+    v0_arr = ["0.0", "0.1"]
+    att2_arr = ["0.001", "0.05"]
+    tm_arr = ["1.0", "10000.0"]
+    gamma_arr = ["0", "0.25", "0.5"]
     t_abp = "1.0"
     phi = "0.8"
     seeds = 10
 
     # psm_calA01.15_phi0.8_tm0_v00.1_t_abp1.0/_N40_dur200_att0.06_att20.012_start1_end10_sd10
 
+    # speed file: C:\Users\atata\projects\dpm\output\cells\psm\psm_calA01.0_phi0.8_tm1.0_v00.0_t_abp1.0_gamma0.5_kl1.0_ka5.0_kb0.1\_N40_dur100_att0.001_att20.001_start1_end1_sd1speed.csv
+
     df_shapes = pd.DataFrame()
     df_NEs = pd.DataFrame()
+    df_speeds = pd.DataFrame()
     # load packing fraction data into dataframe
     df_phis = pd.read_csv(
         f"C:\\Users\\atata\\projects\\psm_extracellular_calculation\\windowedPhiDataFrame_ka{ka}_kb{kb}.txt"
@@ -117,36 +160,51 @@ def main():
     for att in att_arr:
         for v0 in v0_arr:
             for att2 in att2_arr:
-                for seed in range(1, seeds + 1):
-                    fileheader = f"pipeline\\cells\\psm\\psm_calA0{calA0}_phi{phi}_tm0_v0{v0}_t_abp{t_abp}_kl{kl}_ka{ka}_kb{kb}\\_N40_dur200_att{att}_att2{att2}_start1_end{seeds}_sd{seed}"
-                    # df_shape, df_NE = process_data(att, v0, att2, seed, fileheader)
-                    df_shape = process_data(att, v0, att2, seed, fileheader)
-                    df_shapes = pd.concat([df_shapes, df_shape])
-                    # df_NEs = pd.concat([df_NEs, df_NE])
+                for tm in tm_arr:
+                    for gamma in gamma_arr:
+                        for seed in range(1, seeds + 1):
+                            folderStr = f"psm_calA0{calA0}_phi{phi}_tm{tm}_v0{v0}_t_abp{t_abp}_gamma{gamma}_kl{kl}_ka{ka}_kb{kb}\\_N40_dur200_att{att}_att2{att2}_start1_end{seeds}_sd{seed}"
+                            fileheader = f"pipeline\\cells\\psm\\" + folderStr
 
-    # drop df_phis rows that don't match att in att_arr, v0 in v0_arr, att2 in att2_arr
-    df_phis = df_phis[df_phis["att"].isin([float(i) for i in att_arr])]
-    df_phis = df_phis[df_phis["att2"].isin([float(i) for i in att2_arr])]
-    df_phis = df_phis[df_phis["v0"].isin([float(i) for i in v0_arr])]
+                            # df_shape, df_NE = process_data(att, v0, att2, seed, fileheader)
+                            df_shape, df_NE, df_speed = process_data(
+                                att, v0, att2, tm, gamma, seed, fileheader
+                            )
+                            df_shapes = pd.concat([df_shapes, df_shape])
+                            df_NEs = pd.concat([df_NEs, df_NE])
+                            df_speeds = pd.concat([df_speeds, df_speed])
 
-    df_phis_grouped_means = df_phis.groupby(["att", "att2", "v0"]).mean().reset_index()
+                            # speedFile = (
+                            #    f"output\\cells\\psm\\" + folderStr + f"speed.csv"
+                            # )
+
+    # ensure df is restricted to the parameter combinations within the different parameter arrays specified here
+    # necessary because the data file may have parameters I'm not interested in
+    df_phis = filter_df(df_phis, att_arr, att2_arr, v0_arr, tm_arr, gamma_arr)
+    df_phis_grouped_means = (
+        df_phis.groupby(["att", "att2", "v0", "tm", "gamma"]).mean().reset_index()
+    )
     # Plot all curves on the same axes using hue
     plt.figure(figsize=(10, 6))  # Adjust the figure size as needed
     sns.lineplot(data=df_phis_grouped_means, x="v0", y="phi", marker="o", hue="att")
 
-    # drop df_shapes rows that don't match att in att_arr, v0 in v0_arr, att2 in att2_arr
-    df_shapes = df_shapes[df_shapes["att"].isin([float(i) for i in att_arr])]
-    df_shapes = df_shapes[df_shapes["att2"].isin([float(i) for i in att2_arr])]
-    df_shapes = df_shapes[df_shapes["v0"].isin([float(i) for i in v0_arr])]
-
+    df_shapes = filter_df(df_shapes, att_arr, att2_arr, v0_arr, tm_arr, gamma_arr)
     df_shapes_grouped_means = (
-        df_shapes.groupby(["att", "att2", "v0"]).mean().reset_index()
+        df_shapes.groupby(["att", "att2", "v0", "tm", "gamma"]).mean().reset_index()
     )
     # Plot all curves on the same axes using hue
     plt.figure(figsize=(10, 6))  # Adjust the figure size as needed
     sns.lineplot(
         data=df_shapes_grouped_means, x="v0", y="shapeParameter", marker="o", hue="att"
     )
+
+    df_speeds = filter_df(df_speeds, att_arr, att2_arr, v0_arr, tm_arr, gamma_arr)
+    df_speeds_grouped_means = (
+        df_speeds.groupby(["att", "att2", "v0", "tm", "gamma"]).mean().reset_index()
+    )
+    # Plot all curves on the same axes using hue
+    plt.figure(figsize=(10, 6))  # Adjust the figure size as needed
+    sns.lineplot(data=df_speeds_grouped_means, x="v0", y="speed", marker="o", hue="att")
 
     # Perform grouping on dataframes in order to make summary plots.
 
@@ -155,29 +213,92 @@ def main():
     #  then join the strings into one string so it can be read through seaborn
     # group the dataframe by combo parameters, then average over matching seeds and return a dataframe
 
-    # df_NEs["(att, att2, v0)"] = df_NEs.apply(lambda row: ', '.join(
+    # df_NEs["(att, att2, v0, tm, gamma)"] = df_NEs.apply(lambda row: ', '.join(
     #    [str(row['att']), str(row['att2']), str(row['v0'])]), axis=1)
-    # df_NEs_means = df_NEs.groupby(["(att, att2, v0)", "seed"]).mean().reset_index()
+    # df_NEs_means = df_NEs.groupby(["(att, att2, v0, tm, gamma)", "seed"]).mean().reset_index()
 
-    df_shapes["(att, att2, v0)"] = df_shapes.apply(
-        lambda row: ", ".join([str(row["att"]), str(row["att2"]), str(row["v0"])]),
+    df_shapes["(att, att2, v0, tm, gamma)"] = df_shapes.apply(
+        lambda row: ", ".join(
+            [
+                str(row["att"]),
+                str(row["att2"]),
+                str(row["v0"]),
+                str(row["tm"]),
+                str(row["gamma"]),
+            ]
+        ),
         axis=1,
     )
     df_shapes_means = (
-        df_shapes.groupby(["(att, att2, v0)", "seed"]).mean().reset_index()
+        df_shapes.groupby(["(att, att2, v0, tm, gamma)", "seed"]).mean().reset_index()
     )
 
-    df_phis["(att, att2, v0)"] = df_phis.apply(
-        lambda row: ", ".join([str(row["att"]), str(row["att2"]), str(row["v0"])]),
+    df_NEs["(att, att2, v0, tm, gamma)"] = df_speeds.apply(
+        lambda row: ", ".join(
+            [
+                str(row["att"]),
+                str(row["att2"]),
+                str(row["v0"]),
+                str(row["tm"]),
+                str(row["gamma"]),
+            ]
+        ),
         axis=1,
     )
-    df_phis_means = df_phis.groupby(["(att, att2, v0)", "seed"]).mean().reset_index()
+    df_NEs_means = (
+        df_NEs.groupby(["(att, att2, v0, tm, gamma)", "seed"]).mean().reset_index()
+    )
+
+    df_phis["(att, att2, v0, tm, gamma)"] = df_phis.apply(
+        lambda row: ", ".join(
+            [
+                str(row["att"]),
+                str(row["att2"]),
+                str(row["v0"]),
+                str(row["tm"]),
+                str(row["gamma"]),
+            ]
+        ),
+        axis=1,
+    )
+    df_phis_means = (
+        df_phis.groupby(["(att, att2, v0, tm, gamma)", "seed"]).mean().reset_index()
+    )
+
+    df_speeds["(att, att2, v0, tm, gamma)"] = df_speeds.apply(
+        lambda row: ", ".join(
+            [
+                str(row["att"]),
+                str(row["att2"]),
+                str(row["v0"]),
+                str(row["tm"]),
+                str(row["gamma"]),
+            ]
+        ),
+        axis=1,
+    )
+    df_speeds_means = (
+        df_speeds.groupby(["(att, att2, v0, tm, gamma)", "seed"]).mean().reset_index()
+    )
 
     # make boxplots of the mean values for each seed for each parameter combo
     # sns_NEs = sns.catplot(df_NEs_means, x="(att, att2, v0)", y="minNE", kind="box", color="skyblue", height = 8, aspect=2)
     sns_shapes = sns.catplot(
         df_shapes_means,
-        x="(att, att2, v0)",
+        x="(att, att2, v0, tm, gamma)",
+        y="shapeParameter",
+        kind="box",
+        color="skyblue",
+        height=8,
+        aspect=2,
+    )
+
+    plt.xticks(rotation=45, ha="right")
+    plt.tight_layout()
+
+    sns_NEs = sns.catplot(
+        df_NEs_means,
+        x="(att, att2, v0, tm, gamma)",
         y="shapeParameter",
         kind="box",
         color="skyblue",
@@ -190,8 +311,21 @@ def main():
 
     sns_phis = sns.catplot(
         df_phis_means,
-        x="(att, att2, v0)",
+        x="(att, att2, v0, tm, gamma)",
         y="phi",
+        kind="box",
+        color="skyblue",
+        height=8,
+        aspect=2,
+    )
+
+    plt.xticks(rotation=45, ha="right")
+    plt.tight_layout()
+
+    sns_speeds = sns.catplot(
+        df_speeds_means,
+        x="(att, att2, v0, tm, gamma)",
+        y="speed",
         kind="box",
         color="skyblue",
         height=8,
@@ -203,14 +337,16 @@ def main():
 
     # sns_NEs.figure.savefig(f"sns_NEs_{v0_arr[0]}.png")
     sns_shapes.figure.savefig(f"sns_shapes_{v0_arr[0]}.png")
+    sns_NEs.figure.savefig(f"sns_NEs_{v0_arr[0]}.png")
     sns_phis.figure.savefig(f"sns_phis_{v0_arr[0]}.png")
+    sns_speeds.figure.savefig(f"sns_speeds_{v0_arr[0]}.png")
 
     # make boxplots for each parameter combo, pooling observations from each seed
-    # sns.catplot(df_NEs, x="(att, att2, v0)",
+    # sns.catplot(df_NEs, x="(att, att2, v0, tm, gamma)",
     #            y="minNE", kind="box", color="skyblue", height=8, aspect=2)
     sns.catplot(
         df_shapes,
-        x="(att, att2, v0)",
+        x="(att, att2, v0, tm, gamma)",
         y="shapeParameter",
         kind="box",
         color="skyblue",
@@ -222,9 +358,35 @@ def main():
     plt.tight_layout()
 
     sns.catplot(
+        df_NEs,
+        x="(att, att2, v0, tm, gamma)",
+        y="NE rate",
+        kind="box",
+        color="skyblue",
+        height=8,
+        aspect=2,
+    )
+
+    plt.xticks(rotation=45, ha="right")
+    plt.tight_layout()
+
+    sns.catplot(
         df_phis,
-        x="(att, att2, v0)",
+        x="(att, att2, v0, tm, gamma)",
         y="phi",
+        kind="box",
+        color="skyblue",
+        height=8,
+        aspect=2,
+    )
+
+    plt.xticks(rotation=45, ha="right")
+    plt.tight_layout()
+
+    sns.catplot(
+        df_speeds,
+        x="(att, att2, v0, tm, gamma)",
+        y="speed",
         kind="box",
         color="skyblue",
         height=8,
