@@ -13,7 +13,7 @@ fid = fopen(fstr);
 % read in sim details from first frame
 NCELLS      = textscan(fid,'NUMCL %f',1,'HeaderLines',1);   NCELLS = NCELLS{1};
 phi0        = textscan(fid,'PACKF %f',1);                   phi0 = phi0{1};
-fline       = fgetl(fid);
+fline       = fgetl(fid);1
 Ltmp        = textscan(fid,'BOXSZ %f %f %f %f',1);
 fline       = fgetl(fid);
 stresstmp   = textscan(fid,'STRSS %f %f %f',1);

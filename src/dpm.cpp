@@ -1511,6 +1511,7 @@ void dpm::sortNeighborLinkedList2D() {
       boxid += floor(xtmp / lb[d]) * sbtmp;
       if (boxid < -2147483600) {
         cout << "boxid = " << boxid << ", xtmp = " << xtmp << ", lb[d] = " << lb[d] << ", d = " << d << ", gi = " << gi << ", floor(xtmp / lb[d]) = " << floor(xtmp / lb[d]) << ", list.size = " << list.size() << '\n';
+        cout << "x[NDIM * gi + d (before modification)] = " << x[NDIM * gi + d] << ", x.size() = " << x.size() << '\n';
         cout << "pbc[d] = " << pbc[d] << ", L[d] = " << L[d] << '\n';
 
         for (int k = 0; k < NVTOT; k++) {
@@ -2805,6 +2806,7 @@ void dpm::vertexFIRE2D(dpmMemFn forceCall, double Ftol, double dt0) {
   int npPos, npNeg, fireit;
 
   // set dt based on geometric parameters
+  // NOTE: if calling this in a different program, know that it will modify dt! make sure to reset dt if not intended.
   setdt(dt0);
 
   // Initialize FIRE variables
@@ -2833,8 +2835,9 @@ void dpm::vertexFIRE2D(dpmMemFn forceCall, double Ftol, double dt0) {
   while (fcheck > Ftol && fireit < itmax) {
     // compute P
     P = 0.0;
-    for (i = 0; i < vertDOF; i++)
+    for (i = 0; i < vertDOF; i++) {
       P += v[i] * F[i];
+    }
 
     // print to console
     if (fireit % NSKIP == 0) {

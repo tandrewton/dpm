@@ -3160,8 +3160,7 @@ void cell::vertexDampedMD(dpmMemFn forceCall, double dt0, double duration, doubl
         }
         if (cellContactOut.is_open()) {
           std::vector<std::vector<int>> cij_matrix(NCELLS, std::vector<int>(NCELLS, 0));
-          cout << "before calculateMinimizedContacts\n";
-          // std::vector<int> cij_minimized = calculateMinimizedContacts(forceCall, 1e-4, dt0, xStream, xMinStream, cijStream, cijMinStream);
+          std::vector<int> cij_minimized = calculateMinimizedContacts(forceCall, 1e-4, dt0, xStream, xMinStream, cijStream, cijMinStream);
           for (int ci = 0; ci < NCELLS; ci++) {
             double cx, cy;
             com2D(ci, cx, cy);
@@ -3169,8 +3168,8 @@ void cell::vertexDampedMD(dpmMemFn forceCall, double dt0, double duration, doubl
           }
           for (int cj = 0; cj < NCELLS; cj++) {
             for (int ci = cj + 1; ci < NCELLS; ci++) {
-              // int element = cij_minimized[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2];
-              int element = 0;
+              int element = cij_minimized[NCELLS * cj + ci - (cj + 1) * (cj + 2) / 2];
+              // int element = 0;
               cij_matrix[ci][cj] = element;
             }
           }
@@ -3209,9 +3208,11 @@ std::vector<int> cell::calculateMinimizedContacts(dpmMemFn forceCall, double Fto
   std::vector<double> v_original = v;
   std::vector<int> cij_original = cij;
   std::vector<int> cij_new;
+  double dt_original = dt;
   // energy minimize, which will update cij and x
   toggleBrownianActivity(false);
   // note: the forcecall corresponding to vertexFIRE should not use activity
+  // also note that vertexFIRE2D changes dt, so we change that back
   vertexFIRE2D(forceCall, Ftol, dt0);
   toggleBrownianActivity(true);
   cij_new = cij;
@@ -3220,6 +3221,7 @@ std::vector<int> cell::calculateMinimizedContacts(dpmMemFn forceCall, double Fto
     xStream << x_original[i] << '\t' << x_original[i + 1] << '\t' << r[i / 2] << '\n';
     xMinStream << x[i] << '\t' << x[i + 1] << '\t' << r[i / 2] << '\n';
   }
+
   std::vector<std::vector<int>> cij_original_matrix(NCELLS, std::vector<int>(NCELLS, 0));
   std::vector<std::vector<int>> cij_new_matrix(NCELLS, std::vector<int>(NCELLS, 0));
   for (int cj = 0; cj < NCELLS; cj++) {
@@ -3237,10 +3239,12 @@ std::vector<int> cell::calculateMinimizedContacts(dpmMemFn forceCall, double Fto
   F = F_original;
   v = v_original;
   cij = cij_original;
+  dt = dt_original;
   cerr << "printed minimized coordinates!\n";
   /*for (int i = 0; i < x.size(); i += 2) {
     cout << x[i] << '\t' << x[i + 1] << '\n';
   }*/
+
   return cij_new;
 }
 

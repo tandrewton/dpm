@@ -28,7 +28,7 @@ for att in ${att_arr[@]}; do
     for phi in ${phi_arr[@]}; do
       for t_stress in ${t_stress_arr[@]}; do
         for gamma in ${gamma_arr[@]}; do
-          echo "./main/cell/psm2D.o   36  24 1.0 $phi $kl $ka $kb $att $att2 $t_stress    $v0    $tau_abp  $gamma  1    200    testa_"$att"_a2_"$att2"_tm_"$t_stress"_p_"$phi"_t_"$tau_abp"_gamma_"$gamma
+          echo "./main/cell/psm2D.o   12  24 1.0 $phi $kl $ka $kb $att $att2 $t_stress    $v0    $tau_abp  $gamma  1    200    testa_"$att"_a2_"$att2"_tm_"$t_stress"_p_"$phi"_t_"$tau_abp"_gamma_"$gamma
         done
       done
     done
@@ -151,7 +151,7 @@ int main(int argc, char const* argv[]) {
   cell2D.resizeNeighborLinkedList2D();
 
   double shortRelaxTime = 10.0;
-  double relaxTime = 100.0;
+  double relaxTime = 10.0;
   cell2D.setka(ka);
   cell2D.vertexDampedMD(attractiveSmoothForceUpdate, dt0, shortRelaxTime, 0);
 
@@ -168,6 +168,7 @@ int main(int argc, char const* argv[]) {
   // begin production run after all of the initialization and equilibration settles
   // double v0_decay_rate = 0.002,    v0_min = 0.01;
   double v0_decay_rate = 0.0, v0_min = 0.01;
+  cout << "before vertexDampedMD final!\n";
   cell2D.vertexDampedMD(attractionSmoothActive, dt0, runTime, 5.0, v0_decay_rate * v0_abp, v0_min);
   // cell2D.vertexDampedMD(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, 1.0);
   cout << "\n** Finished psm.cpp (2D transverse section of pre-somitic mesoderm), ending. " << endl;
