@@ -64,7 +64,7 @@ const double att_range = 0.5;
 
 int main(int argc, char const* argv[]) {
   // local variables to be read in
-  double B = 1.0, phi0 = 0.75;
+  double B = 1.0, phi0 = 0.7;
   // double ka = 23.6;
   // double ka = 10.0;
   //  Read command-line arguments into corresponding variables

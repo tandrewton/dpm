@@ -1,16 +1,16 @@
 module load dSQ
 #!/bin/bash
 numSeeds=1
-calA0=(1.0)
-phi_arr=(0.8)
+calA0=(1.0 1.01 1.05 1.10)
+phi_arr=(0.6)
 kl=1.0
-ka_arr=(5.0)
+ka_arr=(1.0 5.0)
 kb_arr=(0.1)
-att_arr=(0.001 0.05 0.1 0.2 0.4)
+att_arr=(0.001 0.05 0.1 0.2 0.3)
 att2_arr=(0.0)
 #t_stress_arr=(1.0 10000.0)
 t_stress_arr=(10000.0)
-v0_arr=(0.1)
+v0_arr=(0.01 0.05 0.1)
 #gamma_arr=(0 0.5)
 gamma_arr=(0)
 rm joblist_psm.txt
@@ -79,13 +79,13 @@ done
 
 close all; clear;
 calA0_arr = ["1.0"];
-att_arr = ["0.001" "0.05"];
-att2_arr = ["0.001" "0.05"];
-phi_arr = ["0.8"];
+att_arr = ["0.001" "0.05" "0.1" "0.2" "0.4"];
+att2_arr = ["0.0"];
+phi_arr = ["0.6"];
 v0_arr = ["0.1"];
-gamma_arr = ["0" "0.25" "0.5"];
-t_stress_arr = ["1.0" "10000.0" ];
-ka_arr = ["5.0"];
+gamma_arr = ["0"];
+t_stress_arr = ["10000.0" ];
+ka_arr = ["1.0" "5.0"];
 kb_arr = ["0.1"];
 %v0_arr = ["0.1"];
 
@@ -110,37 +110,6 @@ for ii=1:length(calA0_arr)
   end
 end
 
-# can I make movies on the cluster?
-# turn this into a bash script and use dsq to submit on cluster. 
-
-#!/bin/bash
-#SBATCH --job-name myjob
-#SBATCH --cpus-per-task 4
-#SBATCH --mem 18G
-#SBATCH -t 8:00:00
-
-module load MATLAB/2023a
-# assuming you have your_script.m in the current directory
-matlab -batch "drawCellSim("40", "1.0", "0.8", "5.0", "0.1", "0.001", "0.001", "0.1", "10000.0", "0")"
-
-# if using MATLAB older than R2019a
-# matlab -nojvm -nodisplay -nosplash < your_script.m
-
-
->> profiles = VideoWriter.getProfiles()
-  Summary of installed VideoWriter profiles:
-
-          Name                                     Description
-    ---------------- -----------------------------------------------------------------------
-    Archival         Video file compression with JPEG 2000 codec with lossless mode enabled.
-    Grayscale AVI    An AVI file with Grayscale Video Data
-    Indexed AVI      An AVI file with Indexed Video Data
-    Motion JPEG 2000 Video file compression with JPEG 2000 codec.
-    Motion JPEG AVI  An AVI file with Motion JPEG compression
-    Uncompressed AVI An AVI file with uncompressed RGB24 video data
-
-Name=psm_calA01.0_phi0.8_tm1000.0_v00.1_t_abp1.0_gamma0.25_kl1.0_ka5.0_kb0.1_N40_dur100_att0.001_att20.01_start1_end1 
-Name=psm_calA01.0_phi0.8_tm1000.0_v00.1_t_abp1.0_gamma0_kl1.0_ka5.0_kb0.1_N40_dur100_att0.05_att20.001_start1_end1
 
 drawCellSim("40", "1.0", "0.8", "5.0", "0.1", "0.001", "0.001", "0.1", "10000.0", "0")
 drawCellSim("40", "1.0", "0.8", "5.0", "0.1", "0.001", "0.01", "0.1", "1000.0", "0.25")

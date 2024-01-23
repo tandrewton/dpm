@@ -1,15 +1,15 @@
 %pwd should give ~/Documents/YalePhd/projects/dpm
-%function drawCellSim(N, calA0, phi, ka, kb, att, att2, v0, t_maxwell, gamma)
+function drawCellSim(N, calA0, phi, ka, kb, att, att2, v0, t_maxwell, gamma)
 %close all; clear
-%isTestData = false; %uncomment if using function call to pipeline data
+isTestData = false; %uncomment if using function call to pipeline data
 
-isTestData = true; %uncomment if using test data
-testDataIDs = ["a_0.001_a2_0.0_tm_10000.0_p_0.6_t_1.0_gamma_0"];
+%isTestData = true; %uncomment if using test data
+%testDataIDs = ["a_0.001_a2_0.0_tm_10000.0_p_0.6_t_1.0_gamma_0"];
 %"a_0.05_a2_0.05_p_0.8_t_1.0_gamma_1.0"
 %"a_0.05_a2_0.05_p_0.8_t_1.0_gamma_10.0"];
 
-for i=1:length(testDataIDs)
-    testDataID = testDataIDs(i);
+%for i=1:length(testDataIDs)
+%    testDataID = testDataIDs(i);
 
 %testDataID = "a_0.05_a2_0.05_p_0.8_t_1.0_gamma_0.01";
 %testDataID = "9";
@@ -38,13 +38,13 @@ kl = "1.0";
 Duration="200";
 FSKIP = 1;
 startSeed = 1;
-max_seed = 10;
+max_seed = 1;
 %att_range = 0.3;
 
 %if makeAMovie is 0, then plot every frame separately
-forImageAnalysis = ~isTestData;
+%forImageAnalysis = ~isTestData;
 %forImageAnalysis = true;
-%forImageAnalysis=false;
+forImageAnalysis=false;
 skipPlottingCells = false;
 if (forImageAnalysis)
     showCatchBonds = 0;
@@ -211,9 +211,10 @@ for seed = startSeed:max_seed
             continue
         end
 
-        if ~makeAMovie
-            fnum = fnum+1;
-        end
+        % uncomment to have frames print each frame to different figure numbers
+        %if ~makeAMovie
+        %    fnum = fnum+1;
+        %end
         figure(fnum), clf, hold on, axis off;
         fprintf('printing frame ff = %d/%d\n',ff,FEND);
 
