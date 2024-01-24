@@ -80,7 +80,7 @@ for a in ${att_arr[@]}; do
 done
 
 close all; clear;
-calA0_arr = ["1.0" "1.05" "1.10" "1.15"];
+calA0_arr = ["1.0"];
 att_arr = ["0.001" "0.05" "0.1"];
 att2_arr = ["0.0"];
 phi_arr = ["0.6"];

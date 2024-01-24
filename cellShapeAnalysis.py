@@ -132,21 +132,23 @@ def process_data(att, v0, att2, tm, gamma, seed, fileheader):
 
 def main():
     calA0 = "1.0"
-    att_arr = ["0.001", "0.05"]
+    att_arr = ["0.001", "0.05", "0.1"]
     kl = "1.0"
     ka = "5.0"
     kb = "0.1"
-    v0_arr = ["0.0", "0.1"]
-    att2_arr = ["0.001", "0.05"]
-    tm_arr = ["1.0", "10000.0"]
-    gamma_arr = ["0", "0.25", "0.5"]
+    v0_arr = ["0.01", "0.05", "0.1"]
+    att2_arr = ["0.0"]
+    tm_arr = ["10000.0"]
+    gamma_arr = ["0"]
     t_abp = "1.0"
-    phi = "0.8"
-    seeds = 10
+    phi = "0.6"
+    seeds = 1
 
     # psm_calA01.15_phi0.8_tm0_v00.1_t_abp1.0/_N40_dur200_att0.06_att20.012_start1_end10_sd10
 
     # speed file: C:\Users\atata\projects\dpm\output\cells\psm\psm_calA01.0_phi0.8_tm1.0_v00.0_t_abp1.0_gamma0.5_kl1.0_ka5.0_kb0.1\_N40_dur100_att0.001_att20.001_start1_end1_sd1speed.csv
+
+    # psm_calA01.0_phi0.6_tm10000.0_v00.05_t_abp1.0_gamma0_kl1.0_ka5.0_kb0.1
 
     df_shapes = pd.DataFrame()
     df_NEs = pd.DataFrame()

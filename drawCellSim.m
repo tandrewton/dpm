@@ -42,9 +42,9 @@ max_seed = 1;
 %att_range = 0.3;
 
 %if makeAMovie is 0, then plot every frame separately
-%forImageAnalysis = ~isTestData;
+forImageAnalysis = ~isTestData;
 %forImageAnalysis = true;
-forImageAnalysis=false;
+%forImageAnalysis=false;
 skipPlottingCells = false;
 if (forImageAnalysis)
     showCatchBonds = 0;
