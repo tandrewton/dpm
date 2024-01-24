@@ -60,7 +60,7 @@ const double boxLengthScale = 2.5;  // neighbor list box size in units of initia
 const double dt0 = 0.02;  // initial magnitude of time step in units of MD time
 const double Ptol = 1e-5;
 const double Ftol = 1e-4;
-const double att_range = 0.5;
+const double att_range = 0.15;
 
 int main(int argc, char const* argv[]) {
   // local variables to be read in
@@ -151,7 +151,7 @@ int main(int argc, char const* argv[]) {
   cell2D.resizeNeighborLinkedList2D();
 
   double shortRelaxTime = 10.0;
-  double relaxTime = 10.0;
+  double relaxTime = 100.0;
   cell2D.setka(ka);
   cell2D.vertexDampedMD(attractiveSmoothForceUpdate, dt0, shortRelaxTime, 0);
 
