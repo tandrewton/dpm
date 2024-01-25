@@ -57,7 +57,8 @@ def filter_df(df, att_arr, att2_arr, v0_arr, tm_arr, gamma_arr):
 
 
 def process_data(att, v0, att2, tm, gamma, seed, fileheader):
-    # fileheader = "test6"
+    # for a given simulation (corresponding to a single coordinate in parameter space, and a single seed value)
+    #  process the data corresponding to that simulation
     outputFileheader = "output" + fileheader[8:]
     speedFile = outputFileheader + "speed.csv"
     fileExtensions = [
@@ -100,7 +101,8 @@ def process_data(att, v0, att2, tm, gamma, seed, fileheader):
     }
     df_shape = pd.DataFrame(data_shape)
 
-    minNE = calculateNeighborExchanges(cijMin)
+    minNE = np.mean(calculateNeighborExchanges(cijMin))
+
     # minNE = 0
     data_NE = {
         "minNE": minNE,
@@ -111,9 +113,8 @@ def process_data(att, v0, att2, tm, gamma, seed, fileheader):
         "gamma": float(gamma),
         "seed": seed,
     }
-    df_NE = pd.DataFrame(data_NE)
+    df_NE = pd.DataFrame([data_NE])
 
-    speed = 0
     data_speed = {
         "speed": cellSpeed,
         "att": float(att),
@@ -142,6 +143,9 @@ def main():
     gamma_arr = ["0"]
     t_abp = "1.0"
     phi = "0.6"
+    duration = "300"
+    NCELLS = 40
+    timeBetweenFrames = 3
     seeds = 1
 
     # psm_calA01.15_phi0.8_tm0_v00.1_t_abp1.0/_N40_dur200_att0.06_att20.012_start1_end10_sd10
@@ -155,7 +159,7 @@ def main():
     df_speeds = pd.DataFrame()
     # load packing fraction data into dataframe
     df_phis = pd.read_csv(
-        f"C:\\Users\\atata\\projects\\psm_extracellular_calculation\\windowedPhiDataFrame_ka{ka}_kb{kb}.txt"
+        f"C:\\Users\\atata\\projects\\psm_extracellular_calculation\\windowedPhiDataFrame_calA{calA0}.txt"
     )
 
     # load shape and neighbor exchange data into dataframes
@@ -165,14 +169,17 @@ def main():
                 for tm in tm_arr:
                     for gamma in gamma_arr:
                         for seed in range(1, seeds + 1):
-                            folderStr = f"psm_calA0{calA0}_phi{phi}_tm{tm}_v0{v0}_t_abp{t_abp}_gamma{gamma}_kl{kl}_ka{ka}_kb{kb}\\_N40_dur200_att{att}_att2{att2}_start1_end{seeds}_sd{seed}"
+                            folderStr = f"psm_calA0{calA0}_phi{phi}_tm{tm}_v0{v0}_t_abp{t_abp}_gamma{gamma}_kl{kl}_ka{ka}_kb{kb}\\_N40_dur{duration}_att{att}_att2{att2}_start1_end{seeds}_sd{seed}"
                             fileheader = f"pipeline\\cells\\psm\\" + folderStr
 
                             # df_shape, df_NE = process_data(att, v0, att2, seed, fileheader)
                             df_shape, df_NE, df_speed = process_data(
                                 att, v0, att2, tm, gamma, seed, fileheader
                             )
+
                             df_shapes = pd.concat([df_shapes, df_shape])
+                            df_NE["minNE"] = df_NE["minNE"] / NCELLS / timeBetweenFrames
+
                             df_NEs = pd.concat([df_NEs, df_NE])
                             df_speeds = pd.concat([df_speeds, df_speed])
 
@@ -235,7 +242,9 @@ def main():
         df_shapes.groupby(["(att, att2, v0, tm, gamma)", "seed"]).mean().reset_index()
     )
 
-    df_NEs["(att, att2, v0, tm, gamma)"] = df_speeds.apply(
+    debugpy.breakpoint()
+
+    df_NEs["(att, att2, v0, tm, gamma)"] = df_NEs.apply(
         lambda row: ", ".join(
             [
                 str(row["att"]),
@@ -301,7 +310,7 @@ def main():
     sns_NEs = sns.catplot(
         df_NEs_means,
         x="(att, att2, v0, tm, gamma)",
-        y="shapeParameter",
+        y="minNE",
         kind="box",
         color="skyblue",
         height=8,
@@ -362,7 +371,7 @@ def main():
     sns.catplot(
         df_NEs,
         x="(att, att2, v0, tm, gamma)",
-        y="NE rate",
+        y="minNE",
         kind="box",
         color="skyblue",
         height=8,
