@@ -1,12 +1,12 @@
 module load dSQ
 #!/bin/bash
 numSeeds=1
-calA0_arr=(1.0 1.05 1.10 1.15)
+calA0_arr=(1.0)
 phi_arr=(0.6)
 kl=1.0
-ka_arr=(5.0)
-kb_arr=(0.1)
-att_arr=(0.001 0.01 0.02 0.05 0.1)
+ka_arr=(2.0 5.0)
+kb_arr=(0.01 0.05 0.1)
+att_arr=(0.001 0.01 0.02 0.05)
 att2_arr=(0.0)
 #t_stress_arr=(1.0 10000.0)
 t_stress_arr=(10000.0)
