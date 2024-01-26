@@ -151,7 +151,7 @@ int main(int argc, char const* argv[]) {
   cell2D.resizeNeighborLinkedList2D();
 
   double shortRelaxTime = 10.0;
-  double relaxTime = 10.0;
+  double relaxTime = 100.0;
   cell2D.setka(ka);
   cell2D.vertexDampedMD(attractiveSmoothForceUpdate, dt0, shortRelaxTime, 0);
 
@@ -167,7 +167,7 @@ int main(int argc, char const* argv[]) {
 
   // begin production run after all of the initialization and equilibration settles
   // double v0_decay_rate = 0.002,    v0_min = 0.01;
-  double v0_decay_rate = 0.0, v0_min = 0.01;
+  double v0_decay_rate = 0.02, v0_min = 0.001;
   cout << "before vertexDampedMD final!\n";
   cell2D.vertexDampedMD(attractionSmoothActive, dt0, runTime, 5.0, v0_decay_rate * v0_abp, v0_min);
   // cell2D.vertexDampedMD(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, 1.0);
