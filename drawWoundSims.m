@@ -42,7 +42,7 @@ FSKIP = 1;
 etaStr = " ";
 startSeed = 1;
 max_seed = 25;
-no_plots = 1;
+no_plots = 0;
 makeAMovie = 0; %if makeAMovie is 0, then plot every frame separately and dont save a movie object
 %plotCells = makeAMovie; % if plotCells is 0, then skip plotting altogether
 plotCells = 1;
@@ -71,7 +71,7 @@ showVoid = 0;
 showVoidBlack = 0; % print void in larger black circles to see easier
 showVoidLite = 1; % print void, but in a way that works with printConfiguration on its own
 showCornersOrEdges = 0;
-showPurseString = 0;
+showPurseString = 1;
 showProtrusion = 1;
 showShapeHistogram = 0;
  
@@ -529,10 +529,15 @@ for seed = startSeed+9:max_seed
                     end
                 end
                 if showPurseString
+                    if (ff > size(purseLocations))
+                        continue
+                    end
                     scatter(purseLocations{ff}(1:2:end,1),...
                         purseLocations{ff}(1:2:end,2), 20, 'blue', 'o','MarkerFaceColor','blue');
-                    scatter(purseLocations{ff}(2:2:end,1),...
-                        purseLocations{ff}(2:2:end,2), 10, 'red', 'x');
+                    %scatter(purseLocations{ff}(2:2:end,1),...
+                    %    purseLocations{ff}(2:2:end,2), 10, 'red', 'x');
+                    scatter(purseLocations{ff}(1:2:end,1),...
+                        purseLocations{ff}(1:2:end,2), 10, 'red', 'x');
                     purseLocs = purseLocations{ff};
                     purseLength = length(purseLocs(1:2:end,1));
                     for i=1:purseLength
@@ -633,4 +638,5 @@ for seed = startSeed+9:max_seed
             legend
         end
     end
+    "hi"
 end

@@ -4,13 +4,13 @@ numSeeds=1
 calA0_arr=(1.0)
 phi_arr=(0.6)
 kl=1.0
-ka_arr=(2.0 5.0)
-kb_arr=(0.01 0.05 0.1)
+ka_arr=(5.0)
+kb_arr=(0.01)
 att_arr=(0.001 0.01 0.02 0.05)
-att2_arr=(0.0)
+att2_arr=(0.0 0.001 0.01 0.05)
 #t_stress_arr=(1.0 10000.0)
 t_stress_arr=(10000.0)
-v0_arr=(0.01 0.05 0.1)
+v0_arr=(0.1)
 #gamma_arr=(0 0.5)
 gamma_arr=(0)
 rm joblist_psm.txt
@@ -23,7 +23,7 @@ for calA0 in ${calA0_arr[@]}; do
             for t_stress in ${t_stress_arr[@]}; do
               for v0 in ${v0_arr[@]}; do
                 for gamma in ${gamma_arr[@]}; do
-                  echo bash bash/cells/submit_psm.sh 40 30 $calA0 $phi $kl $ka $kb $att $att2 $t_stress $v0 1.0 $gamma 200 pi_ohern,day 0-12:00:00 $numSeeds 1 >> joblist_psm.txt
+                  echo bash bash/cells/submit_psm.sh 40 30 $calA0 $phi $kl $ka $kb $att $att2 $t_stress $v0 1.0 $gamma 500 pi_ohern,day 0-12:00:00 $numSeeds 1 >> joblist_psm.txt
                 done
               done
             done
@@ -80,15 +80,15 @@ for a in ${att_arr[@]}; do
 done
 
 close all; clear;
-calA0_arr = ["1.0" "1.05" "1.10" "1.15"];
-att_arr = ["0.001" "0.01" "0.02" "0.05" "0.1"];
+calA0_arr = ["1.0"];
+att_arr = ["0.001" "0.01" "0.02" "0.05"];
 att2_arr = ["0.0"];
 phi_arr = ["0.6"];
 v0_arr = ["0.01" "0.05" "0.1"];
 gamma_arr = ["0"];
 t_stress_arr = ["10000.0"];
-ka_arr = ["5.0"];
-kb_arr = ["0.1"]; 
+ka_arr = ["2.0" "5.0"];
+kb_arr = ["0.01" "0.05" "0.1"]; 
 %v0_arr = ["0.1"];
 
 
