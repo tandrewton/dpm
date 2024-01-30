@@ -2848,7 +2848,7 @@ void dpm::vertexFIRE2D(dpmMemFn forceCall, double Ftol, double dt0) {
       cout << "		M I N I M I Z A T I O N 	" << endl;
       cout << "===========================================" << endl;
       cout << endl;
-      cout << "	** fireit 	= " << fireit << endl;
+      cout << "	** fireit 	= " << fireit << " / " << itmax << endl;
       cout << "	** fcheck 	= " << fcheck << endl;
       cout << " ** Ftol     = " << Ftol << endl;
       cout << "	** U 		= " << U << endl;
