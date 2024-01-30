@@ -71,7 +71,7 @@ showVoid = 0;
 showVoidBlack = 0; % print void in larger black circles to see easier
 showVoidLite = 1; % print void, but in a way that works with printConfiguration on its own
 showCornersOrEdges = 0;
-showPurseString = 1;
+showPurseString = 0;
 showProtrusion = 1;
 showShapeHistogram = 0;
  
@@ -439,9 +439,15 @@ for seed = startSeed+9:max_seed
                         for xx = itLow:itHigh
                             for yy = itLow:itHigh
                                 vpos = [xtmp + xx*Lx, ytmp + yy*Ly];
-                                finfo = [1:nv(ff,nn) 1];
-                                %disp("finfo is "+ finfo)
-                                patch('Faces',finfo,'vertices',vpos,'FaceColor',clr,'EdgeColor','k','linewidth',2);
+                                %if ff == FEND
+                                %    vpos3 = [horzcat(vpos, 0.15*ones(length(vpos),1)); horzcat(vpos, -0.15*ones(length(vpos),1))];
+                                %    shp = alphaShape(vpos3(:,1), vpos3(:,2), vpos3(:,3));
+                                %    shp.Alpha = 2.5;
+                                %    plot(shp, 'FaceColor', clr, 'EdgeColor', 'none', 'FaceAlpha', 0.3)
+                                %else
+                                    finfo = [1:nv(ff,nn) 1];
+                                    patch('Faces',finfo,'vertices',vpos,'FaceColor',clr,'EdgeColor','k','linewidth',2);
+                                %end
                             end
                         end
                     end
@@ -534,10 +540,8 @@ for seed = startSeed+9:max_seed
                     end
                     scatter(purseLocations{ff}(1:2:end,1),...
                         purseLocations{ff}(1:2:end,2), 20, 'blue', 'o','MarkerFaceColor','blue');
-                    %scatter(purseLocations{ff}(2:2:end,1),...
-                    %    purseLocations{ff}(2:2:end,2), 10, 'red', 'x');
-                    scatter(purseLocations{ff}(1:2:end,1),...
-                        purseLocations{ff}(1:2:end,2), 10, 'red', 'x');
+                    scatter(purseLocations{ff}(2:2:end,1),...
+                        purseLocations{ff}(2:2:end,2), 10, 'red', 'x');
                     purseLocs = purseLocations{ff};
                     purseLength = length(purseLocs(1:2:end,1));
                     for i=1:purseLength

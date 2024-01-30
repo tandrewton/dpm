@@ -3078,7 +3078,7 @@ void dpm::vertexNVE2D(ofstream& enout, dpmMemFn forceCall, double T, double dt0,
 
 void dpm::vertexCompress2Target2D(dpmMemFn forceCall, double Ftol, double dt0, double phi0Target, double dphi0) {
   // local variables
-  int it = 0, itmax = 1e4;
+  int it = 0, itmax = 1e3;
   double phi0 = vertexPreferredPackingFraction2D();
   double scaleFactor = 1.0, P, Sxy;
 
