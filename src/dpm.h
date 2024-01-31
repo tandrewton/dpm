@@ -39,10 +39,12 @@ const int NSKIP = 20000;
 const int NMIN = 10;
 const int NNEGMAX = 1000;
 const int NDELAY = 20;
-int itmax = 1e7;
+// int itmax = 1e7;
 
 class dpm {
  protected:
+  int itmax = 1e7;
+
   // int scalars
   int NCELLS;
   int NDIM;
