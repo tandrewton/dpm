@@ -169,6 +169,7 @@ int main(int argc, char const* argv[]) {
   // double v0_decay_rate = 0.002,    v0_min = 0.01;
   double v0_decay_rate = 0.002, v0_min = 0.01;
   cout << "before vertexDampedMD final!\n";
+  cell2D.setitmax(1e4);
   cell2D.vertexDampedMD(attractionSmoothActive, dt0, runTime, 5.0, v0_decay_rate * v0_abp, v0_min);
   // cell2D.vertexDampedMD(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, 1.0);
   cout << "\n** Finished psm.cpp (2D transverse section of pre-somitic mesoderm), ending. " << endl;

@@ -191,6 +191,7 @@ class dpm {
   void initializeFieldStress();
 
   // Setters
+  void setitmax(int val) { itmax = val; };
   void setpbc(int d, bool val) { pbc.at(d) = val; };
   void setNCELLS(int val) { NCELLS = val; };
   void setdt(double val);

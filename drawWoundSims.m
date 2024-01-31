@@ -439,15 +439,16 @@ for seed = startSeed+9:max_seed
                         for xx = itLow:itHigh
                             for yy = itLow:itHigh
                                 vpos = [xtmp + xx*Lx, ytmp + yy*Ly];
-                                %if ff == FEND
-                                %    vpos3 = [horzcat(vpos, 0.15*ones(length(vpos),1)); horzcat(vpos, -0.15*ones(length(vpos),1))];
-                                %    shp = alphaShape(vpos3(:,1), vpos3(:,2), vpos3(:,3));
-                                %    shp.Alpha = 2.5;
-                                %    plot(shp, 'FaceColor', clr, 'EdgeColor', 'none', 'FaceAlpha', 0.3)
-                                %else
+                                vpos =  (vpos - 0.99*[cx,cy])+[cx,cy];
+                                if ff == 6 %FEND
+                                    vpos3 = [horzcat(vpos, 0.15*ones(length(vpos),1)); horzcat(vpos, -0.15*ones(length(vpos),1))];
+                                    shp = alphaShape(vpos3(:,1), vpos3(:,2), vpos3(:,3));
+                                    shp.Alpha = 2.5;
+                                    plot(shp, 'FaceColor', clr, 'EdgeColor', 'none', 'FaceAlpha', 0.3)
+                                else
                                     finfo = [1:nv(ff,nn) 1];
                                     patch('Faces',finfo,'vertices',vpos,'FaceColor',clr,'EdgeColor','k','linewidth',2);
-                                %end
+                                end
                             end
                         end
                     end
