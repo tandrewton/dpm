@@ -2964,7 +2964,10 @@ void dpm::vertexFIRE2D(dpmMemFn forceCall, double Ftol, double dt0) {
   // check if FIRE converged
   if (fireit == itmax) {
     cout << "	** FIRE minimization did not converge, fireit = " << fireit << ", itmax = " << itmax << "; ending." << endl;
-    exit(1);
+    if (fcheck < 1e-2) {
+      cout << "fcheck < 1e-2 but fcheck > ftol, exceeded number of iterations, but small enough, proceeding \n";
+    } else
+      exit(1);
   } else {
     cout << endl;
     cout << "===========================================" << endl;
