@@ -1,18 +1,18 @@
 module load dSQ
 #!/bin/bash
-numSeeds=1
+numSeeds=10
 calA0_arr=(1.0)
-phi_arr=(0.6 0.8)
+phi_arr=(0.8)
 kl=1.0
 ka_arr=(5.0)
 kb_arr=(0.01)
 att_arr=(0.001 0.01 0.02 0.05)
-att2_arr=(0.0 0.001 0.01 0.05)
+att2_arr=(0.0 0.01 0.02 0.05)
 #t_stress_arr=(1.0 10000.0)
 t_stress_arr=(10000.0)
 v0_arr=(0.1)
 #gamma_arr=(0 0.5)
-gamma_arr=(0)
+gamma_arr=(0 0.5)
 rm joblist_psm.txt
 for calA0 in ${calA0_arr[@]}; do
   for phi in ${phi_arr[@]}; do

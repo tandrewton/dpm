@@ -143,7 +143,7 @@ def main():
     gamma_arr = ["0"]
     t_abp = "1.0"
     phi = "0.6"
-    duration = "5 00"
+    duration = "500"
     NCELLS = 40
     timeBetweenFrames = 3
     seeds = 1
@@ -159,7 +159,7 @@ def main():
     df_speeds = pd.DataFrame()
     # load packing fraction data into dataframe
     df_phis = pd.read_csv(
-        f"C:\\Users\\atata\\projects\\psm_extracellular_calculation\\windowedPhiDataFrame_calA{calA0}.txt"
+        f"C:\\Users\\atata\\projects\\psm_extracellular_calculation\\windowedPhiDataFrame_calA{calA0}_{phi}.txt"
     )
 
     # load shape and neighbor exchange data into dataframes
