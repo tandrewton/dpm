@@ -55,7 +55,7 @@ for phi in ${phi_arr[@]}; do
   done
 done
 
-dsq --job-file joblist_psm_drawCellSim.txt --mem-per-cpu 8g -t 1:00:00 --mail-type NONE --submit --partition scavenge --suppress-stats-file -o /dev/null
+dsq --job-file joblist_psm_drawCellSim.txt --mem-per-cpu 8g -t 1:00:00 --mail-type NONE --submit --partition scavenge #--suppress-stats-file -o /dev/null
 
 #dsq --job-file joblist_psm_drawCellSim.txt --mem-per-cpu 4g -t 1:00:00 --mail-type NONE --submit --partition scavenge --suppress-stats-file  -o /dev/null
 
