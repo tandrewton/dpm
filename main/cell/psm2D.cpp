@@ -12,11 +12,11 @@ Compilation command:
 g++ -O3 --std=c++11 -g -I src main/cell/psm2D.cpp src/dpm.cpp src/cell.cpp -o main/cell/psm2D.o
 run command:
 
-att_arr=(0.001)
+att_arr=(0.0)
 att2_arr=(0.0)
 #v0=0.1
 t_stress_arr=(10000.0)
-v0=0.1
+v0=0.01
 phi_arr=(0.8)
 tau_abp=1.0
 gamma_arr=(0.5)

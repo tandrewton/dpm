@@ -777,7 +777,10 @@ void cell::circuloLineAttractiveForces() {
           cellTypeIntModifier = cellTypeIntMat[cellID[ci]][cellID[cj]];
           kint = (kc * l1 * cellTypeIntModifier) / (l2 - l1 * cellTypeIntModifier);
           // make sure cellTypeIntModifier does not change the adhesive force function outside of its defined range
-          assert(l1 * cellTypeIntModifier <= l2 && cellTypeIntModifier >= 0.0);
+          if (l1 * cellTypeIntModifier > l2 || cellTypeIntModifier < 0.0) {
+            cerr << l1 * cellTypeIntModifier << ", " << l2 << ", " << cellTypeIntModifier << '\n';
+            assert(l1 * cellTypeIntModifier <= l2 && cellTypeIntModifier >= 0.0);
+          }
 
           if (gj == ip1[gi] || gj == im1[gi]) {
             pj = list[pj];

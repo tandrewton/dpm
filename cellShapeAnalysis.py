@@ -71,7 +71,10 @@ def process_data(att, v0, att2, tm, gamma, seed, fileheader):
     ]
     filenames = [fileheader + ext for ext in fileExtensions]
     # coordinates of all vertices
-    cellPos = np.loadtxt(filenames[0])
+    try:
+        cellPos = np.loadtxt(filenames[0])
+    except:
+        return pd.DataFrame([]), pd.DataFrame([]), pd.DataFrame([])
     # energy minimized coordinates
     # cellMinPos = np.loadtxt(filenames[1])
     # cij = readCSV(filenames[2])  # cell-cell contact network
@@ -115,8 +118,9 @@ def process_data(att, v0, att2, tm, gamma, seed, fileheader):
     }
     df_NE = pd.DataFrame([data_NE])
 
+    # converting speeds to real units since it's not done elsewhere
     data_speed = {
-        "speed": cellSpeed,
+        "speed": cellSpeed * np.sqrt(25 * np.pi) / 3,
         "att": float(att),
         "v0": float(v0),
         "att2": float(att2),
@@ -138,15 +142,15 @@ def main():
     ka = "5.0"
     kb = "0.01"
     v0_arr = ["0.1"]
-    att2_arr = ["0.0", "0.001", "0.01", "0.05"]
+    att2_arr = ["0.0", "0.01", "0.02", "0.05"]
     tm_arr = ["10000.0"]
-    gamma_arr = ["0"]
+    gamma_arr = ["0", "0.5"]
     t_abp = "1.0"
-    phi = "0.6"
+    phi = "0.8"
     duration = "500"
     NCELLS = 40
     timeBetweenFrames = 3
-    seeds = 1
+    seeds = 10
 
     # psm_calA01.15_phi0.8_tm0_v00.1_t_abp1.0/_N40_dur200_att0.06_att20.012_start1_end10_sd10
 
@@ -159,7 +163,7 @@ def main():
     df_speeds = pd.DataFrame()
     # load packing fraction data into dataframe
     df_phis = pd.read_csv(
-        f"C:\\Users\\atata\\projects\\psm_extracellular_calculation\\windowedPhiDataFrame_calA{calA0}_{phi}.txt"
+        f"C:\\Users\\atata\\projects\\psm_extracellular_calculation\\windowedPhiDataFrame_calA{calA0}_phi{phi}.txt"
     )
 
     # load shape and neighbor exchange data into dataframes
@@ -177,11 +181,19 @@ def main():
                                 att, v0, att2, tm, gamma, seed, fileheader
                             )
 
-                            df_shapes = pd.concat([df_shapes, df_shape])
-                            df_NE["minNE"] = df_NE["minNE"] / NCELLS / timeBetweenFrames
+                            # if dfs returned from process_data are not empty, concat them
+                            if (
+                                not df_shape.empty
+                                and not df_NE.empty
+                                and not df_speed.empty
+                            ):
+                                df_shapes = pd.concat([df_shapes, df_shape])
+                                df_NE["minNE"] = (
+                                    df_NE["minNE"] / NCELLS / timeBetweenFrames
+                                )
 
-                            df_NEs = pd.concat([df_NEs, df_NE])
-                            df_speeds = pd.concat([df_speeds, df_speed])
+                                df_NEs = pd.concat([df_NEs, df_NE])
+                                df_speeds = pd.concat([df_speeds, df_speed])
 
                             # speedFile = (
                             #    f"output\\cells\\psm\\" + folderStr + f"speed.csv"
@@ -196,6 +208,9 @@ def main():
     # Plot all curves on the same axes using hue
     plt.figure(figsize=(10, 6))  # Adjust the figure size as needed
     sns.lineplot(data=df_phis_grouped_means, x="v0", y="phi", marker="o", hue="att")
+
+    print(f"att{att},att2{att2},v0{v0},tm{tm},gamma{gamma},seed{seed}")
+    print(df_shapes)
 
     df_shapes = filter_df(df_shapes, att_arr, att2_arr, v0_arr, tm_arr, gamma_arr)
     df_shapes_grouped_means = (
