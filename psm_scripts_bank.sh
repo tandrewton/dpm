@@ -6,13 +6,15 @@ phi_arr=(0.8)
 kl=1.0
 ka_arr=(5.0)
 kb_arr=(0.01)
-att_arr=(0.001 0.01 0.02 0.05)
-att2_arr=(0.0 0.01 0.02 0.05)
+#att_arr=(0.0 0.001 0.005 0.01 0.05 0.1)
+#att2_arr=(0.0 0.001 0.005 0.01 0.05 0.1)
+att_arr=(0.0 0.05 0.1)
+att2_arr=(0.0 0.05 0.1)
 #t_stress_arr=(1.0 10000.0)
 t_stress_arr=(10000.0)
 v0_arr=(0.1)
-#gamma_arr=(0 0.5)
-gamma_arr=(0 0.5)
+gamma_arr=(0)
+#gamma_arr=(0 0.001 0.1)
 rm joblist_psm.txt
 for calA0 in ${calA0_arr[@]}; do
   for phi in ${phi_arr[@]}; do
@@ -55,7 +57,7 @@ for phi in ${phi_arr[@]}; do
   done
 done
 
-dsq --job-file joblist_psm_drawCellSim.txt --mem-per-cpu 8g -t 4:00:00 --mail-type NONE --submit --partition scavenge #--suppress-stats-file -o /dev/null
+dsq --job-file joblist_psm_drawCellSim.txt --mem-per-cpu 8g -t 4:00:00 --mail-type NONE --submit --partition pi_ohern,day #--suppress-stats-file -o /dev/null
 
 #dsq --job-file joblist_psm_drawCellSim.txt --mem-per-cpu 4g -t 1:00:00 --mail-type NONE --submit --partition scavenge --suppress-stats-file  -o /dev/null
 
@@ -63,11 +65,14 @@ dsq --job-file joblist_psm_drawCellSim.txt --mem-per-cpu 8g -t 4:00:00 --mail-ty
 rsync -rav --inplace --progress at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm /mnt/c/Users/atata/projects/dpm/pipeline/cells/. 
 
 # send files from mccleary output folder (where I store postprocessed files that I ran on the cluster) to local
-rsync -rav --inplace --progress at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm/output/ /mnt/c/Users/atata/projects/dpm/output/cells/psm/.
+rsync -rav --inplace --progress --include '*/' --include '*sd1.avi' --exclude '*.avi' --exclude '*.pos' --exclude '*.tif' --exclude '*/' at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm/output/ /mnt/c/Users/atata/projects/dpm/output/cells/psm/
+
 
 rsync -rav --inplace --progress --exclude '*.pos' at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm /Users/AndrewTon/Documents/YalePhD/projects/dpm/pipeline/cells/. 
 
 rsync -rav --inplace --progress --exclude '*.pos' --exclude '*.tif' --exclude '*.avi' at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm /mnt/c/Users/atata/projects/dpm/pipeline/cells/. 
+
+rsync -rav --inplace --progress at965@transfer-mccleary.ycrc.yale.edu:/home/at965/psm_extracellular_calculation/windowedPhiDataFrame_calA1.0_phi0.8.txt /mnt/c/Users/atata/projects/psm_extracellular_calculation 
 
 # use bash to echo a series of commands that I can copy and paste into a windows terminal to run a python code..
 att_arr=(0.001 0.01 0.1)

@@ -677,10 +677,14 @@ void cell::circuloLineAttractiveForces() {
 
         // check if cellType changes the attraction definition. If it does, modify the force function by changing only l1 and kint which depends on l1.
         cellTypeIntModifier = cellTypeIntMat[cellID[ci]][cellID[cj]];  // only effects adhesion, repulsion is assigned 1 earlier
-        kint = (kc * l1 * cellTypeIntModifier) / (l2 - l1 * cellTypeIntModifier);
-        // make sure cellTypeIntModifier does not change the adhesive force function outside of its defined range
-        // assert(l1 * cellTypeIntModifier <= l2 && cellTypeIntModifier >= 0.0);
-        // cout << "cellTypeIntModifier = " << cellTypeIntModifier << ", kint = " << kint << ", ci, cj = " << ci << '\t' << cj << ", cellID[ci], cellID[cj] = " << cellID[ci] << '\t' << cellID[cj] << '\n';
+
+        double l1_modified;
+        if (l1 == 0 && cellTypeIntModifier > 0 && (cellID[ci] + cellID[cj] >= 1))
+          l1_modified = cellTypeIntModifier;
+        else
+          l1_modified = l1 * cellTypeIntModifier;
+
+        kint = (kc * l1_modified) / (l2 - l1_modified);
 
         if (gj == ip1[gi] || gj == im1[gi]) {
           pj = list[pj];
@@ -692,7 +696,7 @@ void cell::circuloLineAttractiveForces() {
 
         // attraction distances
         shellij = (1.0 + l2) * sij;
-        cutij = (1.0 + l1 * cellTypeIntModifier) * sij;
+        cutij = (1.0 + l1_modified) * sij;
 
         isSelfInteraction = false;
         // calculate self-penetration: if self penetrating, compute self-repulsion and move on
@@ -774,12 +778,23 @@ void cell::circuloLineAttractiveForces() {
           cindices(cj, vj, gj);
 
           // check if cellType changes the attraction definition. If it does, modify the force function by changing only l1 and kint which depends on l1.
-          cellTypeIntModifier = cellTypeIntMat[cellID[ci]][cellID[cj]];
-          kint = (kc * l1 * cellTypeIntModifier) / (l2 - l1 * cellTypeIntModifier);
+          cellTypeIntModifier = cellTypeIntMat[cellID[ci]][cellID[cj]];  // only effects adhesion, repulsion is assigned 1 earlier
+
+          double l1_modified;
+          if (l1 == 0 && cellTypeIntModifier > 0 && (cellID[ci] + cellID[cj] >= 1)) {
+            l1_modified = cellTypeIntModifier;
+          } else {
+            l1_modified = l1 * cellTypeIntModifier;
+          }
+
+          kint = (kc * l1_modified) / (l2 - l1_modified);
           // make sure cellTypeIntModifier does not change the adhesive force function outside of its defined range
-          if (l1 * cellTypeIntModifier > l2 || cellTypeIntModifier < 0.0) {
-            cerr << l1 * cellTypeIntModifier << ", " << l2 << ", " << cellTypeIntModifier << '\n';
-            assert(l1 * cellTypeIntModifier <= l2 && cellTypeIntModifier >= 0.0);
+          if (l1_modified > l2 || cellTypeIntModifier < 0.0) {
+            cerr << "skipped l1_modified = " << (l1 == 0 && cellTypeIntModifier > 0 && (cellID[ci] + cellID[cj] >= 1)) << '\n';
+            cerr << "assert failed: " << l1_modified << ", " << l2 << ", " << cellTypeIntModifier << '\n';
+            cerr << l1 << '\t' << cellTypeIntModifier << '\t' << cellID[ci] << '\t' << cellID[cj] << '\n';
+            printInteractionMatrix();
+            assert(l1_modified <= l2 && cellTypeIntModifier >= 0.0);
           }
 
           if (gj == ip1[gi] || gj == im1[gi]) {
@@ -792,7 +807,7 @@ void cell::circuloLineAttractiveForces() {
 
           // attraction distances
           shellij = (1.0 + l2) * sij;
-          cutij = (1.0 + l1 * cellTypeIntModifier) * sij;
+          cutij = (1.0 + l1_modified) * sij;
 
           isSelfInteraction = false;
           // calculate self-penetration: if self penetrating, compute self-repulsion and move on

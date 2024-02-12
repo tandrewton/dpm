@@ -73,17 +73,17 @@ def process_data(att, v0, att2, tm, gamma, seed, fileheader):
     # coordinates of all vertices
     try:
         cellPos = np.loadtxt(filenames[0])
+        # energy minimized coordinates
+        # cellMinPos = np.loadtxt(filenames[1])
+        # cij = readCSV(filenames[2])  # cell-cell contact network
+        # contact of minimized coordinates
+        print(filenames[3])
+        cijMin = readCSV(filenames[3])
+        # cellCOM = np.loadtxt(filenames[4])
+        cellShape = np.loadtxt(filenames[5])
+        cellSpeed = np.loadtxt(speedFile)
     except:
         return pd.DataFrame([]), pd.DataFrame([]), pd.DataFrame([])
-    # energy minimized coordinates
-    # cellMinPos = np.loadtxt(filenames[1])
-    # cij = readCSV(filenames[2])  # cell-cell contact network
-    # contact of minimized coordinates
-    print(filenames[3])
-    cijMin = readCSV(filenames[3])
-    # cellCOM = np.loadtxt(filenames[4])
-    cellShape = np.loadtxt(filenames[5])
-    cellSpeed = np.loadtxt(speedFile)
 
     # extract header information from cellPos and then remove header
     # NCELLS = int(cellPos[0][0])
@@ -137,14 +137,14 @@ def process_data(att, v0, att2, tm, gamma, seed, fileheader):
 
 def main():
     calA0 = "1.0"
-    att_arr = ["0.001", "0.01", "0.02", "0.05"]
+    att_arr = ["0.001", "0.005", "0.01", "0.05", "0.1"]
     kl = "1.0"
     ka = "5.0"
     kb = "0.01"
     v0_arr = ["0.1"]
-    att2_arr = ["0.0", "0.01", "0.02", "0.05"]
+    att2_arr = ["0.0", "0.001", "0.005", "0.01", "0.05", "0.1"]
     tm_arr = ["10000.0"]
-    gamma_arr = ["0", "0.5"]
+    gamma_arr = ["0", "0.001", "0.1"]
     t_abp = "1.0"
     phi = "0.8"
     duration = "500"
@@ -194,10 +194,8 @@ def main():
 
                                 df_NEs = pd.concat([df_NEs, df_NE])
                                 df_speeds = pd.concat([df_speeds, df_speed])
-
-                            # speedFile = (
-                            #    f"output\\cells\\psm\\" + folderStr + f"speed.csv"
-                            # )
+                            else:
+                                print(f"{folderStr} is empty!")
 
     # ensure df is restricted to the parameter combinations within the different parameter arrays specified here
     # necessary because the data file may have parameters I'm not interested in
@@ -205,6 +203,7 @@ def main():
     df_phis_grouped_means = (
         df_phis.groupby(["att", "att2", "v0", "tm", "gamma"]).mean().reset_index()
     )
+
     # Plot all curves on the same axes using hue
     plt.figure(figsize=(10, 6))  # Adjust the figure size as needed
     sns.lineplot(data=df_phis_grouped_means, x="v0", y="phi", marker="o", hue="att")
@@ -229,6 +228,14 @@ def main():
     # Plot all curves on the same axes using hue
     plt.figure(figsize=(10, 6))  # Adjust the figure size as needed
     sns.lineplot(data=df_speeds_grouped_means, x="v0", y="speed", marker="o", hue="att")
+
+    df_NEs = filter_df(df_NEs, att_arr, att2_arr, v0_arr, tm_arr, gamma_arr)
+    df_NEs_grouped_means = (
+        df_NEs.groupby(["att", "att2", "v0", "tm", "gamma"]).mean().reset_index()
+    )
+    # Plot all curves on the same axes using hue
+    plt.figure(figsize=(10, 6))  # Adjust the figure size as needed
+    sns.lineplot(data=df_NEs_grouped_means, x="v0", y="minNE", marker="o", hue="att")
 
     # Perform grouping on dataframes in order to make summary plots.
 
@@ -256,8 +263,6 @@ def main():
     df_shapes_means = (
         df_shapes.groupby(["(att, att2, v0, tm, gamma)", "seed"]).mean().reset_index()
     )
-
-    debugpy.breakpoint()
 
     df_NEs["(att, att2, v0, tm, gamma)"] = df_NEs.apply(
         lambda row: ", ".join(
@@ -422,9 +427,66 @@ def main():
     plt.xticks(rotation=45, ha="right")
     plt.tight_layout()
 
-    # rather than catplots, should just plot as a function of v0 now.
+    debugpy.breakpoint()
 
-    plt.show()
+    for fixed_gamma_val in float(gamma_arr):
+        plt.figure()
+        fig_heatmap_phis = sns.heatmap(
+            df_phis_grouped_means[df_phis_grouped_means["gamma"] == fixed_gamma_val][
+                ["att", "att2", "phi"]
+            ].pivot(index="att", columns="att2", values="phi"),
+            cbar_kws={"label": "$\phi$"},
+        )
+        plt.xlabel("$\epsilon_2$")
+        plt.ylabel("$\epsilon_1$")
+        fig_heatmap_phis.invert_yaxis()
+        fig_heatmap_phis.figure.savefig(f"fig_heatmap_phis_gamma={fixed_gamma_val}.png")
+
+        plt.figure()
+        fig_heatmap_shapes = sns.heatmap(
+            df_shapes_grouped_means[
+                df_shapes_grouped_means["gamma"] == fixed_gamma_val
+            ][["att", "att2", "shapeParameter"]].pivot(
+                index="att", columns="att2", values="shapeParameter"
+            ),
+            cbar_kws={"label": "$\mathcal{A}$"},
+        )
+        plt.xlabel("$\epsilon_2$")
+        plt.ylabel("$\epsilon_1$")
+        fig_heatmap_shapes.invert_yaxis()
+        fig_heatmap_shapes.figure.savefig(
+            f"fig_heatmap_shapes_gamma={fixed_gamma_val}.png"
+        )
+
+        plt.figure()
+        fig_heatmap_speeds = sns.heatmap(
+            df_speeds_grouped_means[
+                df_speeds_grouped_means["gamma"] == fixed_gamma_val
+            ][["att", "att2", "speed"]].pivot(
+                index="att", columns="att2", values="speed"
+            ),
+            cbar_kws={"label": "v"},
+        )
+        plt.xlabel("$\epsilon_2$")
+        plt.ylabel("$\epsilon_1$")
+        fig_heatmap_speeds.invert_yaxis()
+        fig_heatmap_speeds.figure.savefig(
+            f"fig_heatmap_speeds_gamma={fixed_gamma_val}.png"
+        )
+
+        plt.figure()
+        fig_heatmap_NEs = sns.heatmap(
+            df_NEs_grouped_means[df_NEs_grouped_means["gamma"] == fixed_gamma_val][
+                ["att", "att2", "minNE"]
+            ].pivot(index="att", columns="att2", values="minNE"),
+            cbar_kws={"label": "NE rate"},
+        )
+        plt.xlabel("$\epsilon_2$")
+        plt.ylabel("$\epsilon_1$")
+        fig_heatmap_NEs.invert_yaxis()
+        fig_heatmap_NEs.figure.savefig(f"fig_heatmap_NEs_gamma={fixed_gamma_val}.png")
+
+        plt.show()
 
 
 if __name__ == "__main__":

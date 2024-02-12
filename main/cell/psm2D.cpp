@@ -12,14 +12,14 @@ Compilation command:
 g++ -O3 --std=c++11 -g -I src main/cell/psm2D.cpp src/dpm.cpp src/cell.cpp -o main/cell/psm2D.o
 run command:
 
-att_arr=(0.0)
-att2_arr=(0.0)
+att_arr=(0.0 0.005 0.01 0.05 0.1)
+att2_arr=(0.0 0.005 0.1)
 #v0=0.1
 t_stress_arr=(10000.0)
 v0=0.01
 phi_arr=(0.8)
 tau_abp=1.0
-gamma_arr=(0.5)
+gamma_arr=(0)
 kl=1.0
 ka=(5.0)
 kb=0.01
@@ -28,7 +28,7 @@ for att in ${att_arr[@]}; do
     for phi in ${phi_arr[@]}; do
       for t_stress in ${t_stress_arr[@]}; do
         for gamma in ${gamma_arr[@]}; do
-          echo "./main/cell/psm2D.o   20  20 1.0 $phi $kl $ka $kb $att $att2 $t_stress    $v0    $tau_abp  $gamma  1    100    testa_"$att"_a2_"$att2"_tm_"$t_stress"_p_"$phi"_t_"$tau_abp"_gamma_"$gamma
+          echo "./main/cell/psm2D.o   30  30 1.0 $phi $kl $ka $kb $att $att2 $t_stress    $v0    $tau_abp  $gamma  1    100    testa_"$att"_a2_"$att2"_tm_"$t_stress"_p_"$phi"_t_"$tau_abp"_gamma_"$gamma
         done
       done
     done
@@ -123,10 +123,12 @@ int main(int argc, char const* argv[]) {
       // if either cellID is a boundary, set it to 0 (no attraction with boundaries)
       // otherwise, one of the cellIDs must not be a boundary. If the cells are the same, they should attract (set to 1).
       double boundaryID = numCellTypes - 1;
-      double attractionRatio = (att > 0) ? att2 / att : 0.0;
+      // when att > 0, use l1 and l1*modifier (att2/att * att)
+      // when att = 0, use l1=0 and modifier (att2)
+      double attractionRatio = (att > 0) ? att2 / att : att2;
       double attractionModifier =
-          (cellIDi == boundaryID || cellIDj == boundaryID) ? att2 / att : (cellIDi == cellIDj) ? 1.0
-                                                                                               : 0.0;
+          (cellIDi == boundaryID || cellIDj == boundaryID) ? attractionRatio : (cellIDi == cellIDj) ? 1.0
+                                                                                                    : 0.0;
       cell2D.setCellTypeAttractionModifiers(cellIDi, cellIDj, attractionModifier);
     }
   }
