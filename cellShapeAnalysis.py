@@ -137,14 +137,14 @@ def process_data(att, v0, att2, tm, gamma, seed, fileheader):
 
 def main():
     calA0 = "1.0"
-    att_arr = ["0.001", "0.005", "0.01", "0.05", "0.1"]
+    att_arr = ["0.0", "0.005", "0.05", "0.1"]
     kl = "1.0"
     ka = "5.0"
     kb = "0.01"
     v0_arr = ["0.1"]
-    att2_arr = ["0.0", "0.001", "0.005", "0.01", "0.05", "0.1"]
+    att2_arr = ["0.0", "0.005", "0.05", "0.1"]
     tm_arr = ["10000.0"]
-    gamma_arr = ["0", "0.001", "0.1"]
+    gamma_arr = ["0"]
     t_abp = "1.0"
     phi = "0.8"
     duration = "500"
