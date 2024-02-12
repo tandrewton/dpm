@@ -36,7 +36,7 @@ kl = "1.0";
 Duration="500";
 FSKIP = 1;
 startSeed = 1;
-max_seed = 1;
+max_seed = 10;
 %att_range = 0.3;
 
 %if makeAMovie is 0, then plot every frame separately
