@@ -105,6 +105,8 @@ int main(int argc, char const* argv[]) {
   cell2D.setl2(att_range);
   assert(att < att_range && att2 < att_range);  // required to have a differentiable, finite adhesive potential
 
+  cout << "att, att2, att_range = " << att << '\t' << att2 << '\t' << att_range << '\n';
+
   dpmMemFn repulsiveForceUpdate = &dpm::repulsiveForceUpdate;
   dpmMemFn attractiveForceUpdate = static_cast<void (dpm::*)()>(&cell::attractiveForceUpdate);
   dpmMemFn attractionWithActiveBrownianUpdate = static_cast<void (dpm::*)()>(&cell::attractiveForceUpdateWithCrawling);

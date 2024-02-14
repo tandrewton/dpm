@@ -1,6 +1,7 @@
 module load dSQ
 #!/bin/bash
 numSeeds=2
+N_arr=(20 40)
 calA0_arr=(1.0)
 phi_arr=(0.8)
 kl=1.0
@@ -8,24 +9,26 @@ ka_arr=(5.0)
 kb_arr=(0.01)
 #att_arr=(0.0 0.001 0.005 0.01 0.05 0.1)
 #att2_arr=(0.0 0.001 0.005 0.01 0.05 0.1)
-att_arr=(0.0 0.005 0.05 0.1)
-att2_arr=(0.0 0.005 0.05 0.1)
+att_arr=(0.0 0.05 0.1)
+att2_arr=(0.0 0.05)
 #t_stress_arr=(1.0 10000.0)
 t_stress_arr=(10000.0)
 v0_arr=(0.1)
 gamma_arr=(0)
 #gamma_arr=(0 0.001 0.1)
 rm joblist_psm.txt
-for calA0 in ${calA0_arr[@]}; do
-  for phi in ${phi_arr[@]}; do
-    for ka in ${ka_arr[@]}; do
-      for kb in ${kb_arr[@]}; do
-        for att in ${att_arr[@]}; do 
-          for att2 in ${att2_arr[@]}; do
-            for t_stress in ${t_stress_arr[@]}; do
-              for v0 in ${v0_arr[@]}; do
-                for gamma in ${gamma_arr[@]}; do
-                  echo bash bash/cells/submit_psm.sh 40 30 $calA0 $phi $kl $ka $kb $att $att2 $t_stress $v0 1.0 $gamma 500 pi_ohern,day 0-12:00:00 $numSeeds 1 >> joblist_psm.txt
+for N in ${N_arr[@]}; do
+  for calA0 in ${calA0_arr[@]}; do
+    for phi in ${phi_arr[@]}; do
+      for ka in ${ka_arr[@]}; do
+        for kb in ${kb_arr[@]}; do
+          for att in ${att_arr[@]}; do 
+            for att2 in ${att2_arr[@]}; do
+              for t_stress in ${t_stress_arr[@]}; do
+                for v0 in ${v0_arr[@]}; do
+                  for gamma in ${gamma_arr[@]}; do
+                    echo bash bash/cells/submit_psm.sh 40 30 $calA0 $phi $kl $ka $kb $att $att2 $t_stress $v0 1.0 $gamma 500 pi_ohern,day 0-12:00:00 $numSeeds 1 >> joblist_psm.txt
+                  done
                 done
               done
             done
@@ -57,6 +60,8 @@ for phi in ${phi_arr[@]}; do
   done
 done
 
+**unload matlab before git pull
+
 dsq --job-file joblist_psm_drawCellSim.txt --mem-per-cpu 8g -t 4:00:00 --mail-type NONE --submit --partition pi_ohern,day #--suppress-stats-file -o /dev/null
 
 #dsq --job-file joblist_psm_drawCellSim.txt --mem-per-cpu 4g -t 1:00:00 --mail-type NONE --submit --partition scavenge --suppress-stats-file  -o /dev/null
@@ -65,7 +70,7 @@ dsq --job-file joblist_psm_drawCellSim.txt --mem-per-cpu 8g -t 4:00:00 --mail-ty
 rsync -rav --inplace --progress at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm /mnt/c/Users/atata/projects/dpm/pipeline/cells/. 
 
 # send files from mccleary output folder (where I store postprocessed files that I ran on the cluster) to local
-rsync -rav --inplace --progress --include '*/' --include '*sd1.avi' --exclude '*.pos' --exclude '*.tif' --exclude '*/' at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm/output/ /mnt/c/Users/atata/projects/dpm/output/cells/psm/
+rsync -rav --inplace --progress --filter '+ */' --filter '+ *sd1.avi' --filter '+ *sd2.avi' --filter '- *.avi' --filter '- *.pos' --filter '- *.tif' --filter '- *' at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm/output/ /mnt/c/Users/atata/projects/dpm/output/cells/psm/
 
 
 rsync -rav --inplace --progress --exclude '*.pos' at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm /Users/AndrewTon/Documents/YalePhD/projects/dpm/pipeline/cells/. 
