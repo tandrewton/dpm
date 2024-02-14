@@ -74,10 +74,9 @@ rsync -rav --inplace --progress --exclude '*.pos' --exclude '*.tif' --exclude '*
 
 rsync -rav --inplace --progress at965@transfer-mccleary.ycrc.yale.edu:/home/at965/psm_extracellular_calculation/windowedPhiDataFrame_calA1.0_phi0.8.txt /mnt/c/Users/atata/projects/psm_extracellular_calculation 
 
- cat > windowedFractionalPhiDP.m
-
- module load MATLAB/2023a
-
+salloc -c 4 --mem 16G -t 4:00:00
+module load MATLAB/2023a
+matlab -nodisplay
 
 
 # use bash to echo a series of commands that I can copy and paste into a windows terminal to run a python code..
