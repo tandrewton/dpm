@@ -427,9 +427,7 @@ def main():
     plt.xticks(rotation=45, ha="right")
     plt.tight_layout()
 
-    debugpy.breakpoint()
-
-    for fixed_gamma_val in float(gamma_arr):
+    for fixed_gamma_val in [float(v) for v in gamma_arr]:
         plt.figure()
         fig_heatmap_phis = sns.heatmap(
             df_phis_grouped_means[df_phis_grouped_means["gamma"] == fixed_gamma_val][

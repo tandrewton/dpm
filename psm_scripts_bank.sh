@@ -1,6 +1,6 @@
 module load dSQ
 #!/bin/bash
-numSeeds=10
+numSeeds=2
 calA0_arr=(1.0)
 phi_arr=(0.8)
 kl=1.0
@@ -65,7 +65,7 @@ dsq --job-file joblist_psm_drawCellSim.txt --mem-per-cpu 8g -t 4:00:00 --mail-ty
 rsync -rav --inplace --progress at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm /mnt/c/Users/atata/projects/dpm/pipeline/cells/. 
 
 # send files from mccleary output folder (where I store postprocessed files that I ran on the cluster) to local
-rsync -rav --inplace --progress --include '*/' --include '*sd1.avi' --exclude '*.avi' --exclude '*.pos' --exclude '*.tif' --exclude '*/' at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm/output/ /mnt/c/Users/atata/projects/dpm/output/cells/psm/
+rsync -rav --inplace --progress --include '*/' --include '*sd1.avi' --exclude '*.pos' --exclude '*.tif' --exclude '*/' at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm/output/ /mnt/c/Users/atata/projects/dpm/output/cells/psm/
 
 
 rsync -rav --inplace --progress --exclude '*.pos' at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm /Users/AndrewTon/Documents/YalePhD/projects/dpm/pipeline/cells/. 
@@ -73,6 +73,12 @@ rsync -rav --inplace --progress --exclude '*.pos' at965@transfer-mccleary.ycrc.y
 rsync -rav --inplace --progress --exclude '*.pos' --exclude '*.tif' --exclude '*.avi' at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm /mnt/c/Users/atata/projects/dpm/pipeline/cells/. 
 
 rsync -rav --inplace --progress at965@transfer-mccleary.ycrc.yale.edu:/home/at965/psm_extracellular_calculation/windowedPhiDataFrame_calA1.0_phi0.8.txt /mnt/c/Users/atata/projects/psm_extracellular_calculation 
+
+ cat > windowedFractionalPhiDP.m
+
+ module load MATLAB/2023a
+
+
 
 # use bash to echo a series of commands that I can copy and paste into a windows terminal to run a python code..
 att_arr=(0.001 0.01 0.1)
