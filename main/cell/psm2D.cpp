@@ -140,7 +140,7 @@ int main(int argc, char const* argv[]) {
 
   // initialize particles with the same number of vertices and the same preferred shape parameter calA0
   cell2D.monodisperse2D(calA0, nv);
-  int circleID = 0, rectangleID = 1, horseshoeID = 2, noneID = 3;
+  int circleID = 0, rectangleID = 1, horseshoeID = 2;
   cell2D.initializeTransverseTissue(phi0, Ftol, circleID);  // initialize within a ring boundary
   cell2D.initializeNeighborLinkedList2D(boxLengthScale);
 

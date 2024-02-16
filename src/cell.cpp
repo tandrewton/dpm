@@ -2130,7 +2130,8 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
   ofstream ip2Stream("initPosSP2.txt");
   for (int n = 0; n < numTissues; n++) {
     cout << "initializing cell centers randomly but rejecting if further than R from the center for tissue " << n << "out of " << numTissues - 1 << "\n";
-    double scale_radius = 1.0;                   // make the polygon radius slightly larger so that it encompasses the circle that points are initialized in
+    double scale_radius = 1.0;  // make the polygon radius slightly larger so that it encompasses the circle that points are initialized in
+
     poly_bd_x.push_back(std::vector<double>());  // make new data for generateCircularBoundary to write a polygon
     poly_bd_y.push_back(std::vector<double>());
 
@@ -2142,6 +2143,8 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
       generateHorseshoeBoundary(cx[n], cy[n], poly_bd_x[n], poly_bd_y[n]);
     else {
       cout << "skipping boundary initialization!\n";
+      poly_bd_x.clear();
+      poly_bd_y.clear();
       continue;
     }
 
@@ -2407,10 +2410,17 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
     cout << "	** alpha = " << alpha << endl;
   }
   double top, bottom, left, right;
-  top = 1.0 * *max_element(std::begin(poly_bd_y[0]), std::end(poly_bd_y[0]));
-  bottom = 1.0 * *min_element(std::begin(poly_bd_y[0]), std::end(poly_bd_y[0]));
-  left = 1.0 * *min_element(std::begin(poly_bd_x[0]), std::end(poly_bd_x[0]));
-  right = 1.0 * *max_element(std::begin(poly_bd_x[0]), std::end(poly_bd_x[0]));
+  if (poly_bd_x.size() > 0) {
+    top = 1.0 * *max_element(std::begin(poly_bd_y[0]), std::end(poly_bd_y[0]));
+    bottom = 1.0 * *min_element(std::begin(poly_bd_y[0]), std::end(poly_bd_y[0]));
+    left = 1.0 * *min_element(std::begin(poly_bd_x[0]), std::end(poly_bd_x[0]));
+    right = 1.0 * *max_element(std::begin(poly_bd_x[0]), std::end(poly_bd_x[0]));
+  } else {
+    top = INFINITY;
+    right = INFINITY;
+    bottom = -INFINITY;
+    left = -INFINITY;
+  }
 
   // initialize vertex positions based on cell centers
   for (int ci = 0; ci < NCELLS; ci++) {

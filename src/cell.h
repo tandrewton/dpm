@@ -138,7 +138,7 @@ class cell : public dpm {
     openFile(catchBondOut, filename + fileExt[2]);
     openFile(pfOut, filename + fileExt[3]);
     openFile(msdOut, filename + fileExt[4]);
-    openFile(cellContactOut, filename + fileExt[5]);
+    // openFile(cellContactOut, filename + fileExt[5]);
     openFile(xStream, filename + fileExt[6]);
     openFile(xMinStream, filename + fileExt[7]);
     openFile(cijStream, filename + fileExt[8]);
