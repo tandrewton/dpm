@@ -12,7 +12,7 @@ Compilation command:
 g++ -O3 --std=c++11 -g -I src main/cell/psm2D.cpp src/dpm.cpp src/cell.cpp -o main/cell/psm2D.o
 run command:
 
-att_arr=(0.05 0.1 0.15 0.2 0.25)
+att_arr=(0.0 0.05 0.1 0.15)
 att2_arr=(0.0)
 #v0=0.1
 t_stress_arr=(10000.0)
@@ -28,7 +28,7 @@ for att in ${att_arr[@]}; do
     for phi in ${phi_arr[@]}; do
       for t_stress in ${t_stress_arr[@]}; do
         for gamma in ${gamma_arr[@]}; do
-          echo "./main/cell/psm2D.o   20  30 1.0 $phi $kl $ka $kb $att $att2 $t_stress    $v0    $tau_abp  $gamma  1    200    testa_"$att"_a2_"$att2"_tm_"$t_stress"_p_"$phi"_t_"$tau_abp"_gamma_"$gamma
+          echo "./main/cell/psm2D.o   14  24 1.0 $phi $kl $ka $kb $att $att2 $t_stress    $v0    $tau_abp  $gamma  1    200    testa_"$att"_a2_"$att2"_tm_"$t_stress"_p_"$phi"_t_"$tau_abp"_gamma_"$gamma
         done
       done
     done
@@ -104,8 +104,10 @@ int main(int argc, char const* argv[]) {
   cell2D.setl1(att);  // set adhesion scales
   cell2D.setl2(att_range);
   assert(att < att_range && att2 < att_range);  // required to have a differentiable, finite adhesive potential
+  assert(att < att_range / 2);                  // existing bug: l1 > l2/2 leads to purely repulsive, not sure why
 
-  cout << "att, att2, att_range = " << att << '\t' << att2 << '\t' << att_range << '\n';
+  cout
+      << "att, att2, att_range = " << att << '\t' << att2 << '\t' << att_range << '\n';
 
   dpmMemFn repulsiveForceUpdate = &dpm::repulsiveForceUpdate;
   dpmMemFn attractiveForceUpdate = static_cast<void (dpm::*)()>(&cell::attractiveForceUpdate);
