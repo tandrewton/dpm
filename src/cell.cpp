@@ -686,6 +686,8 @@ void cell::circuloLineAttractiveForces() {
 
         kint = (kc * l1_modified) / (l2 - l1_modified);
 
+        // cout << "kint = " << kint << ", kc = " << kc << ", l2 = " << l2 << ", l1 = " << l1 << ", l1_modified = " << l1_modified << '\n';
+
         if (gj == ip1[gi] || gj == im1[gi]) {
           pj = list[pj];
           continue;
@@ -749,6 +751,14 @@ void cell::circuloLineAttractiveForces() {
               // 0 < projection < 1 means that p0 projection onto p1-p2 falls between p1 and p2, so it's a vertex-line-segment contact
               // projection > 1 means p0 projection falls ahead of p2, so ignore
               // unless d < shellij, in which case we need to check if i-(j-1) is close enough to need an inverse v-v interaction to patch discontinuities
+              /*cout << "forces from smooth interaction with eps1 = 0.1 parameters:\n";
+              double cutij_temp = (1.0 + 0.1) * sij;
+              double kint_temp = 2.0;
+              calculateSmoothInteraction(rx, ry, sij, shellij, cutij_temp, kint_temp, cellTypeIntModifier_repulsion * kc, gi, gj, projection, ci, cj);
+              cout << "forces from smooth interaction with eps1 = 0.05 parameters:\n";
+              cutij_temp = (1.0 + 0.05) * sij;
+              kint_temp = 0.5;
+              calculateSmoothInteraction(rx, ry, sij, shellij, cutij_temp, kint_temp, cellTypeIntModifier_repulsion * kc, gi, gj, projection, ci, cj);*/
               calculateSmoothInteraction(rx, ry, sij, shellij, cutij, kint, cellTypeIntModifier_repulsion * kc, gi, gj, projection, ci, cj);
             }
           }
@@ -862,6 +872,18 @@ void cell::circuloLineAttractiveForces() {
                 // 0 < projection < 1 means that p0 projection onto p1-p2 falls between p1 and p2, so it's a vertex-line-segment contact
                 // projection > 1 means p0 projection falls ahead of p2, so ignore
                 // unless d < shellij, in which case we need to check if i-(j-1) is close enough to need an inverse v-v interaction to patch discontinuities
+
+                /*
+                cout << "forces from smooth interaction with eps1 = 0.1 parameters:\n";
+                double cutij_temp = (1.0 + 0.1) * sij;
+                double kint_temp = 2.0;
+                calculateSmoothInteraction(rx, ry, sij, shellij, cutij_temp, kint_temp, cellTypeIntModifier_repulsion * kc, gi, gj, projection, ci, cj);
+                cout << "forces from smooth interaction with eps1 = 0.05 parameters:\n";
+                cutij_temp = (1.0 + 0.05) * sij;
+                kint_temp = 0.5;
+                calculateSmoothInteraction(rx, ry, sij, shellij, cutij_temp, kint_temp, cellTypeIntModifier_repulsion * kc, gi, gj, projection, ci, cj);
+                */
+
                 calculateSmoothInteraction(rx, ry, sij, shellij, cutij, kint, cellTypeIntModifier_repulsion * kc, gi, gj, projection, ci, cj);
               }
             }
@@ -929,13 +951,15 @@ void cell::calculateSmoothInteraction(double rx, double ry, double sij, double s
         xij = rij / sij;
         // pick force based on vertex-vertex distance
         if (rij > cutij) {
-          // force scale for inner layer of interaction shell
+          // force scale for outer layer of interaction shell
           ftmp = kint * (xij - 1.0 - l2) / sij;
           energytmp = -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
+          // cout << "rij > cutij, rij/cutij = " << rij / cutij << ", ftmp = " << ftmp << ", cutij = " << cutij << ", kint = " << kint << '\n';
         } else {
-          // force scale for outer layer of interaction shell
+          // force scale for inner layer of interaction shell
           ftmp = kc * (1 - xij) / sij;
           energytmp = 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
+          // cout << "rij < cutij, rij/cutij = " << rij / cutij << ", ftmp = " << ftmp << ", cutij = " << cutij << ", kint = " << kint << '\n';
         }
         // endEndAngle is the angle between the separation between interacting vertices and the endcap edge closest to the circulo-line.
         // endCapAngle is the angle between the far edge of the endcap and the near edge of the endcap
@@ -1029,6 +1053,9 @@ void cell::calculateSmoothInteraction(double rx, double ry, double sij, double s
           prefix = d_arg / fabs(d_arg) / norm_P12;
           prefix2 = fabs(d_arg) / pow(norm_P12, 3);
 
+          // cout << "in 3 body interaction: ftmp = " << ftmp << ", prefix = " << prefix << '\n';
+          // cout << ftmp * prefix * y21 << ", " << ftmp * prefix * -x21 << ", " << ftmp * (prefix * -y20 + x21 * prefix2) << ", " << ftmp * (prefix * x20 + y21 * prefix2) << ", " << ftmp * (prefix * y10 - x21 * prefix2) << ", " << ftmp * (prefix * -x10 - y21 * prefix2) << '\n';
+
           F[NDIM * gi] += ftmp * prefix * y21;
           F[NDIM * gi + 1] += ftmp * prefix * -x21;
 
@@ -1076,9 +1103,13 @@ void cell::calculateSmoothInteraction(double rx, double ry, double sij, double s
                 if (rij > cutij) {
                   ftmp = kint * (xij - 1.0 - l2) / sij;
                   energytmp = -0.5 * kint * pow(1.0 + l2 - xij, 2.0);
+                  // cout << "rij > cutij, rij/cutij = " << rij / cutij << ", ftmp = " << ftmp << ", cutij = " << cutij << ", kint = " << kint << '\n';
+                  // cout << "confirmed contact with negative potential vertex, so flip sign\n";
                 } else {
                   ftmp = kc * (1 - xij) / sij;
                   energytmp = 0.5 * kc * (pow(1.0 - xij, 2.0) - l1 * l2);
+                  // cout << "rij < cutij, rij/cutij = " << rij / cutij << ", ftmp = " << ftmp << ", cutij = " << cutij << ", kint = " << kint << '\n';
+                  // cout << "confirmed contact with negative potential vertex, so flip sign\n";
                 }
                 if (cellID[ci] != cellID[cj])
                   surfaceTension[gi] = 1;
@@ -1092,6 +1123,7 @@ void cell::calculateSmoothInteraction(double rx, double ry, double sij, double s
         // force elements
         fx = sign * ftmp * (dx / rij);  // dx/rij comes from the chain rule (dU/dx1 = dU/dr * dr/dx1)
         fy = sign * ftmp * (dy / rij);
+        // cout << "fx, fy = " << fx << '\t' << fy << '\n';
         F[NDIM * gi] -= fx;
         F[NDIM * gi + 1] -= fy;
 
@@ -2108,8 +2140,10 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
       generateRectangularBoundary(scale_radius * tissueRadii[n], cx[n], cy[n], poly_bd_x[n], poly_bd_y[n]);
     else if (polyShapeID == 2)
       generateHorseshoeBoundary(cx[n], cy[n], poly_bd_x[n], poly_bd_y[n]);
-    else
-      assert(false);
+    else {
+      cout << "skipping boundary initialization!\n";
+      continue;
+    }
 
     // Find the maximum and minimum values in poly_bd_x
     auto xMinMax = std::minmax_element(poly_bd_x[n].begin(), poly_bd_x[n].end());

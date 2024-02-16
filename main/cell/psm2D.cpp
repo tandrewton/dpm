@@ -12,8 +12,8 @@ Compilation command:
 g++ -O3 --std=c++11 -g -I src main/cell/psm2D.cpp src/dpm.cpp src/cell.cpp -o main/cell/psm2D.o
 run command:
 
-att_arr=(0.0 0.005 0.05 0.1)
-att2_arr=(0.0 0.005 0.05 0.1)
+att_arr=(0.05 0.1 0.15 0.2 0.25)
+att2_arr=(0.0)
 #v0=0.1
 t_stress_arr=(10000.0)
 v0=0.1
@@ -28,7 +28,7 @@ for att in ${att_arr[@]}; do
     for phi in ${phi_arr[@]}; do
       for t_stress in ${t_stress_arr[@]}; do
         for gamma in ${gamma_arr[@]}; do
-          echo "./main/cell/psm2D.o   40  30 1.0 $phi $kl $ka $kb $att $att2 $t_stress    $v0    $tau_abp  $gamma  1    500    testa_"$att"_a2_"$att2"_tm_"$t_stress"_p_"$phi"_t_"$tau_abp"_gamma_"$gamma
+          echo "./main/cell/psm2D.o   20  30 1.0 $phi $kl $ka $kb $att $att2 $t_stress    $v0    $tau_abp  $gamma  1    200    testa_"$att"_a2_"$att2"_tm_"$t_stress"_p_"$phi"_t_"$tau_abp"_gamma_"$gamma
         done
       done
     done
@@ -60,7 +60,7 @@ const double boxLengthScale = 2.5;  // neighbor list box size in units of initia
 const double dt0 = 0.02;  // initial magnitude of time step in units of MD time
 const double Ptol = 1e-5;
 const double Ftol = 1e-4;
-const double att_range = 0.15;
+const double att_range = 0.3;
 
 int main(int argc, char const* argv[]) {
   // local variables to be read in
@@ -138,7 +138,7 @@ int main(int argc, char const* argv[]) {
 
   // initialize particles with the same number of vertices and the same preferred shape parameter calA0
   cell2D.monodisperse2D(calA0, nv);
-  int circleID = 0, rectangleID = 1, horseshoeID = 2;
+  int circleID = 0, rectangleID = 1, horseshoeID = 2, noneID = 3;
   cell2D.initializeTransverseTissue(phi0, Ftol, circleID);  // initialize within a ring boundary
   cell2D.initializeNeighborLinkedList2D(boxLengthScale);
 
