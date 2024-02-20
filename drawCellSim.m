@@ -1,10 +1,10 @@
 %pwd should give ~/Documents/YalePhd/projects/dpm
-function drawCellSim(N, calA0, phi, ka, kb, att, att2, v0, t_maxwell, gamma)
+function drawCellSim(N, calA0, phi, ka, kb, att, att2, v0, t_maxwell, gamma, numSeeds)
 %close all; clear
 isTestData = false; %uncomment if using function call to pipeline data
 
 %isTestData = true; %uncomment if using test data
-%testDataIDs = ["a_0.15_a2_0.0_tm_10000.0_p_0.8_t_1.0_gamma_0"];
+%testDataIDs = ["a_0.1_a2_0.0_tm_10000.0_p_0.8_t_1.0_gamma_0"];
 
 %for i=1:length(testDataIDs)
 %    testDataID = testDataIDs(i);
@@ -52,7 +52,7 @@ if (forImageAnalysis)
 else
     showCatchBonds = 0;
     showverts = 1;
-    showcirculoline = 1;
+    showcirculoline = 0;
     makeAMovie = 1;
 end
 
@@ -71,6 +71,7 @@ if isunix
     % for cluster runs
     subdir_pipeline = "/gpfs/gibbs/pi/ohern/at965/dpm/"+runType+"/";
     subdir_output = "/gpfs/gibbs/pi/ohern/at965/dpm/"+runType+"/output/";
+    max_seed = numSeeds;
 end
 
 mkdir(subdir_pipeline);

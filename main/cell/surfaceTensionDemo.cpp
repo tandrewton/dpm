@@ -3,16 +3,16 @@ Compilation command:
 g++ -O3 --std=c++11 -g -I src main/cell/surfaceTensionDemo.cpp src/dpm.cpp src/cell.cpp -o main/cell/surfaceTension.o
 run command:
 
-att_arr=(0.0 0.05 0.1 0.15)
+att_arr=(0.1)
 att2_arr=(0.0)
-#v0=0.1
+v0=0
 t_stress_arr=(10000.0)
-v0=0.01
+#v0=0.01
 phi_arr=(0.8)
 tau_abp=1.0
 gamma_arr=(0)
-kl=1.0
-ka=(5.0)
+kl=0.5
+ka=(1.0)
 kb=0.01
 for att in ${att_arr[@]}; do
   for att2 in ${att2_arr[@]}; do
@@ -160,7 +160,7 @@ int main(int argc, char const* argv[]) {
 
   // begin production run after all of the initialization and equilibration settles
   // double v0_decay_rate = 0.002,    v0_min = 0.01;
-  double v0_decay_rate = 0.002, v0_min = 0.01;
+  double v0_decay_rate = 0.05, v0_min = 0.01 * v0_abp;
   cout << "before vertexDampedMD final!\n";
   cell2D.setitmax(1e4);
   cell2D.vertexDampedMD(attractionSmoothActive, dt0, runTime, 5.0, v0_decay_rate * v0_abp, v0_min);

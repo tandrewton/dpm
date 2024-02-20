@@ -49,7 +49,7 @@ for N in ${N_arr[@]}; do
             for t_stress in ${t_stress_arr[@]}; do
               for v0 in ${v0_arr[@]}; do
                 for gamma in ${gamma_arr[@]}; do
-                  echo "module load MATLAB/2023a; matlab -batch \"drawCellSim(\\\"$N\\\", \\\"$calA0\\\", \\\"$phi\\\", \\\"$ka\\\", \\\"$kb\\\", \\\"$att\\\", \\\"$att2\\\", \\\"$v0\\\", \\\"$t_stress\\\", \\\"$gamma\\\")\"" >> joblist_psm_drawCellSim.txt
+                  echo "module load MATLAB/2023a; matlab -batch \"drawCellSim(\\\"$N\\\", \\\"$calA0\\\", \\\"$phi\\\", \\\"$ka\\\", \\\"$kb\\\", \\\"$att\\\", \\\"$att2\\\", \\\"$v0\\\", \\\"$t_stress\\\", \\\"$gamma\\\", \\\"$numSeeds\\\")\"" >> joblist_psm_drawCellSim.txt
                 done
               done
             done
