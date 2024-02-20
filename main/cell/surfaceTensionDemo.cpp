@@ -5,21 +5,21 @@ run command:
 
 att_arr=(0.1)
 att2_arr=(0.0)
-v0=0
+#v0=0
 t_stress_arr=(10000.0)
-#v0=0.01
+v0=0.1
 phi_arr=(0.8)
 tau_abp=1.0
 gamma_arr=(0)
 kl=0.5
-ka=(1.0)
+ka=(5.0)
 kb=0.01
 for att in ${att_arr[@]}; do
   for att2 in ${att2_arr[@]}; do
     for phi in ${phi_arr[@]}; do
       for t_stress in ${t_stress_arr[@]}; do
         for gamma in ${gamma_arr[@]}; do
-          echo "./main/cell/surfaceTension.o   14  24 1.0 $phi $kl $ka $kb $att $att2 $t_stress    $v0    $tau_abp  $gamma  1    200    testa_"$att"_a2_"$att2"_tm_"$t_stress"_p_"$phi"_t_"$tau_abp"_gamma_"$gamma
+          echo "./main/cell/surfaceTension.o   40  24 1.0 $phi $kl $ka $kb $att $att2 $t_stress    $v0    $tau_abp  $gamma  1    200    testa_"$att"_a2_"$att2"_tm_"$t_stress"_p_"$phi"_t_"$tau_abp"_gamma_"$gamma
         done
       done
     done
@@ -48,7 +48,7 @@ const double dphi0 = 0.005;         // packing fraction increment
 const double kc = 1.0;              // interaction force spring constant (should be unit)
 const double boxLengthScale = 2.5;  // neighbor list box size in units of initial l0
 // const double phi0 = 0.91;           // initial preferred packing fraction
-const double dt0 = 0.02;  // initial magnitude of time step in units of MD time
+const double dt0 = 0.01;  // initial magnitude of time step in units of MD time
 const double Ptol = 1e-5;
 const double Ftol = 1e-4;
 const double att_range = 0.3;

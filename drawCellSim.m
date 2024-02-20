@@ -1,13 +1,13 @@
 %pwd should give ~/Documents/YalePhd/projects/dpm
-function drawCellSim(N, calA0, phi, ka, kb, att, att2, v0, t_maxwell, gamma, numSeeds)
+%function drawCellSim(N, calA0, phi, ka, kb, att, att2, v0, t_maxwell, gamma, numSeeds)
 %close all; clear
-isTestData = false; %uncomment if using function call to pipeline data
+%isTestData = false; %uncomment if using function call to pipeline data
 
-%isTestData = true; %uncomment if using test data
-%testDataIDs = ["a_0.1_a2_0.0_tm_10000.0_p_0.8_t_1.0_gamma_0"];
+isTestData = true; %uncomment if using test data
+testDataIDs = ["a_0.1_a2_0.0_tm_10000.0_p_0.8_t_1.0_gamma_0"];
 
-%for i=1:length(testDataIDs)
-%    testDataID = testDataIDs(i);
+for i=1:length(testDataIDs)
+    testDataID = testDataIDs(i);
 
 %testDataID = "a_0.05_a2_0.05_p_0.8_t_1.0_gamma_0.01";
 %testDataID = "9";
@@ -52,7 +52,7 @@ if (forImageAnalysis)
 else
     showCatchBonds = 0;
     showverts = 1;
-    showcirculoline = 0;
+    showcirculoline = 1;
     makeAMovie = 1;
 end
 

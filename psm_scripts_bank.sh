@@ -41,15 +41,17 @@ dsq --job-file joblist_psm.txt   --mem-per-cpu 4g -t 1:00:00 --mail-type NONE --
 
 rm joblist_psm_drawCellSim.txt
 for N in ${N_arr[@]}; do
-  for phi in ${phi_arr[@]}; do
-    for ka in ${ka_arr[@]}; do
-      for kb in ${kb_arr[@]}; do
-        for att in ${att_arr[@]}; do 
-          for att2 in ${att2_arr[@]}; do
-            for t_stress in ${t_stress_arr[@]}; do
-              for v0 in ${v0_arr[@]}; do
-                for gamma in ${gamma_arr[@]}; do
-                  echo "module load MATLAB/2023a; matlab -batch \"drawCellSim(\\\"$N\\\", \\\"$calA0\\\", \\\"$phi\\\", \\\"$ka\\\", \\\"$kb\\\", \\\"$att\\\", \\\"$att2\\\", \\\"$v0\\\", \\\"$t_stress\\\", \\\"$gamma\\\", \\\"$numSeeds\\\")\"" >> joblist_psm_drawCellSim.txt
+  for calA0 in ${calA0_arr[@]}; do
+    for phi in ${phi_arr[@]}; do
+      for ka in ${ka_arr[@]}; do
+        for kb in ${kb_arr[@]}; do
+          for att in ${att_arr[@]}; do 
+            for att2 in ${att2_arr[@]}; do
+              for t_stress in ${t_stress_arr[@]}; do
+                for v0 in ${v0_arr[@]}; do
+                  for gamma in ${gamma_arr[@]}; do
+                    echo "module load MATLAB/2023a; matlab -batch \"drawCellSim(\\\"$N\\\", \\\"$calA0\\\", \\\"$phi\\\", \\\"$ka\\\", \\\"$kb\\\", \\\"$att\\\", \\\"$att2\\\", \\\"$v0\\\", \\\"$t_stress\\\", \\\"$gamma\\\", $numSeeds)\"" >> joblist_psm_drawCellSim.txt
+                  done
                 done
               done
             done
@@ -80,6 +82,7 @@ rsync -rav --inplace --progress --exclude '*.pos' --exclude '*.tif' --exclude '*
 
 rsync -rav --inplace --progress at965@transfer-mccleary.ycrc.yale.edu:/home/at965/psm_extracellular_calculation/windowedPhiDataFrame_calA1.0_phi0.8.txt /mnt/c/Users/atata/projects/psm_extracellular_calculation 
 
+cd ~/psm_extracellular_calculation/
 salloc -c 4 --mem 16G -t 4:00:00
 module load MATLAB/2023a
 matlab -nodisplay
