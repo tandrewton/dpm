@@ -2,7 +2,16 @@
 // Compilation command:
 // g++ -O3 --std=c++11 -g -I src main/epi2D/testSmoothNVE.cpp src/dpm.cpp src/epi2D.cpp -o main/epi2D/testSmoothNVE.o
 
-//                                                         att                                               sm
+//
+/*
+sm_arr=(0 1)
+for sm in ${sm_arr[@]}; do
+  echo "./main/epi2D/testSmoothNVE.o 2 20 4 1.0 0.2 0.0 1.0 1.0 0.0 0.013  2.0  4.0  4.0 1.0  3.0  1.0 0.5  $sm  0   0 1  200  test"
+done
+*/
+//                                                   att                                               sm
+// ./main/epi2D/testSmoothNVE.o 2 20 4 1.0 0.2 0.0 1.0 1.0 0.0 0.013  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   0 1  200  test
+
 // ./main/epi2D/testSmoothNVE.o 2 20 4 1.0 0.2 0.0 1.0 1.0 0.0 0.013  2.0  4.0  4.0 1.0  3.0  1.0 0.5  0  0   0 1  200  test
 
 // script to generate NVE simulations and check the energy. See file "energyNVETest.txt"
@@ -90,18 +99,6 @@ int main(int argc, char const* argv[]) {
   string time_str = argv[22];
   string outFileStem = argv[23];
 
-  string positionFile = outFileStem + ".pos";
-  string energyFile = outFileStem + ".energy";
-  string stressFile = outFileStem + ".stress";
-  string voidFile = outFileStem + ".void";
-  string edgeFile = outFileStem + ".edge";
-  string purseStringFile = outFileStem + ".purseString";
-  string voidAreaFile = outFileStem + ".voidArea";
-  string bulkCellShapeFile = outFileStem + ".bulkCellShape";
-  string innerCellShapeFile = outFileStem + ".innerCellShape";
-  string woundPropertiesFile = outFileStem + ".woundProperties";
-  string cellIDFile = outFileStem + ".cellID";
-
   // using sstreams to get parameters
   stringstream NCELLSss(NCELLS_str);
   stringstream nsmallss(nsmall_str);
@@ -161,17 +158,7 @@ int main(int argc, char const* argv[]) {
   }
   epi2D epithelial(NCELLS, 0.0, 0.0, strainRate_ps, k_ps, k_LP, tau_LP, deltaSq, maxProtrusionLength, seed);
 
-  epithelial.openPosObject(positionFile);
-  epithelial.openEnergyObject(energyFile);
-  epithelial.openStressObject(stressFile);
-  epithelial.openBoundaryObject(voidFile);
-  epithelial.openEdgeObject(edgeFile);
-  epithelial.openPurseStringObject(purseStringFile);
-  epithelial.openVoidAreaObject(voidAreaFile);
-  epithelial.openBulkCellShapeObject(bulkCellShapeFile);
-  epithelial.openInnerCellShapeObject(innerCellShapeFile);
-  epithelial.openWoundPropertiesObject(woundPropertiesFile);
-  epithelial.openCellIDObject(cellIDFile);
+  epithelial.openFileStreams(outFileStem);
 
   // set spring constants
   epithelial.setka(ka);
@@ -216,8 +203,7 @@ int main(int argc, char const* argv[]) {
 
   // after compress, turn on damped NVE
   double T = 1e-10;
-  double relaxTime = 10.0;
-  assert(relaxTime <= 10.0);  // if relaxTime > 10.0, then dampedNP0 will run over the hardcoded limit. Could pass a parameter to dampedNP0 to tell it how long to wait, or just hardcode for now.
+  double relaxTime = 100.0;
   double printInterval = relaxTime / 2.0;
   double runTime = 25.0;
   epithelial.drawVelocities2D(T);
@@ -232,7 +218,7 @@ int main(int argc, char const* argv[]) {
     customAttractiveForce = circuloLineAttraction;
   }
 
-  epithelial.dampedNP0(customAttractiveForce, B, dt0, relaxTime, printInterval);
+  epithelial.dampedNVETest(customAttractiveForce, T, dt0, relaxTime / dt0, printInterval / dt0);
 
   std::ofstream myenergy("energyNVETest.txt");
   int numIts = 2;
@@ -240,12 +226,14 @@ int main(int argc, char const* argv[]) {
     epithelial.setkc(1.0);
     // equilibrate
     if (i == 0) {
-      cout << "multiplying velocity!\n";
-      epithelial.scaleVelocities(10.0);
-      epithelial.vertexNVE(myenergy, customAttractiveForce, dt0, 10000, 1000);
+      // cout << "multiplying velocity!\n";
+      // epithelial.scaleVelocities(10.0);
+      //  dpmMemFn forceCall, double dt0, int NT, int NPRINTSKIP
+      epithelial.setCellVelocity(0, 1e-2, 0);
+      epithelial.vertexNVE(customAttractiveForce, dt0, 10000, 1000);
     }
     if (i == 1) {
-      epithelial.vertexNVE(myenergy, customAttractiveForce, dt0, 50000, 1000);
+      epithelial.vertexNVE(customAttractiveForce, dt0, 100000, 1000);
     }
   }
 
