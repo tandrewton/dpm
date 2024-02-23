@@ -1,6 +1,6 @@
 module load dSQ
 #!/bin/bash
-numSeeds=10
+numSeeds=25
 N_arr=(40)
 calA0_arr=(1.0)
 phi_arr=(0.8)
@@ -13,7 +13,7 @@ att2_arr=(0.0 0.001 0.005 0.01 0.05 0.1)
 t_stress_arr=(10000.0)
 v0_arr=(0.1)
 #gamma_arr=(0)
-gamma_arr=(0 0.001 0.1)
+gamma_arr=(0)
 rm joblist_psm.txt
 for N in ${N_arr[@]}; do
   for calA0 in ${calA0_arr[@]}; do
@@ -73,7 +73,7 @@ dsq --job-file joblist_psm_drawCellSim.txt --mem-per-cpu 8g -t 4:00:00 --mail-ty
 rsync -rav --inplace --progress at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm /mnt/c/Users/atata/projects/dpm/pipeline/cells/. 
 
 # send files from mccleary output folder (where I store postprocessed files that I ran on the cluster) to local
-rsync -rav --inplace --progress --filter '+ */' --filter '+ *sd1.avi' --filter '+ *sd2.avi' --filter '- *.avi' --filter '- *.pos' --filter '- *.tif' --filter '- *' at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm/output/ /mnt/c/Users/atata/projects/dpm/output/cells/psm/
+rsync -rav --inplace --progress --filter '+ */' --filter '+ *sd1.avi' --filter '- *.avi' --filter '- *.pos' --filter '- *.tif' --filter '- *' at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm/output/ /mnt/c/Users/atata/projects/dpm/output/cells/psm/
 
 
 rsync -rav --inplace --progress --exclude '*.pos' at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm /Users/AndrewTon/Documents/YalePhD/projects/dpm/pipeline/cells/. 
@@ -104,7 +104,7 @@ close all; clear;
 calA0_arr = ["1.0"];
 att_arr = ["0.001" "0.01" "0.02" "0.05"];
 att2_arr = ["0.0" "0.001" "0.01" "0.05"];
-phi_arr = ["0.6" "0.8"];
+phi_arr = ["0.8"];
 v0_arr = ["0.1"];
 gamma_arr = ["0"];
 t_stress_arr = ["10000.0"];

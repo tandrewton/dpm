@@ -176,7 +176,8 @@ for nn = 1:NCELLS
             for yy = itLow:itHigh
                 vpos = [xtmp + xx*Lx, ytmp + yy*Ly];
                 vpos =  (vpos - 0.9*[cx,cy])+[cx,cy];
-                if ff == 6
+                %if ff == 6
+                if ff == FEND
                     vpos3 = [horzcat(vpos, 0.5*ones(length(vpos),1)); horzcat(vpos, -0.5*ones(length(vpos),1))];
                     shp = alphaShape(vpos3(:,1), vpos3(:,2), vpos3(:,3));
                     shp.Alpha = 0.75
@@ -203,3 +204,5 @@ axis off;
 view(3)
 light;
 %lightangle(-45,30)
+exportgraphics(gcf, "woundHealedHighRes.eps",'ContentType','vector')
+exportgraphics(gcf, "woundHealedHighRes.jpg",'Resolution', 1000)

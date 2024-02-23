@@ -8,18 +8,19 @@ att2_arr=(0.0)
 #v0=0
 t_stress_arr=(10000.0)
 v0=0.1
-phi_arr=(0.8)
+phi_arr=(0.85)
 tau_abp=1.0
 gamma_arr=(0)
-kl=0.5
-ka=(5.0)
+kl=1.0
+ka=(2.0)
+#kb=0.01
 kb=0.01
 for att in ${att_arr[@]}; do
   for att2 in ${att2_arr[@]}; do
     for phi in ${phi_arr[@]}; do
       for t_stress in ${t_stress_arr[@]}; do
         for gamma in ${gamma_arr[@]}; do
-          echo "./main/cell/surfaceTension.o   40  24 1.0 $phi $kl $ka $kb $att $att2 $t_stress    $v0    $tau_abp  $gamma  1    200    testa_"$att"_a2_"$att2"_tm_"$t_stress"_p_"$phi"_t_"$tau_abp"_gamma_"$gamma
+          echo "./main/cell/surfaceTension.o   36  24 1.0 $phi $kl $ka $kb $att $att2 $t_stress    $v0    $tau_abp  $gamma  1    400    testa_"$att"_a2_"$att2"_tm_"$t_stress"_p_"$phi"_t_"$tau_abp"_gamma_"$gamma
         done
       done
     done
@@ -144,7 +145,7 @@ int main(int argc, char const* argv[]) {
   double shortRelaxTime = 10.0;
   double relaxTime = 100.0;
   cell2D.setka(ka);
-  cell2D.vertexDampedMD(attractiveSmoothForceUpdate, dt0, shortRelaxTime, 0);
+  cell2D.vertexDampedMD(attractiveSmoothForceUpdate, dt0, shortRelaxTime, 0.0);
 
   cerr << "before shrinkCellVertices\n";
   cell2D.shrinkCellVertices(attractiveSmoothForceUpdate, dt0, 2.0);
@@ -156,11 +157,11 @@ int main(int argc, char const* argv[]) {
 
   cerr << "before setgamma\n";
   cell2D.setgamma(gamma);
-  cell2D.vertexDampedMD(attractionSmoothActive, dt0, relaxTime, 0);
+  cell2D.vertexDampedMD(attractionSmoothActive, dt0, relaxTime, 5.0);
 
   // begin production run after all of the initialization and equilibration settles
   // double v0_decay_rate = 0.002,    v0_min = 0.01;
-  double v0_decay_rate = 0.05, v0_min = 0.01 * v0_abp;
+  double v0_decay_rate = 0.002, v0_min = 0.01 * v0_abp;
   cout << "before vertexDampedMD final!\n";
   cell2D.setitmax(1e4);
   cell2D.vertexDampedMD(attractionSmoothActive, dt0, runTime, 5.0, v0_decay_rate * v0_abp, v0_min);

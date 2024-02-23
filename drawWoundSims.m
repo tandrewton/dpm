@@ -440,7 +440,8 @@ for seed = startSeed+9:max_seed
                             for yy = itLow:itHigh
                                 vpos = [xtmp + xx*Lx, ytmp + yy*Ly];
                                 vpos =  (vpos - 0.99*[cx,cy])+[cx,cy];
-                                if ff == 6 %FEND
+                                if ff == FEND
+                                %if ff == 6
                                     vpos3 = [horzcat(vpos, 0.15*ones(length(vpos),1)); horzcat(vpos, -0.15*ones(length(vpos),1))];
                                     shp = alphaShape(vpos3(:,1), vpos3(:,2), vpos3(:,3));
                                     shp.Alpha = 2.5;

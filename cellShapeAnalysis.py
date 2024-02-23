@@ -82,6 +82,7 @@ def process_data(att, v0, att2, tm, gamma, seed, fileheader):
         # cellCOM = np.loadtxt(filenames[4])
         cellShape = np.loadtxt(filenames[5])
         cellSpeed = np.loadtxt(speedFile)
+        assert len(cellSpeed) > 1
     except:
         return pd.DataFrame([]), pd.DataFrame([]), pd.DataFrame([])
 
@@ -137,7 +138,7 @@ def process_data(att, v0, att2, tm, gamma, seed, fileheader):
 
 def main():
     calA0 = "1.0"
-    att_arr = ["0.0", "0.001", "0.005", "0.01", "0.05", "0.1"]
+    att_arr = ["0.001", "0.005", "0.01", "0.05", "0.1"]
     kl = "1.0"
     ka = "5.0"
     kb = "0.01"
@@ -196,6 +197,8 @@ def main():
                                 df_speeds = pd.concat([df_speeds, df_speed])
                             else:
                                 print(f"{folderStr} is empty!")
+
+    print("finished reading files!")
 
     # ensure df is restricted to the parameter combinations within the different parameter arrays specified here
     # necessary because the data file may have parameters I'm not interested in
@@ -427,6 +430,8 @@ def main():
     plt.xticks(rotation=45, ha="right")
     plt.tight_layout()
 
+    debugpy.breakpoint()
+
     for fixed_gamma_val in [float(v) for v in gamma_arr]:
         plt.figure()
         fig_heatmap_phis = sns.heatmap(
@@ -484,7 +489,7 @@ def main():
         fig_heatmap_NEs.invert_yaxis()
         fig_heatmap_NEs.figure.savefig(f"fig_heatmap_NEs_gamma={fixed_gamma_val}.png")
 
-        plt.show()
+    plt.show()
 
 
 if __name__ == "__main__":
