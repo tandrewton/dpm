@@ -87,6 +87,9 @@ salloc -c 4 --mem 16G -t 4:00:00
 module load MATLAB/2023a
 matlab -nodisplay
 
+delete windowedPhiDataFrame.txt
+copy paste the contents of windowedFractionalPhiDP
+then run cellShapeAnalysis.py
 
 # use bash to echo a series of commands that I can copy and paste into a windows terminal to run a python code..
 att_arr=(0.001 0.01 0.1)
