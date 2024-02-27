@@ -62,7 +62,7 @@ for N in ${N_arr[@]}; do
   done
 done
 
-dsq --job-file joblist_psm_drawCellSim.txt --mem-per-cpu 8g -t 4:00:00 --mail-type NONE --submit --partition pi_ohern,day #--suppress-stats-file -o /dev/null
+dsq --job-file joblist_psm_drawCellSim.txt --mem-per-cpu 8g -t 8:00:00 --mail-type NONE --submit --partition pi_ohern,day #--suppress-stats-file -o /dev/null
 
 **unload matlab before git pull
 
