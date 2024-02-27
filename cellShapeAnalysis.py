@@ -145,13 +145,25 @@ def main():
     v0_arr = ["0.1"]
     att2_arr = ["0.0", "0.001", "0.005", "0.01", "0.05", "0.1"]
     tm_arr = ["10000.0"]
-    gamma_arr = ["0", "0.001", "0.1"]
+    gamma_arr = ["0"]
     t_abp = "1.0"
     phi = "0.8"
     duration = "500"
     NCELLS = 40
     timeBetweenFrames = 3
-    seeds = 10
+    seeds = 25
+
+    from sys import platform
+    if platform == "linux" or platform == "linux2":
+        # linux
+        pass
+    elif platform == "darwin":
+        folder=f"/Users/AndrewTon/Documents/YalePhD/projects/ZebrafishSegmentation/psm_extracellular_calculation/"
+        pipeline_folder=f"pipeline/cells/psm/"
+        # OS X
+    elif platform == "win32":
+        folder=f"C:\\Users\\atata\\projects\\psm_extracellular_calculation\\"
+        pipeline_folder=f"pipeline\\cells\\psm\\"
 
     # psm_calA01.15_phi0.8_tm0_v00.1_t_abp1.0/_N40_dur200_att0.06_att20.012_start1_end10_sd10
 
@@ -164,7 +176,7 @@ def main():
     df_speeds = pd.DataFrame()
     # load packing fraction data into dataframe
     df_phis = pd.read_csv(
-        f"C:\\Users\\atata\\projects\\psm_extracellular_calculation\\windowedPhiDataFrame_calA{calA0}_phi{phi}.txt"
+        f"{folder}windowedPhiDataFrame_calA{calA0}_phi{phi}.txt"
     )
 
     # load shape and neighbor exchange data into dataframes
@@ -174,8 +186,12 @@ def main():
                 for tm in tm_arr:
                     for gamma in gamma_arr:
                         for seed in range(1, seeds + 1):
-                            folderStr = f"psm_calA0{calA0}_phi{phi}_tm{tm}_v0{v0}_t_abp{t_abp}_gamma{gamma}_kl{kl}_ka{ka}_kb{kb}\\_N40_dur{duration}_att{att}_att2{att2}_start1_end{seeds}_sd{seed}"
-                            fileheader = f"pipeline\\cells\\psm\\" + folderStr
+                            if platform == "win32":
+                                folderStr = f"psm_calA0{calA0}_phi{phi}_tm{tm}_v0{v0}_t_abp{t_abp}_gamma{gamma}_kl{kl}_ka{ka}_kb{kb}\\_N40_dur{duration}_att{att}_att2{att2}_start1_end{seeds}_sd{seed}"
+                            else:
+                                folderStr = f"psm_calA0{calA0}_phi{phi}_tm{tm}_v0{v0}_t_abp{t_abp}_gamma{gamma}_kl{kl}_ka{ka}_kb{kb}/_N40_dur{duration}_att{att}_att2{att2}_start1_end{seeds}_sd{seed}"
+                            fileheader = pipeline_folder + folderStr
+                            print(fileheader)
 
                             # df_shape, df_NE = process_data(att, v0, att2, seed, fileheader)
                             df_shape, df_NE, df_speed = process_data(

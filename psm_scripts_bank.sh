@@ -74,13 +74,18 @@ rsync -rav --inplace --progress at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibb
 
 # send files from mccleary output folder (where I store postprocessed files that I ran on the cluster) to local
 rsync -rav --inplace --progress --filter '+ */' --filter '+ *sd1.avi' --filter '- *.avi' --filter '- *.pos' --filter '- *.tif' --filter '- *' at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm/output/ /mnt/c/Users/atata/projects/dpm/output/cells/psm/
+rsync -rav --inplace --progress --filter '+ */' --filter '+ *sd1.avi' --filter '- *.avi' --filter '- *.pos' --filter '- *.tif' --filter '- *' at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm/output/ /Users/AndrewTon/Documents/YalePhD/projects/dpm/output/cells/psm/
+
 
 
 rsync -rav --inplace --progress --exclude '*.pos' at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm /Users/AndrewTon/Documents/YalePhD/projects/dpm/pipeline/cells/. 
 
 rsync -rav --inplace --progress --exclude '*.pos' --exclude '*.tif' --exclude '*.avi' at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm /mnt/c/Users/atata/projects/dpm/pipeline/cells/. 
+rsync -rav --inplace --progress --exclude '*.pos' --exclude '*.tif' --exclude '*.avi' at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm /Users/AndrewTon/Documents/YalePhD/projects/dpm/pipeline/cells/. 
+
 
 rsync -rav --inplace --progress at965@transfer-mccleary.ycrc.yale.edu:/home/at965/psm_extracellular_calculation/windowedPhiDataFrame_calA1.0_phi0.8.txt /mnt/c/Users/atata/projects/psm_extracellular_calculation 
+rsync -rav --inplace --progress at965@transfer-mccleary.ycrc.yale.edu:/home/at965/psm_extracellular_calculation/windowedPhiDataFrame_calA1.0_phi0.8.txt /Users/AndrewTon/Documents/YalePhD/projects/ZebrafishSegmentation/psm_extracellular_calculation 
 
 cd ~/psm_extracellular_calculation/
 salloc -c 4 --mem 16G -t 4:00:00
