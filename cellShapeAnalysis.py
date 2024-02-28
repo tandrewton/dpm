@@ -138,7 +138,7 @@ def process_data(att, v0, att2, tm, gamma, seed, fileheader):
 
 def main():
     calA0 = "1.0"
-    att_arr = ["0.001", "0.005", "0.01", "0.05", "0.1"]
+    att_arr = ["0.0", "0.001", "0.005", "0.01", "0.05", "0.1"]
     kl = "1.0"
     ka = "5.0"
     kb = "0.01"
@@ -151,19 +151,24 @@ def main():
     duration = "500"
     NCELLS = 40
     timeBetweenFrames = 3
-    seeds = 25
+    seeds = 12
+
+    font = {"family": "normal", "weight": "bold", "size": 22}
+
+    plt.rc("font", **font)
 
     from sys import platform
+
     if platform == "linux" or platform == "linux2":
         # linux
         pass
     elif platform == "darwin":
-        folder=f"/Users/AndrewTon/Documents/YalePhD/projects/ZebrafishSegmentation/psm_extracellular_calculation/"
-        pipeline_folder=f"pipeline/cells/psm/"
+        folder = f"/Users/AndrewTon/Documents/YalePhD/projects/ZebrafishSegmentation/psm_extracellular_calculation/"
+        pipeline_folder = f"pipeline/cells/psm/"
         # OS X
     elif platform == "win32":
-        folder=f"C:\\Users\\atata\\projects\\psm_extracellular_calculation\\"
-        pipeline_folder=f"pipeline\\cells\\psm\\"
+        folder = f"C:\\Users\\atata\\projects\\psm_extracellular_calculation\\"
+        pipeline_folder = f"pipeline\\cells\\psm\\"
 
     # psm_calA01.15_phi0.8_tm0_v00.1_t_abp1.0/_N40_dur200_att0.06_att20.012_start1_end10_sd10
 
@@ -175,9 +180,7 @@ def main():
     df_NEs = pd.DataFrame()
     df_speeds = pd.DataFrame()
     # load packing fraction data into dataframe
-    df_phis = pd.read_csv(
-        f"{folder}windowedPhiDataFrame_calA{calA0}_phi{phi}.txt"
-    )
+    df_phis = pd.read_csv(f"{folder}windowedPhiDataFrame_calA{calA0}_phi{phi}.txt")
 
     # load shape and neighbor exchange data into dataframes
     for att in att_arr:
@@ -212,6 +215,7 @@ def main():
                                 df_NEs = pd.concat([df_NEs, df_NE])
                                 df_speeds = pd.concat([df_speeds, df_speed])
                             else:
+                                debugpy.breakpoint()
                                 print(f"{folderStr} is empty!")
 
     print("finished reading files!")
@@ -445,8 +449,6 @@ def main():
 
     plt.xticks(rotation=45, ha="right")
     plt.tight_layout()
-
-    debugpy.breakpoint()
 
     for fixed_gamma_val in [float(v) for v in gamma_arr]:
         plt.figure()
