@@ -77,9 +77,6 @@ rsync -rav --inplace --progress at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibb
 rsync -rav --inplace --progress --filter '+ */' --filter '+ *sd1.avi' --filter '+ *.csv' --filter '- *.avi' --filter '- *.pos' --filter '- *.tif' --filter '- *' at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm/output/ /mnt/c/Users/atata/projects/dpm/output/cells/psm/
 rsync -rav --inplace --progress --filter '+ */' --filter '+ *sd1.avi' --filter '+ *.csv' --filter '- *.avi' --filter '- *.pos' --filter '- *.tif' --filter '- *' at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm/output/ /Users/AndrewTon/Documents/YalePhD/projects/dpm/output/cells/psm/
 
-
-rsync -rav --inplace --progress --exclude '*.pos' at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm /Users/AndrewTon/Documents/YalePhD/projects/dpm/pipeline/cells/. 
-
 # expecting .xstream, .xminstream, .shapestream, etc
 rsync -rav --inplace --progress --exclude '*.pos' --exclude '*.tif' --exclude '*.avi' at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm /mnt/c/Users/atata/projects/dpm/pipeline/cells/. 
 rsync -rav --inplace --progress --exclude '*.pos' --exclude '*.tif' --exclude '*.avi' at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm /Users/AndrewTon/Documents/YalePhD/projects/dpm/pipeline/cells/. 

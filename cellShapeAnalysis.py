@@ -153,7 +153,7 @@ def main():
     timeBetweenFrames = 3
     seeds = 12
 
-    font = {"family": "normal", "weight": "bold", "size": 22}
+    font = {"size": 22}
 
     plt.rc("font", **font)
 
@@ -215,7 +215,6 @@ def main():
                                 df_NEs = pd.concat([df_NEs, df_NE])
                                 df_speeds = pd.concat([df_speeds, df_speed])
                             else:
-                                debugpy.breakpoint()
                                 print(f"{folderStr} is empty!")
 
     print("finished reading files!")
@@ -460,6 +459,7 @@ def main():
         )
         plt.xlabel("$\epsilon_2$")
         plt.ylabel("$\epsilon_1$")
+        plt.tight_layout()
         fig_heatmap_phis.invert_yaxis()
         fig_heatmap_phis.figure.savefig(f"fig_heatmap_phis_gamma={fixed_gamma_val}.png")
 
@@ -474,6 +474,7 @@ def main():
         )
         plt.xlabel("$\epsilon_2$")
         plt.ylabel("$\epsilon_1$")
+        plt.tight_layout()
         fig_heatmap_shapes.invert_yaxis()
         fig_heatmap_shapes.figure.savefig(
             f"fig_heatmap_shapes_gamma={fixed_gamma_val}.png"
@@ -490,6 +491,7 @@ def main():
         )
         plt.xlabel("$\epsilon_2$")
         plt.ylabel("$\epsilon_1$")
+        plt.tight_layout()
         fig_heatmap_speeds.invert_yaxis()
         fig_heatmap_speeds.figure.savefig(
             f"fig_heatmap_speeds_gamma={fixed_gamma_val}.png"
@@ -504,8 +506,84 @@ def main():
         )
         plt.xlabel("$\epsilon_2$")
         plt.ylabel("$\epsilon_1$")
+        plt.tight_layout()
         fig_heatmap_NEs.invert_yaxis()
         fig_heatmap_NEs.figure.savefig(f"fig_heatmap_NEs_gamma={fixed_gamma_val}.png")
+
+        debugpy.breakpoint()
+        genotype_tags = [
+            "0.1, 0.05, 0.1, 10000.0, 0.0",
+            "0.001, 0.05, 0.1, 10000.0, 0.0",
+            "0.001, 0.005, 0.1, 10000.0, 0.0",
+        ]
+
+        df_all = pd.DataFrame(
+            columns=[
+                "params",
+                "phi_mean",
+                "phi_std",
+                "shape_mean",
+                "shape_std",
+                "v_mean",
+                "v_std",
+                "NE_mean",
+                "NE_std",
+            ]
+        )
+
+        for i in range(0, len(genotype_tags)):
+            phi_group = df_phis[
+                df_phis["(att, att2, v0, tm, gamma)"] == genotype_tags[i]
+            ].groupby("seed")["phi"]
+            shape_group = df_shapes[
+                df_shapes["(att, att2, v0, tm, gamma)"] == genotype_tags[i]
+            ].groupby("seed")["shapeParameter"]
+            speed_group = df_speeds[
+                df_speeds["(att, att2, v0, tm, gamma)"] == genotype_tags[i]
+            ].groupby("seed")["speed"]
+            NE_group = df_NEs[
+                df_NEs["(att, att2, v0, tm, gamma)"] == genotype_tags[i]
+            ].groupby("seed")["minNE"]
+            new_row = {
+                "params": genotype_tags[i],
+                "phi_mean": phi_group.mean(),
+                "phi_std": phi_group.std(),
+                "shape_mean": shape_group.mean(),
+                "shape_std": shape_group.std(),
+                "v_mean": speed_group.mean(),
+                "v_std": speed_group.std(),
+                "NE_mean": NE_group.mean(),
+                "NE_std": NE_group.std(),
+            }
+            df_all = pd.concat([df_all, pd.DataFrame(new_row)], ignore_index=True)
+
+        # Convert 'Category' to a categorical type and assign numerical values
+        df_all["eps1,eps2"] = df_all["params"].astype("category").cat.codes
+        offset_width = 0.1  # Adjust the spacing between points in the same category
+        grouped = df_all.groupby("eps1,eps2")
+        offsets = {
+            cat: np.linspace(-offset_width / 2, offset_width / 2, num=len(group))
+            for cat, group in grouped
+        }
+        df_all["Offset"] = df_all.apply(
+            lambda row: offsets[row["eps1,eps2"]][
+                grouped.groups[row["eps1,eps2"]].get_loc(row.name)
+            ],
+            axis=1,
+        )
+
+        fig, axs = plt.subplots(4, 1, sharex=True, figsize=(15, 15))
+        plt.rcParams.update({"font.size": 30})
+        plt.subplots_adjust(hspace=0)
+        axs[0].errorbar(
+            df_all["eps1,eps2"] + df_all["Offset"],
+            df_all["phi_mean"],
+            yerr=df_all["phi_std"],
+            fmt="o",
+            capsize=5,
+        )
+        axs[0].set_ylabel(r"$\phi$")
+        plt.show()
 
     plt.show()
 
