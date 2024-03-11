@@ -143,7 +143,7 @@ class cell : public dpm {
 
   // File openers
   void openFileStreams(const std::string& filename) {
-    std::vector<string> fileExt = {".pos", ".tissue", ".catchbond", ".pf", ".msd", ".cellContact",
+    std::vector<string> fileExt = {".pos", ".tissue", ".bond", ".pf", ".msd", ".cellContact",
                                    ".xStream", ".xMinStream", ".cijStream", ".cijMinStream", ".comStream", ".shapeStream"};
     openFile(posout, filename + fileExt[0]);
     openFile(tissueOut, filename + fileExt[1]);

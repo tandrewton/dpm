@@ -12,7 +12,7 @@ Compilation command:
 g++ -O3 --std=c++11 -g -I src main/cell/psm2D.cpp src/dpm.cpp src/cell.cpp -o main/cell/psm2D.o
 run command:
 
-att_arr=(0.0 0.05 0.1 0.15)
+att_arr=(0.0 0.05 0.1)
 att2_arr=(0.0)
 #v0=0.1
 t_stress_arr=(10000.0)
@@ -20,7 +20,9 @@ v0=0.1
 phi_arr=(0.8)
 tau_abp=1.0
 gamma_arr=(0)
-kon_arr=(1.0 10.0 100.0)
+kon_arr=(1.0 10.0)
+koff_arr=(0.01 0.1 1.0)
+kecm_arr=(0.01)
 kl=1.0
 ka=(5.0)
 kb=0.01
@@ -30,7 +32,11 @@ for att in ${att_arr[@]}; do
       for t_stress in ${t_stress_arr[@]}; do
         for gamma in ${gamma_arr[@]}; do
           for k_on in ${kon_arr[@]}; do
-            echo "./main/cell/psm2D.o   14  24 1.0 $phi $kl $ka $kb $att $att2 $t_stress    $v0    $tau_abp  $gamma $k_on  1    200    testa_"$att"_a2_"$att2"_tm_"$t_stress"_p_"$phi"_t_"$tau_abp"_gamma_"$gamma"_k_on_"$k_on
+            for k_off in ${koff_arr[@]}; do
+              for k_ecm in ${kecm_arr[@]}; do
+                echo "./main/cell/psm2D.o   14  20 1.0 $phi $kl $ka $kb $att $att2 $t_stress    $v0    $tau_abp  $gamma $k_on $k_off $k_ecm 1    100    testa_"$att"_a2_"$att2"_tm_"$t_stress"_p_"$phi"_t_"$tau_abp"_gamma_"$gamma"_k_on_"$k_on"_k_off_"$k_off"_k_ecm_"$k_ecm
+              done
+            done
           done
         done
       done
@@ -85,9 +91,11 @@ int main(int argc, char const* argv[]) {
   double tau_abp = parseArg<double>(argv[12]);
   double gamma = parseArg<double>(argv[13]);
   double k_on = parseArg<double>(argv[14]);
-  int seed = parseArg<int>(argv[15]);
-  double runTime = parseArg<double>(argv[16]);
-  std::string outFileStem = argv[17];
+  double k_off = parseArg<double>(argv[15]);
+  double k_ecm = parseArg<double>(argv[16]);
+  int seed = parseArg<int>(argv[17]);
+  double runTime = parseArg<double>(argv[18]);
+  std::string outFileStem = argv[19];
 
   int numCellTypes = 2;  // 0 = interior cell type (PSM) and 1 = exterior cell type (boundary)
   cell cell2D(NCELLS, 0.0, 0.0, seed, numCellTypes);
@@ -99,8 +107,8 @@ int main(int argc, char const* argv[]) {
   cell2D.setkb(kb);
   cell2D.setkc(kc);
   cell2D.setkon(k_on);
-  cell2D.setkoff(k_on);
-  cell2D.setkecm(1.0);
+  cell2D.setkoff(k_off);
+  cell2D.setkecm(k_ecm);
   cell2D.setB(B);
   if (t_stress > 0.0)
     cell2D.setMaxwellRelaxationTime(t_stress);  // t_stress is infinity unless this is uncommented
@@ -163,7 +171,8 @@ int main(int argc, char const* argv[]) {
   cell2D.resizeNeighborLinkedList2D();
 
   double shortRelaxTime = 10.0;
-  double relaxTime = 100.0;
+  double relaxTime = 10.0;
+  // double relaxTime = 100.0;
   cell2D.setka(ka);
   cell2D.vertexDampedMD(attractiveSmoothForceUpdate, dt0, shortRelaxTime, 0);
 

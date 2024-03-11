@@ -1,13 +1,13 @@
 %pwd should give ~/Documents/YalePhd/projects/dpm
-%function drawCellSim(N, calA0, phi, ka, kb, att, att2, v0, t_maxwell, gamma, k_on, numSeeds)
+function drawCellSim(N, calA0, phi, ka, kb, att, att2, v0, t_maxwell, gamma, k_on, k_off, k_ecm, numSeeds)
 %close all; clear
-%isTestData = false; %uncomment if using function call to pipeline data
+isTestData = false; %uncomment if using function call to pipeline data
 
-isTestData = true; %uncomment if using test data
-testDataIDs = ["a_0.05_a2_0.0_tm_10000.0_p_0.8_t_1.0_gamma_0_k_on_10.0"];
+%isTestData = true; %uncomment if using test data
+%testDataIDs = ["a_0.0_a2_0.0_tm_10000.0_p_0.8_t_1.0_gamma_0_k_on_1.0_k_off_0.01_k_ecm_0.01"];
 
-for i=1:length(testDataIDs)
-    testDataID = testDataIDs(i);
+%for i=1:length(testDataIDs)
+%    testDataID = testDataIDs(i);
 
 %testDataID = "a_0.05_a2_0.05_p_0.8_t_1.0_gamma_0.01";
 %testDataID = "9";
@@ -45,12 +45,12 @@ forImageAnalysis = ~isTestData;
 %forImageAnalysis=false;
 skipPlottingCells = false;
 if (forImageAnalysis)
-    showCatchBonds = 0;
+    showBonds = 1;
     showverts = 1;
     showcirculoline = 1;
     makeAMovie = 1;
 else
-    showCatchBonds = 0;
+    showBonds = 1;
     showverts = 1;
     showcirculoline = 1;
     makeAMovie = 1;
@@ -92,12 +92,12 @@ for seed = startSeed:max_seed
         energystr = "test"+testDataID+'.energy';
         stressstr = "test"+testDataID+'.stress';
         tissuestr = "test"+testDataID+'.tissue';
-        catchBondStr = "test"+testDataID+'.catchBond';
+        bondStr = "test"+testDataID+'.bond';
     else
         %psm/psm_calA01.05_tm0.0_v00.1_t_abp50.0
         %k_off1000.0/_N40_dur1000_att0_start1_end1_sd1.tissue
         run_name =runType+"_calA0"+calA0+'_phi'+phi+'_tm'+t_maxwell...
-            +'_v0'+v0+'_t_abp'+t_abp+'_gamma'+gamma+'_k_on_'+k_on+'_kl'+kl+'_ka'+ka+'_kb'+kb;
+            +'_v0'+v0+'_t_abp'+t_abp+'_gamma'+gamma+'_k_on_'+k_on+'_k_off_'+k_off+'_k_ecm_'+k_ecm+'_kl'+kl+'_ka'+ka+'_kb'+kb;
         pipeline_dir =  subdir_pipeline + run_name + "/";
         output_dir = subdir_output + run_name + "/";
         fileheader="_N"+N+"_dur"+Duration+"_att"+att+"_att2"+att2+"_start"+ ...
@@ -107,7 +107,7 @@ for seed = startSeed:max_seed
         energystr = pipeline_dir+fileheader+'.energy';
         stressstr = pipeline_dir+fileheader+'.stress';
         tissuestr = pipeline_dir+fileheader+'.tissue';
-        catchBondStr = pipeline_dir+fileheader+'.catchBond';
+        bondStr = pipeline_dir+fileheader+'.bond';
     end
     mkdir(pipeline_dir)
     mkdir(output_dir)
@@ -124,8 +124,8 @@ for seed = startSeed:max_seed
     shapes = [];
     speeds = [];
 
-    if showCatchBonds
-        catchBondLocations = readDataBlocks(catchBondStr, 4);
+    if showBonds
+        bondLocations = readDataBlocks(bondStr, 4);
     end
     cd(output_dir)
 
@@ -233,17 +233,6 @@ for seed = startSeed:max_seed
         Lx = L(3);
         Ly = L(4);
 
-        if (showCatchBonds)
-            % calculate line between catch bond anchor points
-            catchBond = catchBondLocations{ff};
-            rx = catchBond(:,1) - catchBond(:,3);
-            ry = catchBond(:,2) - catchBond(:,4);
-            [offsetx, offsety] = patchRectangleOffsets(rx, ry, mean(vrad{1}/2));
-            cornerx = [catchBond(:,1) - offsetx, catchBond(:,1) + offsetx, catchBond(:,3) + offsetx, catchBond(:,3) - offsetx];
-            cornery = [catchBond(:,2) - offsety, catchBond(:,2) + offsety, catchBond(:,4) + offsety, catchBond(:,4) - offsety];
-            patch(cornerx', cornery', 'red', 'linestyle', 'none')
-        end
-
         for nn = 1:NCELLS
             cellIDtmp = cellID(nn);
             xtmp = xpos{nn};
@@ -315,12 +304,6 @@ for seed = startSeed:max_seed
         % plot box
         %plot([viewLxLow viewLx viewLx viewLxLow viewLxLow], [viewLyLow viewLyLow viewLy viewLy viewLyLow], 'k-', 'linewidth', 1.5);
 
-        % if making a movie, save frame
-        if makeAMovie && ~skipPlottingCells
-            currframe = getframe(gcf);
-            writeVideo(vobj,currframe);
-        end
-
         if (forImageAnalysis)
             % fix fnum_boundary to have same axes as fnum
             figure(fnum_boundary)
@@ -334,6 +317,24 @@ for seed = startSeed:max_seed
             exportgraphics(gcf, runType+fileheader_short+'fr'+ff+'.tif', 'Resolution', 200);
             figure(fnum_boundary);
             exportgraphics(gcf, runType+fileheader_short+'fr'+ff+'_bd.tif', 'Resolution', 200);
+        end
+
+        % want bonds in movie but not in tif, so write tif before movie
+        if (showBonds)
+            % calculate line between catch bond anchor points
+            bond = bondLocations{ff};
+            rx = bond(:,1) - bond(:,3);
+            ry = bond(:,2) - bond(:,4);
+            [offsetx, offsety] = patchRectangleOffsets(rx, ry, mean(vrad{1}/2));
+            cornerx = [bond(:,1) - offsetx, bond(:,1) + offsetx, bond(:,3) + offsetx, bond(:,3) - offsetx];
+            cornery = [bond(:,2) - offsety, bond(:,2) + offsety, bond(:,4) + offsety, bond(:,4) - offsety];
+            patch(cornerx', cornery', 'red', 'linestyle', 'none')
+        end
+
+        % if making a movie, save frame
+        if makeAMovie && ~skipPlottingCells
+            currframe = getframe(gcf);
+            writeVideo(vobj,currframe);
         end
     end
 

@@ -633,14 +633,11 @@ void cell::ECMBondsUpdate() {
       isGiBonded[gi] = false;
       continue;
     }
+    vertDiam = 2 * r[gi];
 
     // settle the binding and unbinding events on each vertex gi
     double randNum = (float)(rand()) / (float)(RAND_MAX);  // random number between 0 and 1
     if (isGiBonded[gi]) {
-      dx = bondPosition[gi][0] - x[NDIM * gi];
-      dy = bondPosition[gi][1] - x[NDIM * gi + 1];
-      vertDiam = 2 * r[gi];
-
       // count up number of contacts between gi and other vertices
       int colSumGi = 0, rowSumGi = 0;
       for (int i = 0; i < NVTOT; i++) {
@@ -648,13 +645,11 @@ void cell::ECMBondsUpdate() {
         rowSumGi += numVertexContacts[i][gi];
       }
 
-      if (colSumGi + rowSumGi >= 1) {
-        k_off = 1e10;
-      }
-
       // attempt dissociate
-      if (randNum < k_off * dt)
+      if (randNum < k_off * dt || colSumGi + rowSumGi >= 1) {
+        // cout << "dissociating bond at gi " << gi << ", k_off*dt = " << k_off * dt << ", dt = " << dt << '\n';
         isGiBonded[gi] = false;
+      }
     } else {
       // attempt associate
       if (randNum < k_on * dt) {

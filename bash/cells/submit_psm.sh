@@ -36,18 +36,20 @@ v0="${11}"
 t_abp="${12}"
 gamma="${13}"
 k_on="${14}"
-duration="${15}"
-partition="${16}"
-time="${17}"
-numRuns="${18}"
-startSeed="${19}"
+k_off="${15}"
+k_ecm="${16}"
+duration="${17}"
+partition="${18}"
+time="${19}"
+numRuns="${20}"
+startSeed="${21}"
 
 numSeedsPerRun=1
 let numSeeds=$numSeedsPerRun*$numRuns
 let endSeed=$startSeed+$numSeeds-1
 
 # name strings
-basestr=psm_calA0"$calA0"_phi"$phi"_tm"$t_maxwell"_v0"$v0"_t_abp"$t_abp"_gamma"$gamma"_k_on_"$k_on"_kl"$kl"_ka"$ka"_"kb"$kb
+basestr=psm_calA0"$calA0"_phi"$phi"_tm"$t_maxwell"_v0"$v0"_t_abp"$t_abp"_gamma"$gamma"_k_on_"$k_on"_k_off_"$k_off"_k_ecm"$k_ecm"_kl"$kl"_ka"$ka"_"kb"$kb
 # name of file (not unique, but is unique within its subdirectory)
 file_basename=_N"$NCELLS"_dur"$duration"_att"$att"_att2"$att2"_start"$startSeed"_end"$endSeed"
 # name of run (must be unique, distinguishes from other runs on slurm)
@@ -78,6 +80,7 @@ echo t_maxwell = "$t_maxwell" >> $configFile
 echo v0 = "$v0" >> $configFile
 echo t_abp = "$t_abp" >> $configFile
 echo gamma = "$gamma" >> $configFile
+echo k_on = "$k_on" >> $configFile
 echo k_ecm = "$k_ecm" >> $configFile
 echo k_off = "$k_off" >> $configFile
 # run compiler
