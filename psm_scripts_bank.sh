@@ -7,7 +7,8 @@ phi_arr=(0.8)
 kl=1.0
 ka_arr=(5.0)
 kb_arr=(0.01)
-att_arr=(0.0 0.001 0.005 0.01 0.05 0.1)
+att_arr=(0.0 0.005 0.01 0.05 0.1)
+#att_arr=(0.0 0.001 0.005 0.01 0.05 0.1)
 #att2_arr=(0.0 0.001 0.005 0.01 0.05 0.1)
 att2_arr=(0.0)
 t_stress_arr=(10000.0)
@@ -28,7 +29,13 @@ for N in ${N_arr[@]}; do
               for t_stress in ${t_stress_arr[@]}; do
                 for v0 in ${v0_arr[@]}; do
                   for gamma in ${gamma_arr[@]}; do
-                    echo bash bash/cells/submit_psm.sh $N 30 $calA0 $phi $kl $ka $kb $att $att2 $t_stress $v0 1.0 $gamma $k_on $k_off $k_ecm 500 pi_ohern,day 0-12:00:00 $numSeeds 1 >> joblist_psm.txt
+                    for k_on in ${kon_arr[@]}; do
+                      for k_off in ${koff_arr[@]}; do
+                        for k_ecm in ${kecm_arr[@]}; do
+                          echo bash bash/cells/submit_psm.sh $N 30 $calA0 $phi $kl $ka $kb $att $att2 $t_stress $v0 1.0 $gamma $k_on $k_off $k_ecm 500 pi_ohern,day 0-12:00:00 $numSeeds 1 >> joblist_psm.txt
+                        done
+                      done
+                    done
                   done
                 done
               done

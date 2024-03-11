@@ -49,7 +49,7 @@ let numSeeds=$numSeedsPerRun*$numRuns
 let endSeed=$startSeed+$numSeeds-1
 
 # name strings
-basestr=psm_calA0"$calA0"_phi"$phi"_tm"$t_maxwell"_v0"$v0"_t_abp"$t_abp"_gamma"$gamma"_k_on_"$k_on"_k_off_"$k_off"_k_ecm"$k_ecm"_kl"$kl"_ka"$ka"_"kb"$kb
+basestr=psm_calA0"$calA0"_phi"$phi"_tm"$t_maxwell"_v0"$v0"_t_abp"$t_abp"_gamma"$gamma"_k_on_"$k_on"_k_off_"$k_off"_k_ecm_"$k_ecm"_kl"$kl"_ka"$ka"_"kb"$kb
 # name of file (not unique, but is unique within its subdirectory)
 file_basename=_N"$NCELLS"_dur"$duration"_att"$att"_att2"$att2"_start"$startSeed"_end"$endSeed"
 # name of run (must be unique, distinguishes from other runs on slurm)
@@ -127,7 +127,7 @@ for seed in `seq $startSeed $numSeedsPerRun $endSeed`; do
         outFileStem=$simdatadir/$filestr
 
         # append to runString
-        runString="$runString ; ./$binf $NCELLS $NV $calA0 $phi $kl $ka $kb $att $att2 $t_maxwell $v0 $t_abp $gamma $seed $duration $outFileStem"
+        runString="$runString ; ./$binf $NCELLS $NV $calA0 $phi $kl $ka $kb $att $att2 $t_maxwell $v0 $t_abp $gamma $k_on $k_off $k_ecm $seed $duration $outFileStem"
     done
 
     # finish off run string
