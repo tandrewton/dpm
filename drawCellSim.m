@@ -1,13 +1,13 @@
 %pwd should give ~/Documents/YalePhd/projects/dpm
-function drawCellSim(N, calA0, phi, ka, kb, att, att2, v0, t_maxwell, gamma, numSeeds)
+%function drawCellSim(N, calA0, phi, ka, kb, att, att2, v0, t_maxwell, gamma, k_on, numSeeds)
 %close all; clear
-isTestData = false; %uncomment if using function call to pipeline data
+%isTestData = false; %uncomment if using function call to pipeline data
 
-%isTestData = true; %uncomment if using test data
-%testDataIDs = ["a_0.1_a2_0.0_tm_10000.0_p_0.85_t_1.0_gamma_0"];
+isTestData = true; %uncomment if using test data
+testDataIDs = ["a_0.05_a2_0.0_tm_10000.0_p_0.8_t_1.0_gamma_0_k_on_10.0"];
 
-%for i=1:length(testDataIDs)
-%    testDataID = testDataIDs(i);
+for i=1:length(testDataIDs)
+    testDataID = testDataIDs(i);
 
 %testDataID = "a_0.05_a2_0.05_p_0.8_t_1.0_gamma_0.01";
 %testDataID = "9";
@@ -97,7 +97,7 @@ for seed = startSeed:max_seed
         %psm/psm_calA01.05_tm0.0_v00.1_t_abp50.0
         %k_off1000.0/_N40_dur1000_att0_start1_end1_sd1.tissue
         run_name =runType+"_calA0"+calA0+'_phi'+phi+'_tm'+t_maxwell...
-            +'_v0'+v0+'_t_abp'+t_abp+'_gamma'+gamma+'_kl'+kl+'_ka'+ka+'_kb'+kb;
+            +'_v0'+v0+'_t_abp'+t_abp+'_gamma'+gamma+'_k_on_'+k_on+'_kl'+kl+'_ka'+ka+'_kb'+kb;
         pipeline_dir =  subdir_pipeline + run_name + "/";
         output_dir = subdir_output + run_name + "/";
         fileheader="_N"+N+"_dur"+Duration+"_att"+att+"_att2"+att2+"_start"+ ...

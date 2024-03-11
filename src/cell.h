@@ -15,7 +15,7 @@ typedef void (cell::*cellMemFn)(void);
 class cell : public dpm {
  protected:
   // output streams for energy, stress, tissue measurements, catch bond positions, mean square displacements
-  std::ofstream enout, stressOut, tissueOut, catchBondOut, msdOut, cellContactOut, pfOut, xStream, xMinStream, cijStream, cijMinStream, comStream, shapeStream;
+  std::ofstream enout, stressOut, tissueOut, bondOut, msdOut, cellContactOut, pfOut, xStream, xMinStream, cijStream, cijMinStream, comStream, shapeStream;
 
   double simclock;             // accumulator for simulation time
   std::vector<double> VL, XL;  // wall velocity and positions if simulating with wall forces.
@@ -39,9 +39,9 @@ class cell : public dpm {
   double v0_ABP_temp;       // stores active parameter when toggling activity on/off
 
   // catch bonds for substrate adhesion parameters
-  std::vector<bool> isGiCatchBonded;
-  std::vector<std::vector<double>> catchBondPosition;
-  double k_off, k_ecm;
+  std::vector<bool> isGiBonded;
+  std::vector<std::vector<double>> bondPosition;
+  double k_on, k_off, k_ecm;
 
  public:
   cell(int n, double att1, double att2, int seed, int numCellTypes)
@@ -60,6 +60,7 @@ class cell : public dpm {
     cellTouchesWallsRight = vector<bool>(n, false);
     v0_ABP = 0.0;
     tau_ABP = 1.0;
+    k_on = 1.0;
     k_off = 1.0;
     k_ecm = 1.0;
     psi = vector<double>(n, 0.0);
@@ -90,6 +91,7 @@ class cell : public dpm {
   void attractiveForceUpdateWithCrawling();
   void attractiveSmoothActive();
   void attractiveSmoothActiveCatchBonds();
+  void attractiveSmoothActiveECMBonds();
   void attractiveSmoothForceUpdate();
   void attractiveSmoothForceUpdateWithPolyWall();
   void repulsiveWithPolarityForceUpdate();
@@ -121,12 +123,22 @@ class cell : public dpm {
       v0_ABP = 0.0;
     }
   }
-  void setkecm(double val) { k_ecm = val; }
-  void setkoff(double val) { k_off = val; }
-  void setgamma(double val) { gamma = val; };
+  void setkecm(double val) {
+    k_ecm = val;
+  }
+  void setkon(double val) {
+    k_on = val;
+  }
+  void setkoff(double val) {
+    k_off = val;
+  }
+  void setgamma(double val) {
+    gamma = val;
+  }
   void brownianCrawlingUpdate();
   void directorDiffusion();
   void catchBondsUpdate();
+  void ECMBondsUpdate();
   void resizeCatchBonds();
 
   // File openers
@@ -135,7 +147,7 @@ class cell : public dpm {
                                    ".xStream", ".xMinStream", ".cijStream", ".cijMinStream", ".comStream", ".shapeStream"};
     openFile(posout, filename + fileExt[0]);
     openFile(tissueOut, filename + fileExt[1]);
-    openFile(catchBondOut, filename + fileExt[2]);
+    openFile(bondOut, filename + fileExt[2]);
     openFile(pfOut, filename + fileExt[3]);
     openFile(msdOut, filename + fileExt[4]);
     openFile(cellContactOut, filename + fileExt[5]);

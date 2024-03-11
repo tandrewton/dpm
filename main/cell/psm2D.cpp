@@ -20,6 +20,7 @@ v0=0.1
 phi_arr=(0.8)
 tau_abp=1.0
 gamma_arr=(0)
+kon_arr=(1.0 10.0 100.0)
 kl=1.0
 ka=(5.0)
 kb=0.01
@@ -28,7 +29,9 @@ for att in ${att_arr[@]}; do
     for phi in ${phi_arr[@]}; do
       for t_stress in ${t_stress_arr[@]}; do
         for gamma in ${gamma_arr[@]}; do
-          echo "./main/cell/psm2D.o   14  24 1.0 $phi $kl $ka $kb $att $att2 $t_stress    $v0    $tau_abp  $gamma  1    200    testa_"$att"_a2_"$att2"_tm_"$t_stress"_p_"$phi"_t_"$tau_abp"_gamma_"$gamma
+          for k_on in ${kon_arr[@]}; do
+            echo "./main/cell/psm2D.o   14  24 1.0 $phi $kl $ka $kb $att $att2 $t_stress    $v0    $tau_abp  $gamma $k_on  1    200    testa_"$att"_a2_"$att2"_tm_"$t_stress"_p_"$phi"_t_"$tau_abp"_gamma_"$gamma"_k_on_"$k_on
+          done
         done
       done
     done
@@ -81,9 +84,10 @@ int main(int argc, char const* argv[]) {
   double v0_abp = parseArg<double>(argv[11]);
   double tau_abp = parseArg<double>(argv[12]);
   double gamma = parseArg<double>(argv[13]);
-  int seed = parseArg<int>(argv[14]);
-  double runTime = parseArg<double>(argv[15]);
-  std::string outFileStem = argv[16];
+  double k_on = parseArg<double>(argv[14]);
+  int seed = parseArg<int>(argv[15]);
+  double runTime = parseArg<double>(argv[16]);
+  std::string outFileStem = argv[17];
 
   int numCellTypes = 2;  // 0 = interior cell type (PSM) and 1 = exterior cell type (boundary)
   cell cell2D(NCELLS, 0.0, 0.0, seed, numCellTypes);
@@ -94,8 +98,9 @@ int main(int argc, char const* argv[]) {
   cell2D.setkl(kl);
   cell2D.setkb(kb);
   cell2D.setkc(kc);
+  cell2D.setkon(k_on);
+  cell2D.setkoff(k_on);
   cell2D.setkecm(1.0);
-  cell2D.setkoff(1.0);
   cell2D.setB(B);
   if (t_stress > 0.0)
     cell2D.setMaxwellRelaxationTime(t_stress);  // t_stress is infinity unless this is uncommented
@@ -114,6 +119,7 @@ int main(int argc, char const* argv[]) {
   dpmMemFn attractionWithActiveBrownianUpdate = static_cast<void (dpm::*)()>(&cell::attractiveForceUpdateWithCrawling);
   dpmMemFn attractionSmoothActive = static_cast<void (dpm::*)()>(&cell::attractiveSmoothActive);
   dpmMemFn attractionSmoothActiveBrownianCatchBondsUpdate = static_cast<void (dpm::*)()>(&cell::attractiveSmoothActiveCatchBonds);
+  dpmMemFn attractionSmoothActiveBrownianECMBondsUpdate = static_cast<void (dpm::*)()>(&cell::attractiveSmoothActiveECMBonds);
   dpmMemFn attractiveSmoothForceUpdate = static_cast<void (dpm::*)()>(&cell::attractiveSmoothForceUpdate);
   dpmMemFn attractiveSmoothWithPolyWalls = static_cast<void (dpm::*)()>(&cell::attractiveSmoothForceUpdateWithPolyWall);
   dpmMemFn attractivePolarityForceUpdate = static_cast<void (dpm::*)()>(&cell::attractiveWithPolarityForceUpdate);
@@ -177,9 +183,11 @@ int main(int argc, char const* argv[]) {
   double v0_decay_rate = 0.0, v0_min = v0_abp;
   cout << "before vertexDampedMD final!\n";
   cell2D.setitmax(1e4);
-  cell2D.vertexDampedMD(attractionSmoothActive, dt0, runTime, 5.0, v0_decay_rate * v0_abp, v0_min);
-  // cell2D.vertexDampedMD(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, 1.0);
-  cout << "\n** Finished psm.cpp (2D transverse section of pre-somitic mesoderm), ending. " << endl;
+  cell2D.vertexDampedMD(attractionSmoothActiveBrownianECMBondsUpdate, dt0, runTime, 5.0, v0_decay_rate * v0_abp, v0_min);
+  // cell2D.vertexDampedMD(attractionSmoothActive, dt0, runTime, 5.0, v0_decay_rate * v0_abp, v0_min);
+  //  cell2D.vertexDampedMD(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, 1.0);
+  cout
+      << "\n** Finished psm.cpp (2D transverse section of pre-somitic mesoderm), ending. " << endl;
 
   return 0;
 }

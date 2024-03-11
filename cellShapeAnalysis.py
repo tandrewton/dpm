@@ -136,14 +136,33 @@ def process_data(att, v0, att2, tm, gamma, seed, fileheader):
     # return df_shape
 
 
+def filter_and_group_data(df, filter_params, group_columns):
+    """
+    Filter the dataframe based on the specified parameters and then group the data,
+    calculating the mean for each group.
+
+    Args:
+        df (pd.DataFrame): The DataFrame to process.
+        filter_params (list): List of parameters to filter by.
+        group_columns (list): Columns to group by.
+
+    Returns:
+        pd.DataFrame: Grouped and mean aggregated DataFrame.
+    """
+    df_filtered = filter_df(df, *filter_params)
+    return df_filtered.groupby(group_columns).mean().reset_index()
+
+
 def main():
     calA0 = "1.0"
     att_arr = ["0.0", "0.001", "0.005", "0.01", "0.05", "0.1"]
+    att_arr = ["0.001", "0.1"]
     kl = "1.0"
     ka = "5.0"
     kb = "0.01"
     v0_arr = ["0.1"]
     att2_arr = ["0.0", "0.001", "0.005", "0.01", "0.05", "0.1"]
+    # att2_arr = ["0.001", "0.1"]
     tm_arr = ["10000.0"]
     gamma_arr = ["0"]
     t_abp = "1.0"
@@ -221,41 +240,26 @@ def main():
 
     # ensure df is restricted to the parameter combinations within the different parameter arrays specified here
     # necessary because the data file may have parameters I'm not interested in
+    grouping_list = ["att", "att2", "v0", "tm", "gamma"]
     df_phis = filter_df(df_phis, att_arr, att2_arr, v0_arr, tm_arr, gamma_arr)
-    df_phis_grouped_means = (
-        df_phis.groupby(["att", "att2", "v0", "tm", "gamma"]).mean().reset_index()
-    )
-
-    # Plot all curves on the same axes using hue
+    df_phis_grouped_means = df_phis.groupby(grouping_list).mean().reset_index()
     plt.figure(figsize=(10, 6))  # Adjust the figure size as needed
     sns.lineplot(data=df_phis_grouped_means, x="v0", y="phi", marker="o", hue="att")
 
-    print(f"att{att},att2{att2},v0{v0},tm{tm},gamma{gamma},seed{seed}")
-    print(df_shapes)
-
     df_shapes = filter_df(df_shapes, att_arr, att2_arr, v0_arr, tm_arr, gamma_arr)
-    df_shapes_grouped_means = (
-        df_shapes.groupby(["att", "att2", "v0", "tm", "gamma"]).mean().reset_index()
-    )
-    # Plot all curves on the same axes using hue
+    df_shapes_grouped_means = df_shapes.groupby(grouping_list).mean().reset_index()
     plt.figure(figsize=(10, 6))  # Adjust the figure size as needed
     sns.lineplot(
         data=df_shapes_grouped_means, x="v0", y="shapeParameter", marker="o", hue="att"
     )
 
     df_speeds = filter_df(df_speeds, att_arr, att2_arr, v0_arr, tm_arr, gamma_arr)
-    df_speeds_grouped_means = (
-        df_speeds.groupby(["att", "att2", "v0", "tm", "gamma"]).mean().reset_index()
-    )
-    # Plot all curves on the same axes using hue
+    df_speeds_grouped_means = df_speeds.groupby(grouping_list).mean().reset_index()
     plt.figure(figsize=(10, 6))  # Adjust the figure size as needed
     sns.lineplot(data=df_speeds_grouped_means, x="v0", y="speed", marker="o", hue="att")
 
     df_NEs = filter_df(df_NEs, att_arr, att2_arr, v0_arr, tm_arr, gamma_arr)
-    df_NEs_grouped_means = (
-        df_NEs.groupby(["att", "att2", "v0", "tm", "gamma"]).mean().reset_index()
-    )
-    # Plot all curves on the same axes using hue
+    df_NEs_grouped_means = df_NEs.groupby(grouping_list).mean().reset_index()
     plt.figure(figsize=(10, 6))  # Adjust the figure size as needed
     sns.lineplot(data=df_NEs_grouped_means, x="v0", y="minNE", marker="o", hue="att")
 
@@ -266,11 +270,8 @@ def main():
     #  then join the strings into one string so it can be read through seaborn
     # group the dataframe by combo parameters, then average over matching seeds and return a dataframe
 
-    # df_NEs["(att, att2, v0, tm, gamma)"] = df_NEs.apply(lambda row: ', '.join(
-    #    [str(row['att']), str(row['att2']), str(row['v0'])]), axis=1)
-    # df_NEs_means = df_NEs.groupby(["(att, att2, v0, tm, gamma)", "seed"]).mean().reset_index()
-
-    df_shapes["(att, att2, v0, tm, gamma)"] = df_shapes.apply(
+    grouping_str = "(att, att2, v0, tm, gamma)"
+    df_shapes[grouping_str] = df_shapes.apply(
         lambda row: ", ".join(
             [
                 str(row["att"]),
@@ -282,11 +283,9 @@ def main():
         ),
         axis=1,
     )
-    df_shapes_means = (
-        df_shapes.groupby(["(att, att2, v0, tm, gamma)", "seed"]).mean().reset_index()
-    )
+    df_shapes_means = df_shapes.groupby([grouping_str, "seed"]).mean().reset_index()
 
-    df_NEs["(att, att2, v0, tm, gamma)"] = df_NEs.apply(
+    df_NEs[grouping_str] = df_NEs.apply(
         lambda row: ", ".join(
             [
                 str(row["att"]),
@@ -298,11 +297,9 @@ def main():
         ),
         axis=1,
     )
-    df_NEs_means = (
-        df_NEs.groupby(["(att, att2, v0, tm, gamma)", "seed"]).mean().reset_index()
-    )
+    df_NEs_means = df_NEs.groupby([grouping_str, "seed"]).mean().reset_index()
 
-    df_phis["(att, att2, v0, tm, gamma)"] = df_phis.apply(
+    df_phis[grouping_str] = df_phis.apply(
         lambda row: ", ".join(
             [
                 str(row["att"]),
@@ -314,11 +311,9 @@ def main():
         ),
         axis=1,
     )
-    df_phis_means = (
-        df_phis.groupby(["(att, att2, v0, tm, gamma)", "seed"]).mean().reset_index()
-    )
+    df_phis_means = df_phis.groupby([grouping_str, "seed"]).mean().reset_index()
 
-    df_speeds["(att, att2, v0, tm, gamma)"] = df_speeds.apply(
+    df_speeds[grouping_str] = df_speeds.apply(
         lambda row: ", ".join(
             [
                 str(row["att"]),
@@ -330,15 +325,13 @@ def main():
         ),
         axis=1,
     )
-    df_speeds_means = (
-        df_speeds.groupby(["(att, att2, v0, tm, gamma)", "seed"]).mean().reset_index()
-    )
+    df_speeds_means = df_speeds.groupby([grouping_str, "seed"]).mean().reset_index()
 
     # make boxplots of the mean values for each seed for each parameter combo
     # sns_NEs = sns.catplot(df_NEs_means, x="(att, att2, v0)", y="minNE", kind="box", color="skyblue", height = 8, aspect=2)
     sns_shapes = sns.catplot(
         df_shapes_means,
-        x="(att, att2, v0, tm, gamma)",
+        x=grouping_str,
         y="shapeParameter",
         kind="box",
         color="skyblue",
@@ -351,7 +344,7 @@ def main():
 
     sns_NEs = sns.catplot(
         df_NEs_means,
-        x="(att, att2, v0, tm, gamma)",
+        x=grouping_str,
         y="minNE",
         kind="box",
         color="skyblue",
@@ -364,7 +357,7 @@ def main():
 
     sns_phis = sns.catplot(
         df_phis_means,
-        x="(att, att2, v0, tm, gamma)",
+        x=grouping_str,
         y="phi",
         kind="box",
         color="skyblue",
@@ -377,7 +370,7 @@ def main():
 
     sns_speeds = sns.catplot(
         df_speeds_means,
-        x="(att, att2, v0, tm, gamma)",
+        x=grouping_str,
         y="speed",
         kind="box",
         color="skyblue",
@@ -399,7 +392,7 @@ def main():
     #            y="minNE", kind="box", color="skyblue", height=8, aspect=2)
     sns.catplot(
         df_shapes,
-        x="(att, att2, v0, tm, gamma)",
+        x=grouping_str,
         y="shapeParameter",
         kind="box",
         color="skyblue",
@@ -412,7 +405,7 @@ def main():
 
     sns.catplot(
         df_NEs,
-        x="(att, att2, v0, tm, gamma)",
+        x=grouping_str,
         y="minNE",
         kind="box",
         color="skyblue",
@@ -425,7 +418,7 @@ def main():
 
     sns.catplot(
         df_phis,
-        x="(att, att2, v0, tm, gamma)",
+        x=grouping_str,
         y="phi",
         kind="box",
         color="skyblue",
@@ -438,7 +431,7 @@ def main():
 
     sns.catplot(
         df_speeds,
-        x="(att, att2, v0, tm, gamma)",
+        x=grouping_str,
         y="speed",
         kind="box",
         color="skyblue",
@@ -557,6 +550,14 @@ def main():
             }
             df_all = pd.concat([df_all, pd.DataFrame(new_row)], ignore_index=True)
 
+        # Get the unique values in the order they appear in the DataFrame
+        ordered_categories = df_all["params"].drop_duplicates().tolist()
+
+        # Convert the 'params' column to a categorical type with the specified order
+        df_all["params"] = pd.Categorical(
+            df_all["params"], categories=ordered_categories, ordered=True
+        )
+
         # Convert 'Category' to a categorical type and assign numerical values
         df_all["eps1,eps2"] = df_all["params"].astype("category").cat.codes
         offset_width = 0.1  # Adjust the spacing between points in the same category
@@ -583,6 +584,42 @@ def main():
             capsize=5,
         )
         axs[0].set_ylabel(r"$\phi$")
+
+        axs[1].errorbar(
+            df_all["eps1,eps2"] + df_all["Offset"],
+            df_all["shape_mean"],
+            yerr=df_all["shape_std"],
+            fmt="o",
+            capsize=5,
+        )
+        axs[1].set_ylabel(r"$\mathcal{A}$")
+
+        axs[2].errorbar(
+            df_all["eps1,eps2"] + df_all["Offset"],
+            df_all["v_mean"],
+            yerr=df_all["v_std"],
+            fmt="o",
+            capsize=5,
+        )
+        axs[2].set_ylabel(r"v $(\mu m/min)$")
+
+        axs[3].errorbar(
+            df_all["eps1,eps2"] + df_all["Offset"],
+            df_all["NE_mean"],
+            yerr=df_all["NE_std"],
+            fmt="o",
+            capsize=5,
+        )
+        axs[3].set_ylabel(r"$NE (cell \cdot min)^{-1}$")
+
+        axs[3].set_xticks(range(len(df_all["params"].unique())))
+        xticklabels = [
+            full_label.split()[0] + " " + full_label.split()[1][:-1]
+            for full_label in df_all["params"].unique()
+        ]
+        axs[3].set_xticklabels(xticklabels)
+        plt.savefig("simulationStackedObservablesGrouped.png")
+
         plt.show()
 
     plt.show()

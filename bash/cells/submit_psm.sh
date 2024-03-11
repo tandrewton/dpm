@@ -35,18 +35,19 @@ t_maxwell="${10}"
 v0="${11}"
 t_abp="${12}"
 gamma="${13}"
-duration="${14}"
-partition="${15}"
-time="${16}"
-numRuns="${17}"
-startSeed="${18}"
+k_on="${14}"
+duration="${15}"
+partition="${16}"
+time="${17}"
+numRuns="${18}"
+startSeed="${19}"
 
 numSeedsPerRun=1
 let numSeeds=$numSeedsPerRun*$numRuns
 let endSeed=$startSeed+$numSeeds-1
 
 # name strings
-basestr=psm_calA0"$calA0"_phi"$phi"_tm"$t_maxwell"_v0"$v0"_t_abp"$t_abp"_gamma"$gamma"_kl"$kl"_ka"$ka"_"kb"$kb
+basestr=psm_calA0"$calA0"_phi"$phi"_tm"$t_maxwell"_v0"$v0"_t_abp"$t_abp"_gamma"$gamma"_k_on_"$k_on"_kl"$kl"_ka"$ka"_"kb"$kb
 # name of file (not unique, but is unique within its subdirectory)
 file_basename=_N"$NCELLS"_dur"$duration"_att"$att"_att2"$att2"_start"$startSeed"_end"$endSeed"
 # name of run (must be unique, distinguishes from other runs on slurm)
