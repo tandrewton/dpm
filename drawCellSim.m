@@ -317,6 +317,9 @@ for seed = startSeed:max_seed
             exportgraphics(gcf, runType+fileheader_short+'fr'+ff+'.tif', 'Resolution', 200);
             figure(fnum_boundary);
             exportgraphics(gcf, runType+fileheader_short+'fr'+ff+'_bd.tif', 'Resolution', 200);
+            
+            %switch views back to cells to plot bonds
+            figure(fnum)
         end
 
         % want bonds in movie but not in tif, so write tif before movie
