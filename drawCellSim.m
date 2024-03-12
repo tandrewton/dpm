@@ -155,8 +155,7 @@ for seed = startSeed:max_seed
             vobj = VideoWriter(moviestr, 'MPEG-4');
             vobj.Quality = 100;
         else
-            vobj = VideoWriter(moviestr, 'Motion JPEG AVI');
-            vobj.Quality = 100;
+            vobj = VideoWriter(moviestr, 'Uncompressed AVI');
         end
         vobj.FrameRate = 5;
         open(vobj);
@@ -345,6 +344,12 @@ for seed = startSeed:max_seed
     % close video object
     if makeAMovie && ~skipPlottingCells
         close(vobj);
+        if isunix
+            pathVideoMP4 = regexprep(moviestr,'\.avi','.mp4');
+            [~,~] = system(sprintf('ffmpeg -i %s -y -an -c:v libx264 -crf 0 -preset slow %s',pathVideoAVI,pathVideoMP4)); 
+            % for this to work, you should have installed ffmpeg and have it available on PATH
+        end
+            
     end
     cd ../../../../
     writematrix(shapes(:,1:end-1), shapeFile, 'WriteMode','append');
