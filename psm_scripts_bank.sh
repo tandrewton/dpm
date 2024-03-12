@@ -90,7 +90,7 @@ rsync -rav --inplace --progress at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibb
 
 # send files from mccleary output folder (where I store postprocessed files that I ran on the cluster) to local
 # expecting speed.csv, shape.csv, and sd1.avi files
-rsync -rav --inplace --progress --filter '+ */' --filter '+ *sd1.avi' --filter '- *.avi' --filter '+ *.csv' --filter '- *.pos'  --filter '+ *fr95.tif' --filter '- *.tif' --filter '+ */' --filter '- *' at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm/output/ /mnt/c/Users/atata/projects/dpm/output/cells/psm/
+rsync -rav --inplace --progress --filter '+ */' --filter '+ *sd1.avi' --filter '- *.avi' --filter '+ *sd1.mp4' --filter '- *.mp4' --filter '+ *.csv' --filter '- *.pos'  --filter '+ *fr95.tif' --filter '- *.tif' --filter '+ */' --filter '- *' at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm/output/ /mnt/c/Users/atata/projects/dpm/output/cells/psm/
 rsync -rav --inplace --progress --filter '+ */' --filter '+ *sd1.avi' --filter '- *.avi' --filter '+ *.csv' --filter '- *.pos'  --filter '+ *fr95.tif' --filter '- *.tif' --filter '+ */' --filter '- *' at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm/output/ /Users/AndrewTon/Documents/YalePhD/projects/dpm/output/cells/psm/
 
 # expecting .xstream, .xminstream, .shapestream, etc
