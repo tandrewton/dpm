@@ -155,7 +155,8 @@ for seed = startSeed:max_seed
             vobj = VideoWriter(moviestr, 'MPEG-4');
             vobj.Quality = 100;
         else
-            vobj = VideoWriter(moviestr, 'Uncompressed AVI');
+            vobj = VideoWriter(moviestr, 'Motion JPEG AVI');
+            vobj.Quality = 100;
         end
         vobj.FrameRate = 5;
         open(vobj);
