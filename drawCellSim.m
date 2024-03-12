@@ -344,12 +344,6 @@ for seed = startSeed:max_seed
     % close video object
     if makeAMovie && ~skipPlottingCells
         close(vobj);
-        if isunix
-            pathVideoMP4 = regexprep(moviestr,'\.avi','.mp4');
-            [~,~] = system(sprintf('ffmpeg -i %s -y -an -c:v libx264 -crf 0 -preset slow %s',moviestr,pathVideoMP4)); 
-            % for this to work, you should have installed ffmpeg and have it available on PATH
-        end
-            
     end
     cd ../../../../
     writematrix(shapes(:,1:end-1), shapeFile, 'WriteMode','append');

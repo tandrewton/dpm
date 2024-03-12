@@ -37,13 +37,18 @@ def calculateNeighborExchanges(contactMatrix):
     return diff
 
 
-def filter_df(df, att_arr, att2_arr, v0_arr, tm_arr, gamma_arr):
+def filter_df(
+    df, att_arr, att2_arr, v0_arr, tm_arr, gamma_arr, kon_arr, koff_arr, kecm_arr
+):
     # Convert arrays to float and filter the DataFrame
     float_att_arr = [float(i) for i in att_arr]
     float_att2_arr = [float(i) for i in att2_arr]
     float_v0_arr = [float(i) for i in v0_arr]
     float_tm_arr = [float(i) for i in tm_arr]
     float_gamma_arr = [float(i) for i in gamma_arr]
+    float_kon_arr = [float(i) for i in kon_arr]
+    float_koff_arr = [float(i) for i in koff_arr]
+    float_kecm_arr = [float(i) for i in kecm_arr]
 
     df_filtered = df[
         df["att"].isin(float_att_arr)
@@ -51,12 +56,15 @@ def filter_df(df, att_arr, att2_arr, v0_arr, tm_arr, gamma_arr):
         & df["v0"].isin(float_v0_arr)
         & df["tm"].isin(float_tm_arr)
         & df["gamma"].isin(float_gamma_arr)
+        & df["k_on"].isin(float_kon_arr)
+        & df["k_off"].isin(float_koff_arr)
+        & df["k_ecm"].isin(float_kecm_arr)
     ]
 
     return df_filtered
 
 
-def process_data(att, v0, att2, tm, gamma, seed, fileheader):
+def process_data(att, v0, att2, tm, gamma, k_on, k_off, k_ecm, seed, fileheader):
     # for a given simulation (corresponding to a single coordinate in parameter space, and a single seed value)
     #  process the data corresponding to that simulation
     outputFileheader = "output" + fileheader[8:]
@@ -101,6 +109,9 @@ def process_data(att, v0, att2, tm, gamma, seed, fileheader):
         "att2": float(att2),
         "tm": float(tm),
         "gamma": float(gamma),
+        "k_on": float(k_on),
+        "k_off": float(k_off),
+        "k_ecm": float(k_ecm),
         "seed": seed,
     }
     df_shape = pd.DataFrame(data_shape)
@@ -115,6 +126,9 @@ def process_data(att, v0, att2, tm, gamma, seed, fileheader):
         "att2": float(att2),
         "tm": float(tm),
         "gamma": float(gamma),
+        "k_on": float(k_on),
+        "k_off": float(k_off),
+        "k_ecm": float(k_ecm),
         "seed": seed,
     }
     df_NE = pd.DataFrame([data_NE])
@@ -127,6 +141,9 @@ def process_data(att, v0, att2, tm, gamma, seed, fileheader):
         "att2": float(att2),
         "tm": float(tm),
         "gamma": float(gamma),
+        "k_on": float(k_on),
+        "k_off": float(k_off),
+        "k_ecm": float(k_ecm),
         "seed": seed,
     }
     df_speed = pd.DataFrame(data_speed)
@@ -155,22 +172,25 @@ def filter_and_group_data(df, filter_params, group_columns):
 
 def main():
     calA0 = "1.0"
-    att_arr = ["0.0", "0.001", "0.005", "0.01", "0.05", "0.1"]
-    att_arr = ["0.001", "0.1"]
+    att_arr = ["0.0", "0.005", "0.01", "0.05", "0.1"]
+    # att_arr = ["0.001", "0.1"]
     kl = "1.0"
     ka = "5.0"
     kb = "0.01"
     v0_arr = ["0.1"]
-    att2_arr = ["0.0", "0.001", "0.005", "0.01", "0.05", "0.1"]
-    # att2_arr = ["0.001", "0.1"]
+    # att2_arr = ["0.0", "0.001", "0.005", "0.01", "0.05", "0.1"]
+    att2_arr = ["0.0"]
     tm_arr = ["10000.0"]
     gamma_arr = ["0"]
+    kon_arr = ["1.0"]
+    koff_arr = ["0.01", "0.1", "1.0"]
+    kecm_arr = ["0.01", "0.1"]
     t_abp = "1.0"
     phi = "0.8"
     duration = "500"
     NCELLS = 40
     timeBetweenFrames = 3
-    seeds = 12
+    seeds = 10
 
     font = {"size": 22}
 
@@ -207,58 +227,112 @@ def main():
             for att2 in att2_arr:
                 for tm in tm_arr:
                     for gamma in gamma_arr:
-                        for seed in range(1, seeds + 1):
-                            if platform == "win32":
-                                folderStr = f"psm_calA0{calA0}_phi{phi}_tm{tm}_v0{v0}_t_abp{t_abp}_gamma{gamma}_kl{kl}_ka{ka}_kb{kb}\\_N40_dur{duration}_att{att}_att2{att2}_start1_end{seeds}_sd{seed}"
-                            else:
-                                folderStr = f"psm_calA0{calA0}_phi{phi}_tm{tm}_v0{v0}_t_abp{t_abp}_gamma{gamma}_kl{kl}_ka{ka}_kb{kb}/_N40_dur{duration}_att{att}_att2{att2}_start1_end{seeds}_sd{seed}"
-                            fileheader = pipeline_folder + folderStr
-                            print(fileheader)
+                        for k_on in kon_arr:
+                            for k_off in koff_arr:
+                                for k_ecm in kecm_arr:
+                                    for seed in range(1, seeds + 1):
+                                        if platform == "win32":
+                                            folderStr = f"psm_calA0{calA0}_phi{phi}_tm{tm}_v0{v0}_t_abp{t_abp}_gamma{gamma}_k_on_{k_on}_k_off_{k_off}_k_ecm_{k_ecm}_kl{kl}_ka{ka}_kb{kb}\\_N40_dur{duration}_att{att}_att2{att2}_start1_end{seeds}_sd{seed}"
+                                        else:
+                                            folderStr = f"psm_calA0{calA0}_phi{phi}_tm{tm}_v0{v0}_t_abp{t_abp}_gamma{gamma}_k_on_{k_on}_k_off_{k_off}_k_ecm_{k_ecm}_kl{kl}_ka{ka}_kb{kb}/_N40_dur{duration}_att{att}_att2{att2}_start1_end{seeds}_sd{seed}"
+                                        fileheader = pipeline_folder + folderStr
+                                        print(fileheader)
 
-                            # df_shape, df_NE = process_data(att, v0, att2, seed, fileheader)
-                            df_shape, df_NE, df_speed = process_data(
-                                att, v0, att2, tm, gamma, seed, fileheader
-                            )
+                                        # df_shape, df_NE = process_data(att, v0, att2, seed, fileheader)
+                                        df_shape, df_NE, df_speed = process_data(
+                                            att,
+                                            v0,
+                                            att2,
+                                            tm,
+                                            gamma,
+                                            k_on,
+                                            k_off,
+                                            k_ecm,
+                                            seed,
+                                            fileheader,
+                                        )
 
-                            # if dfs returned from process_data are not empty, concat them
-                            if (
-                                not df_shape.empty
-                                and not df_NE.empty
-                                and not df_speed.empty
-                            ):
-                                df_shapes = pd.concat([df_shapes, df_shape])
-                                df_NE["minNE"] = (
-                                    df_NE["minNE"] / NCELLS / timeBetweenFrames
-                                )
+                                        # if dfs returned from process_data are not empty, concat them
+                                        if (
+                                            not df_shape.empty
+                                            and not df_NE.empty
+                                            and not df_speed.empty
+                                        ):
+                                            df_shapes = pd.concat([df_shapes, df_shape])
+                                            df_NE["minNE"] = (
+                                                df_NE["minNE"]
+                                                / NCELLS
+                                                / timeBetweenFrames
+                                            )
 
-                                df_NEs = pd.concat([df_NEs, df_NE])
-                                df_speeds = pd.concat([df_speeds, df_speed])
-                            else:
-                                print(f"{folderStr} is empty!")
+                                            df_NEs = pd.concat([df_NEs, df_NE])
+                                            df_speeds = pd.concat([df_speeds, df_speed])
+                                        else:
+                                            print(f"{folderStr} is empty!")
 
     print("finished reading files!")
 
     # ensure df is restricted to the parameter combinations within the different parameter arrays specified here
     # necessary because the data file may have parameters I'm not interested in
-    grouping_list = ["att", "att2", "v0", "tm", "gamma"]
-    df_phis = filter_df(df_phis, att_arr, att2_arr, v0_arr, tm_arr, gamma_arr)
+    grouping_list = ["att", "att2", "v0", "tm", "gamma", "k_on", "k_off", "k_ecm"]
+    df_phis = filter_df(
+        df_phis,
+        att_arr,
+        att2_arr,
+        v0_arr,
+        tm_arr,
+        gamma_arr,
+        kon_arr,
+        koff_arr,
+        kecm_arr,
+    )
     df_phis_grouped_means = df_phis.groupby(grouping_list).mean().reset_index()
     plt.figure(figsize=(10, 6))  # Adjust the figure size as needed
     sns.lineplot(data=df_phis_grouped_means, x="v0", y="phi", marker="o", hue="att")
 
-    df_shapes = filter_df(df_shapes, att_arr, att2_arr, v0_arr, tm_arr, gamma_arr)
+    df_shapes = filter_df(
+        df_shapes,
+        att_arr,
+        att2_arr,
+        v0_arr,
+        tm_arr,
+        gamma_arr,
+        kon_arr,
+        koff_arr,
+        kecm_arr,
+    )
     df_shapes_grouped_means = df_shapes.groupby(grouping_list).mean().reset_index()
     plt.figure(figsize=(10, 6))  # Adjust the figure size as needed
     sns.lineplot(
         data=df_shapes_grouped_means, x="v0", y="shapeParameter", marker="o", hue="att"
     )
 
-    df_speeds = filter_df(df_speeds, att_arr, att2_arr, v0_arr, tm_arr, gamma_arr)
+    df_speeds = filter_df(
+        df_speeds,
+        att_arr,
+        att2_arr,
+        v0_arr,
+        tm_arr,
+        gamma_arr,
+        kon_arr,
+        koff_arr,
+        kecm_arr,
+    )
     df_speeds_grouped_means = df_speeds.groupby(grouping_list).mean().reset_index()
     plt.figure(figsize=(10, 6))  # Adjust the figure size as needed
     sns.lineplot(data=df_speeds_grouped_means, x="v0", y="speed", marker="o", hue="att")
 
-    df_NEs = filter_df(df_NEs, att_arr, att2_arr, v0_arr, tm_arr, gamma_arr)
+    df_NEs = filter_df(
+        df_NEs,
+        att_arr,
+        att2_arr,
+        v0_arr,
+        tm_arr,
+        gamma_arr,
+        kon_arr,
+        koff_arr,
+        kecm_arr,
+    )
     df_NEs_grouped_means = df_NEs.groupby(grouping_list).mean().reset_index()
     plt.figure(figsize=(10, 6))  # Adjust the figure size as needed
     sns.lineplot(data=df_NEs_grouped_means, x="v0", y="minNE", marker="o", hue="att")
@@ -270,7 +344,7 @@ def main():
     #  then join the strings into one string so it can be read through seaborn
     # group the dataframe by combo parameters, then average over matching seeds and return a dataframe
 
-    grouping_str = "(att, att2, v0, tm, gamma)"
+    grouping_str = "(att, att2, v0, tm, gamma, k_on, k_off, k_ecm)"
     df_shapes[grouping_str] = df_shapes.apply(
         lambda row: ", ".join(
             [
@@ -279,6 +353,9 @@ def main():
                 str(row["v0"]),
                 str(row["tm"]),
                 str(row["gamma"]),
+                str(row["k_on"]),
+                str(row["k_off"]),
+                str(row["k_ecm"]),
             ]
         ),
         axis=1,
@@ -293,6 +370,9 @@ def main():
                 str(row["v0"]),
                 str(row["tm"]),
                 str(row["gamma"]),
+                str(row["k_on"]),
+                str(row["k_off"]),
+                str(row["k_ecm"]),
             ]
         ),
         axis=1,
@@ -307,6 +387,9 @@ def main():
                 str(row["v0"]),
                 str(row["tm"]),
                 str(row["gamma"]),
+                str(row["k_on"]),
+                str(row["k_off"]),
+                str(row["k_ecm"]),
             ]
         ),
         axis=1,
@@ -321,6 +404,9 @@ def main():
                 str(row["v0"]),
                 str(row["tm"]),
                 str(row["gamma"]),
+                str(row["k_on"]),
+                str(row["k_off"]),
+                str(row["k_ecm"]),
             ]
         ),
         axis=1,
@@ -442,72 +528,67 @@ def main():
     plt.xticks(rotation=45, ha="right")
     plt.tight_layout()
 
-    for fixed_gamma_val in [float(v) for v in gamma_arr]:
+    debugpy.breakpoint()
+
+    # for fixed_val in [float(v) for v in gamma_arr]:
+    for fixed_val in [float(v) for v in koff_arr]:
         plt.figure()
         fig_heatmap_phis = sns.heatmap(
-            df_phis_grouped_means[df_phis_grouped_means["gamma"] == fixed_gamma_val][
-                ["att", "att2", "phi"]
-            ].pivot(index="att", columns="att2", values="phi"),
+            df_phis_grouped_means[df_phis_grouped_means["k_off"] == fixed_val][
+                ["att", "att2", "k_ecm", "phi"]
+            ].pivot(index="att", columns="k_ecm", values="phi"),
             cbar_kws={"label": "$\phi$"},
         )
-        plt.xlabel("$\epsilon_2$")
+        plt.xlabel("$k_{ecm}$")
         plt.ylabel("$\epsilon_1$")
         plt.tight_layout()
         fig_heatmap_phis.invert_yaxis()
-        fig_heatmap_phis.figure.savefig(f"fig_heatmap_phis_gamma={fixed_gamma_val}.png")
+        fig_heatmap_phis.figure.savefig(f"fig_heatmap_phis_k_off={fixed_val}.png")
 
         plt.figure()
         fig_heatmap_shapes = sns.heatmap(
-            df_shapes_grouped_means[
-                df_shapes_grouped_means["gamma"] == fixed_gamma_val
-            ][["att", "att2", "shapeParameter"]].pivot(
-                index="att", columns="att2", values="shapeParameter"
-            ),
+            df_shapes_grouped_means[df_shapes_grouped_means["k_off"] == fixed_val][
+                ["att", "att2", "k_ecm", "shapeParameter"]
+            ].pivot(index="att", columns="k_ecm", values="shapeParameter"),
             cbar_kws={"label": "$\mathcal{A}$"},
         )
-        plt.xlabel("$\epsilon_2$")
+        plt.xlabel("$k_{ecm}$")
         plt.ylabel("$\epsilon_1$")
         plt.tight_layout()
         fig_heatmap_shapes.invert_yaxis()
-        fig_heatmap_shapes.figure.savefig(
-            f"fig_heatmap_shapes_gamma={fixed_gamma_val}.png"
-        )
+        fig_heatmap_shapes.figure.savefig(f"fig_heatmap_shapes_k_off={fixed_val}.png")
 
         plt.figure()
         fig_heatmap_speeds = sns.heatmap(
-            df_speeds_grouped_means[
-                df_speeds_grouped_means["gamma"] == fixed_gamma_val
-            ][["att", "att2", "speed"]].pivot(
-                index="att", columns="att2", values="speed"
-            ),
+            df_speeds_grouped_means[df_speeds_grouped_means["k_off"] == fixed_val][
+                ["att", "att2", "k_ecm", "speed"]
+            ].pivot(index="att", columns="k_ecm", values="speed"),
             cbar_kws={"label": "v"},
         )
-        plt.xlabel("$\epsilon_2$")
+        plt.xlabel("$k_{ecm}$")
         plt.ylabel("$\epsilon_1$")
         plt.tight_layout()
         fig_heatmap_speeds.invert_yaxis()
-        fig_heatmap_speeds.figure.savefig(
-            f"fig_heatmap_speeds_gamma={fixed_gamma_val}.png"
-        )
+        fig_heatmap_speeds.figure.savefig(f"fig_heatmap_speeds_k_off={fixed_val}.png")
 
         plt.figure()
         fig_heatmap_NEs = sns.heatmap(
-            df_NEs_grouped_means[df_NEs_grouped_means["gamma"] == fixed_gamma_val][
-                ["att", "att2", "minNE"]
-            ].pivot(index="att", columns="att2", values="minNE"),
+            df_NEs_grouped_means[df_NEs_grouped_means["k_off"] == fixed_val][
+                ["att", "att2", "k_ecm", "minNE"]
+            ].pivot(index="att", columns="k_ecm", values="minNE"),
             cbar_kws={"label": "NE rate"},
         )
-        plt.xlabel("$\epsilon_2$")
+        plt.xlabel("$k_{ecm}$")
         plt.ylabel("$\epsilon_1$")
         plt.tight_layout()
         fig_heatmap_NEs.invert_yaxis()
-        fig_heatmap_NEs.figure.savefig(f"fig_heatmap_NEs_gamma={fixed_gamma_val}.png")
+        fig_heatmap_NEs.figure.savefig(f"fig_heatmap_NEs_k_off={fixed_val}.png")
 
         debugpy.breakpoint()
         genotype_tags = [
-            "0.1, 0.05, 0.1, 10000.0, 0.0",
-            "0.001, 0.05, 0.1, 10000.0, 0.0",
-            "0.001, 0.005, 0.1, 10000.0, 0.0",
+            f"0.1, 0.05, 0.1, 10000.0, 0.0, 1.0, {fixed_val}, 0.01",
+            f"0.001, 0.05, 0.1, 10000.0, 0.0, 1.0, {fixed_val}, 0.01",
+            f"0.001, 0.005, 0.1, 10000.0, 0.0, 1.0, {fixed_val}, 0.01",
         ]
 
         df_all = pd.DataFrame(
@@ -526,16 +607,20 @@ def main():
 
         for i in range(0, len(genotype_tags)):
             phi_group = df_phis[
-                df_phis["(att, att2, v0, tm, gamma)"] == genotype_tags[i]
+                df_phis["(att, att2, v0, tm, gamma, k_on, k_off, k_ecm)"]
+                == genotype_tags[i]
             ].groupby("seed")["phi"]
             shape_group = df_shapes[
-                df_shapes["(att, att2, v0, tm, gamma)"] == genotype_tags[i]
+                df_shapes["(att, att2, v0, tm, gamma, k_on, k_off, k_ecm)"]
+                == genotype_tags[i]
             ].groupby("seed")["shapeParameter"]
             speed_group = df_speeds[
-                df_speeds["(att, att2, v0, tm, gamma)"] == genotype_tags[i]
+                df_speeds["(att, att2, v0, tm, gamma, k_on, k_off, k_ecm)"]
+                == genotype_tags[i]
             ].groupby("seed")["speed"]
             NE_group = df_NEs[
-                df_NEs["(att, att2, v0, tm, gamma)"] == genotype_tags[i]
+                df_NEs["(att, att2, v0, tm, gamma, k_on, k_off, k_ecm)"]
+                == genotype_tags[i]
             ].groupby("seed")["minNE"]
             new_row = {
                 "params": genotype_tags[i],
