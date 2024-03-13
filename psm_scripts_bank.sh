@@ -12,13 +12,12 @@ att_arr=(0.0 0.005 0.01 0.05 0.1)
 #att2_arr=(0.0 0.001 0.005 0.01 0.05 0.1)
 att2_arr=(0.0)
 t_stress_arr=(10000.0)
-v0_arr=(0.1)
+v0_arr=(0.2 0.4)
 #gamma_arr=(0)
 gamma_arr=(0)
 kon_arr=(1.0)
-koff_arr=(0.01 0.1 1.0)
-#kecm_arr=(0.0 0.01 0.1)
-kecm_arr=(0.0)
+koff_arr=(0.01 1.0 100.0)
+kecm_arr=(0.0 0.01 0.1 1.0)
 rm joblist_psm.txt
 for N in ${N_arr[@]}; do
   for calA0 in ${calA0_arr[@]}; do

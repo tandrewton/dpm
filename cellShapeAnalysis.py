@@ -184,7 +184,7 @@ def main():
     gamma_arr = ["0"]
     kon_arr = ["1.0"]
     koff_arr = ["0.01", "0.1", "1.0"]
-    kecm_arr = ["0.01", "0.1"]
+    kecm_arr = ["0.0", "0.01", "0.1"]
     t_abp = "1.0"
     phi = "0.8"
     duration = "500"
@@ -586,9 +586,9 @@ def main():
 
         debugpy.breakpoint()
         genotype_tags = [
-            f"0.1, 0.05, 0.1, 10000.0, 0.0, 1.0, {fixed_val}, 0.01",
-            f"0.001, 0.05, 0.1, 10000.0, 0.0, 1.0, {fixed_val}, 0.01",
-            f"0.001, 0.005, 0.1, 10000.0, 0.0, 1.0, {fixed_val}, 0.01",
+            f"0.05, 0.0, 0.1, 10000.0, 0.0, 1.0, {fixed_val}, 0.0",
+            f"0.05, 0.0, 0.1, 10000.0, 0.0, 1.0, {fixed_val}, 0.01",
+            f"0.05, 0.0, 0.1, 10000.0, 0.0, 1.0, {fixed_val}, 0.1",
         ]
 
         df_all = pd.DataFrame(
@@ -644,16 +644,16 @@ def main():
         )
 
         # Convert 'Category' to a categorical type and assign numerical values
-        df_all["eps1,eps2"] = df_all["params"].astype("category").cat.codes
+        df_all["eps1,kecm"] = df_all["params"].astype("category").cat.codes
         offset_width = 0.1  # Adjust the spacing between points in the same category
-        grouped = df_all.groupby("eps1,eps2")
+        grouped = df_all.groupby("eps1,kecm")
         offsets = {
             cat: np.linspace(-offset_width / 2, offset_width / 2, num=len(group))
             for cat, group in grouped
         }
         df_all["Offset"] = df_all.apply(
-            lambda row: offsets[row["eps1,eps2"]][
-                grouped.groups[row["eps1,eps2"]].get_loc(row.name)
+            lambda row: offsets[row["eps1,kecm"]][
+                grouped.groups[row["eps1,kecm"]].get_loc(row.name)
             ],
             axis=1,
         )
@@ -662,7 +662,7 @@ def main():
         plt.rcParams.update({"font.size": 30})
         plt.subplots_adjust(hspace=0)
         axs[0].errorbar(
-            df_all["eps1,eps2"] + df_all["Offset"],
+            df_all["eps1,kecm"] + df_all["Offset"],
             df_all["phi_mean"],
             yerr=df_all["phi_std"],
             fmt="o",
@@ -671,7 +671,7 @@ def main():
         axs[0].set_ylabel(r"$\phi$")
 
         axs[1].errorbar(
-            df_all["eps1,eps2"] + df_all["Offset"],
+            df_all["eps1,kecm"] + df_all["Offset"],
             df_all["shape_mean"],
             yerr=df_all["shape_std"],
             fmt="o",
@@ -680,7 +680,7 @@ def main():
         axs[1].set_ylabel(r"$\mathcal{A}$")
 
         axs[2].errorbar(
-            df_all["eps1,eps2"] + df_all["Offset"],
+            df_all["eps1,kecm"] + df_all["Offset"],
             df_all["v_mean"],
             yerr=df_all["v_std"],
             fmt="o",
@@ -688,13 +688,14 @@ def main():
         )
         axs[2].set_ylabel(r"v $(\mu m/min)$")
 
-        axs[3].errorbar(
-            df_all["eps1,eps2"] + df_all["Offset"],
-            df_all["NE_mean"],
-            yerr=df_all["NE_std"],
-            fmt="o",
-            capsize=5,
-        )
+        # axs[3].errorbar(
+        #    df_all["eps1,kecm"] + df_all["Offset"],
+        #    df_all["NE_mean"],
+        #    yerr=df_all["NE_std"],
+        #    fmt="o",
+        #    capsize=5,
+        # )
+        axs[3].scatter(df_all["eps1,kecm"], df_all["NE_mean"])
         axs[3].set_ylabel(r"$NE (cell \cdot min)^{-1}$")
 
         axs[3].set_xticks(range(len(df_all["params"].unique())))
@@ -703,7 +704,7 @@ def main():
             for full_label in df_all["params"].unique()
         ]
         axs[3].set_xticklabels(xticklabels)
-        plt.savefig("simulationStackedObservablesGrouped.png")
+        plt.savefig(f"simulationStackedObservablesGroupedk_off{fixed_val}.png")
 
         plt.show()
 
