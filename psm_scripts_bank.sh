@@ -17,7 +17,7 @@ v0_arr=(0.2 0.4)
 gamma_arr=(0)
 kon_arr=(1.0)
 koff_arr=(0.01 1.0 100.0)
-kecm_arr=(0.0 0.01 0.1 1.0)
+#kecm_arr=(0.0 0.01 0.1 1.0)
 calcMinPos=1
 rm joblist_psm.txt
 for N in ${N_arr[@]}; do
@@ -32,9 +32,10 @@ for N in ${N_arr[@]}; do
                   for gamma in ${gamma_arr[@]}; do
                     for k_on in ${kon_arr[@]}; do
                       for k_off in ${koff_arr[@]}; do
-                        for k_ecm in ${kecm_arr[@]}; do
-                          echo bash bash/cells/submit_psm.sh $N 30 $calA0 $phi $kl $ka $kb $att $att2 $t_stress $v0 1.0 $gamma $k_on $k_off $k_ecm $calcMinPos 300 pi_ohern,day 0-12:00:00 $numSeeds 1 >> joblist_psm.txt
-                        done
+                        k_ecm=$att2
+                        #for k_ecm in ${kecm_arr[@]}; do
+                        echo bash bash/cells/submit_psm.sh $N 30 $calA0 $phi $kl $ka $kb $att $att2 $t_stress $v0 1.0 $gamma $k_on $k_off $k_ecm $calcMinPos 300 pi_ohern,day 0-12:00:00 $numSeeds 1 >> joblist_psm.txt
+                        #done
                       done
                     done
                   done
@@ -63,9 +64,10 @@ for N in ${N_arr[@]}; do
                   for gamma in ${gamma_arr[@]}; do
                     for k_on in ${kon_arr[@]}; do
                       for k_off in ${koff_arr[@]}; do
-                        for k_ecm in ${kecm_arr[@]}; do
-                          echo "module load MATLAB/2023a; matlab -batch \"drawCellSim(\\\"$N\\\", \\\"$calA0\\\", \\\"$phi\\\", \\\"$ka\\\", \\\"$kb\\\", \\\"$att\\\", \\\"$att2\\\", \\\"$v0\\\", \\\"$t_stress\\\", \\\"$gamma\\\", \\\"$k_on\\\", \\\"$k_off\\\", \\\"$k_ecm\\\",$numSeeds)\"" >> joblist_psm_drawCellSim.txt
-                        done
+                        k_ecm=$att2
+                        #for k_ecm in ${kecm_arr[@]}; do
+                        echo "module load MATLAB/2023a; matlab -batch \"drawCellSim(\\\"$N\\\", \\\"$calA0\\\", \\\"$phi\\\", \\\"$ka\\\", \\\"$kb\\\", \\\"$att\\\", \\\"$att2\\\", \\\"$v0\\\", \\\"$t_stress\\\", \\\"$gamma\\\", \\\"$k_on\\\", \\\"$k_off\\\", \\\"$k_ecm\\\",$numSeeds)\"" >> joblist_psm_drawCellSim.txt
+                        #done
                       done
                     done
                   done
