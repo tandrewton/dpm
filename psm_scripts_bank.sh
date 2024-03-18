@@ -18,6 +18,7 @@ gamma_arr=(0)
 kon_arr=(1.0)
 koff_arr=(0.01 1.0 100.0)
 kecm_arr=(0.0 0.01 0.1 1.0)
+calcMinPos=1
 rm joblist_psm.txt
 for N in ${N_arr[@]}; do
   for calA0 in ${calA0_arr[@]}; do
@@ -32,7 +33,7 @@ for N in ${N_arr[@]}; do
                     for k_on in ${kon_arr[@]}; do
                       for k_off in ${koff_arr[@]}; do
                         for k_ecm in ${kecm_arr[@]}; do
-                          echo bash bash/cells/submit_psm.sh $N 30 $calA0 $phi $kl $ka $kb $att $att2 $t_stress $v0 1.0 $gamma $k_on $k_off $k_ecm 500 pi_ohern,day 0-12:00:00 $numSeeds 1 >> joblist_psm.txt
+                          echo bash bash/cells/submit_psm.sh $N 30 $calA0 $phi $kl $ka $kb $att $att2 $t_stress $v0 1.0 $gamma $k_on $k_off $k_ecm $calcMinPos 300 pi_ohern,day 0-12:00:00 $numSeeds 1 >> joblist_psm.txt
                         done
                       done
                     done
@@ -102,6 +103,7 @@ rsync -rav --inplace --progress at965@transfer-mccleary.ycrc.yale.edu:/home/at96
 rsync -rav --inplace --progress at965@transfer-mccleary.ycrc.yale.edu:/home/at965/psm_extracellular_calculation/windowedPhiDataFrame_calA1.0_phi0.8.txt /Users/AndrewTon/Documents/YalePhD/projects/ZebrafishSegmentation/psm_extracellular_calculation 
 
 cd ~/psm_extracellular_calculation/
+rm windowedPhiDataFrame_calA*
 salloc -c 4 --mem 16G -t 4:00:00
 module load MATLAB/2023a
 matlab -nodisplay

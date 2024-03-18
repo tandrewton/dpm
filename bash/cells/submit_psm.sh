@@ -38,11 +38,12 @@ gamma="${13}"
 k_on="${14}"
 k_off="${15}"
 k_ecm="${16}"
-duration="${17}"
-partition="${18}"
-time="${19}"
-numRuns="${20}"
-startSeed="${21}"
+calcMinPos = "${17}"
+duration="${18}"
+partition="${19}"
+time="${20}"
+numRuns="${21}"
+startSeed="${22}"
 
 numSeedsPerRun=1
 let numSeeds=$numSeedsPerRun*$numRuns
@@ -83,6 +84,7 @@ echo gamma = "$gamma" >> $configFile
 echo k_on = "$k_on" >> $configFile
 echo k_ecm = "$k_ecm" >> $configFile
 echo k_off = "$k_off" >> $configFile
+echo calcMinPos = "$calcMinPos" >> $configFile
 # run compiler
 rm -f $binf
 g++ --std=c++11 -O3 -I "$srcdir" "$mainf" "$srcdir"/dpm.cpp "$srcdir"/cell.cpp -o $binf
@@ -127,7 +129,7 @@ for seed in `seq $startSeed $numSeedsPerRun $endSeed`; do
         outFileStem=$simdatadir/$filestr
 
         # append to runString
-        runString="$runString ; ./$binf $NCELLS $NV $calA0 $phi $kl $ka $kb $att $att2 $t_maxwell $v0 $t_abp $gamma $k_on $k_off $k_ecm $seed $duration $outFileStem"
+        runString="$runString ; ./$binf $NCELLS $NV $calA0 $phi $kl $ka $kb $att $att2 $t_maxwell $v0 $t_abp $gamma $k_on $k_off $k_ecm $calcMinPos $seed $duration $outFileStem"
     done
 
     # finish off run string

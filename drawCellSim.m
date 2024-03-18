@@ -1,13 +1,15 @@
 %pwd should give ~/Documents/YalePhd/projects/dpm
-function drawCellSim(N, calA0, phi, ka, kb, att, att2, v0, t_maxwell, gamma, k_on, k_off, k_ecm, numSeeds)
+%function drawCellSim(N, calA0, phi, ka, kb, att, att2, v0, t_maxwell, gamma, k_on, k_off, k_ecm, numSeeds)
 %close all; clear
-isTestData = false; %uncomment if using function call to pipeline data
+%isTestData = false; %uncomment if using function call to pipeline data
 
-%isTestData = true; %uncomment if using test data
-%testDataIDs = ["a_0.0_a2_0.0_tm_10000.0_p_0.8_t_1.0_gamma_0_k_on_1.0_k_off_0.01_k_ecm_0.01"];
+isTestData = true; %uncomment if using test data
+testDataIDs = ["a_0.05_a2_0.0_tm_10000.0_p_0.5_t_1.0_gamma_0_k_on_1.0_k_off_1.0_k_ecm_0.01",...
+    "a_0.05_a2_0.0_tm_10000.0_p_0.6_t_1.0_gamma_0_k_on_1.0_k_off_1.0_k_ecm_0.01",...
+    "a_0.05_a2_0.0_tm_10000.0_p_0.7_t_1.0_gamma_0_k_on_1.0_k_off_1.0_k_ecm_0.01"];
 
-%for i=1:length(testDataIDs)
-%    testDataID = testDataIDs(i);
+for i=1:length(testDataIDs)
+    testDataID = testDataIDs(i);
 
 %testDataID = "a_0.05_a2_0.05_p_0.8_t_1.0_gamma_0.01";
 %testDataID = "9";
@@ -33,7 +35,7 @@ runType = "psm";
 t_abp = "1.0";
 kl = "1.0";
 %att="0.1";
-Duration="500";
+Duration="300";
 FSKIP = 1;
 startSeed = 1;
 max_seed = 1;

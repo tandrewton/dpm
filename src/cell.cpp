@@ -259,9 +259,8 @@ void cell::shapeForces2D() {
       rip1y -= L[1] * round(rip1y / L[1]);
 
     // -- Area force (comes from a cross product) only applies to cellID 0 = ordinary cells, not boundaries
-    // letting both cellID = 0 and = 1 have area and bending forces. ignore the above comment for now.
-    // if (cellID[ci_real] == 0 || cellID[ci_real] == 1) {
-    if (cellID[ci_real] == 0) {
+    if (cellID[ci_real] == 0 || cellID[ci_real] == 1) {
+      // if (cellID[ci_real] == 0) {
       forceX = 0.5 * fa * (rim1y - rip1y);
       forceY = 0.5 * fa * (rip1x - rim1x);
 
@@ -2128,6 +2127,16 @@ double cell::tissuePackingFraction() {
     return cellArea / tissueArea;
   else
     return NAN;
+}
+
+void cell::resizeTissuePreferredArea(double preferredPhi) {
+  double cellArea = 0.0;
+  for (int ci = 0; ci < NCELLS; ci++) {
+    if (cellID[ci] == 0)
+      cellArea += area(ci);
+  }
+  assert(cellID[NCELLS - 1] == 1);
+  a0[NCELLS - 1] = cellArea / preferredPhi;
 }
 
 // routines

@@ -142,7 +142,7 @@ class cell : public dpm {
   void resizeCatchBonds();
 
   // File openers
-  void openFileStreams(const std::string& filename) {
+  void openFileStreams(const std::string& filename, bool calcMinPos) {
     std::vector<string> fileExt = {".pos", ".tissue", ".bond", ".pf", ".msd", ".cellContact",
                                    ".xStream", ".xMinStream", ".cijStream", ".cijMinStream", ".comStream", ".shapeStream"};
     openFile(posout, filename + fileExt[0]);
@@ -150,7 +150,8 @@ class cell : public dpm {
     openFile(bondOut, filename + fileExt[2]);
     openFile(pfOut, filename + fileExt[3]);
     openFile(msdOut, filename + fileExt[4]);
-    openFile(cellContactOut, filename + fileExt[5]);
+    if (calcMinPos)
+      openFile(cellContactOut, filename + fileExt[5]);
     openFile(xStream, filename + fileExt[6]);
     openFile(xMinStream, filename + fileExt[7]);
     openFile(cijStream, filename + fileExt[8]);
@@ -163,6 +164,7 @@ class cell : public dpm {
   void replacePolyWallWithDP(int numCellTypes);
   void addDP(int numVerts, const vector<double>& dp_x, const vector<double>& dp_y, int cellTypeIndex, int numCellTypes);
   double tissuePackingFraction();
+  void resizeTissuePreferredArea(double preferredPhi);
 
   // routines
   void initializeFourTransverseTissues(double phi0, double Ftol);
