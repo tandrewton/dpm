@@ -4,9 +4,9 @@ function drawCellSim(N, calA0, phi, ka, kb, att, att2, v0, t_maxwell, gamma, k_o
 isTestData = false; %uncomment if using function call to pipeline data
 
 %isTestData = true; %uncomment if using test data
-%testDataIDs = ["a_0.05_a2_0.0_tm_10000.0_p_0.5_t_1.0_gamma_0_k_on_1.0_k_off_1.0_k_ecm_0.01",...
-%    "a_0.05_a2_0.0_tm_10000.0_p_0.6_t_1.0_gamma_0_k_on_1.0_k_off_1.0_k_ecm_0.01",...
-%    "a_0.05_a2_0.0_tm_10000.0_p_0.7_t_1.0_gamma_0_k_on_1.0_k_off_1.0_k_ecm_0.01"];
+%testDataIDs = ["a_0.05_a2_0.0_tm_10000.0_p_0.5_t_1.0_gamma_0_k_on_1.0_k_off_1.0_k_ecm_0.0",...
+%    "a_0.05_a2_0.0_tm_10000.0_p_0.6_t_1.0_gamma_0_k_on_1.0_k_off_1.0_k_ecm_0.0",...
+%    "a_0.05_a2_0.0_tm_10000.0_p_0.7_t_1.0_gamma_0_k_on_1.0_k_off_1.0_k_ecm_0.0"];
 
 %for i=1:length(testDataIDs)
 %    testDataID = testDataIDs(i);
@@ -54,7 +54,7 @@ if (forImageAnalysis)
 else
     showBonds = 1;
     showverts = 1;
-    showcirculoline = 1;
+    showcirculoline = 0;
     makeAMovie = 1;
 end
 
@@ -279,7 +279,7 @@ for seed = startSeed:max_seed
                 end
             end
             if showverts == 1
-                if (cellID(nn) == 0)
+                if (cellID(nn) == 0 || (cellID(nn) == 1 && showcirculoline == 0))
                     boundaryX = xtmp + vradtmp * cos(theta);
                     boundaryY = ytmp + vradtmp * sin(theta);
                     patch(boundaryX', boundaryY', clr, 'linestyle', 'none')                 

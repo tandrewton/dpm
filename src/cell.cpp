@@ -2447,7 +2447,7 @@ void cell::initializeTransverseTissue(double phi0, double Ftol, int polyShapeID)
   }
   // check if FIRE converged
   if (fireit == itmax) {
-    cout << "	** FIRE minimization did not converge, fireit = " << fireit << ", itmax = " << itmax << "; ending." << endl;
+    cout << "	** FIRE minimization did not converge, fcheck = " << fcheck << ", fireit = " << fireit << ", itmax = " << itmax << "; ending." << endl;
     exit(1);
   } else {
     cout << endl

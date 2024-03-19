@@ -16,16 +16,16 @@ att_arr=(0.05)
 att2_arr=(0.0)
 #v0=0.1
 t_stress_arr=(10000.0)
-v0=0.4
+v0_arr=0.1
 phi_arr=(0.5 0.6 0.7)
 tau_abp=1.0
 gamma_arr=(0)
 kon_arr=(1.0)
 koff_arr=(1.0)
-kecm_arr=(0.01)
+#kecm_arr=(0.01)
 kl=1.0
 ka=(5.0)
-kb=0.01 
+kb=0.01
 calcMinPos=1
 for att in ${att_arr[@]}; do
   for att2 in ${att2_arr[@]}; do
@@ -34,9 +34,10 @@ for att in ${att_arr[@]}; do
         for gamma in ${gamma_arr[@]}; do
           for k_on in ${kon_arr[@]}; do
             for k_off in ${koff_arr[@]}; do
-              for k_ecm in ${kecm_arr[@]}; do
-                echo "./main/cell/psm2D.o   14  20 1.0 $phi $kl $ka $kb $att $att2 $t_stress    $v0    $tau_abp  $gamma $k_on $k_off $k_ecm $calcMinPos 1    100    testa_"$att"_a2_"$att2"_tm_"$t_stress"_p_"$phi"_t_"$tau_abp"_gamma_"$gamma"_k_on_"$k_on"_k_off_"$k_off"_k_ecm_"$k_ecm
-              done
+              k_ecm=$att2
+              #for k_ecm in ${kecm_arr[@]}; do
+              echo "./main/cell/psm2D.o   14  20 1.0 $phi $kl $ka $kb $att $att2 $t_stress    $v0    $tau_abp  $gamma $k_on $k_off $k_ecm $calcMinPos 1    300    testa_"$att"_a2_"$att2"_tm_"$t_stress"_p_"$phi"_t_"$tau_abp"_gamma_"$gamma"_k_on_"$k_on"_k_off_"$k_off"_k_ecm_"$k_ecm
+              #done
             done
           done
         done
@@ -196,8 +197,19 @@ int main(int argc, char const* argv[]) {
   // double v0_decay_rate = 0.002, v0_min = 0.1 * v0_abp;
   double v0_decay_rate = 0.0, v0_min = v0_abp;
   cout << "before vertexDampedMD final!\n";
-  cell2D.setitmax(1e4);
+  cell2D.setitmax(1e5);
   cell2D.vertexDampedMD(attractionSmoothActiveBrownianECMBondsUpdate, dt0, runTime, 5.0, v0_decay_rate * v0_abp, v0_min);
+
+  bool testingSteadyState = false;
+
+  if (testingSteadyState) {
+    cell2D.setl1(0);
+    cell2D.vertexDampedMD(attractionSmoothActiveBrownianECMBondsUpdate, dt0, runTime, 5.0, v0_decay_rate * v0_abp, v0_min);
+
+    cell2D.setl1(att);
+    cell2D.vertexDampedMD(attractionSmoothActiveBrownianECMBondsUpdate, dt0, runTime, 5.0, v0_decay_rate * v0_abp, v0_min);
+  }
+
   // cell2D.vertexDampedMD(attractionSmoothActive, dt0, runTime, 5.0, v0_decay_rate * v0_abp, v0_min);
   //  cell2D.vertexDampedMD(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, 1.0);
   cout
