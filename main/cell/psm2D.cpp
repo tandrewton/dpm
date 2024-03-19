@@ -25,7 +25,7 @@ koff_arr=(1.0)
 kecm_arr=(0.01)
 kl=1.0
 ka=(5.0)
-kb=0.01
+kb=0.01 
 calcMinPos=1
 for att in ${att_arr[@]}; do
   for att2 in ${att2_arr[@]}; do
