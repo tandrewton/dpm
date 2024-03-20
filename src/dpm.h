@@ -43,7 +43,7 @@ const int NDELAY = 20;
 
 class dpm {
  protected:
-  int itmax = 1e7;
+  int itmax = 1e5;
 
   // int scalars
   int NCELLS;
