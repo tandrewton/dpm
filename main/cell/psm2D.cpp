@@ -197,7 +197,7 @@ int main(int argc, char const* argv[]) {
   // double v0_decay_rate = 0.002, v0_min = 0.1 * v0_abp;
   double v0_decay_rate = 0.0, v0_min = v0_abp;
   cout << "before vertexDampedMD final!\n";
-  cell2D.setitmax(1e5);
+  cell2D.setitmax(1e4);
   cell2D.vertexDampedMD(attractionSmoothActiveBrownianECMBondsUpdate, dt0, runTime, 5.0, v0_decay_rate * v0_abp, v0_min);
 
   bool testingSteadyState = false;

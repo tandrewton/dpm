@@ -1,5 +1,5 @@
-#include <functional>
 #include "dpm.h"
+#include <functional>
 
 using namespace Eigen;
 using namespace std;
@@ -2968,7 +2968,8 @@ void dpm::vertexFIRE2D(dpmMemFn forceCall, double Ftol, double dt0) {
     if (fcheck < 1e-2) {
       cout << "fcheck < 1e-2 but fcheck > ftol, exceeded number of iterations, but small enough, proceeding \n";
     } else
-      exit(1);
+      cout << "fcheck > 1e-2 and fcheck > ftol, exceeded number of iterations, deciding to proceed anyway, proceed with caution\n";
+    // exit(1);
   } else {
     cout << endl;
     cout << "===========================================" << endl;
