@@ -112,7 +112,7 @@ int main(int argc, char const* argv[]) {
   cell2D.setkc(kc);
   cell2D.setkon(k_on);
   cell2D.setkoff(k_off);
-  cell2D.setkecm(k_ecm);
+  cell2D.setkecm(10 * k_ecm);
   cell2D.setB(B);
   if (t_stress > 0.0)
     cell2D.setMaxwellRelaxationTime(t_stress);  // t_stress is infinity unless this is uncommented

@@ -102,8 +102,9 @@ def process_data(att, v0, att2, tm, gamma, k_on, k_off, k_ecm, seed, fileheader)
     # globalYLim = [min(cellPos[:, 1]), max(cellPos[:, 1])]
     shapeParameters = np.ravel(cellShape[:, 0::2])
 
+    # using 1/shapeParameters = circularity
     data_shape = {
-        "shapeParameter": shapeParameters,
+        "circularity": 1 / shapeParameters,
         "att": float(att),
         "v0": float(v0),
         "att2": float(att2),
@@ -172,23 +173,23 @@ def filter_and_group_data(df, filter_params, group_columns):
 
 def main():
     calA0 = "1.0"
-    att_arr = ["0.0", "0.005", "0.01", "0.05", "0.1"]
+    att_arr = ["0.0", "0.01", "0.05"]
     # att_arr = ["0.001", "0.1"]
     kl = "1.0"
     ka = "5.0"
     kb = "0.01"
-    v0_arr = ["0.1"]
+    v0_arr = ["0.15"]
     # att2_arr = ["0.0", "0.001", "0.005", "0.01", "0.05", "0.1"]
-    att2_arr = ["0.0"]
+    att2_arr = ["0.0", "0.005", "0.05"]
     tm_arr = ["10000.0"]
     gamma_arr = ["0"]
     kon_arr = ["1.0"]
-    koff_arr = ["0.01", "0.1", "1.0"]
-    kecm_arr = ["0.0", "0.01", "0.1"]
+    koff_arr = ["0.01", "1.0", "100.0"]
+    kecm_arr = att2_arr
     t_abp = "1.0"
     phi = "0.8"
-    duration = "500"
-    NCELLS = 40
+    duration = "300"
+    NCELLS = 30
     timeBetweenFrames = 3
     seeds = 10
 
@@ -229,46 +230,45 @@ def main():
                     for gamma in gamma_arr:
                         for k_on in kon_arr:
                             for k_off in koff_arr:
-                                for k_ecm in kecm_arr:
-                                    for seed in range(1, seeds + 1):
-                                        if platform == "win32":
-                                            folderStr = f"psm_calA0{calA0}_phi{phi}_tm{tm}_v0{v0}_t_abp{t_abp}_gamma{gamma}_k_on_{k_on}_k_off_{k_off}_k_ecm_{k_ecm}_kl{kl}_ka{ka}_kb{kb}\\_N40_dur{duration}_att{att}_att2{att2}_start1_end{seeds}_sd{seed}"
-                                        else:
-                                            folderStr = f"psm_calA0{calA0}_phi{phi}_tm{tm}_v0{v0}_t_abp{t_abp}_gamma{gamma}_k_on_{k_on}_k_off_{k_off}_k_ecm_{k_ecm}_kl{kl}_ka{ka}_kb{kb}/_N40_dur{duration}_att{att}_att2{att2}_start1_end{seeds}_sd{seed}"
-                                        fileheader = pipeline_folder + folderStr
-                                        print(fileheader)
+                                # for k_ecm in kecm_arr:
+                                k_ecm = att2
+                                for seed in range(1, seeds + 1):
+                                    if platform == "win32":
+                                        folderStr = f"psm_calA0{calA0}_phi{phi}_tm{tm}_v0{v0}_t_abp{t_abp}_gamma{gamma}_k_on_{k_on}_k_off_{k_off}_k_ecm_{k_ecm}_kl{kl}_ka{ka}_kb{kb}\\_N{NCELLS}_dur{duration}_att{att}_att2{att2}_start1_end{seeds}_sd{seed}"
+                                    else:
+                                        folderStr = f"psm_calA0{calA0}_phi{phi}_tm{tm}_v0{v0}_t_abp{t_abp}_gamma{gamma}_k_on_{k_on}_k_off_{k_off}_k_ecm_{k_ecm}_kl{kl}_ka{ka}_kb{kb}/_N{NCELLS}_dur{duration}_att{att}_att2{att2}_start1_end{seeds}_sd{seed}"
+                                    fileheader = pipeline_folder + folderStr
+                                    print(fileheader)
 
-                                        # df_shape, df_NE = process_data(att, v0, att2, seed, fileheader)
-                                        df_shape, df_NE, df_speed = process_data(
-                                            att,
-                                            v0,
-                                            att2,
-                                            tm,
-                                            gamma,
-                                            k_on,
-                                            k_off,
-                                            k_ecm,
-                                            seed,
-                                            fileheader,
+                                    # df_shape, df_NE = process_data(att, v0, att2, seed, fileheader)
+                                    df_shape, df_NE, df_speed = process_data(
+                                        att,
+                                        v0,
+                                        att2,
+                                        tm,
+                                        gamma,
+                                        k_on,
+                                        k_off,
+                                        k_ecm,
+                                        seed,
+                                        fileheader,
+                                    )
+
+                                    # if dfs returned from process_data are not empty, concat them
+                                    if (
+                                        not df_shape.empty
+                                        and not df_NE.empty
+                                        and not df_speed.empty
+                                    ):
+                                        df_shapes = pd.concat([df_shapes, df_shape])
+                                        df_NE["minNE"] = (
+                                            df_NE["minNE"] / NCELLS / timeBetweenFrames
                                         )
 
-                                        # if dfs returned from process_data are not empty, concat them
-                                        if (
-                                            not df_shape.empty
-                                            and not df_NE.empty
-                                            and not df_speed.empty
-                                        ):
-                                            df_shapes = pd.concat([df_shapes, df_shape])
-                                            df_NE["minNE"] = (
-                                                df_NE["minNE"]
-                                                / NCELLS
-                                                / timeBetweenFrames
-                                            )
-
-                                            df_NEs = pd.concat([df_NEs, df_NE])
-                                            df_speeds = pd.concat([df_speeds, df_speed])
-                                        else:
-                                            print(f"{folderStr} is empty!")
+                                        df_NEs = pd.concat([df_NEs, df_NE])
+                                        df_speeds = pd.concat([df_speeds, df_speed])
+                                    else:
+                                        print(f"{folderStr} is empty!")
 
     print("finished reading files!")
 
@@ -304,7 +304,7 @@ def main():
     df_shapes_grouped_means = df_shapes.groupby(grouping_list).mean().reset_index()
     plt.figure(figsize=(10, 6))  # Adjust the figure size as needed
     sns.lineplot(
-        data=df_shapes_grouped_means, x="v0", y="shapeParameter", marker="o", hue="att"
+        data=df_shapes_grouped_means, x="v0", y="circularity", marker="o", hue="att"
     )
 
     df_speeds = filter_df(
@@ -418,7 +418,7 @@ def main():
     sns_shapes = sns.catplot(
         df_shapes_means,
         x=grouping_str,
-        y="shapeParameter",
+        y="circularity",
         kind="box",
         color="skyblue",
         height=8,
@@ -479,7 +479,7 @@ def main():
     sns.catplot(
         df_shapes,
         x=grouping_str,
-        y="shapeParameter",
+        y="circularity",
         kind="box",
         color="skyblue",
         height=8,
@@ -532,10 +532,11 @@ def main():
 
     # for fixed_val in [float(v) for v in gamma_arr]:
     for fixed_val in [float(v) for v in koff_arr]:
+        print("koff = ", fixed_val)
         plt.figure()
         fig_heatmap_phis = sns.heatmap(
             df_phis_grouped_means[df_phis_grouped_means["k_off"] == fixed_val][
-                ["att", "att2", "k_ecm", "phi"]
+                ["att", "att2", "v0", "k_ecm", "phi"]
             ].pivot(index="att", columns="k_ecm", values="phi"),
             cbar_kws={"label": "$\phi$"},
         )
@@ -548,9 +549,9 @@ def main():
         plt.figure()
         fig_heatmap_shapes = sns.heatmap(
             df_shapes_grouped_means[df_shapes_grouped_means["k_off"] == fixed_val][
-                ["att", "att2", "k_ecm", "shapeParameter"]
-            ].pivot(index="att", columns="k_ecm", values="shapeParameter"),
-            cbar_kws={"label": "$\mathcal{A}$"},
+                ["att", "att2", "k_ecm", "circularity"]
+            ].pivot(index="att", columns="k_ecm", values="circularity"),
+            cbar_kws={"label": "$C$"},
         )
         plt.xlabel("$k_{ecm}$")
         plt.ylabel("$\epsilon_1$")
@@ -586,9 +587,9 @@ def main():
 
         debugpy.breakpoint()
         genotype_tags = [
-            f"0.05, 0.0, 0.1, 10000.0, 0.0, 1.0, {fixed_val}, 0.0",
-            f"0.05, 0.0, 0.1, 10000.0, 0.0, 1.0, {fixed_val}, 0.01",
-            f"0.05, 0.0, 0.1, 10000.0, 0.0, 1.0, {fixed_val}, 0.1",
+            f"0.05, 0.0, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, 0.0",
+            f"0.05, 0.0, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, 0.01",
+            f"0.05, 0.0, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, 0.1",
         ]
 
         df_all = pd.DataFrame(
@@ -613,7 +614,7 @@ def main():
             shape_group = df_shapes[
                 df_shapes["(att, att2, v0, tm, gamma, k_on, k_off, k_ecm)"]
                 == genotype_tags[i]
-            ].groupby("seed")["shapeParameter"]
+            ].groupby("seed")["circularity"]
             speed_group = df_speeds[
                 df_speeds["(att, att2, v0, tm, gamma, k_on, k_off, k_ecm)"]
                 == genotype_tags[i]
@@ -677,7 +678,7 @@ def main():
             fmt="o",
             capsize=5,
         )
-        axs[1].set_ylabel(r"$\mathcal{A}$")
+        axs[1].set_ylabel(r"$C$")
 
         axs[2].errorbar(
             df_all["eps1,kecm"] + df_all["Offset"],
@@ -706,7 +707,7 @@ def main():
         axs[3].set_xticklabels(xticklabels)
         plt.savefig(f"simulationStackedObservablesGroupedk_off{fixed_val}.png")
 
-        plt.show()
+        # plt.show()
 
     plt.show()
 
