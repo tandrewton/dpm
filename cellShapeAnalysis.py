@@ -136,7 +136,7 @@ def process_data(att, v0, att2, tm, gamma, k_on, k_off, k_ecm, seed, fileheader)
 
     # converting speeds to real units since it's not done elsewhere
     data_speed = {
-        "speed": cellSpeed * np.sqrt(25 * np.pi) / 3,
+        "speed": cellSpeed * np.sqrt(25 * np.pi) / 1,
         "att": float(att),
         "v0": float(v0),
         "att2": float(att2),
@@ -178,19 +178,21 @@ def main():
     kl = "1.0"
     ka = "5.0"
     kb = "0.01"
-    v0_arr = ["0.15"]
+    v0_arr = ["0.1"]
     # att2_arr = ["0.0", "0.001", "0.005", "0.01", "0.05", "0.1"]
     att2_arr = ["0.0", "0.005", "0.05"]
     tm_arr = ["10000.0"]
     gamma_arr = ["0"]
     kon_arr = ["1.0"]
-    koff_arr = ["0.01", "1.0", "100.0"]
+    koff_arr = ["0.0", "0.01", "1.0", "100.0"]
     kecm_arr = att2_arr
     t_abp = "1.0"
     phi = "0.8"
     duration = "300"
     NCELLS = 30
-    timeBetweenFrames = 3
+    # timeBetweenFrames is the time between frames in minutes, which can be calculated from the print intervals in my simulation code
+    # currently 5 tau, and each tau is 1 minute, because tau_abp=1.0 and tau_abp = 1 minute
+    timeBetweenFrames = 5
     seeds = 10
 
     font = {"size": 22}
@@ -528,8 +530,6 @@ def main():
     plt.xticks(rotation=45, ha="right")
     plt.tight_layout()
 
-    debugpy.breakpoint()
-
     # for fixed_val in [float(v) for v in gamma_arr]:
     for fixed_val in [float(v) for v in koff_arr]:
         print("koff = ", fixed_val)
@@ -586,10 +586,13 @@ def main():
         fig_heatmap_NEs.figure.savefig(f"fig_heatmap_NEs_k_off={fixed_val}.png")
 
         debugpy.breakpoint()
+        att2_severe = "0.0"
+        att2_moderate = "0.005"
+        att2_healthy = "0.05"
         genotype_tags = [
-            f"0.05, 0.0, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, 0.0",
-            f"0.05, 0.0, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, 0.01",
-            f"0.05, 0.0, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, 0.1",
+            f"0.05, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
+            f"0.01, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
+            f"0.0, {att2_severe}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_severe}",
         ]
 
         df_all = pd.DataFrame(
@@ -662,23 +665,30 @@ def main():
         fig, axs = plt.subplots(4, 1, sharex=True, figsize=(15, 15))
         plt.rcParams.update({"font.size": 30})
         plt.subplots_adjust(hspace=0)
-        axs[0].errorbar(
+        """axs[0].errorbar(
             df_all["eps1,kecm"] + df_all["Offset"],
             df_all["phi_mean"],
             yerr=df_all["phi_std"],
             fmt="o",
             capsize=5,
         )
+        """
+        axs[0].scatter(df_all["eps1,kecm"], df_all["phi_mean"])
         axs[0].set_ylabel(r"$\phi$")
+        axs[0].set_ylim(0.5, 1.0)
+        axs[0].set_yticks([0.6, 0.8, 1.0])
 
-        axs[1].errorbar(
+        """axs[1].errorbar(
             df_all["eps1,kecm"] + df_all["Offset"],
             df_all["shape_mean"],
             yerr=df_all["shape_std"],
             fmt="o",
             capsize=5,
-        )
+        )"""
+        axs[1].scatter(df_all["eps1,kecm"], df_all["shape_mean"])
         axs[1].set_ylabel(r"$C$")
+        axs[1].set_ylim(0.77, 0.93)
+        axs[1].set_yticks([0.8, 0.84, 0.88, 0.92])
 
         axs[2].errorbar(
             df_all["eps1,kecm"] + df_all["Offset"],
@@ -698,6 +708,7 @@ def main():
         # )
         axs[3].scatter(df_all["eps1,kecm"], df_all["NE_mean"])
         axs[3].set_ylabel(r"$NE (cell \cdot min)^{-1}$")
+        axs[3].set_ylim(0, 0.22)
 
         axs[3].set_xticks(range(len(df_all["params"].unique())))
         xticklabels = [
