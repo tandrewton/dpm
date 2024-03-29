@@ -177,12 +177,12 @@ int main(int argc, char const* argv[]) {
   cell2D.resizeNeighborLinkedList2D();
 
   double shortRelaxTime = 10.0;
-  double relaxTime = 10.0;
+  double relaxTime = 100.0;
   // double relaxTime = 100.0;
   cell2D.setka(ka);
-  cell2D.vertexDampedMD(attractiveSmoothForceUpdate, dt0, shortRelaxTime, 5.0);
+  cell2D.vertexDampedMD(attractiveSmoothForceUpdate, dt0, shortRelaxTime, 0.0);
 
-  cell2D.shrinkCellVertices(attractiveSmoothForceUpdate, dt0, 5.0);
+  cell2D.shrinkCellVertices(attractiveSmoothForceUpdate, dt0, 0.0);
 
   cell2D.setl00();  // set l00 to be l0 before setting maxwell relaxation time
   cell2D.setMaxwellRelaxationTime(t_stress);
@@ -190,7 +190,7 @@ int main(int argc, char const* argv[]) {
   cell2D.resizeNeighborLinkedList2D();
 
   cell2D.setgamma(gamma);
-  cell2D.vertexDampedMD(attractionSmoothActive, dt0, relaxTime, 5.0);
+  cell2D.vertexDampedMD(attractionSmoothActive, dt0, relaxTime, 0.0);
 
   // begin production run after all of the initialization and equilibration settles
   // double v0_decay_rate = 0.002,    v0_min = 0.1 * v0_abp;

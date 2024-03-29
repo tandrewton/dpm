@@ -264,6 +264,12 @@ void cell::shapeForces2D() {
       forceX = 0.5 * fa * (rim1y - rip1y);
       forceY = 0.5 * fa * (rip1x - rim1x);
 
+      // reduce area force, but by how much?
+      if (cellID[ci_real] == 1) {
+        forceX /= 100;
+        forceY /= 100;
+      }
+
       F[NDIM * gi] += forceX;
       F[NDIM * gi + 1] += forceY;
 

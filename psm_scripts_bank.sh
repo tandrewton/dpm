@@ -1,14 +1,14 @@
 module load dSQ
 #!/bin/bash
-numSeeds=10
-N_arr=(30)
+numSeeds=5
+N_arr=(24)
 calA0_arr=(1.0)
 phi_arr=(0.8)
 kl=1.0
 ka_arr=(5.0)
 kb_arr=(0.01)
-att_arr=(0.0 0.001 0.005 0.01)
-#att_arr=(0.0 0.001 0.005 0.01 0.05 0.1)
+#att_arr=(0.0 0.001 0.005 0.01 0.02 0.03 0.04 0.05 0.1)
+att_arr=(0.0 0.001 0.005 0.01 0.05)
 att2_arr=(0.0 0.001 0.005 0.01)
 #att2_arr=(0.0)
 t_stress_arr=(10000.0)
@@ -89,7 +89,7 @@ dsq --job-file joblist_psm_drawCellSim.txt --mem-per-cpu 8g -t 8:00:00 --mail-ty
 #dsq --job-file joblist_psm_drawCellSim.txt --mem-per-cpu 4g -t 1:00:00 --mail-type NONE --submit --partition scavenge --suppress-stats-file  -o /dev/null
 
 # send files from mccleary file system to local filesystems
-rsync -rav --inplace --progress at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm /mnt/c/Users/atata/projects/dpm/pipeline/cells/. 
+#rsync -rav --inplace --progress at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm /mnt/c/Users/atata/projects/dpm/pipeline/cells/. 
 
 # send files from mccleary output folder (where I store postprocessed files that I ran on the cluster) to local
 # expecting speed.csv, shape.csv, and sd1.avi files

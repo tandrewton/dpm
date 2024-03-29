@@ -173,18 +173,18 @@ def filter_and_group_data(df, filter_params, group_columns):
 
 def main():
     calA0 = "1.0"
-    att_arr = ["0.0", "0.01", "0.05"]
+    att_arr = ["0.0", "0.001", "0.005", "0.01", "0.02", "0.03", "0.04", "0.05", "0.1"]
     # att_arr = ["0.001", "0.1"]
     kl = "1.0"
     ka = "5.0"
     kb = "0.01"
     v0_arr = ["0.1"]
     # att2_arr = ["0.0", "0.001", "0.005", "0.01", "0.05", "0.1"]
-    att2_arr = ["0.0", "0.005", "0.05"]
+    att2_arr = ["0.0", "0.001", "0.005", "0.01"]
     tm_arr = ["10000.0"]
     gamma_arr = ["0"]
     kon_arr = ["1.0"]
-    koff_arr = ["0.0", "0.01", "1.0", "100.0"]
+    koff_arr = ["0.0", "1.0", "100.0", "10000.0"]
     kecm_arr = att2_arr
     t_abp = "1.0"
     phi = "0.8"
@@ -586,12 +586,14 @@ def main():
         fig_heatmap_NEs.figure.savefig(f"fig_heatmap_NEs_k_off={fixed_val}.png")
 
         debugpy.breakpoint()
+        # make sure to change these parameters, and any of the bracketed f-string components
+        #  if those parameters change in the simulations, or if I want to explore different phenotype values
         att2_severe = "0.0"
-        att2_moderate = "0.005"
-        att2_healthy = "0.05"
+        att2_moderate = "0.001"
+        att2_healthy = "0.01"
         genotype_tags = [
-            f"0.05, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
-            f"0.01, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
+            f"0.01, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
+            f"0.001, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
             f"0.0, {att2_severe}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_severe}",
         ]
 
