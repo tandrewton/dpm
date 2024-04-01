@@ -7,16 +7,15 @@ phi_arr=(0.8)
 kl=1.0
 ka_arr=(5.0)
 kb_arr=(0.01)
-#att_arr=(0.0 0.001 0.005 0.01 0.02 0.03 0.04 0.05 0.1)
-att_arr=(0.0 0.001 0.005 0.01 0.05)
-att2_arr=(0.0 0.001 0.005 0.01)
+att_arr=(0.0 0.005 0.01 0.02 0.03 0.04 0.05)
+att2_arr=(0.0 0.001 0.01)
 #att2_arr=(0.0)
 t_stress_arr=(10000.0)
 v0_arr=(0.1)
 #gamma_arr=(0)
 gamma_arr=(0)
 kon_arr=(1.0)
-koff_arr=(0.0 1.0 100.0 10000.0)
+koff_arr=(0.0 1.0 100.0)
 #kecm_arr=(0.0 0.01 0.1 1.0)
 calcMinPos=1
 rm joblist_psm.txt
@@ -85,6 +84,16 @@ dsq --job-file joblist_psm_drawCellSim.txt --mem-per-cpu 8g -t 8:00:00 --mail-ty
 
 **unload matlab before git pull
 
+cd ~/psm_extracellular_calculation/
+rm windowedPhiDataFrame_calA*
+salloc -c 4 --mem 16G -t 4:00:00
+module load MATLAB/2023a
+matlab -nodisplay
+
+delete windowedPhiDataFrame.txt
+copy paste the contents of windowedFractionalPhiDP
+then run cellShapeAnalysis.py
+
 
 #dsq --job-file joblist_psm_drawCellSim.txt --mem-per-cpu 4g -t 1:00:00 --mail-type NONE --submit --partition scavenge --suppress-stats-file  -o /dev/null
 
@@ -104,15 +113,6 @@ rsync -rav --inplace --progress --exclude '*.pos' --exclude '*.tif' --exclude '*
 rsync -rav --inplace --progress at965@transfer-mccleary.ycrc.yale.edu:/home/at965/psm_extracellular_calculation/windowedPhiDataFrame_calA1.0_phi0.8.txt /mnt/c/Users/atata/projects/psm_extracellular_calculation 
 rsync -rav --inplace --progress at965@transfer-mccleary.ycrc.yale.edu:/home/at965/psm_extracellular_calculation/windowedPhiDataFrame_calA1.0_phi0.8.txt /Users/AndrewTon/Documents/YalePhD/projects/ZebrafishSegmentation/psm_extracellular_calculation 
 
-cd ~/psm_extracellular_calculation/
-rm windowedPhiDataFrame_calA*
-salloc -c 4 --mem 16G -t 4:00:00
-module load MATLAB/2023a
-matlab -nodisplay
-
-delete windowedPhiDataFrame.txt
-copy paste the contents of windowedFractionalPhiDP
-then run cellShapeAnalysis.py
 
 # use bash to echo a series of commands that I can copy and paste into a windows terminal to run a python code..
 att_arr=(0.001 0.01 0.1)

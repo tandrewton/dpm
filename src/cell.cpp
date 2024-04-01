@@ -333,7 +333,7 @@ void cell::shapeForces2D() {
 
     // -- Bending force
     if (kb > 0 && (cellID[ci_real] == 0 || cellID[ci_real] == 1)) {
-      // if (kb > 0) {
+      double boundary_modifier = 1.0 + 5.0 * (cellID[ci_real] == 1);
       //  get ip2 for third angle
       rip2x = x[NDIM * ip1[ip1[gi]]] - cx;
       rip2y = x[NDIM * ip1[ip1[gi]] + 1] - cy;
@@ -373,13 +373,11 @@ void cell::shapeForces2D() {
       ddti = (dti - dtip1) / (li * li);
 
       // add to force
-      F[NDIM * gi] += fb * (ddtim1 * nim1x + ddti * nix);
-      F[NDIM * gi + 1] += fb * (ddtim1 * nim1y + ddti * niy);
-      // if (simclock > 60 && simclock < 60 + 2 * dt)
-      //   cout << "bending force = " << fb * (ddtim1 * nim1x + ddti * nix) << '\t' << fb * (ddtim1 * nim1y + ddti * niy) << '\n';
+      F[NDIM * gi] += fb * boundary_modifier * (ddtim1 * nim1x + ddti * nix);
+      F[NDIM * gi + 1] += fb * boundary_modifier * (ddtim1 * nim1y + ddti * niy);
 
       // update potential energy
-      U += 0.5 * kb * (dti * dti);
+      U += 0.5 * boundary_modifier * kb * (dti * dti);
       cellU[ci_real] += 0.5 * kb * (dti * dti);
     }
 

@@ -173,7 +173,7 @@ def filter_and_group_data(df, filter_params, group_columns):
 
 def main():
     calA0 = "1.0"
-    att_arr = ["0.0", "0.001", "0.005", "0.01", "0.02", "0.03", "0.04", "0.05", "0.1"]
+    att_arr = ["0.0", "0.001", "0.005", "0.01", "0.05"]
     # att_arr = ["0.001", "0.1"]
     kl = "1.0"
     ka = "5.0"
@@ -189,11 +189,11 @@ def main():
     t_abp = "1.0"
     phi = "0.8"
     duration = "300"
-    NCELLS = 30
+    NCELLS = 24
     # timeBetweenFrames is the time between frames in minutes, which can be calculated from the print intervals in my simulation code
     # currently 5 tau, and each tau is 1 minute, because tau_abp=1.0 and tau_abp = 1 minute
     timeBetweenFrames = 5
-    seeds = 10
+    seeds = 5
 
     font = {"size": 22}
 
@@ -592,8 +592,12 @@ def main():
         att2_moderate = "0.001"
         att2_healthy = "0.01"
         genotype_tags = [
+            f"0.05, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
+            f"0.05, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
             f"0.01, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
-            f"0.001, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
+            f"0.01, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
+            f"0.005, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
+            f"0.005, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
             f"0.0, {att2_severe}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_severe}",
         ]
 
@@ -700,6 +704,7 @@ def main():
             capsize=5,
         )
         axs[2].set_ylabel(r"v $(\mu m/min)$")
+        axs[2].set_ylim(0.1, 0.3)
 
         # axs[3].errorbar(
         #    df_all["eps1,kecm"] + df_all["Offset"],

@@ -178,7 +178,6 @@ int main(int argc, char const* argv[]) {
 
   double shortRelaxTime = 10.0;
   double relaxTime = 100.0;
-  // double relaxTime = 100.0;
   cell2D.setka(ka);
   cell2D.vertexDampedMD(attractiveSmoothForceUpdate, dt0, shortRelaxTime, 0.0);
 
@@ -196,7 +195,10 @@ int main(int argc, char const* argv[]) {
   // double v0_decay_rate = 0.002,    v0_min = 0.1 * v0_abp;
   // double v0_decay_rate = 0.002, v0_min = 0.1 * v0_abp;
   double v0_decay_rate = 0.0, v0_min = v0_abp;
-  cout << "before vertexDampedMD final!\n";
+  cout << "relaxing with final potential \n";
+  cell2D.vertexDampedMD(attractionSmoothActiveBrownianECMBondsUpdate, dt0, relaxTime, 0.0, 0.0, v0_min);
+
+  cout << "measuring with final potential!\n";
   cell2D.setitmax(1e4);
   cell2D.vertexDampedMD(attractionSmoothActiveBrownianECMBondsUpdate, dt0, runTime, 5.0, v0_decay_rate * v0_abp, v0_min);
 

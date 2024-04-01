@@ -147,7 +147,6 @@ for seed = startSeed:max_seed
         if isunix
             movieName = runType+fileheader_short+'.avi';
         end
-        exist(movieName, 'file')
         runType+fileheader+movieName
         if exist(movieName, 'file')==2
           delete(movieName);
@@ -266,7 +265,7 @@ for seed = startSeed:max_seed
                 if (cellID(nn) == 1)
                     % if cellID is a boundary, have it be blue
                     % exterior with white interior
-                    patch('Faces',finfo,'vertices',vpos,'FaceColor','w','EdgeColor','b','linewidth',0.001);
+                    patch('Faces',finfo,'vertices',vpos,'FaceColor','w','EdgeColor','b','linewidth',0.1);
                     if (forImageAnalysis)
                         % switch to bd figure, plot bd, switch back
                         figure(fnum_boundary); clf; axis off;
