@@ -632,7 +632,9 @@ void cell::ECMBondsUpdate() {
   // evaluate switching states from bonded to non-bonded depending on k_on or k_off values
   for (int gi = 0; gi < NVTOT; gi++) {
     cindices(ci, vi, gi);
-    if (cellID[ci] != 0) {  // if cell type does not match bulk cell ID, then it does not form catch bonds
+    if (cellID[ci] != 0 || k_off * dt > 1) {
+      // if cell type does not match bulk cell ID, then it does not form catch bonds\
+      // or if k_off is so large that there is 0 probability of forming bonds
       isGiBonded[gi] = false;
       continue;
     }
@@ -3266,6 +3268,7 @@ void cell::vertexDampedMD(dpmMemFn forceCall, double dt0, double duration, doubl
         }
 
         cout << "vertexDampedMD progress: " << simclock - t0 << " / " << duration << '\n';
+        cout << "dt = " << dt << '\n';
         if (shapeStream.is_open()) {
           for (int ci = 0; ci < NCELLS; ci++) {
             if (cellID[ci] == 0) {

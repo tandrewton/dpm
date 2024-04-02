@@ -173,18 +173,16 @@ def filter_and_group_data(df, filter_params, group_columns):
 
 def main():
     calA0 = "1.0"
-    att_arr = ["0.0", "0.001", "0.005", "0.01", "0.05"]
-    # att_arr = ["0.001", "0.1"]
+    att_arr = ["0.0", "0.005", "0.01", "0.02", "0.03", "0.04", "0.05"]
     kl = "1.0"
     ka = "5.0"
     kb = "0.01"
     v0_arr = ["0.1"]
-    # att2_arr = ["0.0", "0.001", "0.005", "0.01", "0.05", "0.1"]
-    att2_arr = ["0.0", "0.001", "0.005", "0.01"]
+    att2_arr = ["0.0", "0.001", "0.01"]
     tm_arr = ["10000.0"]
     gamma_arr = ["0"]
     kon_arr = ["1.0"]
-    koff_arr = ["0.0", "1.0", "100.0", "10000.0"]
+    koff_arr = ["0.0", "1.0", "100.0"]
     kecm_arr = att2_arr
     t_abp = "1.0"
     phi = "0.8"
@@ -594,10 +592,24 @@ def main():
         genotype_tags = [
             f"0.05, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
             f"0.05, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
+            f"0.05, {att2_severe}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_severe}",
+            f"0.04, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
+            f"0.04, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
+            f"0.04, {att2_severe}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_severe}",
+            f"0.03, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
+            f"0.03, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
+            f"0.03, {att2_severe}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_severe}",
+            f"0.02, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
+            f"0.02, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
+            f"0.02, {att2_severe}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_severe}",
             f"0.01, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
             f"0.01, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
+            f"0.01, {att2_severe}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_severe}",
             f"0.005, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
             f"0.005, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
+            f"0.005, {att2_severe}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_severe}",
+            f"0.0, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
+            f"0.0, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
             f"0.0, {att2_severe}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_severe}",
         ]
 
@@ -704,7 +716,7 @@ def main():
             capsize=5,
         )
         axs[2].set_ylabel(r"v $(\mu m/min)$")
-        axs[2].set_ylim(0.1, 0.3)
+        axs[2].set_ylim(0, 1)
 
         # axs[3].errorbar(
         #    df_all["eps1,kecm"] + df_all["Offset"],
@@ -727,7 +739,7 @@ def main():
 
         # plt.show()
 
-    plt.show()
+    # plt.show()
 
 
 if __name__ == "__main__":
