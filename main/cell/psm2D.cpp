@@ -171,7 +171,7 @@ int main(int argc, char const* argv[]) {
   // cell2D.shrinkPolyWall(repulsiveForceUpdateWithPolyWalls, Ftol, dt0, phi, dphi0);
 
   cell2D.replacePolyWallWithDP(numCellTypes);
-  double restPackingFraction = 0.8;
+  double restPackingFraction = 1.0;
   cell2D.resizeTissuePreferredArea(restPackingFraction);
   cell2D.resizeCatchBonds();
   cell2D.resizeNeighborLinkedList2D();

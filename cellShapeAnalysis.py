@@ -173,21 +173,21 @@ def filter_and_group_data(df, filter_params, group_columns):
 
 def main():
     calA0 = "1.0"
-    att_arr = ["0.0", "0.005", "0.01", "0.02", "0.03", "0.04", "0.05"]
+    att_arr = ["0.0", "0.01", "0.02", "0.04", "0.05", "0.1"]
     kl = "1.0"
     ka = "5.0"
     kb = "0.01"
-    v0_arr = ["0.1"]
-    att2_arr = ["0.0", "0.001", "0.01"]
+    v0_arr = ["0.15"]
+    att2_arr = ["0.0", "0.001", "0.01", "0.05"]
     tm_arr = ["10000.0"]
     gamma_arr = ["0"]
     kon_arr = ["1.0"]
-    koff_arr = ["0.0", "1.0", "100.0"]
+    koff_arr = ["0.0", "1.0", "100.0", "100000.0"]
     kecm_arr = att2_arr
     t_abp = "1.0"
     phi = "0.8"
     duration = "300"
-    NCELLS = 24
+    NCELLS = 40
     # timeBetweenFrames is the time between frames in minutes, which can be calculated from the print intervals in my simulation code
     # currently 5 tau, and each tau is 1 minute, because tau_abp=1.0 and tau_abp = 1 minute
     timeBetweenFrames = 5
@@ -589,7 +589,16 @@ def main():
         att2_severe = "0.0"
         att2_moderate = "0.001"
         att2_healthy = "0.01"
-        genotype_tags = [
+        att2_strongest = "0.05"
+        # att_arr = ["0.0", "0.01", "0.02", "0.04", "0.05", "0.1"]
+        # att2_arr = ["0.0", "0.001", "0.01", "0.05"]
+        genotype_tags = []
+        for att_val in att_arr[::-1]:
+            for att2_val in att2_arr[::-1]:
+                genotype_tags.append(
+                    f"{att_val}, {att2_val}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_val}"
+                )
+        """genotype_tags = [
             f"0.05, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
             f"0.05, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
             f"0.05, {att2_severe}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_severe}",
@@ -611,7 +620,7 @@ def main():
             f"0.0, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
             f"0.0, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
             f"0.0, {att2_severe}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_severe}",
-        ]
+        ]"""
 
         df_all = pd.DataFrame(
             columns=[
