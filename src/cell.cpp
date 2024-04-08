@@ -266,8 +266,8 @@ void cell::shapeForces2D() {
 
       // reduce area force, but by how much?
       if (cellID[ci_real] == 1) {
-        forceX /= 100;
-        forceY /= 100;
+        forceX /= 10;
+        forceY /= 10;
       }
 
       F[NDIM * gi] += forceX;
@@ -333,7 +333,7 @@ void cell::shapeForces2D() {
 
     // -- Bending force
     if (kb > 0 && (cellID[ci_real] == 0 || cellID[ci_real] == 1)) {
-      double boundary_modifier = 1.0 + 5.0 * (cellID[ci_real] == 1);
+      double boundary_modifier = 1.0 + 9.0 * (cellID[ci_real] == 1);
       //  get ip2 for third angle
       rip2x = x[NDIM * ip1[ip1[gi]]] - cx;
       rip2y = x[NDIM * ip1[ip1[gi]] + 1] - cy;
@@ -378,7 +378,7 @@ void cell::shapeForces2D() {
 
       // update potential energy
       U += 0.5 * boundary_modifier * kb * (dti * dti);
-      cellU[ci_real] += 0.5 * kb * (dti * dti);
+      cellU[ci_real] += 0.5 * boundary_modifier * kb * (dti * dti);
     }
 
     // update old coordinates
@@ -2141,6 +2141,7 @@ void cell::resizeTissuePreferredArea(double preferredPhi) {
     if (cellID[ci] == 0)
       cellArea += area(ci);
   }
+  // boundaryID should be 1 for the boundary
   assert(cellID[NCELLS - 1] == 1);
   a0[NCELLS - 1] = cellArea / preferredPhi;
 }
