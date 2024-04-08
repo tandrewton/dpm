@@ -38,7 +38,7 @@ kl = "1.0";
 Duration="300";
 FSKIP = 1;
 startSeed = 1;
-max_seed = 1;
+max_seed = 1; % gets overwritten if OS is unix (I use slurm in unix)
 %att_range = 0.3;
 
 %if makeAMovie is 0, then plot every frame separately

@@ -313,8 +313,6 @@ void cell::shapeForces2D() {
     // surfaceTension is a matrix of coefficients (1.0, 0.0)
     //    and gamma * surfaceTension is a matrix of surface tensions
     if (surfaceTension.size() > 0 && cellID[ci_real] == 0) {
-      // if (surfaceTension[gi] > 0)
-      //   cout << "fli * dly = " << fli * dli << ", flim1 * dlim1 = " << flim1 * dlim1 << " surfaceTension[gi], [im1[gi]] = " << surfaceTension[gi] << ", " << surfaceTension[im1[gi]] << '\n';
       flim1 = surfaceTension[im1[gi]] * (rho0 / l0im1);
       fli = surfaceTension[gi] * (rho0 / l0i);
       forceX = fli * lix / li - flim1 * lim1x / lim1;

@@ -177,7 +177,7 @@ def main():
     kl = "1.0"
     ka = "5.0"
     kb = "0.01"
-    v0_arr = ["0.15"]
+    v0_arr = ["0.1"]
     att2_arr = ["0.0", "0.001", "0.01", "0.05"]
     tm_arr = ["10000.0"]
     gamma_arr = ["0"]
@@ -189,8 +189,8 @@ def main():
     duration = "300"
     NCELLS = 40
     # timeBetweenFrames is the time between frames in minutes, which can be calculated from the print intervals in my simulation code
-    # currently 5 tau, and each tau is 1 minute, because tau_abp=1.0 and tau_abp = 1 minute
-    timeBetweenFrames = 5
+    # currently 2.5 tau, and each tau is 0.5 minute, because tau_abp=1.0 and tau_abp = 1 minute
+    timeBetweenFrames = 2.5
     seeds = 5
 
     font = {"size": 22}
