@@ -164,7 +164,7 @@ class cell : public dpm {
   void replacePolyWallWithDP(int numCellTypes);
   void addDP(int numVerts, const vector<double>& dp_x, const vector<double>& dp_y, int cellTypeIndex, int numCellTypes);
   double tissuePackingFraction();
-  void resizeTissuePreferredArea(double preferredPhi);
+  void resizeTissuePreferredArea(double preferredPhi, bool setPreferredShape = false);
 
   // routines
   void initializeFourTransverseTissues(double phi0, double Ftol);

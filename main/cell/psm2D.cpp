@@ -172,7 +172,8 @@ int main(int argc, char const* argv[]) {
 
   cell2D.replacePolyWallWithDP(numCellTypes);
   double restPackingFraction = 1.0;
-  cell2D.resizeTissuePreferredArea(restPackingFraction);
+  bool setPreferredShape = true;
+  cell2D.resizeTissuePreferredArea(restPackingFraction, setPreferredShape);
   cell2D.resizeCatchBonds();
   cell2D.resizeNeighborLinkedList2D();
 

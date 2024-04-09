@@ -7,7 +7,7 @@ phi_arr=(0.8)
 kl=1.0
 ka_arr=(5.0)
 kb_arr=(0.01)
-att_arr=(0.0 0.01 0.02 0.04 0.05 0.1)
+att_arr=(0.0 0.02 0.04 0.06 0.08 0.1)
 att2_arr=(0.0 0.001 0.01 0.05)
 #att2_arr=(0.0)
 t_stress_arr=(10000.0)
@@ -15,7 +15,7 @@ v0_arr=(0.1)
 #gamma_arr=(0)
 gamma_arr=(0)
 kon_arr=(1.0)
-koff_arr=(0.0 1.0 100.0 100000.0)
+koff_arr=(0.0 1.0 100.0)
 #kecm_arr=(0.0 0.01 0.1 1.0)
 calcMinPos=1
 rm joblist_psm.txt

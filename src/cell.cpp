@@ -2133,15 +2133,22 @@ double cell::tissuePackingFraction() {
     return NAN;
 }
 
-void cell::resizeTissuePreferredArea(double preferredPhi) {
+void cell::resizeTissuePreferredArea(double preferredPhi, bool setPreferredShape) {
   double cellArea = 0.0;
   for (int ci = 0; ci < NCELLS; ci++) {
     if (cellID[ci] == 0)
       cellArea += area(ci);
   }
   // boundaryID should be 1 for the boundary
-  assert(cellID[NCELLS - 1] == 1);
+  int boundaryIndex = NCELLS - 1;
+  assert(cellID[boundaryIndex] == 1);
   a0[NCELLS - 1] = cellArea / preferredPhi;
+  if (setPreferredShape) {
+    double preferredShape = 1.0;
+    for (int gi = szList[boundaryIndex]; gi < szList[boundaryIndex] + nv[boundaryIndex]; gi++) {
+      l0[gi] = sqrt(4 * PI * a0[boundaryIndex] * preferredShape) / nv[boundaryIndex];
+    }
+  }
 }
 
 // routines
