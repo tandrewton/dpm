@@ -258,16 +258,15 @@ void cell::shapeForces2D() {
     if (pbc[1])
       rip1y -= L[1] * round(rip1y / L[1]);
 
-    // -- Area force (comes from a cross product) only applies to cellID 0 = ordinary cells, not boundaries
+    // -- Area force (comes from a cross product)
     if (cellID[ci_real] == 0 || cellID[ci_real] == 1) {
-      // if (cellID[ci_real] == 0) {
       forceX = 0.5 * fa * (rim1y - rip1y);
       forceY = 0.5 * fa * (rip1x - rim1x);
 
-      // reduce area force, but by how much?
+      // reduce boundary area force, but by how much?
       if (cellID[ci_real] == 1) {
-        forceX /= 10;
-        forceY /= 10;
+        forceX /= NCELLS;
+        forceY /= NCELLS;
       }
 
       F[NDIM * gi] += forceX;
@@ -298,6 +297,12 @@ void cell::shapeForces2D() {
     // add to forces
     forceX = (fli * dli * lix / li) - (flim1 * dlim1 * lim1x / lim1);
     forceY = (fli * dli * liy / li) - (flim1 * dlim1 * lim1y / lim1);
+
+    // reduce boundary length force, but by how much?
+    if (cellID[ci_real] == 1) {
+      forceX /= NCELLS;
+      forceY /= NCELLS;
+    }
     F[NDIM * gi] += forceX;
     F[NDIM * gi + 1] += forceY;
 

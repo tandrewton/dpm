@@ -173,7 +173,7 @@ def filter_and_group_data(df, filter_params, group_columns):
 
 def main():
     calA0 = "1.0"
-    att_arr = ["0.0", "0.01", "0.02", "0.04", "0.05", "0.1"]
+    att_arr = ["0.0", "0.02", "0.04", "0.06", "0.08", "0.1"]
     kl = "1.0"
     ka = "5.0"
     kb = "0.01"
@@ -182,7 +182,7 @@ def main():
     tm_arr = ["10000.0"]
     gamma_arr = ["0"]
     kon_arr = ["1.0"]
-    koff_arr = ["0.0", "1.0", "100.0", "100000.0"]
+    koff_arr = ["0.0", "1.0", "100.0"]
     kecm_arr = att2_arr
     t_abp = "1.0"
     phi = "0.8"
