@@ -136,7 +136,7 @@ def process_data(att, v0, att2, tm, gamma, k_on, k_off, k_ecm, seed, fileheader)
 
     # converting speeds to real units since it's not done elsewhere
     data_speed = {
-        "speed": cellSpeed * np.sqrt(25 * np.pi) / 1,
+        "speed": cellSpeed,
         "att": float(att),
         "v0": float(v0),
         "att2": float(att2),
@@ -182,7 +182,7 @@ def main():
     tm_arr = ["10000.0"]
     gamma_arr = ["0"]
     kon_arr = ["1.0"]
-    koff_arr = ["0.0", "1.0", "100.0"]
+    koff_arr = ["0.0", "0.5", "1.0", "100.0"]
     kecm_arr = att2_arr
     t_abp = "1.0"
     phi = "0.8"
@@ -190,6 +190,7 @@ def main():
     NCELLS = 40
     # timeBetweenFrames is the time between frames in minutes, which can be calculated from the print intervals in my simulation code
     # currently 2.5 tau, and each tau is 0.5 minute, because tau_abp=1.0 and tau_abp = 1 minute
+    real_time_unit = 0.5
     timeBetweenFrames = 2.5
     seeds = 5
 
@@ -263,6 +264,12 @@ def main():
                                         df_shapes = pd.concat([df_shapes, df_shape])
                                         df_NE["minNE"] = (
                                             df_NE["minNE"] / NCELLS / timeBetweenFrames
+                                        )
+
+                                        df_speed["speed"] = (
+                                            df_speed["speed"]
+                                            * np.sqrt(25 * np.pi)
+                                            / real_time_unit
                                         )
 
                                         df_NEs = pd.concat([df_NEs, df_NE])

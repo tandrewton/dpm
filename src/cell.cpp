@@ -265,8 +265,8 @@ void cell::shapeForces2D() {
 
       // reduce boundary area force, but by how much?
       if (cellID[ci_real] == 1) {
-        forceX /= NCELLS;
-        forceY /= NCELLS;
+        forceX /= 10;
+        forceY /= 10;
       }
 
       F[NDIM * gi] += forceX;
@@ -300,8 +300,8 @@ void cell::shapeForces2D() {
 
     // reduce boundary length force, but by how much?
     if (cellID[ci_real] == 1) {
-      forceX /= NCELLS;
-      forceY /= NCELLS;
+      forceX /= 10;
+      forceY /= 10;
     }
     F[NDIM * gi] += forceX;
     F[NDIM * gi + 1] += forceY;
