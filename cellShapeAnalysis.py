@@ -171,18 +171,53 @@ def filter_and_group_data(df, filter_params, group_columns):
     return df_filtered.groupby(group_columns).mean().reset_index()
 
 
+def create_heatmap(
+    data, index_col, columns_col, value_col, x_label, y_label, cbar_label, filename
+):
+    """
+    Create a heatmap from the specified DataFrame.
+
+    Parameters:
+        data (DataFrame): The data frame from which to generate the heatmap.
+        index_col (str): Column name to use as the rows in the heatmap.
+        columns_col (str): Column name to use as the columns in the heatmap.
+        value_col (str): Column name to use as the value cells in the heatmap.
+        title (str): Title for the heatmap.
+        cbar_label (str): Label for the color bar.
+        filename (str): File path to save the heatmap image.
+    """
+    plt.figure(figsize=(10, 8))
+    ax = sns.heatmap(
+        data.pivot(index=index_col, columns=columns_col, values=value_col),
+        annot=True,  # Add numbers in each cell
+        fmt=".2f",  # Formatting numbers inside the heatmap
+        # cmap="viridis",  # Color map
+        cbar_kws={"label": cbar_label},
+    )
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.gca().invert_yaxis()
+    plt.tight_layout()
+    ax.tick_params(axis="y", labelrotation=0)
+    # plt.draw()  # Force re-drawing the figure to apply tight_layout adjustments
+    plt.savefig(filename)
+    plt.close()  # Close the figure to free memory
+
+
 def main():
     calA0 = "1.0"
-    att_arr = ["0.0", "0.02", "0.04", "0.06", "0.08", "0.1"]
+    att_arr = ["0.04", "0.05", "0.06", "0.07", "0.08"]
+    # att_arr = ["0.04", "0.05"]
     kl = "1.0"
     ka = "5.0"
     kb = "0.01"
     v0_arr = ["0.1"]
-    att2_arr = ["0.0", "0.001", "0.01", "0.05"]
+    att2_arr = ["0.001", "0.005", "0.01", "0.02", "0.05"]
+    # att2_arr = ["0.001", "0.005"]
     tm_arr = ["10000.0"]
     gamma_arr = ["0"]
     kon_arr = ["1.0"]
-    koff_arr = ["0.0", "0.5", "1.0", "100.0"]
+    koff_arr = ["0.5", "1.0", "100.0"]
     kecm_arr = att2_arr
     t_abp = "1.0"
     phi = "0.8"
@@ -192,7 +227,7 @@ def main():
     # currently 2.5 tau, and each tau is 0.5 minute, because tau_abp=1.0 and tau_abp = 1 minute
     real_time_unit = 0.5
     timeBetweenFrames = 2.5
-    seeds = 5
+    seeds = 20
 
     font = {"size": 22}
 
@@ -535,60 +570,61 @@ def main():
     plt.xticks(rotation=45, ha="right")
     plt.tight_layout()
 
+    plt.rcParams.update({"font.size": 30})
     # for fixed_val in [float(v) for v in gamma_arr]:
     for fixed_val in [float(v) for v in koff_arr]:
         print("koff = ", fixed_val)
-        plt.figure()
-        fig_heatmap_phis = sns.heatmap(
+        create_heatmap(
             df_phis_grouped_means[df_phis_grouped_means["k_off"] == fixed_val][
                 ["att", "att2", "v0", "k_ecm", "phi"]
-            ].pivot(index="att", columns="k_ecm", values="phi"),
-            cbar_kws={"label": "$\phi$"},
+            ],
+            "att",
+            "k_ecm",
+            "phi",
+            "$\epsilon_1$",
+            "$k_{ecm}$",
+            "$\phi$",
+            f"fig_heatmap_phis_k_off={fixed_val}.png",
         )
-        plt.xlabel("$k_{ecm}$")
-        plt.ylabel("$\epsilon_1$")
-        plt.tight_layout()
-        fig_heatmap_phis.invert_yaxis()
-        fig_heatmap_phis.figure.savefig(f"fig_heatmap_phis_k_off={fixed_val}.png")
 
-        plt.figure()
-        fig_heatmap_shapes = sns.heatmap(
+        create_heatmap(
             df_shapes_grouped_means[df_shapes_grouped_means["k_off"] == fixed_val][
                 ["att", "att2", "k_ecm", "circularity"]
-            ].pivot(index="att", columns="k_ecm", values="circularity"),
-            cbar_kws={"label": "$C$"},
+            ],
+            "att",
+            "k_ecm",
+            "circularity",
+            "$\epsilon_1$",
+            "$k_{ecm}$",
+            "$C$",
+            f"fig_heatmap_shapes_k_off={fixed_val}.png",
         )
-        plt.xlabel("$k_{ecm}$")
-        plt.ylabel("$\epsilon_1$")
-        plt.tight_layout()
-        fig_heatmap_shapes.invert_yaxis()
-        fig_heatmap_shapes.figure.savefig(f"fig_heatmap_shapes_k_off={fixed_val}.png")
 
-        plt.figure()
-        fig_heatmap_speeds = sns.heatmap(
+        create_heatmap(
             df_speeds_grouped_means[df_speeds_grouped_means["k_off"] == fixed_val][
                 ["att", "att2", "k_ecm", "speed"]
-            ].pivot(index="att", columns="k_ecm", values="speed"),
-            cbar_kws={"label": "v"},
+            ],
+            "att",
+            "k_ecm",
+            "speed",
+            "$\epsilon_1$",
+            "$k_{ecm}$",
+            "$v$",
+            f"fig_heatmap_speeds_k_off={fixed_val}.png",
         )
-        plt.xlabel("$k_{ecm}$")
-        plt.ylabel("$\epsilon_1$")
-        plt.tight_layout()
-        fig_heatmap_speeds.invert_yaxis()
-        fig_heatmap_speeds.figure.savefig(f"fig_heatmap_speeds_k_off={fixed_val}.png")
 
-        plt.figure()
-        fig_heatmap_NEs = sns.heatmap(
+        create_heatmap(
             df_NEs_grouped_means[df_NEs_grouped_means["k_off"] == fixed_val][
                 ["att", "att2", "k_ecm", "minNE"]
-            ].pivot(index="att", columns="k_ecm", values="minNE"),
-            cbar_kws={"label": "NE rate"},
+            ],
+            "att",
+            "k_ecm",
+            "minNE",
+            "$\epsilon_1$",
+            "$k_{ecm}$",
+            "NE rate",
+            f"fig_heatmap_NEs_k_off={fixed_val}.png",
         )
-        plt.xlabel("$k_{ecm}$")
-        plt.ylabel("$\epsilon_1$")
-        plt.tight_layout()
-        fig_heatmap_NEs.invert_yaxis()
-        fig_heatmap_NEs.figure.savefig(f"fig_heatmap_NEs_k_off={fixed_val}.png")
 
         debugpy.breakpoint()
         # make sure to change these parameters, and any of the bracketed f-string components
@@ -597,8 +633,6 @@ def main():
         att2_moderate = "0.001"
         att2_healthy = "0.01"
         att2_strongest = "0.05"
-        # att_arr = ["0.0", "0.01", "0.02", "0.04", "0.05", "0.1"]
-        # att2_arr = ["0.0", "0.001", "0.01", "0.05"]
         genotype_tags = []
         for att_val in att_arr[::-1]:
             for att2_val in att2_arr[::-1]:
@@ -697,7 +731,6 @@ def main():
         )
 
         fig, axs = plt.subplots(4, 1, sharex=True, figsize=(15, 15))
-        plt.rcParams.update({"font.size": 30})
         plt.subplots_adjust(hspace=0)
         """axs[0].errorbar(
             df_all["eps1,kecm"] + df_all["Offset"],
@@ -734,13 +767,6 @@ def main():
         axs[2].set_ylabel(r"v $(\mu m/min)$")
         axs[2].set_ylim(0, 1)
 
-        # axs[3].errorbar(
-        #    df_all["eps1,kecm"] + df_all["Offset"],
-        #    df_all["NE_mean"],
-        #    yerr=df_all["NE_std"],
-        #    fmt="o",
-        #    capsize=5,
-        # )
         axs[3].scatter(df_all["eps1,kecm"], df_all["NE_mean"])
         axs[3].set_ylabel(r"$NE (cell \cdot min)^{-1}$")
         axs[3].set_ylim(0, 0.22)
@@ -751,6 +777,7 @@ def main():
             for full_label in df_all["params"].unique()
         ]
         axs[3].set_xticklabels(xticklabels)
+        plt.tight_layout()
         plt.savefig(f"simulationStackedObservablesGroupedk_off{fixed_val}.png")
 
         # plt.show()
