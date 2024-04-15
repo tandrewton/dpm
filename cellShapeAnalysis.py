@@ -206,27 +206,27 @@ def create_heatmap(
 
 def main():
     calA0 = "1.0"
-    att_arr = ["0.04", "0.05", "0.06", "0.07", "0.08"]
-    # att_arr = ["0.04", "0.05"]
+    # att_arr = ["0.04", "0.05", "0.06", "0.07", "0.08"]
+    att_arr = ["0.05", "0.06"]
     kl = "1.0"
     ka = "5.0"
     kb = "0.01"
     v0_arr = ["0.1"]
-    att2_arr = ["0.001", "0.005", "0.01", "0.02", "0.05"]
-    # att2_arr = ["0.001", "0.005"]
+    # att2_arr = ["0.001", "0.005", "0.01", "0.02", "0.05"]
+    att2_arr = ["0.01", "0.05"]
     tm_arr = ["10000.0"]
     gamma_arr = ["0"]
     kon_arr = ["1.0"]
-    koff_arr = ["0.5", "1.0", "100.0"]
+    koff_arr = ["0.5", "100.0"]
     kecm_arr = att2_arr
     t_abp = "1.0"
     phi = "0.8"
     duration = "300"
     NCELLS = 40
-    # timeBetweenFrames is the time between frames in minutes, which can be calculated from the print intervals in my simulation code
-    # currently 2.5 tau, and each tau is 0.5 minute, because tau_abp=1.0 and tau_abp = 1 minute
-    real_time_unit = 0.5
-    timeBetweenFrames = 2.5
+    # timeBetweenFrames is the time between frames in minutes, which can be calculated from the print intervals in my simulation code. Currently 5 frames
+    real_time_unit = 0.33  # minutes, tau_abp in real units
+    framesPerTimeUnit = 5
+    timeBetweenFrames = framesPerTimeUnit * real_time_unit
     seeds = 20
 
     font = {"size": 22}
@@ -626,7 +626,6 @@ def main():
             f"fig_heatmap_NEs_k_off={fixed_val}.png",
         )
 
-        debugpy.breakpoint()
         # make sure to change these parameters, and any of the bracketed f-string components
         #  if those parameters change in the simulations, or if I want to explore different phenotype values
         att2_severe = "0.0"
@@ -730,44 +729,41 @@ def main():
             axis=1,
         )
 
-        fig, axs = plt.subplots(4, 1, sharex=True, figsize=(15, 15))
+        if fixed_val == float(koff_arr[0]):
+            fig, axs = plt.subplots(4, 1, sharex=True, figsize=(15, 15))
+            clr = "red"
+            constant_offset = 0.25
+        else:
+            clr = "black"
+            constant_offset = 0
         plt.subplots_adjust(hspace=0)
-        """axs[0].errorbar(
-            df_all["eps1,kecm"] + df_all["Offset"],
-            df_all["phi_mean"],
-            yerr=df_all["phi_std"],
-            fmt="o",
-            capsize=5,
-        )
-        """
-        axs[0].scatter(df_all["eps1,kecm"], df_all["phi_mean"])
+
+        debugpy.breakpoint()
+
+        axs[0].scatter(df_all["eps1,kecm"] + constant_offset, df_all["phi_mean"], c=clr)
         axs[0].set_ylabel(r"$\phi$")
         axs[0].set_ylim(0.5, 1.0)
         axs[0].set_yticks([0.6, 0.8, 1.0])
 
-        """axs[1].errorbar(
-            df_all["eps1,kecm"] + df_all["Offset"],
-            df_all["shape_mean"],
-            yerr=df_all["shape_std"],
-            fmt="o",
-            capsize=5,
-        )"""
-        axs[1].scatter(df_all["eps1,kecm"], df_all["shape_mean"])
+        axs[1].scatter(
+            df_all["eps1,kecm"] + constant_offset, df_all["shape_mean"], c=clr
+        )
         axs[1].set_ylabel(r"$C$")
         axs[1].set_ylim(0.77, 0.93)
         axs[1].set_yticks([0.8, 0.84, 0.88, 0.92])
 
         axs[2].errorbar(
-            df_all["eps1,kecm"] + df_all["Offset"],
+            df_all["eps1,kecm"] + df_all["Offset"] + constant_offset,
             df_all["v_mean"],
             yerr=df_all["v_std"],
             fmt="o",
             capsize=5,
+            c=clr,
         )
         axs[2].set_ylabel(r"v $(\mu m/min)$")
         axs[2].set_ylim(0, 1)
 
-        axs[3].scatter(df_all["eps1,kecm"], df_all["NE_mean"])
+        axs[3].scatter(df_all["eps1,kecm"] + constant_offset, df_all["NE_mean"], c=clr)
         axs[3].set_ylabel(r"$NE (cell \cdot min)^{-1}$")
         axs[3].set_ylim(0, 0.22)
 

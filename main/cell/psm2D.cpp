@@ -68,7 +68,7 @@ const double dphi0 = 0.005;         // packing fraction increment
 const double kc = 1.0;              // interaction force spring constant (should be unit)
 const double boxLengthScale = 2.5;  // neighbor list box size in units of initial l0
 // const double phi0 = 0.91;           // initial preferred packing fraction
-const double dt0 = 0.01;  // initial magnitude of time step in units of MD time
+const double dt0 = 0.005;  // initial magnitude of time step in units of MD time
 const double Ptol = 1e-5;
 const double Ftol = 1e-3;
 const double att_range = 0.3;
@@ -178,7 +178,7 @@ int main(int argc, char const* argv[]) {
   cell2D.resizeNeighborLinkedList2D();
 
   double shortRelaxTime = 10.0;
-  double relaxTime = 100.0;
+  double relaxTime = 200.0;
   cell2D.setka(ka);
   cell2D.vertexDampedMD(attractiveSmoothForceUpdate, dt0, shortRelaxTime, 0.0);
 
