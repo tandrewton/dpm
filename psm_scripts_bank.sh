@@ -33,7 +33,7 @@ for N in ${N_arr[@]}; do
                       for k_off in ${koff_arr[@]}; do
                         k_ecm=$att2
                         #for k_ecm in ${kecm_arr[@]}; do
-                        echo bash bash/cells/submit_psm.sh $N 30 $calA0 $phi $kl $ka $kb $att $att2 $t_stress $v0 1.0 $gamma $k_on $k_off $k_ecm $calcMinPos 300 pi_ohern,day 0-12:00:00 $numSeeds 1 >> joblist_psm.txt
+                        echo bash bash/cells/submit_psm.sh $N 30 $calA0 $phi $kl $ka $kb $att $att2 $t_stress $v0 1.0 $gamma $k_on $k_off $k_ecm $calcMinPos 300 pi_ohern,day 0-24:00:00 $numSeeds 1 >> joblist_psm.txt
                         #done
                       done
                     done
