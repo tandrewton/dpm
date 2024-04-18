@@ -206,14 +206,14 @@ def create_heatmap(
 
 def main():
     calA0 = "1.0"
-    # att_arr = ["0.04", "0.05", "0.06", "0.07", "0.08"]
-    att_arr = ["0.05", "0.06"]
+    att_arr = ["0.04", "0.05", "0.06", "0.07", "0.08"]
+    # att_arr = ["0.05", "0.06"]
     kl = "1.0"
     ka = "5.0"
     kb = "0.01"
     v0_arr = ["0.1"]
-    # att2_arr = ["0.001", "0.005", "0.01", "0.02", "0.05"]
-    att2_arr = ["0.01", "0.05"]
+    att2_arr = ["0.001", "0.005", "0.01", "0.02", "0.05"]
+    # att2_arr = ["0.01", "0.05"]
     tm_arr = ["10000.0"]
     gamma_arr = ["0"]
     kon_arr = ["1.0"]
@@ -582,7 +582,7 @@ def main():
             "k_ecm",
             "phi",
             "$\epsilon_1$",
-            "$k_{ecm}$",
+            "$\epsilon_2$",
             "$\phi$",
             f"fig_heatmap_phis_k_off={fixed_val}.png",
         )
@@ -595,7 +595,7 @@ def main():
             "k_ecm",
             "circularity",
             "$\epsilon_1$",
-            "$k_{ecm}$",
+            "$\epsilon_2$",
             "$C$",
             f"fig_heatmap_shapes_k_off={fixed_val}.png",
         )
@@ -608,7 +608,7 @@ def main():
             "k_ecm",
             "speed",
             "$\epsilon_1$",
-            "$k_{ecm}$",
+            "$\epsilon_2$",
             "$v$",
             f"fig_heatmap_speeds_k_off={fixed_val}.png",
         )
@@ -621,7 +621,7 @@ def main():
             "k_ecm",
             "minNE",
             "$\epsilon_1$",
-            "$k_{ecm}$",
+            "$\epsilon_2$",
             "NE rate",
             f"fig_heatmap_NEs_k_off={fixed_val}.png",
         )

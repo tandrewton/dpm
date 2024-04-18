@@ -299,10 +299,10 @@ void cell::shapeForces2D() {
     forceY = (fli * dli * liy / li) - (flim1 * dlim1 * lim1y / lim1);
 
     // reduce boundary length force, but by how much?
-    if (cellID[ci_real] == 1) {
-      forceX /= 10;
-      forceY /= 10;
-    }
+    // if (cellID[ci_real] == 1) {
+    //  forceX /= 10;
+    //  forceY /= 10;
+    //}
     F[NDIM * gi] += forceX;
     F[NDIM * gi + 1] += forceY;
 
