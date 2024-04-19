@@ -54,7 +54,7 @@ rm joblist_psm_drawCellSim.txt
 for N in ${N_arr[@]}; do
   for calA0 in ${calA0_arr[@]}; do
     for phi in ${phi_arr[@]}; do
-      for ka in ${ka_arr[@]}; do
+      for kl in ${kl_arr[@]}; do
         for kb in ${kb_arr[@]}; do
           for att in ${att_arr[@]}; do 
             for att2 in ${att2_arr[@]}; do
@@ -65,7 +65,7 @@ for N in ${N_arr[@]}; do
                       for k_off in ${koff_arr[@]}; do
                         k_ecm=$att2
                         #for k_ecm in ${kecm_arr[@]}; do
-                        echo "module load MATLAB/2023a; matlab -batch \"drawCellSim(\\\"$N\\\", \\\"$calA0\\\", \\\"$phi\\\", \\\"$ka\\\", \\\"$kb\\\", \\\"$att\\\", \\\"$att2\\\", \\\"$v0\\\", \\\"$t_stress\\\", \\\"$gamma\\\", \\\"$k_on\\\", \\\"$k_off\\\", \\\"$k_ecm\\\",$numSeeds)\"" >> joblist_psm_drawCellSim.txt
+                        echo "module load MATLAB/2023a; matlab -batch \"drawCellSim(\\\"$N\\\", \\\"$calA0\\\", \\\"$phi\\\", \\\"$kl\\\", \\\"$kb\\\", \\\"$att\\\", \\\"$att2\\\", \\\"$v0\\\", \\\"$t_stress\\\", \\\"$gamma\\\", \\\"$k_on\\\", \\\"$k_off\\\", \\\"$k_ecm\\\",$numSeeds)\"" >> joblist_psm_drawCellSim.txt
                         #done
                       done
                     done

@@ -206,14 +206,14 @@ def create_heatmap(
 
 def main():
     calA0 = "1.0"
-    att_arr = ["0.04", "0.05", "0.06", "0.07", "0.08"]
-    # att_arr = ["0.05", "0.06"]
-    kl = "1.0"
+    # att_arr = ["0.005", "0.01", "0.02", "0.03", "0.04", "0.05", "0.06"]
+    att_arr = ["0.05", "0.06"]
+    kl_arr = ["0.1", "0.25", "0.5", "1.0"]
     ka = "5.0"
     kb = "0.01"
     v0_arr = ["0.1"]
-    att2_arr = ["0.001", "0.005", "0.01", "0.02", "0.05"]
-    # att2_arr = ["0.01", "0.05"]
+    # att2_arr = ["0.001", "0.01", "0.02", "0.05"]
+    att2_arr = ["0.01", "0.05"]
     tm_arr = ["10000.0"]
     gamma_arr = ["0"]
     kon_arr = ["1.0"]
@@ -260,57 +260,60 @@ def main():
 
     # load shape and neighbor exchange data into dataframes
     for att in att_arr:
-        for v0 in v0_arr:
-            for att2 in att2_arr:
-                for tm in tm_arr:
-                    for gamma in gamma_arr:
-                        for k_on in kon_arr:
-                            for k_off in koff_arr:
-                                # for k_ecm in kecm_arr:
-                                k_ecm = att2
-                                for seed in range(1, seeds + 1):
-                                    if platform == "win32":
-                                        folderStr = f"psm_calA0{calA0}_phi{phi}_tm{tm}_v0{v0}_t_abp{t_abp}_gamma{gamma}_k_on_{k_on}_k_off_{k_off}_k_ecm_{k_ecm}_kl{kl}_ka{ka}_kb{kb}\\_N{NCELLS}_dur{duration}_att{att}_att2{att2}_start1_end{seeds}_sd{seed}"
-                                    else:
-                                        folderStr = f"psm_calA0{calA0}_phi{phi}_tm{tm}_v0{v0}_t_abp{t_abp}_gamma{gamma}_k_on_{k_on}_k_off_{k_off}_k_ecm_{k_ecm}_kl{kl}_ka{ka}_kb{kb}/_N{NCELLS}_dur{duration}_att{att}_att2{att2}_start1_end{seeds}_sd{seed}"
-                                    fileheader = pipeline_folder + folderStr
-                                    print(fileheader)
+        for kl in kl_arr:
+            for v0 in v0_arr:
+                for att2 in att2_arr:
+                    for tm in tm_arr:
+                        for gamma in gamma_arr:
+                            for k_on in kon_arr:
+                                for k_off in koff_arr:
+                                    # for k_ecm in kecm_arr:
+                                    k_ecm = att2
+                                    for seed in range(1, seeds + 1):
+                                        if platform == "win32":
+                                            folderStr = f"psm_calA0{calA0}_phi{phi}_tm{tm}_v0{v0}_t_abp{t_abp}_gamma{gamma}_k_on_{k_on}_k_off_{k_off}_k_ecm_{k_ecm}_kl{kl}_ka{ka}_kb{kb}\\_N{NCELLS}_dur{duration}_att{att}_att2{att2}_start1_end{seeds}_sd{seed}"
+                                        else:
+                                            folderStr = f"psm_calA0{calA0}_phi{phi}_tm{tm}_v0{v0}_t_abp{t_abp}_gamma{gamma}_k_on_{k_on}_k_off_{k_off}_k_ecm_{k_ecm}_kl{kl}_ka{ka}_kb{kb}/_N{NCELLS}_dur{duration}_att{att}_att2{att2}_start1_end{seeds}_sd{seed}"
+                                        fileheader = pipeline_folder + folderStr
+                                        print(fileheader)
 
-                                    # df_shape, df_NE = process_data(att, v0, att2, seed, fileheader)
-                                    df_shape, df_NE, df_speed = process_data(
-                                        att,
-                                        v0,
-                                        att2,
-                                        tm,
-                                        gamma,
-                                        k_on,
-                                        k_off,
-                                        k_ecm,
-                                        seed,
-                                        fileheader,
-                                    )
-
-                                    # if dfs returned from process_data are not empty, concat them
-                                    if (
-                                        not df_shape.empty
-                                        and not df_NE.empty
-                                        and not df_speed.empty
-                                    ):
-                                        df_shapes = pd.concat([df_shapes, df_shape])
-                                        df_NE["minNE"] = (
-                                            df_NE["minNE"] / NCELLS / timeBetweenFrames
+                                        # df_shape, df_NE = process_data(att, v0, att2, seed, fileheader)
+                                        df_shape, df_NE, df_speed = process_data(
+                                            att,
+                                            v0,
+                                            att2,
+                                            tm,
+                                            gamma,
+                                            k_on,
+                                            k_off,
+                                            k_ecm,
+                                            seed,
+                                            fileheader,
                                         )
 
-                                        df_speed["speed"] = (
-                                            df_speed["speed"]
-                                            * np.sqrt(25 * np.pi)
-                                            / real_time_unit
-                                        )
+                                        # if dfs returned from process_data are not empty, concat them
+                                        if (
+                                            not df_shape.empty
+                                            and not df_NE.empty
+                                            and not df_speed.empty
+                                        ):
+                                            df_shapes = pd.concat([df_shapes, df_shape])
+                                            df_NE["minNE"] = (
+                                                df_NE["minNE"]
+                                                / NCELLS
+                                                / timeBetweenFrames
+                                            )
 
-                                        df_NEs = pd.concat([df_NEs, df_NE])
-                                        df_speeds = pd.concat([df_speeds, df_speed])
-                                    else:
-                                        print(f"{folderStr} is empty!")
+                                            df_speed["speed"] = (
+                                                df_speed["speed"]
+                                                * np.sqrt(25 * np.pi)
+                                                / real_time_unit
+                                            )
+
+                                            df_NEs = pd.concat([df_NEs, df_NE])
+                                            df_speeds = pd.concat([df_speeds, df_speed])
+                                        else:
+                                            print(f"{folderStr} is empty!")
 
     print("finished reading files!")
 
@@ -732,8 +735,11 @@ def main():
         if fixed_val == float(koff_arr[0]):
             fig, axs = plt.subplots(4, 1, sharex=True, figsize=(15, 15))
             clr = "red"
-            constant_offset = 0.25
+            # constant_offset = 0.25
+            constant_offset = 0
         else:
+            # comment out this guy below to put figures on same plot for koff_arr[i] i > 0
+            fig, axs = plt.subplots(4, 1, sharex=True, figsize=(15, 15))
             clr = "black"
             constant_offset = 0
         plt.subplots_adjust(hspace=0)

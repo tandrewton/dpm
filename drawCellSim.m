@@ -1,5 +1,5 @@
 %pwd should give ~/Documents/YalePhd/projects/dpm
-function drawCellSim(N, calA0, phi, ka, kb, att, att2, v0, t_maxwell, gamma, k_on, k_off, k_ecm, numSeeds)
+function drawCellSim(N, calA0, phi, kl, kb, att, att2, v0, t_maxwell, gamma, k_on, k_off, k_ecm, numSeeds)
 %close all; clear
 isTestData = false; %uncomment if using function call to pipeline data
 
@@ -33,7 +33,8 @@ runType = "psm";
 %t_maxwell = "0";
 %v0 = "0.05";
 t_abp = "1.0";
-kl = "1.0";
+ka = "5.0";
+%kl = "1.0";
 %att="0.1";
 Duration="300";
 FSKIP = 1;
