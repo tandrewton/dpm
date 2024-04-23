@@ -1,22 +1,19 @@
 module load dSQ
 #!/bin/bash
-numSeeds=10
+numSeeds=5
 N_arr=(40)
 calA0_arr=(1.0)
 phi_arr=(0.8)
-kl_arr=(0.1 0.25 0.5 1.0)
+kl_arr=(0.25 0.5 1.0)
 ka=5.0
 kb_arr=(0.01)
-att_arr=(0.005 0.01 0.02 0.03 0.04 0.05 0.06)
-att2_arr=(0.001 0.01 0.02 0.05)
-#att2_arr=(0.0)
+att_arr=(0.01 0.02 0.03 0.04 0.05 0.06)
+att2_arr=(0.01 0.02 0.05)
 t_stress_arr=(10000.0)
 v0_arr=(0.1)
-#gamma_arr=(0)
 gamma_arr=(0)
 kon_arr=(1.0)
 koff_arr=(0.5 100.0)
-#kecm_arr=(0.0 0.01 0.1 1.0)
 calcMinPos=1
 rm joblist_psm.txt
 for N in ${N_arr[@]}; do
@@ -49,6 +46,7 @@ for N in ${N_arr[@]}; do
 done
 
 dsq --job-file joblist_psm.txt   --mem-per-cpu 4g -t 1:00:00 --mail-type NONE --submit --partition scavenge --suppress-stats-file  -o /dev/null
+
 
 rm joblist_psm_drawCellSim.txt
 for N in ${N_arr[@]}; do
@@ -83,6 +81,11 @@ done
 dsq --job-file joblist_psm_drawCellSim.txt --mem-per-cpu 8g -t 8:00:00 --mail-type NONE --submit --partition pi_ohern,day #--suppress-stats-file -o /dev/null
 
 **unload matlab before git pull
+failed to read file: /gpfs/gibbs/pi/ohern/at965/dpm/psm/output/psm_calA01.0_phi0.8_tm10000.0_v00.1_t_abp1.0_gamma0_k_on_1.0_k_off_0.5_k_ecm_0.05_kl1.0_ka5.0_kb0.01/psm_N40_dur300_att0.01_att20.05_sd10fr60.tif
+
+                     /gpfs/gibbs/pi/ohern/at965/dpm/psm/psm_calA01.0_phi0.8_tm10000.0_v00.1_t_abp1.0_gamma0_k_on_1.0_k_off_0.5_k_ecm_0.05_kl1.0_ka5.0_kb0.01/_N40_dur300_att0.01_att20.05_start1_end10_sd1.pos
+
+module load MATLAB/2023a; matlab -batch "drawCellSim(\"40\", \"1.0\", \"0.8\", \"0.5\", \"0.01\", \"0.01\", \"0.05\", \"0.1\", \"10000.0\", \"0\", \"1.0\", \"0.5\", \"0.05\",10)"
 
 cd ~/psm_extracellular_calculation/
 rm windowedPhiDataFrame_calA*

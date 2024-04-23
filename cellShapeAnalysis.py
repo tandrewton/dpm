@@ -38,13 +38,13 @@ def calculateNeighborExchanges(contactMatrix):
 
 
 def filter_df(
-    df, att_arr, att2_arr, v0_arr, tm_arr, gamma_arr, kon_arr, koff_arr, kecm_arr
+    df, att_arr, att2_arr, v0_arr, kl_arr, gamma_arr, kon_arr, koff_arr, kecm_arr
 ):
     # Convert arrays to float and filter the DataFrame
     float_att_arr = [float(i) for i in att_arr]
     float_att2_arr = [float(i) for i in att2_arr]
     float_v0_arr = [float(i) for i in v0_arr]
-    float_tm_arr = [float(i) for i in tm_arr]
+    float_kl_arr = [float(i) for i in kl_arr]
     float_gamma_arr = [float(i) for i in gamma_arr]
     float_kon_arr = [float(i) for i in kon_arr]
     float_koff_arr = [float(i) for i in koff_arr]
@@ -54,7 +54,7 @@ def filter_df(
         df["att"].isin(float_att_arr)
         & df["att2"].isin(float_att2_arr)
         & df["v0"].isin(float_v0_arr)
-        & df["tm"].isin(float_tm_arr)
+        & df["kl"].isin(float_kl_arr)
         & df["gamma"].isin(float_gamma_arr)
         & df["k_on"].isin(float_kon_arr)
         & df["k_off"].isin(float_koff_arr)
@@ -64,7 +64,7 @@ def filter_df(
     return df_filtered
 
 
-def process_data(att, v0, att2, tm, gamma, k_on, k_off, k_ecm, seed, fileheader):
+def process_data(att, v0, att2, kl, gamma, k_on, k_off, k_ecm, seed, fileheader):
     # for a given simulation (corresponding to a single coordinate in parameter space, and a single seed value)
     #  process the data corresponding to that simulation
     outputFileheader = "output" + fileheader[8:]
@@ -108,7 +108,7 @@ def process_data(att, v0, att2, tm, gamma, k_on, k_off, k_ecm, seed, fileheader)
         "att": float(att),
         "v0": float(v0),
         "att2": float(att2),
-        "tm": float(tm),
+        "kl": float(kl),
         "gamma": float(gamma),
         "k_on": float(k_on),
         "k_off": float(k_off),
@@ -125,7 +125,7 @@ def process_data(att, v0, att2, tm, gamma, k_on, k_off, k_ecm, seed, fileheader)
         "att": float(att),
         "v0": float(v0),
         "att2": float(att2),
-        "tm": float(tm),
+        "kl": float(kl),
         "gamma": float(gamma),
         "k_on": float(k_on),
         "k_off": float(k_off),
@@ -140,7 +140,7 @@ def process_data(att, v0, att2, tm, gamma, k_on, k_off, k_ecm, seed, fileheader)
         "att": float(att),
         "v0": float(v0),
         "att2": float(att2),
-        "tm": float(tm),
+        "kl": float(kl),
         "gamma": float(gamma),
         "k_on": float(k_on),
         "k_off": float(k_off),
@@ -206,14 +206,14 @@ def create_heatmap(
 
 def main():
     calA0 = "1.0"
-    # att_arr = ["0.005", "0.01", "0.02", "0.03", "0.04", "0.05", "0.06"]
-    att_arr = ["0.05", "0.06"]
+    att_arr = ["0.005", "0.01", "0.02", "0.03", "0.04", "0.05", "0.06"]
+    # att_arr = ["0.05", "0.06"]
     kl_arr = ["0.1", "0.25", "0.5", "1.0"]
     ka = "5.0"
     kb = "0.01"
     v0_arr = ["0.1"]
-    # att2_arr = ["0.001", "0.01", "0.02", "0.05"]
-    att2_arr = ["0.01", "0.05"]
+    att2_arr = ["0.001", "0.01", "0.02", "0.05"]
+    # att2_arr = ["0.01", "0.05"]
     tm_arr = ["10000.0"]
     gamma_arr = ["0"]
     kon_arr = ["1.0"]
@@ -227,7 +227,7 @@ def main():
     real_time_unit = 0.33  # minutes, tau_abp in real units
     framesPerTimeUnit = 5
     timeBetweenFrames = framesPerTimeUnit * real_time_unit
-    seeds = 20
+    seeds = 10
 
     font = {"size": 22}
 
@@ -282,7 +282,7 @@ def main():
                                             att,
                                             v0,
                                             att2,
-                                            tm,
+                                            kl,
                                             gamma,
                                             k_on,
                                             k_off,
@@ -319,13 +319,13 @@ def main():
 
     # ensure df is restricted to the parameter combinations within the different parameter arrays specified here
     # necessary because the data file may have parameters I'm not interested in
-    grouping_list = ["att", "att2", "v0", "tm", "gamma", "k_on", "k_off", "k_ecm"]
+    grouping_list = ["att", "att2", "v0", "kl", "gamma", "k_on", "k_off", "k_ecm"]
     df_phis = filter_df(
         df_phis,
         att_arr,
         att2_arr,
         v0_arr,
-        tm_arr,
+        kl_arr,
         gamma_arr,
         kon_arr,
         koff_arr,
@@ -340,7 +340,7 @@ def main():
         att_arr,
         att2_arr,
         v0_arr,
-        tm_arr,
+        kl_arr,
         gamma_arr,
         kon_arr,
         koff_arr,
@@ -357,7 +357,7 @@ def main():
         att_arr,
         att2_arr,
         v0_arr,
-        tm_arr,
+        kl_arr,
         gamma_arr,
         kon_arr,
         koff_arr,
@@ -372,7 +372,7 @@ def main():
         att_arr,
         att2_arr,
         v0_arr,
-        tm_arr,
+        kl_arr,
         gamma_arr,
         kon_arr,
         koff_arr,
@@ -389,14 +389,14 @@ def main():
     #  then join the strings into one string so it can be read through seaborn
     # group the dataframe by combo parameters, then average over matching seeds and return a dataframe
 
-    grouping_str = "(att, att2, v0, tm, gamma, k_on, k_off, k_ecm)"
+    grouping_str = "(att, att2, v0, kl, gamma, k_on, k_off, k_ecm)"
     df_shapes[grouping_str] = df_shapes.apply(
         lambda row: ", ".join(
             [
                 str(row["att"]),
                 str(row["att2"]),
                 str(row["v0"]),
-                str(row["tm"]),
+                str(row["kl"]),
                 str(row["gamma"]),
                 str(row["k_on"]),
                 str(row["k_off"]),
@@ -413,7 +413,7 @@ def main():
                 str(row["att"]),
                 str(row["att2"]),
                 str(row["v0"]),
-                str(row["tm"]),
+                str(row["kl"]),
                 str(row["gamma"]),
                 str(row["k_on"]),
                 str(row["k_off"]),
@@ -430,7 +430,7 @@ def main():
                 str(row["att"]),
                 str(row["att2"]),
                 str(row["v0"]),
-                str(row["tm"]),
+                str(row["kl"]),
                 str(row["gamma"]),
                 str(row["k_on"]),
                 str(row["k_off"]),
@@ -447,7 +447,7 @@ def main():
                 str(row["att"]),
                 str(row["att2"]),
                 str(row["v0"]),
-                str(row["tm"]),
+                str(row["kl"]),
                 str(row["gamma"]),
                 str(row["k_on"]),
                 str(row["k_off"]),
@@ -519,7 +519,7 @@ def main():
     sns_speeds.figure.savefig(f"sns_speeds_{v0_arr[0]}.png")
 
     # make boxplots for each parameter combo, pooling observations from each seed
-    # sns.catplot(df_NEs, x="(att, att2, v0, tm, gamma)",
+    # sns.catplot(df_NEs, x="(att, att2, v0, kl, gamma)",
     #            y="minNE", kind="box", color="skyblue", height=8, aspect=2)
     sns.catplot(
         df_shapes,
@@ -681,19 +681,19 @@ def main():
 
         for i in range(0, len(genotype_tags)):
             phi_group = df_phis[
-                df_phis["(att, att2, v0, tm, gamma, k_on, k_off, k_ecm)"]
+                df_phis["(att, att2, v0, kl, gamma, k_on, k_off, k_ecm)"]
                 == genotype_tags[i]
             ].groupby("seed")["phi"]
             shape_group = df_shapes[
-                df_shapes["(att, att2, v0, tm, gamma, k_on, k_off, k_ecm)"]
+                df_shapes["(att, att2, v0, kl, gamma, k_on, k_off, k_ecm)"]
                 == genotype_tags[i]
             ].groupby("seed")["circularity"]
             speed_group = df_speeds[
-                df_speeds["(att, att2, v0, tm, gamma, k_on, k_off, k_ecm)"]
+                df_speeds["(att, att2, v0, kl, gamma, k_on, k_off, k_ecm)"]
                 == genotype_tags[i]
             ].groupby("seed")["speed"]
             NE_group = df_NEs[
-                df_NEs["(att, att2, v0, tm, gamma, k_on, k_off, k_ecm)"]
+                df_NEs["(att, att2, v0, kl, gamma, k_on, k_off, k_ecm)"]
                 == genotype_tags[i]
             ].groupby("seed")["minNE"]
             new_row = {
@@ -735,11 +735,11 @@ def main():
         if fixed_val == float(koff_arr[0]):
             fig, axs = plt.subplots(4, 1, sharex=True, figsize=(15, 15))
             clr = "red"
-            # constant_offset = 0.25
-            constant_offset = 0
+            constant_offset = 0.25
+            # constant_offset = 0
         else:
             # comment out this guy below to put figures on same plot for koff_arr[i] i > 0
-            fig, axs = plt.subplots(4, 1, sharex=True, figsize=(15, 15))
+            # fig, axs = plt.subplots(4, 1, sharex=True, figsize=(15, 15))
             clr = "black"
             constant_offset = 0
         plt.subplots_adjust(hspace=0)

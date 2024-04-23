@@ -13,17 +13,17 @@ g++ -O3 --std=c++11 -g -I src main/cell/psm2D.cpp src/dpm.cpp src/cell.cpp -o ma
 run command:
 
 att_arr=(0.05)
-att2_arr=(0.0)
+att2_arr=(0.05)
 #v0=0.1
 t_stress_arr=(10000.0)
-v0_arr=0.1
-phi_arr=(0.5 0.6 0.7)
+v0=0.1
+phi_arr=(0.8)
 tau_abp=1.0
 gamma_arr=(0)
 kon_arr=(1.0)
-koff_arr=(1.0)
+koff_arr=(0.5)
 #kecm_arr=(0.01)
-kl=1.0
+kl=0.5
 ka=(5.0)
 kb=0.01
 calcMinPos=1
@@ -36,7 +36,7 @@ for att in ${att_arr[@]}; do
             for k_off in ${koff_arr[@]}; do
               k_ecm=$att2
               #for k_ecm in ${kecm_arr[@]}; do
-              echo "./main/cell/psm2D.o   14  20 1.0 $phi $kl $ka $kb $att $att2 $t_stress    $v0    $tau_abp  $gamma $k_on $k_off $k_ecm $calcMinPos 1    300    testa_"$att"_a2_"$att2"_tm_"$t_stress"_p_"$phi"_t_"$tau_abp"_gamma_"$gamma"_k_on_"$k_on"_k_off_"$k_off"_k_ecm_"$k_ecm
+              echo "./main/cell/psm2D.o   20  20 1.0 $phi $kl $ka $kb $att $att2 $t_stress    $v0    $tau_abp  $gamma $k_on $k_off $k_ecm $calcMinPos 1    50    testa_"$att"_a2_"$att2"_tm_"$t_stress"_p_"$phi"_t_"$tau_abp"_gamma_"$gamma"_k_on_"$k_on"_k_off_"$k_off"_k_ecm_"$k_ecm
               #done
             done
           done
