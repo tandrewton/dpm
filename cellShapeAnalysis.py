@@ -197,34 +197,34 @@ def create_heatmap(
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     plt.gca().invert_yaxis()
-    plt.tight_layout()
+    # plt.tight_layout()
     ax.tick_params(axis="y", labelrotation=0)
-    # plt.draw()  # Force re-drawing the figure to apply tight_layout adjustments
+    plt.tight_layout()
     plt.savefig(filename)
     plt.close()  # Close the figure to free memory
 
 
 def main():
     calA0 = "1.0"
-    att_arr = ["0.005", "0.01", "0.02", "0.03", "0.04", "0.05", "0.06"]
-    # att_arr = ["0.05", "0.06"]
-    kl_arr = ["0.1", "0.25", "0.5", "1.0"]
+    # att_arr = ["0.005", "0.01", "0.02", "0.03", "0.035"]
+    att_arr = ["0.005", "0.03"]
+    kl_arr = ["0.2"]
     ka = "5.0"
     kb = "0.01"
     v0_arr = ["0.1"]
-    att2_arr = ["0.001", "0.01", "0.02", "0.05"]
-    # att2_arr = ["0.01", "0.05"]
+    # att2_arr = ["0.001", "0.005", "0.01", "0.05"]
+    att2_arr = ["0.001", "0.01"]
     tm_arr = ["10000.0"]
     gamma_arr = ["0"]
     kon_arr = ["1.0"]
-    koff_arr = ["0.5", "100.0"]
+    koff_arr = ["0.1", "100.0"]
     kecm_arr = att2_arr
     t_abp = "1.0"
     phi = "0.8"
     duration = "300"
     NCELLS = 40
     # timeBetweenFrames is the time between frames in minutes, which can be calculated from the print intervals in my simulation code. Currently 5 frames
-    real_time_unit = 0.33  # minutes, tau_abp in real units
+    real_time_unit = 0.5  # minutes, tau_abp in real units
     framesPerTimeUnit = 5
     timeBetweenFrames = framesPerTimeUnit * real_time_unit
     seeds = 10
@@ -252,15 +252,16 @@ def main():
 
     # psm_calA01.0_phi0.6_tm10000.0_v00.05_t_abp1.0_gamma0_kl1.0_ka5.0_kb0.1
 
-    df_shapes = pd.DataFrame()
-    df_NEs = pd.DataFrame()
-    df_speeds = pd.DataFrame()
-    # load packing fraction data into dataframe
-    df_phis = pd.read_csv(f"{folder}windowedPhiDataFrame_calA{calA0}_phi{phi}.txt")
+    for kl in kl_arr:
+        # load dfs after kl, because I want to stratify results by kl
+        df_shapes = pd.DataFrame()
+        df_NEs = pd.DataFrame()
+        df_speeds = pd.DataFrame()
+        # load packing fraction data into dataframe
+        df_phis = pd.read_csv(f"{folder}windowedPhiDataFrame_calA{calA0}_phi{phi}.txt")
 
-    # load shape and neighbor exchange data into dataframes
-    for att in att_arr:
-        for kl in kl_arr:
+        # load shape and neighbor exchange data into dataframes
+        for att in att_arr:
             for v0 in v0_arr:
                 for att2 in att2_arr:
                     for tm in tm_arr:
@@ -315,476 +316,491 @@ def main():
                                         else:
                                             print(f"{folderStr} is empty!")
 
-    print("finished reading files!")
+        print("finished reading files!")
 
-    # ensure df is restricted to the parameter combinations within the different parameter arrays specified here
-    # necessary because the data file may have parameters I'm not interested in
-    grouping_list = ["att", "att2", "v0", "kl", "gamma", "k_on", "k_off", "k_ecm"]
-    df_phis = filter_df(
-        df_phis,
-        att_arr,
-        att2_arr,
-        v0_arr,
-        kl_arr,
-        gamma_arr,
-        kon_arr,
-        koff_arr,
-        kecm_arr,
-    )
-    df_phis_grouped_means = df_phis.groupby(grouping_list).mean().reset_index()
-    plt.figure(figsize=(10, 6))  # Adjust the figure size as needed
-    sns.lineplot(data=df_phis_grouped_means, x="v0", y="phi", marker="o", hue="att")
+        # ensure df is restricted to the parameter combinations within the different parameter arrays specified here
+        # necessary because the data file may have parameters I'm not interested in
+        grouping_list = ["att", "att2", "v0", "kl", "gamma", "k_on", "k_off", "k_ecm"]
+        df_phis = filter_df(
+            df_phis,
+            att_arr,
+            att2_arr,
+            v0_arr,
+            [kl],
+            gamma_arr,
+            kon_arr,
+            koff_arr,
+            kecm_arr,
+        )
+        df_phis_grouped_means = df_phis.groupby(grouping_list).mean().reset_index()
+        plt.figure(figsize=(10, 6))  # Adjust the figure size as needed
+        sns.lineplot(data=df_phis_grouped_means, x="v0", y="phi", marker="o", hue="att")
 
-    df_shapes = filter_df(
-        df_shapes,
-        att_arr,
-        att2_arr,
-        v0_arr,
-        kl_arr,
-        gamma_arr,
-        kon_arr,
-        koff_arr,
-        kecm_arr,
-    )
-    df_shapes_grouped_means = df_shapes.groupby(grouping_list).mean().reset_index()
-    plt.figure(figsize=(10, 6))  # Adjust the figure size as needed
-    sns.lineplot(
-        data=df_shapes_grouped_means, x="v0", y="circularity", marker="o", hue="att"
-    )
-
-    df_speeds = filter_df(
-        df_speeds,
-        att_arr,
-        att2_arr,
-        v0_arr,
-        kl_arr,
-        gamma_arr,
-        kon_arr,
-        koff_arr,
-        kecm_arr,
-    )
-    df_speeds_grouped_means = df_speeds.groupby(grouping_list).mean().reset_index()
-    plt.figure(figsize=(10, 6))  # Adjust the figure size as needed
-    sns.lineplot(data=df_speeds_grouped_means, x="v0", y="speed", marker="o", hue="att")
-
-    df_NEs = filter_df(
-        df_NEs,
-        att_arr,
-        att2_arr,
-        v0_arr,
-        kl_arr,
-        gamma_arr,
-        kon_arr,
-        koff_arr,
-        kecm_arr,
-    )
-    df_NEs_grouped_means = df_NEs.groupby(grouping_list).mean().reset_index()
-    plt.figure(figsize=(10, 6))  # Adjust the figure size as needed
-    sns.lineplot(data=df_NEs_grouped_means, x="v0", y="minNE", marker="o", hue="att")
-
-    # Perform grouping on dataframes in order to make summary plots.
-
-    # Add a column representing unique combinations of parameters.
-    # Use lambda here to convert combo column values into strings,
-    #  then join the strings into one string so it can be read through seaborn
-    # group the dataframe by combo parameters, then average over matching seeds and return a dataframe
-
-    grouping_str = "(att, att2, v0, kl, gamma, k_on, k_off, k_ecm)"
-    df_shapes[grouping_str] = df_shapes.apply(
-        lambda row: ", ".join(
-            [
-                str(row["att"]),
-                str(row["att2"]),
-                str(row["v0"]),
-                str(row["kl"]),
-                str(row["gamma"]),
-                str(row["k_on"]),
-                str(row["k_off"]),
-                str(row["k_ecm"]),
-            ]
-        ),
-        axis=1,
-    )
-    df_shapes_means = df_shapes.groupby([grouping_str, "seed"]).mean().reset_index()
-
-    df_NEs[grouping_str] = df_NEs.apply(
-        lambda row: ", ".join(
-            [
-                str(row["att"]),
-                str(row["att2"]),
-                str(row["v0"]),
-                str(row["kl"]),
-                str(row["gamma"]),
-                str(row["k_on"]),
-                str(row["k_off"]),
-                str(row["k_ecm"]),
-            ]
-        ),
-        axis=1,
-    )
-    df_NEs_means = df_NEs.groupby([grouping_str, "seed"]).mean().reset_index()
-
-    df_phis[grouping_str] = df_phis.apply(
-        lambda row: ", ".join(
-            [
-                str(row["att"]),
-                str(row["att2"]),
-                str(row["v0"]),
-                str(row["kl"]),
-                str(row["gamma"]),
-                str(row["k_on"]),
-                str(row["k_off"]),
-                str(row["k_ecm"]),
-            ]
-        ),
-        axis=1,
-    )
-    df_phis_means = df_phis.groupby([grouping_str, "seed"]).mean().reset_index()
-
-    df_speeds[grouping_str] = df_speeds.apply(
-        lambda row: ", ".join(
-            [
-                str(row["att"]),
-                str(row["att2"]),
-                str(row["v0"]),
-                str(row["kl"]),
-                str(row["gamma"]),
-                str(row["k_on"]),
-                str(row["k_off"]),
-                str(row["k_ecm"]),
-            ]
-        ),
-        axis=1,
-    )
-    df_speeds_means = df_speeds.groupby([grouping_str, "seed"]).mean().reset_index()
-
-    # make boxplots of the mean values for each seed for each parameter combo
-    # sns_NEs = sns.catplot(df_NEs_means, x="(att, att2, v0)", y="minNE", kind="box", color="skyblue", height = 8, aspect=2)
-    sns_shapes = sns.catplot(
-        df_shapes_means,
-        x=grouping_str,
-        y="circularity",
-        kind="box",
-        color="skyblue",
-        height=8,
-        aspect=2,
-    )
-
-    plt.xticks(rotation=45, ha="right")
-    plt.tight_layout()
-
-    sns_NEs = sns.catplot(
-        df_NEs_means,
-        x=grouping_str,
-        y="minNE",
-        kind="box",
-        color="skyblue",
-        height=8,
-        aspect=2,
-    )
-
-    plt.xticks(rotation=45, ha="right")
-    plt.tight_layout()
-
-    sns_phis = sns.catplot(
-        df_phis_means,
-        x=grouping_str,
-        y="phi",
-        kind="box",
-        color="skyblue",
-        height=8,
-        aspect=2,
-    )
-
-    plt.xticks(rotation=45, ha="right")
-    plt.tight_layout()
-
-    sns_speeds = sns.catplot(
-        df_speeds_means,
-        x=grouping_str,
-        y="speed",
-        kind="box",
-        color="skyblue",
-        height=8,
-        aspect=2,
-    )
-
-    plt.xticks(rotation=45, ha="right")
-    plt.tight_layout()
-
-    # sns_NEs.figure.savefig(f"sns_NEs_{v0_arr[0]}.png")
-    sns_shapes.figure.savefig(f"sns_shapes_{v0_arr[0]}.png")
-    sns_NEs.figure.savefig(f"sns_NEs_{v0_arr[0]}.png")
-    sns_phis.figure.savefig(f"sns_phis_{v0_arr[0]}.png")
-    sns_speeds.figure.savefig(f"sns_speeds_{v0_arr[0]}.png")
-
-    # make boxplots for each parameter combo, pooling observations from each seed
-    # sns.catplot(df_NEs, x="(att, att2, v0, kl, gamma)",
-    #            y="minNE", kind="box", color="skyblue", height=8, aspect=2)
-    sns.catplot(
-        df_shapes,
-        x=grouping_str,
-        y="circularity",
-        kind="box",
-        color="skyblue",
-        height=8,
-        aspect=2,
-    )
-
-    plt.xticks(rotation=45, ha="right")
-    plt.tight_layout()
-
-    sns.catplot(
-        df_NEs,
-        x=grouping_str,
-        y="minNE",
-        kind="box",
-        color="skyblue",
-        height=8,
-        aspect=2,
-    )
-
-    plt.xticks(rotation=45, ha="right")
-    plt.tight_layout()
-
-    sns.catplot(
-        df_phis,
-        x=grouping_str,
-        y="phi",
-        kind="box",
-        color="skyblue",
-        height=8,
-        aspect=2,
-    )
-
-    plt.xticks(rotation=45, ha="right")
-    plt.tight_layout()
-
-    sns.catplot(
-        df_speeds,
-        x=grouping_str,
-        y="speed",
-        kind="box",
-        color="skyblue",
-        height=8,
-        aspect=2,
-    )
-
-    plt.xticks(rotation=45, ha="right")
-    plt.tight_layout()
-
-    plt.rcParams.update({"font.size": 30})
-    # for fixed_val in [float(v) for v in gamma_arr]:
-    for fixed_val in [float(v) for v in koff_arr]:
-        print("koff = ", fixed_val)
-        create_heatmap(
-            df_phis_grouped_means[df_phis_grouped_means["k_off"] == fixed_val][
-                ["att", "att2", "v0", "k_ecm", "phi"]
-            ],
-            "att",
-            "k_ecm",
-            "phi",
-            "$\epsilon_1$",
-            "$\epsilon_2$",
-            "$\phi$",
-            f"fig_heatmap_phis_k_off={fixed_val}.png",
+        df_shapes = filter_df(
+            df_shapes,
+            att_arr,
+            att2_arr,
+            v0_arr,
+            [kl],
+            gamma_arr,
+            kon_arr,
+            koff_arr,
+            kecm_arr,
+        )
+        df_shapes_grouped_means = df_shapes.groupby(grouping_list).mean().reset_index()
+        plt.figure(figsize=(10, 6))  # Adjust the figure size as needed
+        sns.lineplot(
+            data=df_shapes_grouped_means, x="v0", y="circularity", marker="o", hue="att"
         )
 
-        create_heatmap(
-            df_shapes_grouped_means[df_shapes_grouped_means["k_off"] == fixed_val][
-                ["att", "att2", "k_ecm", "circularity"]
-            ],
-            "att",
-            "k_ecm",
-            "circularity",
-            "$\epsilon_1$",
-            "$\epsilon_2$",
-            "$C$",
-            f"fig_heatmap_shapes_k_off={fixed_val}.png",
+        df_speeds = filter_df(
+            df_speeds,
+            att_arr,
+            att2_arr,
+            v0_arr,
+            [kl],
+            gamma_arr,
+            kon_arr,
+            koff_arr,
+            kecm_arr,
+        )
+        df_speeds_grouped_means = df_speeds.groupby(grouping_list).mean().reset_index()
+        plt.figure(figsize=(10, 6))  # Adjust the figure size as needed
+        sns.lineplot(
+            data=df_speeds_grouped_means, x="v0", y="speed", marker="o", hue="att"
         )
 
-        create_heatmap(
-            df_speeds_grouped_means[df_speeds_grouped_means["k_off"] == fixed_val][
-                ["att", "att2", "k_ecm", "speed"]
-            ],
-            "att",
-            "k_ecm",
-            "speed",
-            "$\epsilon_1$",
-            "$\epsilon_2$",
-            "$v$",
-            f"fig_heatmap_speeds_k_off={fixed_val}.png",
+        df_NEs = filter_df(
+            df_NEs,
+            att_arr,
+            att2_arr,
+            v0_arr,
+            [kl],
+            gamma_arr,
+            kon_arr,
+            koff_arr,
+            kecm_arr,
+        )
+        df_NEs_grouped_means = df_NEs.groupby(grouping_list).mean().reset_index()
+        plt.figure(figsize=(10, 6))  # Adjust the figure size as needed
+        sns.lineplot(
+            data=df_NEs_grouped_means, x="v0", y="minNE", marker="o", hue="att"
         )
 
-        create_heatmap(
-            df_NEs_grouped_means[df_NEs_grouped_means["k_off"] == fixed_val][
-                ["att", "att2", "k_ecm", "minNE"]
-            ],
-            "att",
-            "k_ecm",
-            "minNE",
-            "$\epsilon_1$",
-            "$\epsilon_2$",
-            "NE rate",
-            f"fig_heatmap_NEs_k_off={fixed_val}.png",
-        )
+        # Perform grouping on dataframes in order to make summary plots.
 
-        # make sure to change these parameters, and any of the bracketed f-string components
-        #  if those parameters change in the simulations, or if I want to explore different phenotype values
-        att2_severe = "0.0"
-        att2_moderate = "0.001"
-        att2_healthy = "0.01"
-        att2_strongest = "0.05"
-        genotype_tags = []
-        for att_val in att_arr[::-1]:
-            for att2_val in att2_arr[::-1]:
-                genotype_tags.append(
-                    f"{att_val}, {att2_val}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_val}"
-                )
-        """genotype_tags = [
-            f"0.05, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
-            f"0.05, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
-            f"0.05, {att2_severe}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_severe}",
-            f"0.04, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
-            f"0.04, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
-            f"0.04, {att2_severe}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_severe}",
-            f"0.03, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
-            f"0.03, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
-            f"0.03, {att2_severe}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_severe}",
-            f"0.02, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
-            f"0.02, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
-            f"0.02, {att2_severe}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_severe}",
-            f"0.01, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
-            f"0.01, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
-            f"0.01, {att2_severe}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_severe}",
-            f"0.005, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
-            f"0.005, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
-            f"0.005, {att2_severe}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_severe}",
-            f"0.0, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
-            f"0.0, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
-            f"0.0, {att2_severe}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_severe}",
-        ]"""
+        # Add a column representing unique combinations of parameters.
+        # Use lambda here to convert combo column values into strings,
+        #  then join the strings into one string so it can be read through seaborn
+        # group the dataframe by combo parameters, then average over matching seeds and return a dataframe
 
-        df_all = pd.DataFrame(
-            columns=[
-                "params",
-                "phi_mean",
-                "phi_std",
-                "shape_mean",
-                "shape_std",
-                "v_mean",
-                "v_std",
-                "NE_mean",
-                "NE_std",
-            ]
-        )
-
-        for i in range(0, len(genotype_tags)):
-            phi_group = df_phis[
-                df_phis["(att, att2, v0, kl, gamma, k_on, k_off, k_ecm)"]
-                == genotype_tags[i]
-            ].groupby("seed")["phi"]
-            shape_group = df_shapes[
-                df_shapes["(att, att2, v0, kl, gamma, k_on, k_off, k_ecm)"]
-                == genotype_tags[i]
-            ].groupby("seed")["circularity"]
-            speed_group = df_speeds[
-                df_speeds["(att, att2, v0, kl, gamma, k_on, k_off, k_ecm)"]
-                == genotype_tags[i]
-            ].groupby("seed")["speed"]
-            NE_group = df_NEs[
-                df_NEs["(att, att2, v0, kl, gamma, k_on, k_off, k_ecm)"]
-                == genotype_tags[i]
-            ].groupby("seed")["minNE"]
-            new_row = {
-                "params": genotype_tags[i],
-                "phi_mean": phi_group.mean(),
-                "phi_std": phi_group.std(),
-                "shape_mean": shape_group.mean(),
-                "shape_std": shape_group.std(),
-                "v_mean": speed_group.mean(),
-                "v_std": speed_group.std(),
-                "NE_mean": NE_group.mean(),
-                "NE_std": NE_group.std(),
-            }
-            df_all = pd.concat([df_all, pd.DataFrame(new_row)], ignore_index=True)
-
-        # Get the unique values in the order they appear in the DataFrame
-        ordered_categories = df_all["params"].drop_duplicates().tolist()
-
-        # Convert the 'params' column to a categorical type with the specified order
-        df_all["params"] = pd.Categorical(
-            df_all["params"], categories=ordered_categories, ordered=True
-        )
-
-        # Convert 'Category' to a categorical type and assign numerical values
-        df_all["eps1,kecm"] = df_all["params"].astype("category").cat.codes
-        offset_width = 0.1  # Adjust the spacing between points in the same category
-        grouped = df_all.groupby("eps1,kecm")
-        offsets = {
-            cat: np.linspace(-offset_width / 2, offset_width / 2, num=len(group))
-            for cat, group in grouped
-        }
-        df_all["Offset"] = df_all.apply(
-            lambda row: offsets[row["eps1,kecm"]][
-                grouped.groups[row["eps1,kecm"]].get_loc(row.name)
-            ],
+        grouping_str = "(att, att2, v0, kl, gamma, k_on, k_off, k_ecm)"
+        df_shapes[grouping_str] = df_shapes.apply(
+            lambda row: ", ".join(
+                [
+                    str(row["att"]),
+                    str(row["att2"]),
+                    str(row["v0"]),
+                    str(row["kl"]),
+                    str(row["gamma"]),
+                    str(row["k_on"]),
+                    str(row["k_off"]),
+                    str(row["k_ecm"]),
+                ]
+            ),
             axis=1,
         )
+        df_shapes_means = df_shapes.groupby([grouping_str, "seed"]).mean().reset_index()
 
-        if fixed_val == float(koff_arr[0]):
-            fig, axs = plt.subplots(4, 1, sharex=True, figsize=(15, 15))
-            clr = "red"
-            constant_offset = 0.25
-            # constant_offset = 0
-        else:
-            # comment out this guy below to put figures on same plot for koff_arr[i] i > 0
-            # fig, axs = plt.subplots(4, 1, sharex=True, figsize=(15, 15))
-            clr = "black"
-            constant_offset = 0
-        plt.subplots_adjust(hspace=0)
-
-        debugpy.breakpoint()
-
-        axs[0].scatter(df_all["eps1,kecm"] + constant_offset, df_all["phi_mean"], c=clr)
-        axs[0].set_ylabel(r"$\phi$")
-        axs[0].set_ylim(0.5, 1.0)
-        axs[0].set_yticks([0.6, 0.8, 1.0])
-
-        axs[1].scatter(
-            df_all["eps1,kecm"] + constant_offset, df_all["shape_mean"], c=clr
+        df_NEs[grouping_str] = df_NEs.apply(
+            lambda row: ", ".join(
+                [
+                    str(row["att"]),
+                    str(row["att2"]),
+                    str(row["v0"]),
+                    str(row["kl"]),
+                    str(row["gamma"]),
+                    str(row["k_on"]),
+                    str(row["k_off"]),
+                    str(row["k_ecm"]),
+                ]
+            ),
+            axis=1,
         )
-        axs[1].set_ylabel(r"$C$")
-        axs[1].set_ylim(0.77, 0.93)
-        axs[1].set_yticks([0.8, 0.84, 0.88, 0.92])
+        df_NEs_means = df_NEs.groupby([grouping_str, "seed"]).mean().reset_index()
 
-        axs[2].errorbar(
-            df_all["eps1,kecm"] + df_all["Offset"] + constant_offset,
-            df_all["v_mean"],
-            yerr=df_all["v_std"],
-            fmt="o",
-            capsize=5,
-            c=clr,
+        df_phis[grouping_str] = df_phis.apply(
+            lambda row: ", ".join(
+                [
+                    str(row["att"]),
+                    str(row["att2"]),
+                    str(row["v0"]),
+                    str(row["kl"]),
+                    str(row["gamma"]),
+                    str(row["k_on"]),
+                    str(row["k_off"]),
+                    str(row["k_ecm"]),
+                ]
+            ),
+            axis=1,
         )
-        axs[2].set_ylabel(r"v $(\mu m/min)$")
-        axs[2].set_ylim(0, 1)
+        df_phis_means = df_phis.groupby([grouping_str, "seed"]).mean().reset_index()
 
-        axs[3].scatter(df_all["eps1,kecm"] + constant_offset, df_all["NE_mean"], c=clr)
-        axs[3].set_ylabel(r"$NE (cell \cdot min)^{-1}$")
-        axs[3].set_ylim(0, 0.22)
+        df_speeds[grouping_str] = df_speeds.apply(
+            lambda row: ", ".join(
+                [
+                    str(row["att"]),
+                    str(row["att2"]),
+                    str(row["v0"]),
+                    str(row["kl"]),
+                    str(row["gamma"]),
+                    str(row["k_on"]),
+                    str(row["k_off"]),
+                    str(row["k_ecm"]),
+                ]
+            ),
+            axis=1,
+        )
+        df_speeds_means = df_speeds.groupby([grouping_str, "seed"]).mean().reset_index()
 
-        axs[3].set_xticks(range(len(df_all["params"].unique())))
-        xticklabels = [
-            full_label.split()[0] + " " + full_label.split()[1][:-1]
-            for full_label in df_all["params"].unique()
-        ]
-        axs[3].set_xticklabels(xticklabels)
+        # make boxplots of the mean values for each seed for each parameter combo
+        # sns_NEs = sns.catplot(df_NEs_means, x="(att, att2, v0)", y="minNE", kind="box", color="skyblue", height = 8, aspect=2)
+        sns_shapes = sns.catplot(
+            df_shapes_means,
+            x=grouping_str,
+            y="circularity",
+            kind="box",
+            color="skyblue",
+            height=8,
+            aspect=2,
+        )
+
+        plt.xticks(rotation=45, ha="right")
         plt.tight_layout()
-        plt.savefig(f"simulationStackedObservablesGroupedk_off{fixed_val}.png")
+
+        sns_NEs = sns.catplot(
+            df_NEs_means,
+            x=grouping_str,
+            y="minNE",
+            kind="box",
+            color="skyblue",
+            height=8,
+            aspect=2,
+        )
+
+        plt.xticks(rotation=45, ha="right")
+        plt.tight_layout()
+
+        sns_phis = sns.catplot(
+            df_phis_means,
+            x=grouping_str,
+            y="phi",
+            kind="box",
+            color="skyblue",
+            height=8,
+            aspect=2,
+        )
+
+        plt.xticks(rotation=45, ha="right")
+        plt.tight_layout()
+
+        sns_speeds = sns.catplot(
+            df_speeds_means,
+            x=grouping_str,
+            y="speed",
+            kind="box",
+            color="skyblue",
+            height=8,
+            aspect=2,
+        )
+
+        plt.xticks(rotation=45, ha="right")
+        plt.tight_layout()
+
+        # sns_NEs.figure.savefig(f"sns_NEs_{v0_arr[0]}.png")
+        sns_shapes.figure.savefig(f"sns_shapes_{v0_arr[0]}_kl{kl}.png")
+        sns_NEs.figure.savefig(f"sns_NEs_{v0_arr[0]}_kl{kl}.png")
+        sns_phis.figure.savefig(f"sns_phis_{v0_arr[0]}_kl{kl}.png")
+        sns_speeds.figure.savefig(f"sns_speeds_{v0_arr[0]}_kl{kl}.png")
+
+        # make boxplots for each parameter combo, pooling observations from each seed
+        # sns.catplot(df_NEs, x="(att, att2, v0, kl, gamma)",
+        #            y="minNE", kind="box", color="skyblue", height=8, aspect=2)
+        sns.catplot(
+            df_shapes,
+            x=grouping_str,
+            y="circularity",
+            kind="box",
+            color="skyblue",
+            height=8,
+            aspect=2,
+        )
+
+        plt.xticks(rotation=45, ha="right")
+        plt.tight_layout()
+
+        sns.catplot(
+            df_NEs,
+            x=grouping_str,
+            y="minNE",
+            kind="box",
+            color="skyblue",
+            height=8,
+            aspect=2,
+        )
+
+        plt.xticks(rotation=45, ha="right")
+        plt.tight_layout()
+
+        sns.catplot(
+            df_phis,
+            x=grouping_str,
+            y="phi",
+            kind="box",
+            color="skyblue",
+            height=8,
+            aspect=2,
+        )
+
+        plt.xticks(rotation=45, ha="right")
+        plt.tight_layout()
+
+        sns.catplot(
+            df_speeds,
+            x=grouping_str,
+            y="speed",
+            kind="box",
+            color="skyblue",
+            height=8,
+            aspect=2,
+        )
+
+        plt.xticks(rotation=45, ha="right")
+        plt.tight_layout()
+
+        plt.rcParams.update({"font.size": 30})
+        # for fixed_val in [float(v) for v in gamma_arr]:
+        for fixed_val in [float(v) for v in koff_arr]:
+            print("koff = ", fixed_val)
+            create_heatmap(
+                df_phis_grouped_means[
+                    (df_phis_grouped_means["k_off"] == fixed_val)
+                    & (df_phis_grouped_means["kl"] == float(kl))
+                ][["att", "att2", "v0", "k_ecm", "phi"]],
+                "att",
+                "k_ecm",
+                "phi",
+                "$\epsilon_1$",
+                "$\epsilon_2$",
+                "$\phi$",
+                f"fig_heatmap_phis_k_off={fixed_val}_kl={kl}.png",
+            )
+
+            create_heatmap(
+                df_shapes_grouped_means[
+                    (df_shapes_grouped_means["k_off"] == fixed_val)
+                    & (df_shapes_grouped_means["kl"] == float(kl))
+                ][["att", "att2", "k_ecm", "circularity"]],
+                "att",
+                "k_ecm",
+                "circularity",
+                "$\epsilon_1$",
+                "$\epsilon_2$",
+                "$C$",
+                f"fig_heatmap_shapes_k_off={fixed_val}_kl={kl}.png",
+            )
+
+            create_heatmap(
+                df_speeds_grouped_means[
+                    (df_speeds_grouped_means["k_off"] == fixed_val)
+                    & (df_speeds_grouped_means["kl"] == float(kl))
+                ][["att", "att2", "k_ecm", "speed"]],
+                "att",
+                "k_ecm",
+                "speed",
+                "$\epsilon_1$",
+                "$\epsilon_2$",
+                "$v$",
+                f"fig_heatmap_speeds_k_off={fixed_val}_kl={kl}.png",
+            )
+
+            create_heatmap(
+                df_NEs_grouped_means[
+                    (df_NEs_grouped_means["k_off"] == fixed_val)
+                    & (df_NEs_grouped_means["kl"] == float(kl))
+                ][["att", "att2", "k_ecm", "minNE"]],
+                "att",
+                "k_ecm",
+                "minNE",
+                "$\epsilon_1$",
+                "$\epsilon_2$",
+                "NE rate",
+                f"fig_heatmap_NEs_k_off={fixed_val}_kl={kl}.png",
+            )
+
+            # make sure to change these parameters, and any of the bracketed f-string components
+            #  if those parameters change in the simulations, or if I want to explore different phenotype values
+            att2_severe = "0.0"
+            att2_moderate = "0.001"
+            att2_healthy = "0.01"
+            att2_strongest = "0.05"
+            genotype_tags = []
+            for att_val in att_arr[::-1]:
+                for att2_val in att2_arr[::-1]:
+                    genotype_tags.append(
+                        f"{att_val}, {att2_val}, {v0}, {kl}, 0.0, 1.0, {fixed_val}, {att2_val}"
+                    )
+            """genotype_tags = [
+                f"0.05, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
+                f"0.05, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
+                f"0.05, {att2_severe}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_severe}",
+                f"0.04, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
+                f"0.04, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
+                f"0.04, {att2_severe}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_severe}",
+                f"0.03, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
+                f"0.03, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
+                f"0.03, {att2_severe}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_severe}",
+                f"0.02, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
+                f"0.02, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
+                f"0.02, {att2_severe}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_severe}",
+                f"0.01, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
+                f"0.01, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
+                f"0.01, {att2_severe}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_severe}",
+                f"0.005, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
+                f"0.005, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
+                f"0.005, {att2_severe}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_severe}",
+                f"0.0, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
+                f"0.0, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
+                f"0.0, {att2_severe}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_severe}",
+            ]"""
+
+            df_all = pd.DataFrame(
+                columns=[
+                    "params",
+                    "phi_mean",
+                    "phi_std",
+                    "shape_mean",
+                    "shape_std",
+                    "v_mean",
+                    "v_std",
+                    "NE_mean",
+                    "NE_std",
+                ]
+            )
+
+            for i in range(0, len(genotype_tags)):
+                phi_group = df_phis[
+                    df_phis["(att, att2, v0, kl, gamma, k_on, k_off, k_ecm)"]
+                    == genotype_tags[i]
+                ].groupby("seed")["phi"]
+                shape_group = df_shapes[
+                    df_shapes["(att, att2, v0, kl, gamma, k_on, k_off, k_ecm)"]
+                    == genotype_tags[i]
+                ].groupby("seed")["circularity"]
+                speed_group = df_speeds[
+                    df_speeds["(att, att2, v0, kl, gamma, k_on, k_off, k_ecm)"]
+                    == genotype_tags[i]
+                ].groupby("seed")["speed"]
+                NE_group = df_NEs[
+                    df_NEs["(att, att2, v0, kl, gamma, k_on, k_off, k_ecm)"]
+                    == genotype_tags[i]
+                ].groupby("seed")["minNE"]
+                new_row = {
+                    "params": genotype_tags[i],
+                    "phi_mean": phi_group.mean(),
+                    "phi_std": phi_group.std(),
+                    "shape_mean": shape_group.mean(),
+                    "shape_std": shape_group.std(),
+                    "v_mean": speed_group.mean(),
+                    "v_std": speed_group.std(),
+                    "NE_mean": NE_group.mean(),
+                    "NE_std": NE_group.std(),
+                }
+                df_all = pd.concat([df_all, pd.DataFrame(new_row)], ignore_index=True)
+
+            # Get the unique values in the order they appear in the DataFrame
+            ordered_categories = df_all["params"].drop_duplicates().tolist()
+
+            # Convert the 'params' column to a categorical type with the specified order
+            df_all["params"] = pd.Categorical(
+                df_all["params"], categories=ordered_categories, ordered=True
+            )
+
+            # Convert 'Category' to a categorical type and assign numerical values
+            df_all["eps1,kecm"] = df_all["params"].astype("category").cat.codes
+            offset_width = 0.1  # Adjust the spacing between points in the same category
+            grouped = df_all.groupby("eps1,kecm")
+            offsets = {
+                cat: np.linspace(-offset_width / 2, offset_width / 2, num=len(group))
+                for cat, group in grouped
+            }
+            df_all["Offset"] = df_all.apply(
+                lambda row: offsets[row["eps1,kecm"]][
+                    grouped.groups[row["eps1,kecm"]].get_loc(row.name)
+                ],
+                axis=1,
+            )
+
+            if fixed_val == float(koff_arr[0]):
+                fig, axs = plt.subplots(4, 1, sharex=True, figsize=(15, 15))
+                clr = "red"
+                constant_offset = 0
+                # constant_offset = 0
+            elif fixed_val == float(koff_arr[1]):
+                # comment out this guy below to put figures on same plot for koff_arr[i] i > 0
+                # fig, axs = plt.subplots(4, 1, sharex=True, figsize=(15, 15))
+                clr = "black"
+                constant_offset = 0.2
+            plt.subplots_adjust(hspace=0)
+
+            axs[0].scatter(
+                df_all["eps1,kecm"] + constant_offset, df_all["phi_mean"], c=clr
+            )
+            axs[0].set_ylabel(r"$\phi$")
+            axs[0].set_ylim(0.5, 1.0)
+            axs[0].set_yticks([0.6, 0.8, 1.0])
+
+            axs[1].scatter(
+                df_all["eps1,kecm"] + constant_offset, df_all["shape_mean"], c=clr
+            )
+            axs[1].set_ylabel(r"$C$")
+            axs[1].set_ylim(0.77, 0.93)
+            axs[1].set_yticks([0.8, 0.84, 0.88, 0.92])
+
+            axs[2].errorbar(
+                df_all["eps1,kecm"] + df_all["Offset"] + constant_offset,
+                df_all["v_mean"],
+                yerr=df_all["v_std"],
+                fmt="o",
+                capsize=5,
+                c=clr,
+            )
+            axs[2].set_ylabel(r"v $(\mu m/min)$")
+            axs[2].set_ylim(0, 1)
+
+            axs[3].scatter(
+                df_all["eps1,kecm"] + constant_offset, df_all["NE_mean"], c=clr
+            )
+            axs[3].set_ylabel(r"$NE (cell \cdot min)^{-1}$")
+            axs[3].set_ylim(0, 0.22)
+
+            axs[3].set_xticks(range(len(df_all["params"].unique())))
+            xticklabels = [
+                full_label.split()[0] + " " + full_label.split()[1][:-1]
+                for full_label in df_all["params"].unique()
+            ]
+            axs[3].set_xticklabels(xticklabels)
+            plt.tight_layout()
+            plt.savefig(
+                f"simulationStackedObservablesGroupedk_off{fixed_val}_kl={kl}.png"
+            )
+            # plt.close(fig)
+
+            debugpy.breakpoint()
+
+            # plt.show()
 
         # plt.show()
-
-    # plt.show()
 
 
 if __name__ == "__main__":

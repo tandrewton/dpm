@@ -1,19 +1,19 @@
 module load dSQ
 #!/bin/bash
-numSeeds=5
+numSeeds=10
 N_arr=(40)
 calA0_arr=(1.0)
 phi_arr=(0.8)
-kl_arr=(0.25 0.5 1.0)
+kl_arr=(0.2)
 ka=5.0
 kb_arr=(0.01)
-att_arr=(0.01 0.02 0.03 0.04 0.05 0.06)
-att2_arr=(0.01 0.02 0.05)
+att_arr=(0.001 0.005 0.01 0.03 0.05)
+att2_arr=(0.0005 0.001 0.005 0.01 0.05)
 t_stress_arr=(10000.0)
-v0_arr=(0.1)
+v0_arr=(0.05)
 gamma_arr=(0)
 kon_arr=(1.0)
-koff_arr=(0.5 100.0)
+koff_arr=(0.1 100.0)
 calcMinPos=1
 rm joblist_psm.txt
 for N in ${N_arr[@]}; do
