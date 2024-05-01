@@ -7,8 +7,11 @@ phi_arr=(0.8)
 kl_arr=(0.2)
 ka=2.5
 kb_arr=(0.01)
-att_arr=(0.001 0.005 0.01 0.03 0.05 0.1)
-att2_arr=(0.0005 0.001 0.005 0.01 0.05 0.1)
+#att_arr=(0.005 0.01 0.03 0.05)
+#att2_arr=(0 0.0005 0.001 0.005 0.01 0.05 0.1)
+att_arr=(0.01 0.03)
+att2_arr=(0 0.05)
+kecm_arr=(0.001 0.005 0.01 0.05)
 t_stress_arr=(10000.0)
 v0_arr=(0.1)
 gamma_arr=(0)
@@ -28,10 +31,10 @@ for N in ${N_arr[@]}; do
                   for gamma in ${gamma_arr[@]}; do
                     for k_on in ${kon_arr[@]}; do
                       for k_off in ${koff_arr[@]}; do
-                        k_ecm=$att2
-                        #for k_ecm in ${kecm_arr[@]}; do
+                        #k_ecm=$att2
+                        for k_ecm in ${kecm_arr[@]}; do
                         echo bash bash/cells/submit_psm.sh $N 30 $calA0 $phi $kl $ka $kb $att $att2 $t_stress $v0 1.0 $gamma $k_on $k_off $k_ecm $calcMinPos 300 pi_ohern,day 0-24:00:00 $numSeeds 1 >> joblist_psm.txt
-                        #done
+                        done
                       done
                     done
                   done
@@ -47,7 +50,6 @@ done
 
 dsq --job-file joblist_psm.txt   --mem-per-cpu 4g -t 1:00:00 --mail-type NONE --submit --partition scavenge --suppress-stats-file  -o /dev/null
 
-
 rm joblist_psm_drawCellSim.txt
 for N in ${N_arr[@]}; do
   for calA0 in ${calA0_arr[@]}; do
@@ -61,10 +63,10 @@ for N in ${N_arr[@]}; do
                   for gamma in ${gamma_arr[@]}; do
                     for k_on in ${kon_arr[@]}; do
                       for k_off in ${koff_arr[@]}; do
-                        k_ecm=$att2
-                        #for k_ecm in ${kecm_arr[@]}; do
+                        #k_ecm=$att2
+                        for k_ecm in ${kecm_arr[@]}; do
                         echo "module load MATLAB/2023a; matlab -batch \"drawCellSim(\\\"$N\\\", \\\"$calA0\\\", \\\"$phi\\\", \\\"$kl\\\", \\\"$kb\\\", \\\"$att\\\", \\\"$att2\\\", \\\"$v0\\\", \\\"$t_stress\\\", \\\"$gamma\\\", \\\"$k_on\\\", \\\"$k_off\\\", \\\"$k_ecm\\\",$numSeeds)\"" >> joblist_psm_drawCellSim.txt
-                        #done
+                        done
                       done
                     done
                   done
@@ -79,13 +81,6 @@ for N in ${N_arr[@]}; do
 done
 
 dsq --job-file joblist_psm_drawCellSim.txt --mem-per-cpu 8g -t 8:00:00 --mail-type NONE --submit --partition pi_ohern,day #--suppress-stats-file -o /dev/null
-
-**unload matlab before git pull
-failed to read file: /gpfs/gibbs/pi/ohern/at965/dpm/psm/output/psm_calA01.0_phi0.8_tm10000.0_v00.1_t_abp1.0_gamma0_k_on_1.0_k_off_0.5_k_ecm_0.05_kl1.0_ka5.0_kb0.01/psm_N40_dur300_att0.01_att20.05_sd10fr60.tif
-
-                     /gpfs/gibbs/pi/ohern/at965/dpm/psm/psm_calA01.0_phi0.8_tm10000.0_v00.1_t_abp1.0_gamma0_k_on_1.0_k_off_0.5_k_ecm_0.05_kl1.0_ka5.0_kb0.01/_N40_dur300_att0.01_att20.05_start1_end10_sd1.pos
-
-module load MATLAB/2023a; matlab -batch "drawCellSim(\"40\", \"1.0\", \"0.8\", \"0.5\", \"0.01\", \"0.01\", \"0.05\", \"0.1\", \"10000.0\", \"0\", \"1.0\", \"0.5\", \"0.05\",10)"
 
 cd ~/psm_extracellular_calculation/
 rm windowedPhiDataFrame_calA*

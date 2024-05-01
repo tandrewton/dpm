@@ -206,19 +206,21 @@ def create_heatmap(
 
 def main():
     calA0 = "1.0"
-    att_arr = ["0.001", "0.005", "0.01", "0.03", "0.05"]
-    # att_arr = ["0.005", "0.03"]
+    # att_arr = ["0.001", "0.005", "0.01", "0.03", "0.05", "0.1"]
+    att_arr = ["0.01", "0.03"]
     kl_arr = ["0.2"]
     ka = "2.5"
     kb = "0.01"
-    v0_arr = ["0.05"]
-    att2_arr = ["0.0005", "0.001", "0.005", "0.01", "0.05"]
-    # att2_arr = ["0.001", "0.01"]
+    v0_arr = ["0.1"]
+    # att2_arr = ["0.0005", "0.001", "0.005", "0.01", "0.05", "0.1"]
+    att2_arr = ["0", "0.05"]
     tm_arr = ["10000.0"]
     gamma_arr = ["0"]
     kon_arr = ["1.0"]
     koff_arr = ["0.1", "100.0"]
-    kecm_arr = att2_arr
+    # kecm_arr = att2_arr
+    # kecm_arr = ["0.001", "0.005", "0.01", "0.05"]
+    kecm_arr = ["0.05"]
     t_abp = "1.0"
     phi = "0.8"
     duration = "300"
@@ -268,53 +270,57 @@ def main():
                         for gamma in gamma_arr:
                             for k_on in kon_arr:
                                 for k_off in koff_arr:
-                                    # for k_ecm in kecm_arr:
-                                    k_ecm = att2
-                                    for seed in range(1, seeds + 1):
-                                        if platform == "win32":
-                                            folderStr = f"psm_calA0{calA0}_phi{phi}_tm{tm}_v0{v0}_t_abp{t_abp}_gamma{gamma}_k_on_{k_on}_k_off_{k_off}_k_ecm_{k_ecm}_kl{kl}_ka{ka}_kb{kb}\\_N{NCELLS}_dur{duration}_att{att}_att2{att2}_start1_end{seeds}_sd{seed}"
-                                        else:
-                                            folderStr = f"psm_calA0{calA0}_phi{phi}_tm{tm}_v0{v0}_t_abp{t_abp}_gamma{gamma}_k_on_{k_on}_k_off_{k_off}_k_ecm_{k_ecm}_kl{kl}_ka{ka}_kb{kb}/_N{NCELLS}_dur{duration}_att{att}_att2{att2}_start1_end{seeds}_sd{seed}"
-                                        fileheader = pipeline_folder + folderStr
-                                        print(fileheader)
+                                    for k_ecm in kecm_arr:
+                                        # k_ecm = att2
+                                        for seed in range(1, seeds + 1):
+                                            if platform == "win32":
+                                                folderStr = f"psm_calA0{calA0}_phi{phi}_tm{tm}_v0{v0}_t_abp{t_abp}_gamma{gamma}_k_on_{k_on}_k_off_{k_off}_k_ecm_{k_ecm}_kl{kl}_ka{ka}_kb{kb}\\_N{NCELLS}_dur{duration}_att{att}_att2{att2}_start1_end{seeds}_sd{seed}"
+                                            else:
+                                                folderStr = f"psm_calA0{calA0}_phi{phi}_tm{tm}_v0{v0}_t_abp{t_abp}_gamma{gamma}_k_on_{k_on}_k_off_{k_off}_k_ecm_{k_ecm}_kl{kl}_ka{ka}_kb{kb}/_N{NCELLS}_dur{duration}_att{att}_att2{att2}_start1_end{seeds}_sd{seed}"
+                                            fileheader = pipeline_folder + folderStr
+                                            print(fileheader)
 
-                                        # df_shape, df_NE = process_data(att, v0, att2, seed, fileheader)
-                                        df_shape, df_NE, df_speed = process_data(
-                                            att,
-                                            v0,
-                                            att2,
-                                            kl,
-                                            gamma,
-                                            k_on,
-                                            k_off,
-                                            k_ecm,
-                                            seed,
-                                            fileheader,
-                                        )
-
-                                        # if dfs returned from process_data are not empty, concat them
-                                        if (
-                                            not df_shape.empty
-                                            and not df_NE.empty
-                                            and not df_speed.empty
-                                        ):
-                                            df_shapes = pd.concat([df_shapes, df_shape])
-                                            df_NE["minNE"] = (
-                                                df_NE["minNE"]
-                                                / NCELLS
-                                                / timeBetweenFrames
+                                            # df_shape, df_NE = process_data(att, v0, att2, seed, fileheader)
+                                            df_shape, df_NE, df_speed = process_data(
+                                                att,
+                                                v0,
+                                                att2,
+                                                kl,
+                                                gamma,
+                                                k_on,
+                                                k_off,
+                                                k_ecm,
+                                                seed,
+                                                fileheader,
                                             )
 
-                                            df_speed["speed"] = (
-                                                df_speed["speed"]
-                                                * np.sqrt(25 * np.pi)
-                                                / real_time_unit
-                                            )
+                                            # if dfs returned from process_data are not empty, concat them
+                                            if (
+                                                not df_shape.empty
+                                                and not df_NE.empty
+                                                and not df_speed.empty
+                                            ):
+                                                df_shapes = pd.concat(
+                                                    [df_shapes, df_shape]
+                                                )
+                                                df_NE["minNE"] = (
+                                                    df_NE["minNE"]
+                                                    / NCELLS
+                                                    / timeBetweenFrames
+                                                )
 
-                                            df_NEs = pd.concat([df_NEs, df_NE])
-                                            df_speeds = pd.concat([df_speeds, df_speed])
-                                        else:
-                                            print(f"{folderStr} is empty!")
+                                                df_speed["speed"] = (
+                                                    df_speed["speed"]
+                                                    * np.sqrt(25 * np.pi)
+                                                    / real_time_unit
+                                                )
+
+                                                df_NEs = pd.concat([df_NEs, df_NE])
+                                                df_speeds = pd.concat(
+                                                    [df_speeds, df_speed]
+                                                )
+                                            else:
+                                                print(f"{folderStr} is empty!")
 
         print("finished reading files!")
 
@@ -588,7 +594,7 @@ def main():
                     & (df_phis_grouped_means["kl"] == float(kl))
                 ][["att", "att2", "v0", "k_ecm", "phi"]],
                 "att",
-                "k_ecm",
+                "att2",
                 "phi",
                 "$\epsilon_1$",
                 "$\epsilon_2$",
@@ -602,7 +608,7 @@ def main():
                     & (df_shapes_grouped_means["kl"] == float(kl))
                 ][["att", "att2", "k_ecm", "circularity"]],
                 "att",
-                "k_ecm",
+                "att2",
                 "circularity",
                 "$\epsilon_1$",
                 "$\epsilon_2$",
@@ -616,7 +622,7 @@ def main():
                     & (df_speeds_grouped_means["kl"] == float(kl))
                 ][["att", "att2", "k_ecm", "speed"]],
                 "att",
-                "k_ecm",
+                "att2",
                 "speed",
                 "$\epsilon_1$",
                 "$\epsilon_2$",
@@ -630,7 +636,7 @@ def main():
                     & (df_NEs_grouped_means["kl"] == float(kl))
                 ][["att", "att2", "k_ecm", "minNE"]],
                 "att",
-                "k_ecm",
+                "att2",
                 "minNE",
                 "$\epsilon_1$",
                 "$\epsilon_2$",
@@ -640,39 +646,12 @@ def main():
 
             # make sure to change these parameters, and any of the bracketed f-string components
             #  if those parameters change in the simulations, or if I want to explore different phenotype values
-            att2_severe = "0.0"
-            att2_moderate = "0.001"
-            att2_healthy = "0.01"
-            att2_strongest = "0.05"
             genotype_tags = []
             for att_val in att_arr[::-1]:
                 for att2_val in att2_arr[::-1]:
                     genotype_tags.append(
-                        f"{att_val}, {att2_val}, {v0}, {kl}, 0.0, 1.0, {fixed_val}, {att2_val}"
+                        f"{att_val}, {float(att2_val)}, {v0}, {kl}, 0.0, 1.0, {fixed_val}, {k_ecm}"
                     )
-            """genotype_tags = [
-                f"0.05, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
-                f"0.05, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
-                f"0.05, {att2_severe}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_severe}",
-                f"0.04, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
-                f"0.04, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
-                f"0.04, {att2_severe}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_severe}",
-                f"0.03, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
-                f"0.03, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
-                f"0.03, {att2_severe}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_severe}",
-                f"0.02, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
-                f"0.02, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
-                f"0.02, {att2_severe}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_severe}",
-                f"0.01, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
-                f"0.01, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
-                f"0.01, {att2_severe}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_severe}",
-                f"0.005, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
-                f"0.005, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
-                f"0.005, {att2_severe}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_severe}",
-                f"0.0, {att2_healthy}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_healthy}",
-                f"0.0, {att2_moderate}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_moderate}",
-                f"0.0, {att2_severe}, {v0}, 10000.0, 0.0, 1.0, {fixed_val}, {att2_severe}",
-            ]"""
 
             df_all = pd.DataFrame(
                 columns=[
@@ -727,16 +706,16 @@ def main():
             )
 
             # Convert 'Category' to a categorical type and assign numerical values
-            df_all["eps1,kecm"] = df_all["params"].astype("category").cat.codes
+            df_all["eps1,eps2"] = df_all["params"].astype("category").cat.codes
             offset_width = 0.1  # Adjust the spacing between points in the same category
-            grouped = df_all.groupby("eps1,kecm")
+            grouped = df_all.groupby("eps1,eps2")
             offsets = {
                 cat: np.linspace(-offset_width / 2, offset_width / 2, num=len(group))
                 for cat, group in grouped
             }
             df_all["Offset"] = df_all.apply(
-                lambda row: offsets[row["eps1,kecm"]][
-                    grouped.groups[row["eps1,kecm"]].get_loc(row.name)
+                lambda row: offsets[row["eps1,eps2"]][
+                    grouped.groups[row["eps1,eps2"]].get_loc(row.name)
                 ],
                 axis=1,
             )
@@ -754,21 +733,21 @@ def main():
             plt.subplots_adjust(hspace=0)
 
             axs[0].scatter(
-                df_all["eps1,kecm"] + constant_offset, df_all["phi_mean"], c=clr
+                df_all["eps1,eps2"] + constant_offset, df_all["phi_mean"], c=clr
             )
             axs[0].set_ylabel(r"$\phi$")
             axs[0].set_ylim(0.5, 1.0)
             axs[0].set_yticks([0.6, 0.8, 1.0])
 
             axs[1].scatter(
-                df_all["eps1,kecm"] + constant_offset, df_all["shape_mean"], c=clr
+                df_all["eps1,eps2"] + constant_offset, df_all["shape_mean"], c=clr
             )
             axs[1].set_ylabel(r"$C$")
             axs[1].set_ylim(0.77, 0.93)
             axs[1].set_yticks([0.8, 0.84, 0.88, 0.92])
 
             axs[2].errorbar(
-                df_all["eps1,kecm"] + df_all["Offset"] + constant_offset,
+                df_all["eps1,eps2"] + df_all["Offset"] + constant_offset,
                 df_all["v_mean"],
                 yerr=df_all["v_std"],
                 fmt="o",
@@ -779,7 +758,7 @@ def main():
             axs[2].set_ylim(0, 1)
 
             axs[3].scatter(
-                df_all["eps1,kecm"] + constant_offset, df_all["NE_mean"], c=clr
+                df_all["eps1,eps2"] + constant_offset, df_all["NE_mean"], c=clr
             )
             axs[3].set_ylabel(r"$NE (cell \cdot min)^{-1}$")
             axs[3].set_ylim(0, 0.22)
