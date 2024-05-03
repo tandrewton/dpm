@@ -10,13 +10,13 @@ kb_arr=(0.01)
 #att_arr=(0.005 0.01 0.03 0.05)
 #att2_arr=(0 0.0005 0.001 0.005 0.01 0.05 0.1)
 att_arr=(0.01 0.03)
-att2_arr=(0 0.05)
-kecm_arr=(0.001 0.005 0.01 0.05)
+att2_arr=(0 0.005 0.01 0.05)
+#kecm_arr=(0.001 0.005 0.01 0.05)
 t_stress_arr=(10000.0)
 v0_arr=(0.1)
 gamma_arr=(0)
 kon_arr=(1.0)
-koff_arr=(0.1 100.0)
+koff_arr=(0.1 0.5 1.0 10.0 100.0)
 calcMinPos=1
 rm joblist_psm.txt
 for N in ${N_arr[@]}; do
@@ -31,10 +31,10 @@ for N in ${N_arr[@]}; do
                   for gamma in ${gamma_arr[@]}; do
                     for k_on in ${kon_arr[@]}; do
                       for k_off in ${koff_arr[@]}; do
-                        #k_ecm=$att2
-                        for k_ecm in ${kecm_arr[@]}; do
+                        k_ecm=$att2
+                        #for k_ecm in ${kecm_arr[@]}; do
                         echo bash bash/cells/submit_psm.sh $N 30 $calA0 $phi $kl $ka $kb $att $att2 $t_stress $v0 1.0 $gamma $k_on $k_off $k_ecm $calcMinPos 300 pi_ohern,day 0-24:00:00 $numSeeds 1 >> joblist_psm.txt
-                        done
+                        #done
                       done
                     done
                   done
@@ -63,10 +63,10 @@ for N in ${N_arr[@]}; do
                   for gamma in ${gamma_arr[@]}; do
                     for k_on in ${kon_arr[@]}; do
                       for k_off in ${koff_arr[@]}; do
-                        #k_ecm=$att2
-                        for k_ecm in ${kecm_arr[@]}; do
+                        k_ecm=$att2
+                        #for k_ecm in ${kecm_arr[@]}; do
                         echo "module load MATLAB/2023a; matlab -batch \"drawCellSim(\\\"$N\\\", \\\"$calA0\\\", \\\"$phi\\\", \\\"$kl\\\", \\\"$kb\\\", \\\"$att\\\", \\\"$att2\\\", \\\"$v0\\\", \\\"$t_stress\\\", \\\"$gamma\\\", \\\"$k_on\\\", \\\"$k_off\\\", \\\"$k_ecm\\\",$numSeeds)\"" >> joblist_psm_drawCellSim.txt
-                        done
+                        #done
                       done
                     done
                   done

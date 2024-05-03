@@ -177,8 +177,8 @@ int main(int argc, char const* argv[]) {
   cell2D.resizeCatchBonds();
   cell2D.resizeNeighborLinkedList2D();
 
-  double shortRelaxTime = 10.0;
-  double relaxTime = 200.0;
+  double shortRelaxTime = 25.0;
+  double relaxTime = 400.0;
   cell2D.setka(ka);
   cell2D.vertexDampedMD(attractiveSmoothForceUpdate, dt0, shortRelaxTime, 0.0);
 
