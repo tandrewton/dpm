@@ -9,17 +9,18 @@ NVTOT = cellpos(1,2);
 cellpos = cellpos(2:end,:);
 NV = 30;
 plotVertices = 1;
-plotCirculoLines = 1;
+plotCirculoLines = 0;
 %clrs = jet(5);
 %clr = clrs(1,:);
-clr = [0 0.9 0.9];
+%clr = [0 0.9 0.9];
+clr = [1 0 1];
 
 % frameNum should be a scalar
-%frameNum = 1;
-%cellNums = [1,30,40,13,35,38];
+cellNums = [1,30,40,13,35];
 frameNum = 1;
 %cellNums = [35];
-cellNums = [1:40];
+%cellNums = [13];
+%cellNums = [1:40];
 
 for cellNum=cellNums
     numVerts = NV;
@@ -74,29 +75,42 @@ for cellNum=cellNums
 
             if plotCirculoLines
                 % plots the circulo line part of all cells
-                patch(cornerx, cornery, cornerx./cornerx, [0 0 0],'linestyle', 'none', 'LineWidth',1)
-                
+                if isBoundary
+                    patchColor = [0 1 0];
+                else
+                    patchColor = [0 0 0];
+                end
+                patch(cornerx, cornery, cornerx./cornerx, patchColor,'linestyle', 'none', 'LineWidth',1)
                 % plots the vertices part of all cells
                 circle2(xplot, yplot, vradtmp(vv), [0 0 0], 'none');
             else
-                patch(cornerx, cornery, cornerx./cornerx, clr, 'LineWidth',1)
-                circle2(xplot, yplot, vradtmp(vv), clr, [0 0 0]);
+                if isBoundary
+                    patchColor = [0 0.5 0];
+                    circleColor = [0 1 0];
+                else
+                    patchColor = [0.5 0 0.5];
+                    circleColor = clr;
+                end
+                patch(cornerx, cornery, cornerx./cornerx, patchColor, 'LineWidth',1)
+                circle2(xplot, yplot, vradtmp(vv), circleColor, [0 0 0]);
             end
             
-            
+            % show vertex labels
+
             %text(xtmp(vv)-0.02, ytmp(vv)+0.005, num2str(vv), 'FontSize', 5,'color','red');
+            % show cell labels
             %text(xtmp(vv)-0.02, ytmp(vv)+0.005, num2str(cellNum), 'FontSize', 5,'color','red');
         end
         if plotCirculoLines
             if isBoundary
                 % plots the vertex part of the boundary cells
-                circle2(xplot, yplot, vradtmp(vv), [0 0 0], 'none');
+                circle2(xplot, yplot, vradtmp(vv), [0 1 0], 'none');
             else
                 vpos = [xtmp, ytmp];
                 finfo = [1:numVerts 1];
 
                 % plots the interior of the non-boundary cells
-                patch('Faces',finfo,'vertices',vpos,'FaceColor','cyan','linestyle','none');
+                patch('Faces',finfo,'vertices',vpos,'FaceColor',[1 0 1],'linestyle','none');
                 
                 
                 %plots the circulo-line part of the outer boundary of
