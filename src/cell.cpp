@@ -591,7 +591,6 @@ void cell::catchBondsUpdate() {
       vertDiam = 2 * r[gi];
 
       // modify k_off depending on pulling force (mechanosensitivity) using temp_koff and disable catch bonds if cadherin is present
-      // I think only divide by one vertDiam
       bond_tension = k_ecm * (sqrt(dx * dx + dy * dy) / vertDiam) / vertDiam;
       temp_koff = k_off * exp(-bond_tension / f_off);  // where are the dimensions here?
       // cout << "bond_tension = " << bond_tension << ", f_off = " << f_off << '\n';

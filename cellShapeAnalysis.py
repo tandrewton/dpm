@@ -206,18 +206,19 @@ def create_heatmap(
 
 def main():
     calA0 = "1.0"
-    # att_arr = ["0.001", "0.005", "0.01", "0.03", "0.05", "0.1"]
-    att_arr = ["0.01", "0.03"]
+    # att_arr = ["0.01", "0.015", "0.02", "0.025", "0.03", "0.035"]
+    att_arr = ["0.01", "0.035"]
     kl_arr = ["0.2"]
     ka = "2.5"
     kb = "0.01"
     v0_arr = ["0.1"]
     # att2_arr = ["0.0005", "0.001", "0.005", "0.01", "0.05", "0.1"]
-    att2_arr = ["0", "0.05"]
+    att2_arr = ["0", "0.01"]
     tm_arr = ["10000.0"]
     gamma_arr = ["0"]
     kon_arr = ["1.0"]
     koff_arr = ["0.1", "100.0"]
+    # koff_arr = ["0.1", "0.5"]
     kecm_arr = att2_arr
     # kecm_arr = ["0.001", "0.005", "0.01", "0.05"]
     # kecm_arr = ["0.05"]
@@ -229,7 +230,7 @@ def main():
     real_time_unit = 0.5  # minutes, tau_abp in real units
     framesPerTimeUnit = 5
     timeBetweenFrames = framesPerTimeUnit * real_time_unit
-    seeds = 10
+    seeds = 20
 
     font = {"size": 22}
 
@@ -646,7 +647,7 @@ def main():
             for att_val in att_arr[::-1]:
                 for att2_val in att2_arr[::-1]:
                     genotype_tags.append(
-                        f"{att_val}, {float(att2_val)}, {v0}, {kl}, 0.0, 1.0, {fixed_val}, {k_ecm}"
+                        f"{att_val}, {float(att2_val)}, {v0}, {kl}, 0.0, 1.0, {fixed_val}, {float(att2_val)}"
                     )
 
             df_all = pd.DataFrame(
@@ -720,12 +721,12 @@ def main():
                 fig, axs = plt.subplots(4, 1, sharex=True, figsize=(15, 15))
                 clr = "red"
                 constant_offset = 0.2
-                # constant_offset = 0
             elif fixed_val == float(koff_arr[1]):
                 # comment out this guy below to put figures on same plot for koff_arr[i] i > 0
                 # fig, axs = plt.subplots(4, 1, sharex=True, figsize=(15, 15))
                 clr = "black"
                 constant_offset = 0
+            # constant_offset += 0.1
             plt.subplots_adjust(hspace=0)
 
             axs[0].scatter(
