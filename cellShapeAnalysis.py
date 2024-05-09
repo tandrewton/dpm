@@ -207,7 +207,7 @@ def create_heatmap(
 def main():
     calA0 = "1.0"
     # att_arr = ["0.01", "0.015", "0.02", "0.025", "0.03", "0.035"]
-    att_arr = ["0.01", "0.035"]
+    att_arr = ["0.015", "0.035"]
     kl_arr = ["0.2"]
     ka = "2.5"
     kb = "0.01"
@@ -704,7 +704,7 @@ def main():
 
             # Convert 'Category' to a categorical type and assign numerical values
             df_all["eps1,eps2"] = df_all["params"].astype("category").cat.codes
-            offset_width = 0.1  # Adjust the spacing between points in the same category
+            offset_width = 0.2  # Adjust the spacing between points in the same category
             grouped = df_all.groupby("eps1,eps2")
             offsets = {
                 cat: np.linspace(-offset_width / 2, offset_width / 2, num=len(group))
@@ -719,15 +719,16 @@ def main():
 
             if fixed_val == float(koff_arr[0]):
                 fig, axs = plt.subplots(4, 1, sharex=True, figsize=(15, 15))
+                plt.rcParams.update({"font.size": 30})
+                plt.subplots_adjust(hspace=0.25)
                 clr = "red"
-                constant_offset = 0.2
+                constant_offset = 0.15
             elif fixed_val == float(koff_arr[1]):
                 # comment out this guy below to put figures on same plot for koff_arr[i] i > 0
                 # fig, axs = plt.subplots(4, 1, sharex=True, figsize=(15, 15))
                 clr = "black"
-                constant_offset = 0
-            # constant_offset += 0.1
-            plt.subplots_adjust(hspace=0)
+                constant_offset = -0.15
+                # constant_offset += 0.1
 
             axs[0].scatter(
                 df_all["eps1,eps2"] + constant_offset, df_all["phi_mean"], c=clr
@@ -739,7 +740,7 @@ def main():
             axs[1].scatter(
                 df_all["eps1,eps2"] + constant_offset, df_all["shape_mean"], c=clr
             )
-            axs[1].set_ylabel(r"$C$")
+            axs[1].set_ylabel(r"C")
             axs[1].set_ylim(0.77, 0.93)
             axs[1].set_yticks([0.8, 0.84, 0.88, 0.92])
 
@@ -748,16 +749,18 @@ def main():
                 df_all["v_mean"],
                 yerr=df_all["v_std"],
                 fmt="o",
-                capsize=5,
+                capsize=0,
+                zorder=1,
                 c=clr,
             )
             axs[2].set_ylabel(r"v $(\mu m/min)$")
             axs[2].set_ylim(0, 1)
+            axs[2].set_yticks([0.25, 0.5, 0.75])
 
             axs[3].scatter(
                 df_all["eps1,eps2"] + constant_offset, df_all["NE_mean"], c=clr
             )
-            axs[3].set_ylabel(r"$NE (cell \cdot min)^{-1}$")
+            axs[3].set_ylabel(r"NE $(cell \cdot min)^{-1}$")
             axs[3].set_ylim(0, 0.22)
 
             axs[3].set_xticks(range(len(df_all["params"].unique())))
@@ -766,9 +769,12 @@ def main():
                 for full_label in df_all["params"].unique()
             ]
             axs[3].set_xticklabels(xticklabels)
-            plt.tight_layout()
+            axs[3].tick_params(axis="x", rotation=60)
+            plt.xlabel("Simulated genotype")
+            # plt.tight_layout()
             plt.savefig(
-                f"simulationStackedObservablesGroupedk_off{fixed_val}_kl={kl}.png"
+                f"simulationStackedObservablesGroupedk_off{fixed_val}_kl={kl}.png",
+                bbox_inches="tight",
             )
             # plt.close(fig)
 
