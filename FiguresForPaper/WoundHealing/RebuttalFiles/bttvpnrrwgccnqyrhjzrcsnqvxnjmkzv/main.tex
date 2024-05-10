@@ -1,0 +1,230 @@
+\documentclass[%
+ reprint,
+superscriptaddress,
+%groupedaddress,
+%unsortedaddress,
+%runinaddress,
+%frontmatterverbose, 
+%preprint,
+%preprintnumbers,
+%nofootinbib,
+%nobibnotes,
+%bibnotes,
+amsmath,amssymb,
+prl,
+%pra,
+%prb,
+%pre,
+%rmp,
+%prstab,
+%prstper,
+floatfix,
+]{revtex4-2}
+
+\usepackage{graphicx}% Include figure files
+\usepackage{dcolumn}% Align table columns on decimal point
+\usepackage{bm}% bold math
+\usepackage{color}
+\usepackage[colorlinks=true,allcolors=blue,breaklinks=true]{hyperref}
+\usepackage{physics}
+\usepackage{xr}
+\usepackage{float}
+\makeatletter
+\newcommand*{\addFileDependency}[1]{% argument=file name and extension
+  \typeout{(#1)}
+  \@addtofilelist{#1}
+  \IfFileExists{#1}{}{\typeout{No file #1.}}
+}
+\makeatother
+
+\newcommand*{\myexternaldocument}[1]{%
+    \externaldocument{#1}%
+    \addFileDependency{#1.tex}%
+    \addFileDependency{#1.aux}%
+}
+\myexternaldocument{supplement}
+%\usepackage[mathlines]{lineno}% Enable numbering of text and display math
+%\linenumbers\relax % Commence numbering lines
+
+%\usepackage[showframe,%Uncomment any one of the following lines to test 
+%%scale=0.7, marginratio={1:1, 2:3}, ignoreall,% default settings
+%%text={7in,10in},centering,
+%%margin=1.5in,
+%%total={6.5in,8.75in}, top=1.2in, left=0.9in, includefoot,
+%%height=10in,a5paper,hmargin={3cm,0.8in},
+%]{geometry}
+
+ % Force line breaks with \\
+ 
+\begin{document}
+
+\preprint{APS/123-QED}
+
+%\title{Plasticity of Cell Membranes Accelerates Epithelial Wound Healing}
+\title{Mechanical Plasticity of Cell Membranes Enhances Epithelial Wound Closure}
+
+\author{Andrew T. Ton}
+\email{andrew.ton@yale.edu}
+\affiliation{
+ Department of Physics, Yale University, New Haven, Connecticut 06520, USA}
+\affiliation{
+ Integrated Graduate Program in Physical and Engineering Biology, Yale University, New Haven, Connecticut 06520, USA}
+ 
+\author{Arthur K. MacKeith}
+\affiliation{
+ Department of Mechanical Engineering \& Materials Science, Yale University, New Haven, Connecticut 06520, USA}
+\affiliation{
+ Integrated Graduate Program in Physical and Engineering Biology, Yale University, New Haven, Connecticut 06520, USA}
+ 
+\author{Mark D. Shattuck}
+\affiliation{
+ Benjamin Levich Institute and Physics Department, The City College of New York, New York, New York 10031, USA}
+
+\author{Corey S. O'Hern}
+\affiliation{
+ Department of Mechanical Engineering \& Materials Science, Yale University, New Haven, Connecticut 06520, USA}
+\affiliation{
+ Department of Physics, Yale University, New Haven, Connecticut 06520, USA}
+\affiliation{
+ Department of Applied Physics, Yale University, New Haven, Connecticut 06520, USA}
+\affiliation{
+ Integrated Graduate Program in Physical and Engineering Biology, Yale University, New Haven, Connecticut 06520, USA}
+
+\date{\today}
+
+\begin{abstract}
+During epithelial wound healing, cell morphology near the healed wound and the healing rate vary strongly among different developmental stages even for a single species like \textit{Drosophila}. We develop deformable particle (DP) model simulations to understand how variations in cell mechanics give rise to distinct wound closure phenotypes in the \textit{Drosophila} embryonic ectoderm and larval wing disc epithelium.  We find that plastic deformation of the cell membrane can generate large changes in cell shape consistent with wound closure in the embryonic ectoderm. Our results show that the embryonic ectoderm is best described by cell membranes with an elasto-plastic response, whereas the larval wing disc is best described by cell membranes with an exclusively elastic response. By varying the mechanical response of cell membranes in DP simulations, we recapitulate the wound closure behavior of both the embryonic ectoderm and the larval wing disc.
+\end{abstract}
+
+\maketitle
+% Paragraph 1 goal - Wound healing is chemical, but also physical. We are starting to understand the physical basis of healing, and want to explain what makese wound healing different
+In response to wounding, epithelia carry out complex chemical and physical processes to restore tissue integrity. Epithelial wound healing has been studied in numerous species, including \textit{Drosophila}, zebrafish, and humans \cite{wood2002wound, abreu2012drosophila, tetley2019tissue, miskolci2019distinct, wong2012focal, guo2010factors, george2006basic}. Even within a single species, the healing process varies with developmental stage \cite{tetley2019tissue, redd2004wound}. In later stages, wound healing is slower, requires smaller changes in cell shape, and causes more scarring, which have been attributed to differences in chemical signaling, such as heightened inflammatory response \cite{redd2004wound, richardson2013adult, cordeiro2013role}. However, physical mechanisms, such as force transmission through cell junctions and collective cell motion, have also been shown to influence wound healing~\cite{li2013collective,brugues2014forces,ladoux2017mechanobiology}. An important driving force for wound closure across many developmental stages and species is the actomyosin purse-string that forms around the wound ~\cite{wood2002wound, redd2004wound, abreu2012drosophila, davidson2002embryonic, brugues2014forces}. Cell shape changes \cite{bi2015density,park2015unjamming,grosser2021cell} are another physical mechanism that can affect the dynamics of wound healing in epithelial tissues. An important open question is determining how these \textit{physical} mechanisms influence wound closure in different developmental stages. 
+
+% Paragraph 2 goal - Others assume elastic cells, we relax that assumption because of a growing understanding of cell viscoelasticity. Others get good agreement using elastic cells, but leads to unrealistic stress. 
+Previous computational models of wound closure have investigated contributions from substrate mechanical properties, active driving forces, and tissue tension \cite{bi2016motility,staddon2018cooperation,brugues2014forces, tetley2019tissue}. These models assume that cell membranes only respond elastically to deformation, ignoring viscoelastic and plastic response \cite{janshoff2021viscoelastic, shi2018cell, wyatt2016question}. However, recent experimental studies have shown that irreversible cell shape changes \cite{molnar2021plastic, staddon2019mechanosensitive, khalilgharibi2019stress, cavanaugh2020rhoa} are necessary for cell stress relaxation and tissue remodeling. Neglecting cell membrane plasticity can give rise to unrealistically large stresses when significant cell shape changes are required for wound closure.  It is therefore important to understand the role of viscoelastic and plastic response of cell membranes during wound closure. 
+
+% paragraph 3 goal - set up the unexplained feature, the experiments that showed it, explain figure 1. embryo and wing disc are different, and we theorize about why. 
+\textit{In vivo} studies of wound closure in late-stage \textit{Drosophila} embryonic ectoderm and late third-instar \textit{Drosophila} larval wing disc epithelium have found that cells near healed embryo wounds are elongated relative to those near healed wing disc wounds \cite{tetley2019tissue}. (See Fig.~\ref{fig:experimentalObservations}c,d.) Embryo wounds close at a rate of $\approx6.2~\mu $m$^2$/minute with cell shape changes of more than $30\%$ near the wound, whereas wing disc wounds close at a rate of $\approx0.7~\mu $m$^2$/minute with cell shape changes of less than $10\%$ near the wound.
+(See Fig.~\ref{fig:experimentalObservations}a,b, plotted from experimental data in Ref. \cite{tetley2019tissue}.) The findings of Ref. \cite{tetley2019tissue} employ a vertex model approach \cite{alt2017vertex} to predict that greater cell intercalation rates lead to increased wound closure speed. This prediction leads to an open question of how, relative to wing disc wounds, embryo wounds have lower intercalation rates yet heal more quickly \cite{tetley2019tissue}. To address this question, we propose that embryo ectodermal cells can rapidly remodel their membranes to sustain greater cell shape changes, which leads to faster wound closure rates than in the wing disc epithelium. 
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=\linewidth]{Fig1.eps}
+\caption{(a) Normalized wound area $A(t)/A(0)$ plotted as a function of time $t$ during wound closure in wing discs (black circles) and embryos (filled red triangles), fit to a sum of two exponential functions (dashed lines). (b) Cell shape parameter $\mathcal{A}(t)$ averaged over cells adjacent to the wound boundary and plotted versus time during wound closure for the same data in (a). We include a moving average of the data in (b) with a $20$-minute window size (solid lines). The data for $A(t)/A(0)$ and $\mathcal{A}(t)$ are from $5$ wing disc wounds and $2$ embryo wound experiments conducted in Ref.~\cite{tetley2019tissue}. Example cell outlines reproduced from Ref.~\cite{tetley2019tissue} are shown during wound closure for a single (c) wing disc and (d) embryo, with the wound shaded in gray. The scale bars are 3 $\mu m$ in (c) and 5 $\mu m$ in (d). 
+}
+\label{fig:experimentalObservations}
+\end{figure}
+
+% paragraph 4 goal - we use DPM simulations and experimental validation to understand the role of single-cell properties in clousre in both tissue types.
+We carry out numerical simulations of the deformable particle (DP) model to explore the relationship between cell mechanical properties and wound closure phenotypes. We vary the degree of cell shape plasticity and determine the resulting effects on wound closure rate and cell shape deformation. We compare our simulation results to measurements of cell shape changes and wound closure rates from wounding experiments in embryonic and larval wing disc epithelia \cite{tetley2019tissue}. Our results suggest that cell shape plasticity is essential to achieve cell shape changes observed during embryo wound closure. Moreover, plasticity allows for faster wound closure rates in embryos compared to those in wing discs. 
+% Methods paragraphs
+% 1 - single particle energy and interaction energy
+% 2 - plastic model for cell membrane
+% 3 - wound preparation and PS activity model
+% 4 - casting ka, tau in terms of physical values, image analysis
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=\linewidth]{Fig2.eps}
+\caption{(a) Schematic of a deformable particle (or cell) with area $a_i$ and segment lengths $l_{\alpha i} = |\vec{r}_{\alpha i}- \vec{r}_{(\alpha-1) i}|$ representing the cell membrane. (b) The distance vector ${\vec d}_{\alpha i,\beta j}$ between vertex $\alpha$ on cell $i$ and membrane segment ${\vec l}_{\beta j}$ on cell $j$ has no component along ${\vec l}_{\beta j}$. (c) A cell with $\mathcal{A}=1$ is uniaxially compressed. An elastic cell returns to its undeformed shape (left) after the strain is removed, whereas a plastic cell is permanently deformed (right). (d) A simulated wound is initialized as a cell monolayer, followed by removal of central cells such that the wound size is similar to those in Ref. \cite{tetley2019tissue}. Inset: Close-up of the purse string (PS), modeled as a collection of vertices (blue) along the edge of the wound (red). PS vertices are connected by springs (blue lines) with rest lengths $\lambda_0$, and each PS vertex is bonded to one DP vertex (yellow lines). 
+}
+\label{fig:modelSchematic}
+\end{figure}
+
+Since epithelial wound healing primarily involves in-plane motion, we consider a two-dimensional DP model for wound closure. The DP model has been studied recently in 2D and 3D, and DPs have been previously used to describe jamming and clogging of emulsion droplets and tissue morphogenesis \cite{boromand2018jamming, cheng2022hopper, wang2021structural, treado2021bridging, treado2022localized}. The strengths of the DP model include the ability to describe both confluent and non-confluent cell monolayers, both faceted and curved cell surfaces, and enable modeling both repulsive and cohesive intercellular forces. The shape energy \cite{boromand2018jamming} for each cell $i$ is 
+\begin{equation}
+    \label{eq:energy_DPM}
+    U_{shape, i} = \frac{k_a}{2}\left(a_i - a_0\right)^2 + \frac{k_l}{2}\sum_{\alpha=1}^{N_v}\left(l_{\alpha i} - l_{0\alpha i}\right)^2 + U_{b,i}.
+\end{equation}
+Each cell is represented by a polygon with $N_v$ vertices (labeled by $\alpha$), membrane bond vectors $\vec{l}_{\alpha i} = \vec{r}_{\alpha i} - \vec{r}_{(\alpha-1) i}$, vertex positions ${\vec r}_{\alpha i}=(x_{\alpha i},y_{\alpha i})$, equilibrium area $a_0$, and equilibrium intervertex membrane length $l_{0\alpha i}$. The area stiffness spring constant $k_a$ and membrane length spring constant $k_l$ penalize deviations of the cell area $a_i$ from $a_0$ and membrane length $l_{\alpha i}$ from $l_{0\alpha i}$. (See Fig. \ref{fig:modelSchematic}a.) We quantify cell shape using the shape parameter $\mathcal{A}_i = p_i^2/4\pi a$, where $p_i$ is the perimeter of cell $i$ and ${\cal A}_i \ge 1$. The bending energy 
+\begin{equation}
+    \label{eq:bending}
+    U_{b, i} = \frac{k_b}{2}\sum_{\alpha=1}^{N_v}\theta_{\alpha i}^2
+\end{equation} 
+determines the energy cost of membrane curvature for cell $i$, where $k_b$ is the membrane bending rigidity and $\theta_{\alpha i}$ is the angle between $\vec{l}_{\alpha i}$ and $\vec{l}_{(\alpha-1)i}$.
+
+The cells interact through the pair potential $U_{int}$, which is a function of the distances between each vertex and nearby membrane segments on neighboring cells. $U_{int}$ includes soft-core repulsion and short-range attraction with a variable well depth. We calculate the distance 
+\begin{align}
+    \label{eq:point_line_distance}
+    &d_{\alpha i,\beta j} = \\ 
+    &\frac{|(x_{(\beta-1)j} - x_{\beta j})(y_{\beta j}-y_{\alpha i}) - (x_{\beta j} - x_{\alpha i})(y_{(\beta-1)j} - y_{\beta j})|}{|\vec{r}_{\beta j} - \vec{r}_{(\beta-1)j}|} \nonumber
+\end{align}
+between each vertex $\alpha$ on cell $i$ and membrane segment $\vec{l}_{\beta j}$ on cell $j$ as shown in Fig.~\ref{fig:modelSchematic}b. Having intercellular interactions that are only a function of $d_{\alpha i,\beta j}$ results in smooth sliding adhesion by eliminating components of the force on vertex $\alpha$ on cell $i$ from interactions with cell $j$ that are parallel to $\vec{l}_{\beta j}$. (See the definition of $U_{int}$ in Eq. S1, and the simulation parameters in Table S1 in Supplemental Material (SM) \cite{supp}.) The total energy $U_{DP}$ of a monolayer of $N$ cells is 
+\begin{equation}
+    U_{DP} = \sum_{i=1}^N U_{shape,i} + \sum_{i > j}^N \sum_{\alpha > \beta}^{N_v} U_{int}(d_{\alpha i,\beta j}).
+\end{equation}
+
+Animal cell membranes possess solid-like mechanical response on short and intermediate time scales, and are capable of stretching, bending, and transmitting forces \cite{dai1997cell, janmey2007cell}. To describe the viscoelasticity of the cell membrane, we model the membrane segments as springs that remodel their rest lengths in response to stress (Eq. \ref{eq:plastic_dynamical_eq}), similar in approach to models of irreversible deformation of the cytoskeleton and cell junctions \cite{munoz2013physiology, staddon2019mechanosensitive, cavanaugh2020rhoa}.  We use rest-length remodeling to describe the net result of membrane stress relaxation processes, such as actin cortex remodeling, membrane folding and unfolding via caveolae, and vesicle trafficking via endocytosis and exocytosis \cite{kelkar2020mechanics, figard2014membrane,cavanaugh2020rhoa}. We assume that the membrane segment rest length $l_{0\alpha i}$ obeys 
+\begin{equation}
+    \label{eq:plastic_dynamical_eq}
+    \frac{dl_{0\alpha i}}{dt} = -\frac{k_l}{\eta}(l_{0\alpha i}-l_{\alpha i}),
+\end{equation}
+with damping coefficient $\eta$. The plastic relaxation timescale $\tau = \eta / k_l$ controls the membrane remodeling rate. In Fig. \ref{fig:modelSchematic}c, we show a compression test of duration $T$ on a single cell with an elastic ($\tau/T \gg 1$) and plastic membrane ($\tau/T \ll 1$). Cells with elastic membranes recover their undeformed shape, whereas cells with plastic membranes do not. By varying $\tau$, we describe cells with different degrees of elasto-plasticity. 
+
+\begin{figure}[!th]
+    \centering
+    \includegraphics[width=\linewidth]{Fig3.eps}
+\caption{(a) Cell shape parameter $\mathcal{A}$ in the healed system plotted versus the cell bulk modulus \textit{B} and plastic relaxation timescale $\tau$. (b) Closure rate $dA/dt$ plotted using the data in (a). Parameters indicated by the squares represent predictions for $B$ and $\tau$ of embryo (red) and wing disc (black) cells. $dA/dt$ is defined as $95\%$ of the maximum wound area divided by the time it takes for the wound to shrink to $5\%$ of its maximum size. Averaging at a given $\tau$ and $\beta$ is performed over $25$ simulations with different initial conditions. Simulations are carried out at $B$ and $\tau$ given by the grid points, and contours are obtained via interpolation between grid points.
+}
+\label{fig:heatmaps}
+\end{figure}
+
+%As a further simplification, we choose to study only the biomechanical contributions to wound closure by omitting any explicit simulation of chemical signals such as chemoattractants. While chemoattractants are important for adult skin wound healing, previous work suggests a significantly reduced role of chemoattractants in wound models of earlier developmental stage tissues\cite{redd2004wound, ridiandries2018role, degen2012embryonic}. 
+
+The wound simulations are conducted using overdamped equations of motion (Eq. S5), which are commonly used to model cell dynamics in the viscous extracellular environment \cite{barton2017active, delile2017cell}. We do not model explicit chemical signaling, and instead capture the biomechanical response that results from these chemical signals. Wounds are simulated by first generating a nearly confluent cell monolayer with $\mathcal{A} = 1.2$, similar to $\mathcal{A}$ of embryo and larval wing disc cells. We then remove the central cells from the monolayer, resulting in wounds similar in size to those in laser ablation experiments on epithelial monolayers~\cite{tetley2019tissue}. In these simulations, we focus on the purse-string (PS) mechanism for wound closure. While embryonic wound healing features both PS and protrusive crawling activity \cite{tetley2019tissue,abreu2012drosophila}, our simulations with only PS activity can predict the differences in embryonic and larval wing disc wound closure. We define the PS as a collection of $N_{p}$ vertices along the wound boundary as shown in Fig.~\ref{fig:modelSchematic}d. Each PS vertex at position $\vec{r}_p(t)$ is initially coincident with a wound-adjacent DP vertex at $\vec{r}_d(t)$, such that $\vec{r}_p(0) = \vec{r}_d(0)$. The two vertices are bonded by a spring with stiffness $k_{p}$, length $l = |\vec{r}_{p} - \vec{r}_{d}|$, and yield length $l_y$. For each PS vertex, the interaction energy is
+\begin{equation}
+    \label{eq:energy_k_PS}
+    U_{PS} = \frac{k_p}{2} \left[\min\left(l, \frac{l_y}{2}\right)\right]^2 ~ \Theta(l_y - l),
+\end{equation}
+where $\Theta(\cdot)$ is the Heaviside step function, and $U_{PS}$ saturates when $l \geq l_y/2$ and vanishes when $l > l_y$. Including $l_y$ ensures that PS vertices only interact with membrane segments near the wound. The PS contracts linearly in time $t$ with constriction rate $\omega$. Adjacent PS vertices are connected by springs with stiffness $k_{ps} = k_l$ and rest length 
+\begin{equation}
+    \label{eq:PS_rest_length}
+    \lambda_0(t) = \lambda_0(0) - \frac{\omega}{N_{p}},
+\end{equation}
+which causes the PS to constrict over time. $\lambda_0(0)$ is chosen for each PS segment such that there is no initial tension, i.e. $\lambda_0(0) = l_{\alpha i}$. 
+
+% include a table of default simulation parameters?
+% We compare to experiments, using dimensionful units and image analysis. 
+% In SM, need to justify the zebrafish cohesion choice (using Krieg et al. numbers but using their lower bound given that zebrafish ectodermal cells are so much larger - 300 micron^2x), and the actin ring constriction rate choice (is it common across species, or just a ballpark estimate?)
+To compare the wound closure simulation results with those from experiments, we analyze confocal microscopy images of wound closure in embryo and wing disc epithelia from Ref. \cite{tetley2019tissue}. (See Figs. S3 and S4 in SM \cite{supp}.) We convert simulation units to physical units using estimates of the adhesive force between two cells $f_{adh} (\approx 1~$nN) \cite{krieg2008tensile}, cell area ($a_0 \approx 25~\mu$m$^2$ for embryo ectoderm and $a_0 \approx 16~\mu$m$^2$ for wing disc epithelium), and PS constriction rate ($\omega \approx 0.3~\mu$m/s) \cite{biron2005molecular, stachowiak2014mechanism}. For example, the plastic relaxation time $\tau$ and cell bulk modulus $B$ can be expressed in physical units as 
+\begin{equation}
+    \label{eq:tau_real_units}
+    \tau = \tau^* \sqrt{a_0}/\omega 
+\end{equation}
+\begin{equation}
+    B = k_a^*\frac{f_{adh}}{a_0} \label{eq:B_derivation},
+\end{equation}
+where $\tau^*$ is the dimensionless plastic relaxation time and $k_a^*$ is the dimensionless area stiffness spring constant. 
+
+% describe Figure 3 and its conclusions - stiff, elastic cells heal slowly and don't deform much. more plastic cells heal faster and deform. Figure 3 shows that we need plasticity to describe embryos. only with unrealistic softness can we get the cell shapes, and even then we cannot get the speeds. 
+By varying $\tau$ and using realistic values of $B$, the wound closure simulations can recapitulate cell shape changes near the wound $\Delta\mathcal{A} = {\cal A} - {\cal A}(0)$ (where ${\cal A}(0) \approx 1.2$) and closure rates $dA/dt$ that mimic those for embryo and wing disc wound closure. In Fig.~\ref{fig:heatmaps}, we show $\mathcal{A}$ of cells in the healed tissue that were adjacent to the wound boundary and $dA/dt$ as a function of $B$ and $\tau$. Increasing cell membrane plasticity (i.e. decreasing $\tau$) significantly increases $dA/dt$ and $\Delta\mathcal{A}$. Elastic-like cells only achieve comparable $\Delta\mathcal{A}$ to embryo cells when they are unrealistically soft ($B \leq 0.04$ kPa), as experimental measurements of cell bulk moduli range from $0.3$ to $2$ kPa \cite{charras2005non,coughlin2006filamin, charras2008life}. In a realistic range of $B$, elastic-like cells feature decreased $dA/dt$ and smaller $\Delta\mathcal{A}$, with final shapes ranging from $\mathcal{A} = 1.35 $ to $1.5$ (Fig. \ref{fig:heatmaps}b). Small $B$ alone does not result in the order of magnitude difference in $dA/dt$ between embryo and wing disc wounds, suggesting that plasticity is essential to achieve $\Delta\mathcal{A}$ and $dA/dt$ found during embryo wound closure.
+
+%Trend inversion - softness makes faster closure and more shape change for elastic, but stiffness makes faster closure and more shape change for plastic. explain as a separation of energy scales, energy source goes into straining lengths which are amenable to remodeling 
+In elastic-like cells (i.e. $\tau>85$ min in Fig. \ref{fig:heatmaps}), increased $B$ causes decreases in $dA/dt$ and $\Delta\mathcal{A}$. This trend reverses in plastic-like cells (i.e. $\tau < 20$ min in Fig. \ref{fig:heatmaps}). Increasing $B$ dramatically decouples changes in membrane length from changes in area. Therefore, work done by $U_p$ strains membrane lengths significantly more than cell areas, enhancing $\Delta\mathcal{A}$ when the membranes are plastic. We confirm this result by demonstrating that stiffer, plastic cells are more deformable than softer or more elastic cells, in simulations of a cell experiencing an extensile force dipole. (See Fig. S5 in SM \cite{supp}.)
+
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{Fig4.eps}
+\caption{(a) Normalized wound area $A(t)/A(0)$ plotted versus time $t$ for simulations of wound closure in embryo (red triangles) and wing disc cells (black triangles) using parameters in Fig. \ref{fig:heatmaps}. (b) $\mathcal{A}(t)$ averaged over cells adjacent to the wound for the simulations in (a). Solid lines indicate the moving average of $\mathcal{A}(t)$ from experiments. Results from simulations using Eq. \ref{eq:tau_s} are included in (a) and (b) to account for shape memory of wing disc cells (black squares). Snapshots of these simulations are shown for (c) embryo and (d) wing disc parameters.
+}
+\label{fig:validation}
+\end{figure}
+
+We validate the DP model for wound closure by comparing the results of simulations in Fig. \ref{fig:heatmaps} to time-series data for the wound area and cell shape parameter in Fig. \ref{fig:experimentalObservations}a,b. The simulation parameters, except $\tau$ and $B$, are identical among different simulations in Fig. \ref{fig:heatmaps}. We use softer and more plastic cells to model the embryo (red square) than the wing disc (black square). This choice reflects the expectation that cell stiffness increases with greater degree of cell differentiation \cite{guimaraes2020stiffness, molnar2021plastic}, and the observation that embryo cell shapes deform faster and more severely than wing disc cell shapes. We find that our results for the time dependence of the wound area are consistent with the experimental data for the embryo and wing disc (Fig. \ref{fig:validation}a). $\mathcal{A}(t)$ in embryos matches the simulation results. In contrast,  $\mathcal{A}(t)$ in wing discs (Fig. \ref{fig:validation}b) requires an additional shape memory term in the membrane remodeling equation, {\it c.f.} Eq.~\ref{eq:plastic_dynamical_eq}, 
+\begin{equation}
+    \label{eq:tau_s}
+    \frac{dl_{0\alpha i}}{dt} = -\frac{k_l}{\eta}\left(l_{0\alpha i}-l_{\alpha i} - \xi(l_{\alpha i} - l_{0\alpha i}(0)\right),
+\end{equation}
+where $l_{0\alpha i}(0)$ is the segment length before wounding and $\xi$ controls the timescale $\tau_s = \tau/\xi$ for cells to recover their original shape. We use $\xi=0$ for the embryo and $\xi = 0.1$ for the wing disc, which leads to a better description of $\mathcal{A}(t)$. This result suggests that more differentiated cells may have greater shape memory, perhaps to maintain their specialized functions.
+
+Snapshots at several time points in Fig. \ref{fig:validation}c-d show how wound closure trajectories vary with $B$ and $\tau$. Soft and plastic cells form multicellular rosettes, which are common in embryonic wound healing and developmental processes~\cite{wood2002wound, tetley2019tissue, harding2014roles}. Elastic-like cells exhibit less elongation towards the wound and fewer cell contacts near the wound, which is attributed to increased intercalation, akin to the wing disc wound closure process \cite{tetley2019tissue}. The difference in elongation between elastic- and plastic-like cells during wound closure arises due to differences in cell stress relaxation, as plastic cells can relax by elongation whereas elastic cells must relax by changing neighbors.
+
+Deformable particle model simulations show that changes in cell stiffness and membrane plasticity lead to distinct wound closure phenotypes displayed in \textit{Drosophila} embryo ectoderm and larval wing disc epithelium. The simulations take advantage of the deformable particle model's ability to describe highly deformed cell shapes to incorporate membrane plasticity which is not present in previous vertex model simulations of wound closure. By varying the cell bulk modulus $B$ and plastic relaxation timescale $\tau$, we find regimes that correspond to fast closure with significant cell shape changes, and slow closure with minor cell shape changes, which recapitulate the wound healing experiments on embryo and larval wing disc epithelia. We attribute the increased wound closure rates and greater cell shape changes to enhanced cell shape deformability, controlled by $B$ and $\tau$, in embryo cells relative to wing disc cells. These results show that the apparent paradox in Ref. \cite{tetley2019tissue} that embryo ectodermal wounds close more quickly than wing disc epithelial wounds can be resolved by considering a cell model with cell shape plasticity. Our model predicts that the key to explaining the differences in wound closure of \textit{Drosophila} embryo and wing disc wounds is cell shape plasticity.
+
+The correlation between rapid closure rate and distorted cell shapes during epithelial wound healing may suggest that earlier developmental stages prioritize fast healing at the expense of not maintaining the original tissue structure. Future work is necessary to determine whether cell shape plasticity is responsible for distinct patterns of tissue restructuring that occur during developmental processes, such as gastrulation and neurulation \cite{solnica2012gastrulation,vijayraghavan2017mechanics}. In addition, although the current study investigates cell shape changes from membrane surface remodeling, the role of cell volume plasticity is still unclear. Cell shape plasticity is the net result of surface area and volume plasticity, which are influenced by actin cortex remodeling and membrane reservoirs. Future experiments are necessary to investigate the separate contribution of these components to cell shape plasticity during wound closure. 
+
+The authors acknowledge support from NSF Grant No. 2102789, NIH T32 GM 008384, and the High Performance Computing facilities operated by Yale’s Center for Research Computing. We also thank Robert Tetley and Yanlan Mao for sharing their wound healing data.
+
+\appendix
+\bibliography{main}
+
+\end{document}

@@ -1,0 +1,752 @@
+%apsrev4-2.bst 2019-01-14 (MD) hand-edited version of apsrev4-1.bst
+%Control: key (0)
+%Control: author (8) initials jnrlst
+%Control: editor formatted (1) identically to author
+%Control: production of article title (0) allowed
+%Control: page (0) single
+%Control: year (1) truncated
+%Control: production of eprint (0) enabled
+\begin{thebibliography}{50}%
+\makeatletter
+\providecommand \@ifxundefined [1]{%
+ \@ifx{#1\undefined}
+}%
+\providecommand \@ifnum [1]{%
+ \ifnum #1\expandafter \@firstoftwo
+ \else \expandafter \@secondoftwo
+ \fi
+}%
+\providecommand \@ifx [1]{%
+ \ifx #1\expandafter \@firstoftwo
+ \else \expandafter \@secondoftwo
+ \fi
+}%
+\providecommand \natexlab [1]{#1}%
+\providecommand \enquote  [1]{``#1''}%
+\providecommand \bibnamefont  [1]{#1}%
+\providecommand \bibfnamefont [1]{#1}%
+\providecommand \citenamefont [1]{#1}%
+\providecommand \href@noop [0]{\@secondoftwo}%
+\providecommand \href [0]{\begingroup \@sanitize@url \@href}%
+\providecommand \@href[1]{\@@startlink{#1}\@@href}%
+\providecommand \@@href[1]{\endgroup#1\@@endlink}%
+\providecommand \@sanitize@url [0]{\catcode `\\12\catcode `\$12\catcode
+  `\&12\catcode `\#12\catcode `\^12\catcode `\_12\catcode `\%12\relax}%
+\providecommand \@@startlink[1]{}%
+\providecommand \@@endlink[0]{}%
+\providecommand \url  [0]{\begingroup\@sanitize@url \@url }%
+\providecommand \@url [1]{\endgroup\@href {#1}{\urlprefix }}%
+\providecommand \urlprefix  [0]{URL }%
+\providecommand \Eprint [0]{\href }%
+\providecommand \doibase [0]{https://doi.org/}%
+\providecommand \selectlanguage [0]{\@gobble}%
+\providecommand \bibinfo  [0]{\@secondoftwo}%
+\providecommand \bibfield  [0]{\@secondoftwo}%
+\providecommand \translation [1]{[#1]}%
+\providecommand \BibitemOpen [0]{}%
+\providecommand \bibitemStop [0]{}%
+\providecommand \bibitemNoStop [0]{.\EOS\space}%
+\providecommand \EOS [0]{\spacefactor3000\relax}%
+\providecommand \BibitemShut  [1]{\csname bibitem#1\endcsname}%
+\let\auto@bib@innerbib\@empty
+%</preamble>
+\bibitem [{\citenamefont {Wood}\ \emph {et~al.}(2002)\citenamefont {Wood},
+  \citenamefont {Jacinto}, \citenamefont {Grose}, \citenamefont {Woolner},
+  \citenamefont {Gale}, \citenamefont {Wilson},\ and\ \citenamefont
+  {Martin}}]{wood2002wound}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {W.}~\bibnamefont
+  {Wood}}, \bibinfo {author} {\bibfnamefont {A.}~\bibnamefont {Jacinto}},
+  \bibinfo {author} {\bibfnamefont {R.}~\bibnamefont {Grose}}, \bibinfo
+  {author} {\bibfnamefont {S.}~\bibnamefont {Woolner}}, \bibinfo {author}
+  {\bibfnamefont {J.}~\bibnamefont {Gale}}, \bibinfo {author} {\bibfnamefont
+  {C.}~\bibnamefont {Wilson}},\ and\ \bibinfo {author} {\bibfnamefont
+  {P.}~\bibnamefont {Martin}},\ }\bibfield  {title} {\bibinfo {title} {Wound
+  healing recapitulates morphogenesis in drosophila embryos},\ }\href@noop {}
+  {\bibfield  {journal} {\bibinfo  {journal} {Nature Cell Biology}\ }\textbf
+  {\bibinfo {volume} {4}},\ \bibinfo {pages} {907} (\bibinfo {year}
+  {2002})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Abreu-Blanco}\ \emph {et~al.}(2012)\citenamefont
+  {Abreu-Blanco}, \citenamefont {Verboon}, \citenamefont {Liu}, \citenamefont
+  {Watts},\ and\ \citenamefont {Parkhurst}}]{abreu2012drosophila}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {M.~T.}\ \bibnamefont
+  {Abreu-Blanco}}, \bibinfo {author} {\bibfnamefont {J.~M.}\ \bibnamefont
+  {Verboon}}, \bibinfo {author} {\bibfnamefont {R.}~\bibnamefont {Liu}},
+  \bibinfo {author} {\bibfnamefont {J.~J.}\ \bibnamefont {Watts}},\ and\
+  \bibinfo {author} {\bibfnamefont {S.~M.}\ \bibnamefont {Parkhurst}},\
+  }\bibfield  {title} {\bibinfo {title} {Drosophila embryos close epithelial
+  wounds using a combination of cellular protrusions and an actomyosin purse
+  string},\ }\href@noop {} {\bibfield  {journal} {\bibinfo  {journal} {Journal
+  of Cell Science}\ }\textbf {\bibinfo {volume} {125}},\ \bibinfo {pages}
+  {5984} (\bibinfo {year} {2012})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Tetley}\ \emph {et~al.}(2019)\citenamefont {Tetley},
+  \citenamefont {Staddon}, \citenamefont {Heller}, \citenamefont {Hoppe},
+  \citenamefont {Banerjee},\ and\ \citenamefont {Mao}}]{tetley2019tissue}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {R.~J.}\ \bibnamefont
+  {Tetley}}, \bibinfo {author} {\bibfnamefont {M.~F.}\ \bibnamefont {Staddon}},
+  \bibinfo {author} {\bibfnamefont {D.}~\bibnamefont {Heller}}, \bibinfo
+  {author} {\bibfnamefont {A.}~\bibnamefont {Hoppe}}, \bibinfo {author}
+  {\bibfnamefont {S.}~\bibnamefont {Banerjee}},\ and\ \bibinfo {author}
+  {\bibfnamefont {Y.}~\bibnamefont {Mao}},\ }\bibfield  {title} {\bibinfo
+  {title} {Tissue fluidity promotes epithelial wound healing},\ }\href@noop {}
+  {\bibfield  {journal} {\bibinfo  {journal} {Nature Physics}\ }\textbf
+  {\bibinfo {volume} {15}},\ \bibinfo {pages} {1195} (\bibinfo {year}
+  {2019})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Miskolci}\ \emph {et~al.}(2019)\citenamefont
+  {Miskolci}, \citenamefont {Squirrell}, \citenamefont {Rindy}, \citenamefont
+  {Vincent}, \citenamefont {Sauer}, \citenamefont {Gibson}, \citenamefont
+  {Eliceiri},\ and\ \citenamefont {Huttenlocher}}]{miskolci2019distinct}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {V.}~\bibnamefont
+  {Miskolci}}, \bibinfo {author} {\bibfnamefont {J.}~\bibnamefont {Squirrell}},
+  \bibinfo {author} {\bibfnamefont {J.}~\bibnamefont {Rindy}}, \bibinfo
+  {author} {\bibfnamefont {W.}~\bibnamefont {Vincent}}, \bibinfo {author}
+  {\bibfnamefont {J.~D.}\ \bibnamefont {Sauer}}, \bibinfo {author}
+  {\bibfnamefont {A.}~\bibnamefont {Gibson}}, \bibinfo {author} {\bibfnamefont
+  {K.~W.}\ \bibnamefont {Eliceiri}},\ and\ \bibinfo {author} {\bibfnamefont
+  {A.}~\bibnamefont {Huttenlocher}},\ }\bibfield  {title} {\bibinfo {title}
+  {Distinct inflammatory and wound healing responses to complex caudal fin
+  injuries of larval zebrafish},\ }\href@noop {} {\bibfield  {journal}
+  {\bibinfo  {journal} {Elife}\ }\textbf {\bibinfo {volume} {8}},\ \bibinfo
+  {pages} {e45976} (\bibinfo {year} {2019})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Wong}\ \emph {et~al.}(2012)\citenamefont {Wong},
+  \citenamefont {Rustad}, \citenamefont {Akaishi}, \citenamefont {Sorkin},
+  \citenamefont {Glotzbach}, \citenamefont {Januszyk}, \citenamefont {Nelson},
+  \citenamefont {Levi}, \citenamefont {Paterno}, \citenamefont {Vial},
+  \citenamefont {Kuang}, \citenamefont {Longaker},\ and\ \citenamefont
+  {Gurtner}}]{wong2012focal}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {V.~W.}\ \bibnamefont
+  {Wong}}, \bibinfo {author} {\bibfnamefont {K.~C.}\ \bibnamefont {Rustad}},
+  \bibinfo {author} {\bibfnamefont {S.}~\bibnamefont {Akaishi}}, \bibinfo
+  {author} {\bibfnamefont {M.}~\bibnamefont {Sorkin}}, \bibinfo {author}
+  {\bibfnamefont {J.~P.}\ \bibnamefont {Glotzbach}}, \bibinfo {author}
+  {\bibfnamefont {M.}~\bibnamefont {Januszyk}}, \bibinfo {author}
+  {\bibfnamefont {E.~R.}\ \bibnamefont {Nelson}}, \bibinfo {author}
+  {\bibfnamefont {K.}~\bibnamefont {Levi}}, \bibinfo {author} {\bibfnamefont
+  {J.}~\bibnamefont {Paterno}}, \bibinfo {author} {\bibfnamefont {I.~N.}\
+  \bibnamefont {Vial}}, \bibinfo {author} {\bibfnamefont {A.~A.}\ \bibnamefont
+  {Kuang}}, \bibinfo {author} {\bibfnamefont {M.~T.}\ \bibnamefont
+  {Longaker}},\ and\ \bibinfo {author} {\bibfnamefont {G.~C.}\ \bibnamefont
+  {Gurtner}},\ }\bibfield  {title} {\bibinfo {title} {Focal adhesion kinase
+  links mechanical force to skin fibrosis via inflammatory signaling},\
+  }\href@noop {} {\bibfield  {journal} {\bibinfo  {journal} {Nature Medicine}\
+  }\textbf {\bibinfo {volume} {18}},\ \bibinfo {pages} {148} (\bibinfo {year}
+  {2012})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Guo}\ and\ \citenamefont
+  {DiPietro}(2010)}]{guo2010factors}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {S.~A.}\ \bibnamefont
+  {Guo}}\ and\ \bibinfo {author} {\bibfnamefont {L.~A.}\ \bibnamefont
+  {DiPietro}},\ }\bibfield  {title} {\bibinfo {title} {Factors affecting wound
+  healing},\ }\href@noop {} {\bibfield  {journal} {\bibinfo  {journal} {Journal
+  of Dental Research}\ }\textbf {\bibinfo {volume} {89}},\ \bibinfo {pages}
+  {219} (\bibinfo {year} {2010})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {George~Broughton}\ \emph {et~al.}(2006)\citenamefont
+  {George~Broughton}, \citenamefont {Janis},\ and\ \citenamefont
+  {Attinger}}]{george2006basic}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {I.}~\bibnamefont
+  {George~Broughton}}, \bibinfo {author} {\bibfnamefont {J.~E.}\ \bibnamefont
+  {Janis}},\ and\ \bibinfo {author} {\bibfnamefont {C.~E.}\ \bibnamefont
+  {Attinger}},\ }\bibfield  {title} {\bibinfo {title} {The basic science of
+  wound healing},\ }\href@noop {} {\bibfield  {journal} {\bibinfo  {journal}
+  {Plastic and Reconstructive Surgery}\ }\textbf {\bibinfo {volume} {117}},\
+  \bibinfo {pages} {12S} (\bibinfo {year} {2006})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Redd}\ \emph {et~al.}(2004)\citenamefont {Redd},
+  \citenamefont {Cooper}, \citenamefont {Wood}, \citenamefont {Stramer},\ and\
+  \citenamefont {Martin}}]{redd2004wound}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {M.~J.}\ \bibnamefont
+  {Redd}}, \bibinfo {author} {\bibfnamefont {L.}~\bibnamefont {Cooper}},
+  \bibinfo {author} {\bibfnamefont {W.}~\bibnamefont {Wood}}, \bibinfo {author}
+  {\bibfnamefont {B.}~\bibnamefont {Stramer}},\ and\ \bibinfo {author}
+  {\bibfnamefont {P.}~\bibnamefont {Martin}},\ }\bibfield  {title} {\bibinfo
+  {title} {Wound healing and inflammation: embryos reveal the way to perfect
+  repair},\ }\href@noop {} {\bibfield  {journal} {\bibinfo  {journal}
+  {Philosophical Transactions of the Royal Society of London. Series B:
+  Biological Sciences}\ }\textbf {\bibinfo {volume} {359}},\ \bibinfo {pages}
+  {777} (\bibinfo {year} {2004})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Richardson}\ \emph {et~al.}(2013)\citenamefont
+  {Richardson}, \citenamefont {Slanchev}, \citenamefont {Kraus}, \citenamefont
+  {Knyphausen}, \citenamefont {Eming},\ and\ \citenamefont
+  {Hammerschmidt}}]{richardson2013adult}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {R.}~\bibnamefont
+  {Richardson}}, \bibinfo {author} {\bibfnamefont {K.}~\bibnamefont
+  {Slanchev}}, \bibinfo {author} {\bibfnamefont {C.}~\bibnamefont {Kraus}},
+  \bibinfo {author} {\bibfnamefont {P.}~\bibnamefont {Knyphausen}}, \bibinfo
+  {author} {\bibfnamefont {S.}~\bibnamefont {Eming}},\ and\ \bibinfo {author}
+  {\bibfnamefont {M.}~\bibnamefont {Hammerschmidt}},\ }\bibfield  {title}
+  {\bibinfo {title} {Adult zebrafish as a model system for cutaneous
+  wound-healing research},\ }\href@noop {} {\bibfield  {journal} {\bibinfo
+  {journal} {Journal of Investigative Dermatology}\ }\textbf {\bibinfo {volume}
+  {133}},\ \bibinfo {pages} {1655} (\bibinfo {year} {2013})}\BibitemShut
+  {NoStop}%
+\bibitem [{\citenamefont {Cordeiro}\ and\ \citenamefont
+  {Jacinto}(2013)}]{cordeiro2013role}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {J.~V.}\ \bibnamefont
+  {Cordeiro}}\ and\ \bibinfo {author} {\bibfnamefont {A.}~\bibnamefont
+  {Jacinto}},\ }\bibfield  {title} {\bibinfo {title} {The role of
+  transcription-independent damage signals in the initiation of epithelial
+  wound healing},\ }\href@noop {} {\bibfield  {journal} {\bibinfo  {journal}
+  {Nature Reviews Molecular Cell Biology}\ }\textbf {\bibinfo {volume} {14}},\
+  \bibinfo {pages} {249} (\bibinfo {year} {2013})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Li}\ \emph {et~al.}(2013)\citenamefont {Li},
+  \citenamefont {He}, \citenamefont {Zhao},\ and\ \citenamefont
+  {Jiang}}]{li2013collective}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {L.}~\bibnamefont
+  {Li}}, \bibinfo {author} {\bibfnamefont {Y.}~\bibnamefont {He}}, \bibinfo
+  {author} {\bibfnamefont {M.}~\bibnamefont {Zhao}},\ and\ \bibinfo {author}
+  {\bibfnamefont {J.}~\bibnamefont {Jiang}},\ }\bibfield  {title} {\bibinfo
+  {title} {Collective cell migration: Implications for wound healing and cancer
+  invasion},\ }\href@noop {} {\bibfield  {journal} {\bibinfo  {journal} {Burns
+  \& Trauma}\ }\textbf {\bibinfo {volume} {1}},\ \bibinfo {pages} {2321}
+  (\bibinfo {year} {2013})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Brugu{\'e}s}\ \emph {et~al.}(2014)\citenamefont
+  {Brugu{\'e}s}, \citenamefont {Anon}, \citenamefont {Conte}, \citenamefont
+  {Veldhuis}, \citenamefont {Gupta}, \citenamefont {Colombelli}, \citenamefont
+  {Mu{\~n}oz}, \citenamefont {Brodland}, \citenamefont {Ladoux},\ and\
+  \citenamefont {Trepat}}]{brugues2014forces}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {A.}~\bibnamefont
+  {Brugu{\'e}s}}, \bibinfo {author} {\bibfnamefont {E.}~\bibnamefont {Anon}},
+  \bibinfo {author} {\bibfnamefont {V.}~\bibnamefont {Conte}}, \bibinfo
+  {author} {\bibfnamefont {J.~H.}\ \bibnamefont {Veldhuis}}, \bibinfo {author}
+  {\bibfnamefont {M.}~\bibnamefont {Gupta}}, \bibinfo {author} {\bibfnamefont
+  {J.}~\bibnamefont {Colombelli}}, \bibinfo {author} {\bibfnamefont {J.~J.}\
+  \bibnamefont {Mu{\~n}oz}}, \bibinfo {author} {\bibfnamefont {G.~W.}\
+  \bibnamefont {Brodland}}, \bibinfo {author} {\bibfnamefont {B.}~\bibnamefont
+  {Ladoux}},\ and\ \bibinfo {author} {\bibfnamefont {X.}~\bibnamefont
+  {Trepat}},\ }\bibfield  {title} {\bibinfo {title} {Forces driving epithelial
+  wound healing},\ }\href@noop {} {\bibfield  {journal} {\bibinfo  {journal}
+  {Nature Physics}\ }\textbf {\bibinfo {volume} {10}},\ \bibinfo {pages} {683}
+  (\bibinfo {year} {2014})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Ladoux}\ and\ \citenamefont
+  {M{\`e}ge}(2017)}]{ladoux2017mechanobiology}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {B.}~\bibnamefont
+  {Ladoux}}\ and\ \bibinfo {author} {\bibfnamefont {R.-M.}\ \bibnamefont
+  {M{\`e}ge}},\ }\bibfield  {title} {\bibinfo {title} {Mechanobiology of
+  collective cell behaviours},\ }\href@noop {} {\bibfield  {journal} {\bibinfo
+  {journal} {Nature Reviews Molecular Cell Biology}\ }\textbf {\bibinfo
+  {volume} {18}},\ \bibinfo {pages} {743} (\bibinfo {year} {2017})}\BibitemShut
+  {NoStop}%
+\bibitem [{\citenamefont {Davidson}\ \emph {et~al.}(2002)\citenamefont
+  {Davidson}, \citenamefont {Ezin},\ and\ \citenamefont
+  {Keller}}]{davidson2002embryonic}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {L.~A.}\ \bibnamefont
+  {Davidson}}, \bibinfo {author} {\bibfnamefont {A.~M.}\ \bibnamefont {Ezin}},\
+  and\ \bibinfo {author} {\bibfnamefont {R.}~\bibnamefont {Keller}},\
+  }\bibfield  {title} {\bibinfo {title} {Embryonic wound healing by apical
+  contraction and ingression in \textit{Xenopus laevis}},\ }\href@noop {}
+  {\bibfield  {journal} {\bibinfo  {journal} {Cell Motility and the
+  Cytoskeleton}\ }\textbf {\bibinfo {volume} {53}},\ \bibinfo {pages} {163}
+  (\bibinfo {year} {2002})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Bi}\ \emph {et~al.}(2015)\citenamefont {Bi},
+  \citenamefont {Lopez}, \citenamefont {Schwarz},\ and\ \citenamefont
+  {Manning}}]{bi2015density}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {D.}~\bibnamefont
+  {Bi}}, \bibinfo {author} {\bibfnamefont {J.}~\bibnamefont {Lopez}}, \bibinfo
+  {author} {\bibfnamefont {J.~M.}\ \bibnamefont {Schwarz}},\ and\ \bibinfo
+  {author} {\bibfnamefont {M.~L.}\ \bibnamefont {Manning}},\ }\bibfield
+  {title} {\bibinfo {title} {A density-independent rigidity transition in
+  biological tissues},\ }\href@noop {} {\bibfield  {journal} {\bibinfo
+  {journal} {Nature Physics}\ }\textbf {\bibinfo {volume} {11}},\ \bibinfo
+  {pages} {1074} (\bibinfo {year} {2015})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Park}\ \emph {et~al.}(2015)\citenamefont {Park},
+  \citenamefont {Kim}, \citenamefont {Bi}, \citenamefont {Mitchel},
+  \citenamefont {Qazvini}, \citenamefont {Tantisira}, \citenamefont {Park},
+  \citenamefont {McGill}, \citenamefont {Kim}, \citenamefont {Gweon},
+  \citenamefont {Notbohm}, \citenamefont {Steward~Jr}, \citenamefont {Burger},
+  \citenamefont {Randell}, \citenamefont {Kho}, \citenamefont {Tambe},
+  \citenamefont {Hardin}, \citenamefont {Shore}, \citenamefont {Israel},
+  \citenamefont {Weitz}, \citenamefont {Tschumperlin}, \citenamefont {Henske},
+  \citenamefont {Weiss}, \citenamefont {Manning}, \citenamefont {Butler},
+  \citenamefont {Drazen},\ and\ \citenamefont {Fredberg}}]{park2015unjamming}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {J.-A.}\ \bibnamefont
+  {Park}}, \bibinfo {author} {\bibfnamefont {J.~H.}\ \bibnamefont {Kim}},
+  \bibinfo {author} {\bibfnamefont {D.}~\bibnamefont {Bi}}, \bibinfo {author}
+  {\bibfnamefont {J.~A.}\ \bibnamefont {Mitchel}}, \bibinfo {author}
+  {\bibfnamefont {N.~T.}\ \bibnamefont {Qazvini}}, \bibinfo {author}
+  {\bibfnamefont {K.}~\bibnamefont {Tantisira}}, \bibinfo {author}
+  {\bibfnamefont {C.~Y.}\ \bibnamefont {Park}}, \bibinfo {author}
+  {\bibfnamefont {M.}~\bibnamefont {McGill}}, \bibinfo {author} {\bibfnamefont
+  {S.-H.}\ \bibnamefont {Kim}}, \bibinfo {author} {\bibfnamefont
+  {B.}~\bibnamefont {Gweon}}, \bibinfo {author} {\bibfnamefont
+  {J.}~\bibnamefont {Notbohm}}, \bibinfo {author} {\bibfnamefont
+  {R.}~\bibnamefont {Steward~Jr}}, \bibinfo {author} {\bibfnamefont
+  {S.}~\bibnamefont {Burger}}, \bibinfo {author} {\bibfnamefont {S.~H.}\
+  \bibnamefont {Randell}}, \bibinfo {author} {\bibfnamefont {A.~T.}\
+  \bibnamefont {Kho}}, \bibinfo {author} {\bibfnamefont {D.~T.}\ \bibnamefont
+  {Tambe}}, \bibinfo {author} {\bibfnamefont {C.}~\bibnamefont {Hardin}},
+  \bibinfo {author} {\bibfnamefont {S.~A.}\ \bibnamefont {Shore}}, \bibinfo
+  {author} {\bibfnamefont {E.}~\bibnamefont {Israel}}, \bibinfo {author}
+  {\bibfnamefont {D.~A.}\ \bibnamefont {Weitz}}, \bibinfo {author}
+  {\bibfnamefont {D.~J.}\ \bibnamefont {Tschumperlin}}, \bibinfo {author}
+  {\bibfnamefont {E.~P.}\ \bibnamefont {Henske}}, \bibinfo {author}
+  {\bibfnamefont {S.~T.}\ \bibnamefont {Weiss}}, \bibinfo {author}
+  {\bibfnamefont {M.~L.}\ \bibnamefont {Manning}}, \bibinfo {author}
+  {\bibfnamefont {J.~P.}\ \bibnamefont {Butler}}, \bibinfo {author}
+  {\bibfnamefont {J.~M.}\ \bibnamefont {Drazen}},\ and\ \bibinfo {author}
+  {\bibfnamefont {J.~J.}\ \bibnamefont {Fredberg}},\ }\bibfield  {title}
+  {\bibinfo {title} {Unjamming and cell shape in the asthmatic airway
+  epithelium},\ }\href@noop {} {\bibfield  {journal} {\bibinfo  {journal}
+  {Nature Materials}\ }\textbf {\bibinfo {volume} {14}},\ \bibinfo {pages}
+  {1040} (\bibinfo {year} {2015})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Grosser}\ \emph {et~al.}(2021)\citenamefont
+  {Grosser}, \citenamefont {Lippoldt}, \citenamefont {Oswald}, \citenamefont
+  {Merkel}, \citenamefont {Sussman}, \citenamefont {Renner}, \citenamefont
+  {Gottheil}, \citenamefont {Morawetz}, \citenamefont {Fuhs}, \citenamefont
+  {Xie}, \citenamefont {Pawlizak}, \citenamefont {Fritsch}, \citenamefont
+  {Wolf}, \citenamefont {Horn}, \citenamefont {Briest}, \citenamefont {Aktas},
+  \citenamefont {Manning},\ and\ \citenamefont {K{\"a}s}}]{grosser2021cell}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {S.}~\bibnamefont
+  {Grosser}}, \bibinfo {author} {\bibfnamefont {J.}~\bibnamefont {Lippoldt}},
+  \bibinfo {author} {\bibfnamefont {L.}~\bibnamefont {Oswald}}, \bibinfo
+  {author} {\bibfnamefont {M.}~\bibnamefont {Merkel}}, \bibinfo {author}
+  {\bibfnamefont {D.~M.}\ \bibnamefont {Sussman}}, \bibinfo {author}
+  {\bibfnamefont {F.}~\bibnamefont {Renner}}, \bibinfo {author} {\bibfnamefont
+  {P.}~\bibnamefont {Gottheil}}, \bibinfo {author} {\bibfnamefont {E.~W.}\
+  \bibnamefont {Morawetz}}, \bibinfo {author} {\bibfnamefont {T.}~\bibnamefont
+  {Fuhs}}, \bibinfo {author} {\bibfnamefont {X.}~\bibnamefont {Xie}}, \bibinfo
+  {author} {\bibfnamefont {S.}~\bibnamefont {Pawlizak}}, \bibinfo {author}
+  {\bibfnamefont {A.~W.}\ \bibnamefont {Fritsch}}, \bibinfo {author}
+  {\bibfnamefont {B.}~\bibnamefont {Wolf}}, \bibinfo {author} {\bibfnamefont
+  {L.-C.}\ \bibnamefont {Horn}}, \bibinfo {author} {\bibfnamefont
+  {S.}~\bibnamefont {Briest}}, \bibinfo {author} {\bibfnamefont
+  {B.}~\bibnamefont {Aktas}}, \bibinfo {author} {\bibfnamefont {M.~L.}\
+  \bibnamefont {Manning}},\ and\ \bibinfo {author} {\bibfnamefont {J.~A.}\
+  \bibnamefont {K{\"a}s}},\ }\bibfield  {title} {\bibinfo {title} {Cell and
+  nucleus shape as an indicator of tissue fluidity in carcinoma},\ }\href@noop
+  {} {\bibfield  {journal} {\bibinfo  {journal} {Physical Review X}\ }\textbf
+  {\bibinfo {volume} {11}},\ \bibinfo {pages} {011033} (\bibinfo {year}
+  {2021})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Bi}\ \emph {et~al.}(2016)\citenamefont {Bi},
+  \citenamefont {Yang}, \citenamefont {Marchetti},\ and\ \citenamefont
+  {Manning}}]{bi2016motility}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {D.}~\bibnamefont
+  {Bi}}, \bibinfo {author} {\bibfnamefont {X.}~\bibnamefont {Yang}}, \bibinfo
+  {author} {\bibfnamefont {M.~C.}\ \bibnamefont {Marchetti}},\ and\ \bibinfo
+  {author} {\bibfnamefont {M.~L.}\ \bibnamefont {Manning}},\ }\bibfield
+  {title} {\bibinfo {title} {Motility-driven glass and jamming transitions in
+  biological tissues},\ }\href@noop {} {\bibfield  {journal} {\bibinfo
+  {journal} {Physical Review X}\ }\textbf {\bibinfo {volume} {6}},\ \bibinfo
+  {pages} {021011} (\bibinfo {year} {2016})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Staddon}\ \emph {et~al.}(2018)\citenamefont
+  {Staddon}, \citenamefont {Bi}, \citenamefont {Tabatabai}, \citenamefont
+  {Ajeti}, \citenamefont {Murrell},\ and\ \citenamefont
+  {Banerjee}}]{staddon2018cooperation}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {M.~F.}\ \bibnamefont
+  {Staddon}}, \bibinfo {author} {\bibfnamefont {D.}~\bibnamefont {Bi}},
+  \bibinfo {author} {\bibfnamefont {A.~P.}\ \bibnamefont {Tabatabai}}, \bibinfo
+  {author} {\bibfnamefont {V.}~\bibnamefont {Ajeti}}, \bibinfo {author}
+  {\bibfnamefont {M.~P.}\ \bibnamefont {Murrell}},\ and\ \bibinfo {author}
+  {\bibfnamefont {S.}~\bibnamefont {Banerjee}},\ }\bibfield  {title} {\bibinfo
+  {title} {Cooperation of dual modes of cell motility promotes epithelial
+  stress relaxation to accelerate wound healing},\ }\href@noop {} {\bibfield
+  {journal} {\bibinfo  {journal} {PLoS Computational Biology}\ }\textbf
+  {\bibinfo {volume} {14}},\ \bibinfo {pages} {e1006502} (\bibinfo {year}
+  {2018})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Janshoff}(2021)}]{janshoff2021viscoelastic}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {A.}~\bibnamefont
+  {Janshoff}},\ }\bibfield  {title} {\bibinfo {title} {Viscoelastic properties
+  of epithelial cells},\ }\href@noop {} {\bibfield  {journal} {\bibinfo
+  {journal} {Biochemical Society Transactions}\ }\textbf {\bibinfo {volume}
+  {49}},\ \bibinfo {pages} {2687} (\bibinfo {year} {2021})}\BibitemShut
+  {NoStop}%
+\bibitem [{\citenamefont {Shi}\ \emph {et~al.}(2018)\citenamefont {Shi},
+  \citenamefont {Graber}, \citenamefont {Baumgart}, \citenamefont {Stone},\
+  and\ \citenamefont {Cohen}}]{shi2018cell}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {Z.}~\bibnamefont
+  {Shi}}, \bibinfo {author} {\bibfnamefont {Z.~T.}\ \bibnamefont {Graber}},
+  \bibinfo {author} {\bibfnamefont {T.}~\bibnamefont {Baumgart}}, \bibinfo
+  {author} {\bibfnamefont {H.~A.}\ \bibnamefont {Stone}},\ and\ \bibinfo
+  {author} {\bibfnamefont {A.~E.}\ \bibnamefont {Cohen}},\ }\bibfield  {title}
+  {\bibinfo {title} {Cell membranes resist flow},\ }\href@noop {} {\bibfield
+  {journal} {\bibinfo  {journal} {Cell}\ }\textbf {\bibinfo {volume} {175}},\
+  \bibinfo {pages} {1769} (\bibinfo {year} {2018})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Wyatt}\ \emph {et~al.}(2016)\citenamefont {Wyatt},
+  \citenamefont {Baum},\ and\ \citenamefont {Charras}}]{wyatt2016question}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {T.}~\bibnamefont
+  {Wyatt}}, \bibinfo {author} {\bibfnamefont {B.}~\bibnamefont {Baum}},\ and\
+  \bibinfo {author} {\bibfnamefont {G.}~\bibnamefont {Charras}},\ }\bibfield
+  {title} {\bibinfo {title} {A question of time: tissue adaptation to
+  mechanical forces},\ }\href@noop {} {\bibfield  {journal} {\bibinfo
+  {journal} {Current Opinion in Cell Biology}\ }\textbf {\bibinfo {volume}
+  {38}},\ \bibinfo {pages} {68} (\bibinfo {year} {2016})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Molnar}\ and\ \citenamefont
+  {Labouesse}(2021)}]{molnar2021plastic}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {K.}~\bibnamefont
+  {Molnar}}\ and\ \bibinfo {author} {\bibfnamefont {M.}~\bibnamefont
+  {Labouesse}},\ }\bibfield  {title} {\bibinfo {title} {The plastic cell:
+  mechanical deformation of cells and tissues},\ }\href@noop {} {\bibfield
+  {journal} {\bibinfo  {journal} {Open Biology}\ }\textbf {\bibinfo {volume}
+  {11}},\ \bibinfo {pages} {210006} (\bibinfo {year} {2021})}\BibitemShut
+  {NoStop}%
+\bibitem [{\citenamefont {Staddon}\ \emph {et~al.}(2019)\citenamefont
+  {Staddon}, \citenamefont {Cavanaugh}, \citenamefont {Munro}, \citenamefont
+  {Gardel},\ and\ \citenamefont {Banerjee}}]{staddon2019mechanosensitive}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {M.~F.}\ \bibnamefont
+  {Staddon}}, \bibinfo {author} {\bibfnamefont {K.~E.}\ \bibnamefont
+  {Cavanaugh}}, \bibinfo {author} {\bibfnamefont {E.~M.}\ \bibnamefont
+  {Munro}}, \bibinfo {author} {\bibfnamefont {M.~L.}\ \bibnamefont {Gardel}},\
+  and\ \bibinfo {author} {\bibfnamefont {S.}~\bibnamefont {Banerjee}},\
+  }\bibfield  {title} {\bibinfo {title} {Mechanosensitive junction remodeling
+  promotes robust epithelial morphogenesis},\ }\href@noop {} {\bibfield
+  {journal} {\bibinfo  {journal} {Biophysical Journal}\ }\textbf {\bibinfo
+  {volume} {117}},\ \bibinfo {pages} {1739} (\bibinfo {year}
+  {2019})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Khalilgharibi}\ \emph {et~al.}(2019)\citenamefont
+  {Khalilgharibi}, \citenamefont {Fouchard}, \citenamefont {Asadipour},
+  \citenamefont {Barrientos}, \citenamefont {Duda}, \citenamefont {Bonfanti},
+  \citenamefont {Yonis}, \citenamefont {Harris}, \citenamefont {Mosaffa},
+  \citenamefont {Fujita}, \citenamefont {Kabla}, \citenamefont {Mao},
+  \citenamefont {Baum}, \citenamefont {Muñoz}, \citenamefont {Miodownik},\
+  and\ \citenamefont {Charras}}]{khalilgharibi2019stress}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {N.}~\bibnamefont
+  {Khalilgharibi}}, \bibinfo {author} {\bibfnamefont {J.}~\bibnamefont
+  {Fouchard}}, \bibinfo {author} {\bibfnamefont {N.}~\bibnamefont {Asadipour}},
+  \bibinfo {author} {\bibfnamefont {R.}~\bibnamefont {Barrientos}}, \bibinfo
+  {author} {\bibfnamefont {M.}~\bibnamefont {Duda}}, \bibinfo {author}
+  {\bibfnamefont {A.}~\bibnamefont {Bonfanti}}, \bibinfo {author}
+  {\bibfnamefont {A.}~\bibnamefont {Yonis}}, \bibinfo {author} {\bibfnamefont
+  {A.}~\bibnamefont {Harris}}, \bibinfo {author} {\bibfnamefont
+  {P.}~\bibnamefont {Mosaffa}}, \bibinfo {author} {\bibfnamefont
+  {Y.}~\bibnamefont {Fujita}}, \bibinfo {author} {\bibfnamefont
+  {A.}~\bibnamefont {Kabla}}, \bibinfo {author} {\bibfnamefont
+  {Y.}~\bibnamefont {Mao}}, \bibinfo {author} {\bibfnamefont {B.}~\bibnamefont
+  {Baum}}, \bibinfo {author} {\bibfnamefont {J.~J.}\ \bibnamefont {Muñoz}},
+  \bibinfo {author} {\bibfnamefont {M.}~\bibnamefont {Miodownik}},\ and\
+  \bibinfo {author} {\bibfnamefont {G.}~\bibnamefont {Charras}},\ }\bibfield
+  {title} {\bibinfo {title} {Stress relaxation in epithelial monolayers is
+  controlled by the actomyosin cortex},\ }\href@noop {} {\bibfield  {journal}
+  {\bibinfo  {journal} {Nature Physics}\ }\textbf {\bibinfo {volume} {15}},\
+  \bibinfo {pages} {839} (\bibinfo {year} {2019})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Cavanaugh}\ \emph {et~al.}(2020)\citenamefont
+  {Cavanaugh}, \citenamefont {Staddon}, \citenamefont {Munro}, \citenamefont
+  {Banerjee},\ and\ \citenamefont {Gardel}}]{cavanaugh2020rhoa}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {K.~E.}\ \bibnamefont
+  {Cavanaugh}}, \bibinfo {author} {\bibfnamefont {M.~F.}\ \bibnamefont
+  {Staddon}}, \bibinfo {author} {\bibfnamefont {E.}~\bibnamefont {Munro}},
+  \bibinfo {author} {\bibfnamefont {S.}~\bibnamefont {Banerjee}},\ and\
+  \bibinfo {author} {\bibfnamefont {M.~L.}\ \bibnamefont {Gardel}},\ }\bibfield
+   {title} {\bibinfo {title} {Rhoa mediates epithelial cell shape changes via
+  mechanosensitive endocytosis},\ }\href@noop {} {\bibfield  {journal}
+  {\bibinfo  {journal} {Developmental Cell}\ }\textbf {\bibinfo {volume}
+  {52}},\ \bibinfo {pages} {152} (\bibinfo {year} {2020})}\BibitemShut
+  {NoStop}%
+\bibitem [{\citenamefont {Alt}\ \emph {et~al.}(2017)\citenamefont {Alt},
+  \citenamefont {Ganguly},\ and\ \citenamefont {Salbreux}}]{alt2017vertex}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {S.}~\bibnamefont
+  {Alt}}, \bibinfo {author} {\bibfnamefont {P.}~\bibnamefont {Ganguly}},\ and\
+  \bibinfo {author} {\bibfnamefont {G.}~\bibnamefont {Salbreux}},\ }\bibfield
+  {title} {\bibinfo {title} {Vertex models: from cell mechanics to tissue
+  morphogenesis},\ }\href@noop {} {\bibfield  {journal} {\bibinfo  {journal}
+  {Philosophical Transactions of the Royal Society B: Biological Sciences}\
+  }\textbf {\bibinfo {volume} {372}},\ \bibinfo {pages} {20150520} (\bibinfo
+  {year} {2017})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Boromand}\ \emph {et~al.}(2018)\citenamefont
+  {Boromand}, \citenamefont {Signoriello}, \citenamefont {Ye}, \citenamefont
+  {O’Hern},\ and\ \citenamefont {Shattuck}}]{boromand2018jamming}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {A.}~\bibnamefont
+  {Boromand}}, \bibinfo {author} {\bibfnamefont {A.}~\bibnamefont
+  {Signoriello}}, \bibinfo {author} {\bibfnamefont {F.}~\bibnamefont {Ye}},
+  \bibinfo {author} {\bibfnamefont {C.~S.}\ \bibnamefont {O’Hern}},\ and\
+  \bibinfo {author} {\bibfnamefont {M.~D.}\ \bibnamefont {Shattuck}},\
+  }\bibfield  {title} {\bibinfo {title} {Jamming of deformable polygons},\
+  }\href@noop {} {\bibfield  {journal} {\bibinfo  {journal} {Physical Review
+  Letters}\ }\textbf {\bibinfo {volume} {121}},\ \bibinfo {pages} {248003}
+  (\bibinfo {year} {2018})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Cheng}\ \emph {et~al.}(2022)\citenamefont {Cheng},
+  \citenamefont {Treado}, \citenamefont {Lonial}, \citenamefont {Habdas},
+  \citenamefont {Weeks}, \citenamefont {Shattuck},\ and\ \citenamefont
+  {O'Hern}}]{cheng2022hopper}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {Y.}~\bibnamefont
+  {Cheng}}, \bibinfo {author} {\bibfnamefont {J.~D.}\ \bibnamefont {Treado}},
+  \bibinfo {author} {\bibfnamefont {B.~F.}\ \bibnamefont {Lonial}}, \bibinfo
+  {author} {\bibfnamefont {P.}~\bibnamefont {Habdas}}, \bibinfo {author}
+  {\bibfnamefont {E.~R.}\ \bibnamefont {Weeks}}, \bibinfo {author}
+  {\bibfnamefont {M.~D.}\ \bibnamefont {Shattuck}},\ and\ \bibinfo {author}
+  {\bibfnamefont {C.~S.}\ \bibnamefont {O'Hern}},\ }\bibfield  {title}
+  {\bibinfo {title} {Hopper flows of deformable particles},\ }\href@noop {}
+  {\bibfield  {journal} {\bibinfo  {journal} {Soft Matter}\ }\textbf {\bibinfo
+  {volume} {18}},\ \bibinfo {pages} {8071} (\bibinfo {year}
+  {2022})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Wang}\ \emph {et~al.}(2021)\citenamefont {Wang},
+  \citenamefont {Treado}, \citenamefont {Boromand}, \citenamefont {Norwick},
+  \citenamefont {Murrell}, \citenamefont {Shattuck},\ and\ \citenamefont
+  {O'Hern}}]{wang2021structural}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {D.}~\bibnamefont
+  {Wang}}, \bibinfo {author} {\bibfnamefont {J.~D.}\ \bibnamefont {Treado}},
+  \bibinfo {author} {\bibfnamefont {A.}~\bibnamefont {Boromand}}, \bibinfo
+  {author} {\bibfnamefont {B.}~\bibnamefont {Norwick}}, \bibinfo {author}
+  {\bibfnamefont {M.~P.}\ \bibnamefont {Murrell}}, \bibinfo {author}
+  {\bibfnamefont {M.~D.}\ \bibnamefont {Shattuck}},\ and\ \bibinfo {author}
+  {\bibfnamefont {C.~S.}\ \bibnamefont {O'Hern}},\ }\bibfield  {title}
+  {\bibinfo {title} {The structural, vibrational, and mechanical properties of
+  jammed packings of deformable particles in three dimensions},\ }\href@noop {}
+  {\bibfield  {journal} {\bibinfo  {journal} {Soft Matter}\ }\textbf {\bibinfo
+  {volume} {17}},\ \bibinfo {pages} {9901} (\bibinfo {year}
+  {2021})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Treado}\ \emph {et~al.}(2021)\citenamefont {Treado},
+  \citenamefont {Wang}, \citenamefont {Boromand}, \citenamefont {Murrell},
+  \citenamefont {Shattuck},\ and\ \citenamefont {O'Hern}}]{treado2021bridging}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {J.~D.}\ \bibnamefont
+  {Treado}}, \bibinfo {author} {\bibfnamefont {D.}~\bibnamefont {Wang}},
+  \bibinfo {author} {\bibfnamefont {A.}~\bibnamefont {Boromand}}, \bibinfo
+  {author} {\bibfnamefont {M.~P.}\ \bibnamefont {Murrell}}, \bibinfo {author}
+  {\bibfnamefont {M.~D.}\ \bibnamefont {Shattuck}},\ and\ \bibinfo {author}
+  {\bibfnamefont {C.~S.}\ \bibnamefont {O'Hern}},\ }\bibfield  {title}
+  {\bibinfo {title} {Bridging particle deformability and collective response in
+  soft solids},\ }\href@noop {} {\bibfield  {journal} {\bibinfo  {journal}
+  {Physical Review Materials}\ }\textbf {\bibinfo {volume} {5}},\ \bibinfo
+  {pages} {055605} (\bibinfo {year} {2021})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Treado}\ \emph {et~al.}(2022)\citenamefont {Treado},
+  \citenamefont {Roddy}, \citenamefont {Th{\'e}roux-Rancourt}, \citenamefont
+  {Zhang}, \citenamefont {Ambrose}, \citenamefont {Brodersen}, \citenamefont
+  {Shattuck},\ and\ \citenamefont {O’Hern}}]{treado2022localized}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {J.~D.}\ \bibnamefont
+  {Treado}}, \bibinfo {author} {\bibfnamefont {A.~B.}\ \bibnamefont {Roddy}},
+  \bibinfo {author} {\bibfnamefont {G.}~\bibnamefont {Th{\'e}roux-Rancourt}},
+  \bibinfo {author} {\bibfnamefont {L.}~\bibnamefont {Zhang}}, \bibinfo
+  {author} {\bibfnamefont {C.}~\bibnamefont {Ambrose}}, \bibinfo {author}
+  {\bibfnamefont {C.~R.}\ \bibnamefont {Brodersen}}, \bibinfo {author}
+  {\bibfnamefont {M.~D.}\ \bibnamefont {Shattuck}},\ and\ \bibinfo {author}
+  {\bibfnamefont {C.~S.}\ \bibnamefont {O’Hern}},\ }\bibfield  {title}
+  {\bibinfo {title} {Localized growth and remodelling drives spongy mesophyll
+  morphogenesis},\ }\href@noop {} {\bibfield  {journal} {\bibinfo  {journal}
+  {Journal of the Royal Society Interface}\ }\textbf {\bibinfo {volume} {19}},\
+  \bibinfo {pages} {20220602} (\bibinfo {year} {2022})}\BibitemShut {NoStop}%
+\bibitem [{sup()}]{supp}%
+  \BibitemOpen
+  \href@noop {} {}\bibinfo {note} {See Supplemental Material at [link] for a
+  detailed description of the model and additional data}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Dai}\ and\ \citenamefont
+  {Sheetz}(1997)}]{dai1997cell}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {J.}~\bibnamefont
+  {Dai}}\ and\ \bibinfo {author} {\bibfnamefont {M.~P.}\ \bibnamefont
+  {Sheetz}},\ }\bibfield  {title} {\bibinfo {title} {Cell membrane mechanics},\
+  }\href@noop {} {\bibfield  {journal} {\bibinfo  {journal} {Methods in cell
+  biology}\ }\textbf {\bibinfo {volume} {55}},\ \bibinfo {pages} {157}
+  (\bibinfo {year} {1997})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Janmey}\ and\ \citenamefont
+  {McCulloch}(2007)}]{janmey2007cell}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {P.~A.}\ \bibnamefont
+  {Janmey}}\ and\ \bibinfo {author} {\bibfnamefont {C.~A.}\ \bibnamefont
+  {McCulloch}},\ }\bibfield  {title} {\bibinfo {title} {Cell mechanics:
+  integrating cell responses to mechanical stimuli},\ }\href@noop {} {\bibfield
+   {journal} {\bibinfo  {journal} {Annu. Rev. Biomed. Eng.}\ }\textbf {\bibinfo
+  {volume} {9}},\ \bibinfo {pages} {1} (\bibinfo {year} {2007})}\BibitemShut
+  {NoStop}%
+\bibitem [{\citenamefont {Mu{\~n}oz}\ and\ \citenamefont
+  {Albo}(2013)}]{munoz2013physiology}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {J.~J.}\ \bibnamefont
+  {Mu{\~n}oz}}\ and\ \bibinfo {author} {\bibfnamefont {S.}~\bibnamefont
+  {Albo}},\ }\bibfield  {title} {\bibinfo {title} {Physiology-based model of
+  cell viscoelasticity},\ }\href@noop {} {\bibfield  {journal} {\bibinfo
+  {journal} {Physical Review E}\ }\textbf {\bibinfo {volume} {88}},\ \bibinfo
+  {pages} {012708} (\bibinfo {year} {2013})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Kelkar}\ \emph {et~al.}(2020)\citenamefont {Kelkar},
+  \citenamefont {Bohec},\ and\ \citenamefont {Charras}}]{kelkar2020mechanics}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {M.}~\bibnamefont
+  {Kelkar}}, \bibinfo {author} {\bibfnamefont {P.}~\bibnamefont {Bohec}},\ and\
+  \bibinfo {author} {\bibfnamefont {G.}~\bibnamefont {Charras}},\ }\bibfield
+  {title} {\bibinfo {title} {Mechanics of the cellular actin cortex: From
+  signalling to shape change},\ }\href@noop {} {\bibfield  {journal} {\bibinfo
+  {journal} {Current opinion in cell biology}\ }\textbf {\bibinfo {volume}
+  {66}},\ \bibinfo {pages} {69} (\bibinfo {year} {2020})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Figard}\ and\ \citenamefont
+  {Sokac}(2014)}]{figard2014membrane}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {L.}~\bibnamefont
+  {Figard}}\ and\ \bibinfo {author} {\bibfnamefont {A.~M.}\ \bibnamefont
+  {Sokac}},\ }\bibfield  {title} {\bibinfo {title} {A membrane reservoir at the
+  cell surface: unfolding the plasma membrane to fuel cell shape change},\
+  }\href@noop {} {\bibfield  {journal} {\bibinfo  {journal} {Bioarchitecture}\
+  }\textbf {\bibinfo {volume} {4}},\ \bibinfo {pages} {39} (\bibinfo {year}
+  {2014})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Barton}\ \emph {et~al.}(2017)\citenamefont {Barton},
+  \citenamefont {Henkes}, \citenamefont {Weijer},\ and\ \citenamefont
+  {Sknepnek}}]{barton2017active}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {D.~L.}\ \bibnamefont
+  {Barton}}, \bibinfo {author} {\bibfnamefont {S.}~\bibnamefont {Henkes}},
+  \bibinfo {author} {\bibfnamefont {C.~J.}\ \bibnamefont {Weijer}},\ and\
+  \bibinfo {author} {\bibfnamefont {R.}~\bibnamefont {Sknepnek}},\ }\bibfield
+  {title} {\bibinfo {title} {Active vertex model for cell-resolution
+  description of epithelial tissue mechanics},\ }\href@noop {} {\bibfield
+  {journal} {\bibinfo  {journal} {PLoS Computational Biology}\ }\textbf
+  {\bibinfo {volume} {13}},\ \bibinfo {pages} {e1005569} (\bibinfo {year}
+  {2017})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Delile}\ \emph {et~al.}(2017)\citenamefont {Delile},
+  \citenamefont {Herrmann}, \citenamefont {Peyri{\'e}ras},\ and\ \citenamefont
+  {Doursat}}]{delile2017cell}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {J.}~\bibnamefont
+  {Delile}}, \bibinfo {author} {\bibfnamefont {M.}~\bibnamefont {Herrmann}},
+  \bibinfo {author} {\bibfnamefont {N.}~\bibnamefont {Peyri{\'e}ras}},\ and\
+  \bibinfo {author} {\bibfnamefont {R.}~\bibnamefont {Doursat}},\ }\bibfield
+  {title} {\bibinfo {title} {A cell-based computational model of early
+  embryogenesis coupling mechanical behaviour and gene regulation},\
+  }\href@noop {} {\bibfield  {journal} {\bibinfo  {journal} {Nature
+  communications}\ }\textbf {\bibinfo {volume} {8}},\ \bibinfo {pages} {13929}
+  (\bibinfo {year} {2017})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Krieg}\ \emph {et~al.}(2008)\citenamefont {Krieg},
+  \citenamefont {Arboleda-Estudillo}, \citenamefont {Puech}, \citenamefont
+  {K{\"a}fer}, \citenamefont {Graner}, \citenamefont {M{\"u}ller},\ and\
+  \citenamefont {Heisenberg}}]{krieg2008tensile}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {M.}~\bibnamefont
+  {Krieg}}, \bibinfo {author} {\bibfnamefont {Y.}~\bibnamefont
+  {Arboleda-Estudillo}}, \bibinfo {author} {\bibfnamefont {P.-H.}\ \bibnamefont
+  {Puech}}, \bibinfo {author} {\bibfnamefont {J.}~\bibnamefont {K{\"a}fer}},
+  \bibinfo {author} {\bibfnamefont {F.}~\bibnamefont {Graner}}, \bibinfo
+  {author} {\bibfnamefont {D.}~\bibnamefont {M{\"u}ller}},\ and\ \bibinfo
+  {author} {\bibfnamefont {C.-P.}\ \bibnamefont {Heisenberg}},\ }\bibfield
+  {title} {\bibinfo {title} {Tensile forces govern germ-layer organization in
+  zebrafish},\ }\href@noop {} {\bibfield  {journal} {\bibinfo  {journal}
+  {Nature Cell Biology}\ }\textbf {\bibinfo {volume} {10}},\ \bibinfo {pages}
+  {429} (\bibinfo {year} {2008})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Biron}\ \emph {et~al.}(2005)\citenamefont {Biron},
+  \citenamefont {Alvarez-Lacalle}, \citenamefont {Tlusty},\ and\ \citenamefont
+  {Moses}}]{biron2005molecular}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {D.}~\bibnamefont
+  {Biron}}, \bibinfo {author} {\bibfnamefont {E.}~\bibnamefont
+  {Alvarez-Lacalle}}, \bibinfo {author} {\bibfnamefont {T.}~\bibnamefont
+  {Tlusty}},\ and\ \bibinfo {author} {\bibfnamefont {E.}~\bibnamefont
+  {Moses}},\ }\bibfield  {title} {\bibinfo {title} {Molecular model of the
+  contractile ring},\ }\href@noop {} {\bibfield  {journal} {\bibinfo  {journal}
+  {Physical Review Letters}\ }\textbf {\bibinfo {volume} {95}},\ \bibinfo
+  {pages} {098102} (\bibinfo {year} {2005})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Stachowiak}\ \emph {et~al.}(2014)\citenamefont
+  {Stachowiak}, \citenamefont {Laplante}, \citenamefont {Chin}, \citenamefont
+  {Guirao}, \citenamefont {Karatekin}, \citenamefont {Pollard},\ and\
+  \citenamefont {O’Shaughnessy}}]{stachowiak2014mechanism}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {M.~R.}\ \bibnamefont
+  {Stachowiak}}, \bibinfo {author} {\bibfnamefont {C.}~\bibnamefont
+  {Laplante}}, \bibinfo {author} {\bibfnamefont {H.~F.}\ \bibnamefont {Chin}},
+  \bibinfo {author} {\bibfnamefont {B.}~\bibnamefont {Guirao}}, \bibinfo
+  {author} {\bibfnamefont {E.}~\bibnamefont {Karatekin}}, \bibinfo {author}
+  {\bibfnamefont {T.~D.}\ \bibnamefont {Pollard}},\ and\ \bibinfo {author}
+  {\bibfnamefont {B.}~\bibnamefont {O’Shaughnessy}},\ }\bibfield  {title}
+  {\bibinfo {title} {Mechanism of cytokinetic contractile ring constriction in
+  fission yeast},\ }\href@noop {} {\bibfield  {journal} {\bibinfo  {journal}
+  {Developmental Cell}\ }\textbf {\bibinfo {volume} {29}},\ \bibinfo {pages}
+  {547} (\bibinfo {year} {2014})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Charras}\ \emph {et~al.}(2005)\citenamefont
+  {Charras}, \citenamefont {Yarrow}, \citenamefont {Horton}, \citenamefont
+  {Mahadevan},\ and\ \citenamefont {Mitchison}}]{charras2005non}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {G.~T.}\ \bibnamefont
+  {Charras}}, \bibinfo {author} {\bibfnamefont {J.~C.}\ \bibnamefont {Yarrow}},
+  \bibinfo {author} {\bibfnamefont {M.~A.}\ \bibnamefont {Horton}}, \bibinfo
+  {author} {\bibfnamefont {L.}~\bibnamefont {Mahadevan}},\ and\ \bibinfo
+  {author} {\bibfnamefont {T.}~\bibnamefont {Mitchison}},\ }\bibfield  {title}
+  {\bibinfo {title} {Non-equilibration of hydrostatic pressure in blebbing
+  cells},\ }\href@noop {} {\bibfield  {journal} {\bibinfo  {journal} {Nature}\
+  }\textbf {\bibinfo {volume} {435}},\ \bibinfo {pages} {365} (\bibinfo {year}
+  {2005})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Coughlin}\ \emph {et~al.}(2006)\citenamefont
+  {Coughlin}, \citenamefont {Puig-de Morales}, \citenamefont {Bursac},
+  \citenamefont {Mellema}, \citenamefont {Millet},\ and\ \citenamefont
+  {Fredberg}}]{coughlin2006filamin}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {M.~F.}\ \bibnamefont
+  {Coughlin}}, \bibinfo {author} {\bibfnamefont {M.}~\bibnamefont {Puig-de
+  Morales}}, \bibinfo {author} {\bibfnamefont {P.}~\bibnamefont {Bursac}},
+  \bibinfo {author} {\bibfnamefont {M.}~\bibnamefont {Mellema}}, \bibinfo
+  {author} {\bibfnamefont {E.}~\bibnamefont {Millet}},\ and\ \bibinfo {author}
+  {\bibfnamefont {J.~J.}\ \bibnamefont {Fredberg}},\ }\bibfield  {title}
+  {\bibinfo {title} {Filamin-{A} and rheological properties of cultured
+  melanoma cells},\ }\href@noop {} {\bibfield  {journal} {\bibinfo  {journal}
+  {Biophysical Journal}\ }\textbf {\bibinfo {volume} {90}},\ \bibinfo {pages}
+  {2199} (\bibinfo {year} {2006})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Charras}\ \emph {et~al.}(2008)\citenamefont
+  {Charras}, \citenamefont {Coughlin}, \citenamefont {Mitchison},\ and\
+  \citenamefont {Mahadevan}}]{charras2008life}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {G.~T.}\ \bibnamefont
+  {Charras}}, \bibinfo {author} {\bibfnamefont {M.}~\bibnamefont {Coughlin}},
+  \bibinfo {author} {\bibfnamefont {T.~J.}\ \bibnamefont {Mitchison}},\ and\
+  \bibinfo {author} {\bibfnamefont {L.}~\bibnamefont {Mahadevan}},\ }\bibfield
+  {title} {\bibinfo {title} {Life and times of a cellular bleb},\ }\href@noop
+  {} {\bibfield  {journal} {\bibinfo  {journal} {Biophysical Journal}\ }\textbf
+  {\bibinfo {volume} {94}},\ \bibinfo {pages} {1836} (\bibinfo {year}
+  {2008})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Guimar{\~a}es}\ \emph {et~al.}(2020)\citenamefont
+  {Guimar{\~a}es}, \citenamefont {Gasperini}, \citenamefont {Marques},\ and\
+  \citenamefont {Reis}}]{guimaraes2020stiffness}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {C.~F.}\ \bibnamefont
+  {Guimar{\~a}es}}, \bibinfo {author} {\bibfnamefont {L.}~\bibnamefont
+  {Gasperini}}, \bibinfo {author} {\bibfnamefont {A.~P.}\ \bibnamefont
+  {Marques}},\ and\ \bibinfo {author} {\bibfnamefont {R.~L.}\ \bibnamefont
+  {Reis}},\ }\bibfield  {title} {\bibinfo {title} {The stiffness of living
+  tissues and its implications for tissue engineering},\ }\href@noop {}
+  {\bibfield  {journal} {\bibinfo  {journal} {Nature Reviews Materials}\
+  }\textbf {\bibinfo {volume} {5}},\ \bibinfo {pages} {351} (\bibinfo {year}
+  {2020})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Harding}\ \emph {et~al.}(2014)\citenamefont
+  {Harding}, \citenamefont {McGraw},\ and\ \citenamefont
+  {Nechiporuk}}]{harding2014roles}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {M.~J.}\ \bibnamefont
+  {Harding}}, \bibinfo {author} {\bibfnamefont {H.~F.}\ \bibnamefont
+  {McGraw}},\ and\ \bibinfo {author} {\bibfnamefont {A.}~\bibnamefont
+  {Nechiporuk}},\ }\bibfield  {title} {\bibinfo {title} {The roles and
+  regulation of multicellular rosette structures during morphogenesis},\
+  }\href@noop {} {\bibfield  {journal} {\bibinfo  {journal} {Development}\
+  }\textbf {\bibinfo {volume} {141}},\ \bibinfo {pages} {2549} (\bibinfo {year}
+  {2014})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Solnica-Krezel}\ and\ \citenamefont
+  {Sepich}(2012)}]{solnica2012gastrulation}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {L.}~\bibnamefont
+  {Solnica-Krezel}}\ and\ \bibinfo {author} {\bibfnamefont {D.~S.}\
+  \bibnamefont {Sepich}},\ }\bibfield  {title} {\bibinfo {title} {Gastrulation:
+  making and shaping germ layers},\ }\href@noop {} {\bibfield  {journal}
+  {\bibinfo  {journal} {Annual Review of Cell and Developmental Biology}\
+  }\textbf {\bibinfo {volume} {28}},\ \bibinfo {pages} {687} (\bibinfo {year}
+  {2012})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Vijayraghavan}\ and\ \citenamefont
+  {Davidson}(2017)}]{vijayraghavan2017mechanics}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {D.~S.}\ \bibnamefont
+  {Vijayraghavan}}\ and\ \bibinfo {author} {\bibfnamefont {L.~A.}\ \bibnamefont
+  {Davidson}},\ }\bibfield  {title} {\bibinfo {title} {Mechanics of
+  neurulation: From classical to current perspectives on the physical mechanics
+  that shape, fold, and form the neural tube},\ }\href@noop {} {\bibfield
+  {journal} {\bibinfo  {journal} {Birth Defects Research}\ }\textbf {\bibinfo
+  {volume} {109}},\ \bibinfo {pages} {153} (\bibinfo {year}
+  {2017})}\BibitemShut {NoStop}%
+\end{thebibliography}%
