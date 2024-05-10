@@ -773,7 +773,7 @@ def main():
             plt.xlabel("Simulated genotype")
             # plt.tight_layout()
             plt.savefig(
-                f"simulationStackedObservablesGroupedk_off{fixed_val}_kl={kl}.png",
+                f"simulationStackedObservablesGroupedk_off{fixed_val}_kl={kl}.eps",
                 bbox_inches="tight",
             )
             # plt.close(fig)
