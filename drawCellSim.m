@@ -1,15 +1,15 @@
 %pwd should give ~/Documents/YalePhd/projects/dpm
-%function drawCellSim(N, calA0, phi, kl, kb, att, att2, v0, t_maxwell, gamma, k_on, k_off, k_ecm, numSeeds)
+function drawCellSim(N, calA0, phi, kl, kb, att, att2, v0, t_maxwell, gamma, k_on, k_off, k_ecm, numSeeds)
 %close all; clear
-%isTestData = false; %uncomment if using function call to pipeline data
+isTestData = false; %uncomment if using function call to pipeline data
 
-isTestData = true; %uncomment if using test data
+%isTestData = true; %uncomment if using test data
 %testDataIDs = ["testa_0.05_a2_0.05_tm_10000.0_p_0.8_t_1.0_gamma_0_k_on_1.0_k_off_0.5_k_ecm_0.05"];
 
 %for i=1:length(testDataIDs)
 %    testDataID = testDataIDs(i);
 
-testDataID = "a_0.05_a2_0.05_tm_10000.0_p_0.8_t_1.0_gamma_0_k_on_1.0_k_off_0.5_k_ecm_0.05";
+%testDataID = "a_0.05_a2_0.05_tm_10000.0_p_0.8_t_1.0_gamma_0_k_on_1.0_k_off_0.5_k_ecm_0.05";
 %testDataID = "9";
 
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
@@ -353,7 +353,7 @@ for seed = startSeed:max_seed
     writematrix(speeds, speedFile, 'WriteMode', 'append');
     fclose('all');
 end
-%end
+end
 %end
 
 function [cornerx, cornery] = patchConnectedRectanglesCorners(midptx, midpty, width)
