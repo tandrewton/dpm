@@ -1,17 +1,15 @@
 %pwd should give ~/Documents/YalePhd/projects/dpm
-function drawCellSim(N, calA0, phi, kl, kb, att, att2, v0, t_maxwell, gamma, k_on, k_off, k_ecm, numSeeds)
+%function drawCellSim(N, calA0, phi, kl, kb, att, att2, v0, t_maxwell, gamma, k_on, k_off, k_ecm, numSeeds)
 %close all; clear
-isTestData = false; %uncomment if using function call to pipeline data
+%isTestData = false; %uncomment if using function call to pipeline data
 
-%isTestData = true; %uncomment if using test data
-%testDataIDs = ["a_0.05_a2_0.0_tm_10000.0_p_0.5_t_1.0_gamma_0_k_on_1.0_k_off_1.0_k_ecm_0.0",...
-%    "a_0.05_a2_0.0_tm_10000.0_p_0.6_t_1.0_gamma_0_k_on_1.0_k_off_1.0_k_ecm_0.0",...
-%    "a_0.05_a2_0.0_tm_10000.0_p_0.7_t_1.0_gamma_0_k_on_1.0_k_off_1.0_k_ecm_0.0"];
+isTestData = true; %uncomment if using test data
+%testDataIDs = ["testa_0.05_a2_0.05_tm_10000.0_p_0.8_t_1.0_gamma_0_k_on_1.0_k_off_0.5_k_ecm_0.05"];
 
 %for i=1:length(testDataIDs)
 %    testDataID = testDataIDs(i);
 
-%testDataID = "a_0.05_a2_0.05_p_0.8_t_1.0_gamma_0.01";
+testDataID = "a_0.05_a2_0.05_tm_10000.0_p_0.8_t_1.0_gamma_0_k_on_1.0_k_off_0.5_k_ecm_0.05";
 %testDataID = "9";
 
 addpath('/Users/AndrewTon/Documents/YalePhD/projects/dpm/bash')
@@ -43,8 +41,8 @@ max_seed = 1; % gets overwritten if OS is unix (I use slurm in unix)
 %att_range = 0.3;
 
 %if makeAMovie is 0, then plot every frame separately
-forImageAnalysis = ~isTestData;
-%forImageAnalysis = true;
+%forImageAnalysis = ~isTestData;
+forImageAnalysis = true;
 %forImageAnalysis=false;
 skipPlottingCells = false;
 if (forImageAnalysis)
@@ -171,10 +169,7 @@ for seed = startSeed:max_seed
     for ff = FSTART:FSTEP:FEND
         %nv can change, so recompute color map each frame
         [nvUQ, ~, IC] = unique(nonzeros(nv(ff,:)));
-        %IC = IC * 0 + 1; % <- use for single colored configurations
         NUQ = length(nvUQ);
-        %NUQ = 8; % 1<- use for single colored configurations
-        cellCLR = jet(NUQ);
         NCELLS = cell_count(ff);
 
 
@@ -247,10 +242,8 @@ for seed = startSeed:max_seed
             sintmp = sin(psitmp);
             areatmp = area(nn);
 
-            %clr = cellCLR(IC(nn),:);
-            colors = ['r','g','b','c','m','y','k'];
-            %clr = colors(cellIDtmp+1);
-            clr='b';
+            
+            clr = [0.5 0 0.5];
 
             cx = mean(xtmp);
             cy = mean(ytmp);
@@ -266,7 +259,7 @@ for seed = startSeed:max_seed
                 if (cellID(nn) == 1)
                     % if cellID is a boundary, have it be blue
                     % exterior with white interior
-                    patch('Faces',finfo,'vertices',vpos,'FaceColor','w','EdgeColor','b','linewidth',2);
+                    patch('Faces',finfo,'vertices',vpos,'FaceColor','w','EdgeColor',[0 1 0],'linewidth',1);
                     if (forImageAnalysis)
                         % switch to bd figure, plot bd, switch back
                         figure(fnum_boundary); clf; axis off;
@@ -275,20 +268,28 @@ for seed = startSeed:max_seed
                     end
                 else
                     % if cellID is a real cell, give it an interior color
-                    patch('Faces',finfo,'vertices',vpos,'FaceColor','cyan','linestyle','none');
+                    patch('Faces',finfo,'vertices',vpos,'FaceColor',[1 0 1],'linestyle','none');
                 end
             end
             if showverts == 1
                 if (cellID(nn) == 0 || (cellID(nn) == 1 && showcirculoline == 0))
                     boundaryX = xtmp + vradtmp * cos(theta);
                     boundaryY = ytmp + vradtmp * sin(theta);
-                    patch(boundaryX', boundaryY', clr, 'linestyle', 'none')                 
+                    patch(boundaryX', boundaryY', 'k', 'linestyle', 'none')
+                elseif (cellID(nn) == 1)
+                    boundaryX = xtmp + vradtmp * cos(theta);
+                    boundaryY = ytmp + vradtmp * sin(theta);
+                    patch(boundaryX', boundaryY', [0 1 0], 'linestyle', 'none')
                 end
                 % calculate coordinates of a rectangle representing 
                 % the line segment between successive vertices in a DP
-                if (cellID(nn) == 0 && showcirculoline == 1)
+                if showcirculoline == 1
                     [cornerx, cornery] = patchConnectedRectanglesCorners(xtmp, ytmp, vradtmp);
-                    patch(cornerx', cornery', clr,'LineStyle', 'none')
+                    if cellID(nn) == 0
+                        patch(cornerx', cornery', 'k','LineStyle', 'none')
+                    elseif cellID(nn) == 1
+                        patch(cornerx', cornery', [0 1 0],'LineStyle', 'none')
+                    end
                 end
             end
         end
@@ -352,7 +353,7 @@ for seed = startSeed:max_seed
     writematrix(speeds, speedFile, 'WriteMode', 'append');
     fclose('all');
 end
-end
+%end
 %end
 
 function [cornerx, cornery] = patchConnectedRectanglesCorners(midptx, midpty, width)
