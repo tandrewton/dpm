@@ -138,7 +138,6 @@ void cell::maxwellRelaxationRestLengths(std::vector<double>& l, std::vector<int>
       vl0[i] = kl / maxwellRelaxationTime * (li - l0[i]);
       vl0[i] += kl / taus * (l00[i] - li);
       l0[i] += vl0[i] * dt;
-      // cout << "maxwell boundary evaluation: maxwellRelaxationTime, taus, li, l0[i], vl0[i] = " << maxwellRelaxationTime << '\t' << taus << '\t' << li << '\t' << l0[i] << '\t' << vl0[i] << '\n';
     }
   }
 }
@@ -3184,6 +3183,8 @@ void cell::vertexDampedMD(dpmMemFn forceCall, double dt0, double duration, doubl
   double K, t0 = simclock;
   double temp_simclock = simclock;
 
+  std::vector<double> k1(vertDOF, 0.0), x_original(vertDOF, 0.0);
+
   // set time step magnitude
   setdt(dt0);
   int NPRINTSKIP = printInterval / dt;
@@ -3195,11 +3196,10 @@ void cell::vertexDampedMD(dpmMemFn forceCall, double dt0, double duration, doubl
   // loop over time, print energy
   while (simclock - t0 < duration) {
     // FORCE UPDATE
-    std::vector<double> F_old = F;
     CALL_MEMBER_FN(*this, forceCall)
     ();
 
-    // overdamped integration update
+    /*// overdamped integration update (Euler)
     for (i = 0; i < vertDOF; i++) {
       v[i] = F[i] / B;  // solely used for energy calculation purposes, serves no integration purpose
       x[i] += v[i] * dt;
@@ -3208,6 +3208,23 @@ void cell::vertexDampedMD(dpmMemFn forceCall, double dt0, double duration, doubl
         x[i] -= L[i % NDIM];
       else if (x[i] < 0 && pbc[i % NDIM])
         x[i] += L[i % NDIM];
+    }*/
+
+    x_original = x;
+    // RK2 integration update first half
+    for (i = 0; i < vertDOF; i++) {
+      k1[i] = dt * F[i] / B;
+      x[i] += k1[i] / 2.0;
+    }
+
+    // FORCE UPDATE
+    CALL_MEMBER_FN(*this, forceCall)
+    ();
+
+    // RK2 integration update second half
+    for (i = 0; i < vertDOF; i++) {
+      k1[i] = dt * F[i] / B;
+      x[i] = x_original[i] + k1[i];
     }
 
     // update sim clock

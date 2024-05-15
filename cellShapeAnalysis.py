@@ -117,11 +117,14 @@ def process_data(att, v0, att2, kl, gamma, k_on, k_off, k_ecm, seed, fileheader)
     }
     df_shape = pd.DataFrame(data_shape)
 
-    minNE = np.mean(calculateNeighborExchanges(cijMin))
+    nb_exch = calculateNeighborExchanges(cijMin)
+    minNE = np.mean(nb_exch)
+    minNEstd = np.std(nb_exch)
 
     # minNE = 0
     data_NE = {
         "minNE": minNE,
+        "minNEstd": minNEstd,
         "att": float(att),
         "v0": float(v0),
         "att2": float(att2),
@@ -304,6 +307,11 @@ def main():
                                             df_shapes = pd.concat([df_shapes, df_shape])
                                             df_NE["minNE"] = (
                                                 df_NE["minNE"]
+                                                / NCELLS
+                                                / timeBetweenFrames
+                                            )
+                                            df_NE["minNEstd"] = (
+                                                df_NE["minNEstd"]
                                                 / NCELLS
                                                 / timeBetweenFrames
                                             )
@@ -681,6 +689,10 @@ def main():
                     df_NEs["(att, att2, v0, kl, gamma, k_on, k_off, k_ecm)"]
                     == genotype_tags[i]
                 ].groupby("seed")["minNE"]
+                NE_std_group = df_NEs[
+                    df_NEs["(att, att2, v0, kl, gamma, k_on, k_off, k_ecm)"]
+                    == genotype_tags[i]
+                ].groupby("seed")["minNEstd"]
                 new_row = {
                     "params": genotype_tags[i],
                     "phi_mean": phi_group.mean(),
@@ -690,9 +702,11 @@ def main():
                     "v_mean": speed_group.mean(),
                     "v_std": speed_group.std(),
                     "NE_mean": NE_group.mean(),
-                    "NE_std": NE_group.std(),
+                    # "NE_std": NE_group.std(),
+                    "NE_std": NE_std_group.mean(),
                 }
                 df_all = pd.concat([df_all, pd.DataFrame(new_row)], ignore_index=True)
+                debugpy.breakpoint()
 
             # Get the unique values in the order they appear in the DataFrame
             ordered_categories = df_all["params"].drop_duplicates().tolist()
@@ -757,8 +771,17 @@ def main():
             axs[2].set_ylim(0, 1)
             axs[2].set_yticks([0.25, 0.5, 0.75])
 
-            axs[3].scatter(
-                df_all["eps1,eps2"] + constant_offset, df_all["NE_mean"], c=clr
+            # axs[3].scatter(
+            #    df_all["eps1,eps2"] + constant_offset, df_all["NE_mean"], c=clr
+            # )
+            axs[3].errorbar(
+                df_all["eps1,eps2"] + df_all["Offset"] + constant_offset,
+                df_all["NE_mean"],
+                yerr=df_all["NE_std"],
+                fmt="o",
+                capsize=0,
+                zorder=1,
+                c=clr,
             )
             axs[3].set_ylabel(r"NE $(cell \cdot min)^{-1}$")
             axs[3].set_ylim(0, 0.22)

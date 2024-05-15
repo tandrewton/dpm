@@ -168,4 +168,6 @@ drawCellSim("40", "1.0", "0.8", "5.0", "0.1", "0.001", "0.05", "0.0", "1.0", "0.
 drawCellSim("40", "1.0", "0.8", "5.0", "0.1", "0.001", "0.05", "0.0", "1.0", "0.5")
 
 for i in *.avi; do ffmpeg -i "$i" -c:v libx264 -preset slow  -profile:v high -level:v 4.0 -pix_fmt yuv420p -crf 22 -codec:a aac "$(basename "$i" .avi)".mp4  ; done
-ffmpeg -i input.avi -c:v copy -c:a copy OUTPUT.mp4
+
+
+rsync -rav --inplace --progress --filter '- *.avi' --filter '+ *0.035*.avi' at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm/output/psm_calA01.0_phi0.8_tm10000.0_v00.1_t_abp1.0_gamma0_k_on_1.0_k_off_100.0_k_ecm_0.01_kl0.2_ka2.5_kb0.01 /mnt/c/Users/atata/projects/dpm/output/cells/psm
