@@ -1,30 +1,19 @@
-// simulate transverse section, focusing on tissue structure
-// 2D justification: cells don't move much in the Anterior-Posterior plane of the PSM
-//   the measurements are taken in the 2D transverse section, so a 2D simulation would help
-//   our understanding of tissue structure in those same 2D sections.
-// Scientific question: Why do cells gain extracellular space in cadherin AND/OR fibronectin/fibrillin mutants?
-//  cadherin mutants lose intercellular adhesion. fN/fbn mutants lose cell-ECM adhesion.
-// My understanding - cell-ECM adhesion acts as a compression. The ECM proteins link up with the actin skeleton
-//   of cells on the boundary of the PSM. This causes action like a purse-string at the boundary of the tissue
-//   which might explain why PSM is rounded up like a cylinder.
 /*
 Compilation command:
 g++ -O3 --std=c++11 -g -I src main/cell/psm2D.cpp src/dpm.cpp src/cell.cpp -o main/cell/psm2D.o
 run command:
 
-att_arr=(0.05)
-att2_arr=(0.05)
-#v0=0.1
+att_arr=(0.015 0.035)
+att2_arr=(0 0.01)
 t_stress_arr=(10000.0)
 v0=0.1
 phi_arr=(0.8)
 tau_abp=1.0
 gamma_arr=(0)
 kon_arr=(1.0)
-koff_arr=(0.5)
-#kecm_arr=(0.01)
-kl=0.5
-ka=(5.0)
+koff_arr=(0.1 100.0)
+kl=0.2
+ka=(2.0)
 kb=0.01
 calcMinPos=1
 for att in ${att_arr[@]}; do
@@ -67,8 +56,7 @@ const bool plotCompression = 0;     // whether or not to plot configuration duri
 const double dphi0 = 0.005;         // packing fraction increment
 const double kc = 1.0;              // interaction force spring constant (should be unit)
 const double boxLengthScale = 2.5;  // neighbor list box size in units of initial l0
-// const double phi0 = 0.91;           // initial preferred packing fraction
-const double dt0 = 0.01;  // initial magnitude of time step in units of MD time
+const double dt0 = 0.01;            // initial magnitude of time step in units of MD time
 const double Ptol = 1e-5;
 const double Ftol = 1e-3;
 const double att_range = 0.3;
@@ -76,8 +64,6 @@ const double att_range = 0.3;
 int main(int argc, char const* argv[]) {
   // local variables to be read in
   double B = 1.0, phi0 = 0.7;
-  // double ka = 23.6;
-  // double ka = 10.0;
   //  Read command-line arguments into corresponding variables
   int NCELLS = parseArg<int>(argv[1]);
   int nv = parseArg<int>(argv[2]);
@@ -114,14 +100,14 @@ int main(int argc, char const* argv[]) {
   cell2D.setkoff(k_off);
   cell2D.setkecm(10 * k_ecm);
   cell2D.setB(B);
-  if (t_stress > 0.0)
-    cell2D.setMaxwellRelaxationTime(t_stress);  // t_stress is infinity unless this is uncommented
-  cell2D.setpbc(0, false);                      //  specify non-periodic boundaries
+  // if (t_stress > 0.0)
+  //   cell2D.setMaxwellRelaxationTime(t_stress);  // t_stress is infinity unless this is uncommented
+  cell2D.setpbc(0, false);  //  specify non-periodic boundaries
   cell2D.setpbc(1, false);
   cell2D.setl1(att);  // set adhesion scales
   cell2D.setl2(att_range);
   assert(att < att_range && att2 < att_range);  // required to have a differentiable, finite adhesive potential
-  assert(att < att_range / 2);                  // existing bug: l1 > l2/2 leads to purely repulsive, not sure why
+  assert(att < att_range / 2);
 
   cout
       << "att, att2, att_range = " << att << '\t' << att2 << '\t' << att_range << '\n';
@@ -193,15 +179,13 @@ int main(int argc, char const* argv[]) {
   cell2D.vertexDampedMD(attractionSmoothActive, dt0, relaxTime, 0.0);
 
   // begin production run after all of the initialization and equilibration settles
-  // double v0_decay_rate = 0.002,    v0_min = 0.1 * v0_abp;
-  // double v0_decay_rate = 0.002, v0_min = 0.1 * v0_abp;
   double v0_decay_rate = 0.0, v0_min = v0_abp;
   cout << "relaxing with final potential \n";
   cell2D.vertexDampedMD(attractionSmoothActiveBrownianECMBondsUpdate, dt0, relaxTime, 0.0, 0.0, v0_min);
 
   cout << "measuring with final potential!\n";
   cell2D.setitmax(1e4);
-  cell2D.vertexDampedMD(attractionSmoothActiveBrownianECMBondsUpdate, dt0, runTime, 5.0, v0_decay_rate * v0_abp, v0_min);
+  cell2D.vertexDampedMD(attractionSmoothActiveBrownianECMBondsUpdate, dt0, runTime, 5.0, v0_decay_rate * v0_abp, v0_min);  
 
   bool testingSteadyState = false;
 
@@ -213,8 +197,6 @@ int main(int argc, char const* argv[]) {
     cell2D.vertexDampedMD(attractionSmoothActiveBrownianECMBondsUpdate, dt0, runTime, 5.0, v0_decay_rate * v0_abp, v0_min);
   }
 
-  // cell2D.vertexDampedMD(attractionSmoothActive, dt0, runTime, 5.0, v0_decay_rate * v0_abp, v0_min);
-  //  cell2D.vertexDampedMD(attractionSmoothActiveBrownianCatchBondsUpdate, dt0, runTime, 1.0);
   cout
       << "\n** Finished psm.cpp (2D transverse section of pre-somitic mesoderm), ending. " << endl;
 
