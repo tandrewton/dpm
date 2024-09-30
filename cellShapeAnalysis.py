@@ -37,6 +37,17 @@ def calculateNeighborExchanges(contactMatrix):
     return diff
 
 
+def calculateCellContacts(contactMatrix):
+    zc = np.zeros(len(contactMatrix))
+    num_cells = len(contactMatrix[0][0])
+    for frame in range(len(contactMatrix)):
+        for cellInd in range(num_cells):
+            zc_cell = np.sum(contactMatrix[frame][cellInd])
+            zc[frame] += zc_cell
+    # contact matrix is stored as an upper triangular matrix, double it to get the correct count
+    return 2 * zc / num_cells
+
+
 def filter_df(
     df, att_arr, att2_arr, v0_arr, kl_arr, gamma_arr, kon_arr, koff_arr, kecm_arr
 ):
@@ -118,13 +129,35 @@ def process_data(att, v0, att2, kl, gamma, k_on, k_off, k_ecm, seed, fileheader)
     df_shape = pd.DataFrame(data_shape)
 
     nb_exch = calculateNeighborExchanges(cijMin)
+    zc = calculateCellContacts(cijMin)
+    zc_mean = np.mean(zc)
+    zc_std = np.std(zc)
+    debugpy.breakpoint()
+    print("zc values = ", zc_mean, zc_std)
     minNE = np.mean(nb_exch)
     minNEstd = np.std(nb_exch)
+
+    data_NE_unaggregated = {
+        "minNE": nb_exch,
+        "zc": zc,
+        "att": float(att),
+        "v0": float(v0),
+        "att2": float(att2),
+        "kl": float(kl),
+        "gamma": float(gamma),
+        "k_on": float(k_on),
+        "k_off": float(k_off),
+        "k_ecm": float(k_ecm),
+        "seed": seed,
+    }
+    df_NE_unaggregated = pd.DataFrame([data_NE_unaggregated])
 
     # minNE = 0
     data_NE = {
         "minNE": minNE,
         "minNEstd": minNEstd,
+        "zc": zc_mean,
+        "zcstd": zc_std,
         "att": float(att),
         "v0": float(v0),
         "att2": float(att2),
@@ -152,7 +185,7 @@ def process_data(att, v0, att2, kl, gamma, k_on, k_off, k_ecm, seed, fileheader)
     }
     df_speed = pd.DataFrame(data_speed)
 
-    return df_shape, df_NE, df_speed
+    return df_shape, df_NE, df_NE_unaggregated, df_speed
     # return df_shape, df_NE
     # return df_shape
 
@@ -220,7 +253,8 @@ def main():
     tm_arr = ["10000.0"]
     gamma_arr = ["0"]
     kon_arr = ["1.0"]
-    koff_arr = ["0.1", "100.0"]
+    koff_arr = ["0.1"]
+    # koff_arr = ["0.1", "100.0"]
     # koff_arr = ["0.1", "0.5"]
     kecm_arr = att2_arr
     # kecm_arr = ["0.001", "0.005", "0.01", "0.05"]
@@ -262,6 +296,7 @@ def main():
         # load dfs after kl, because I want to stratify results by kl
         df_shapes = pd.DataFrame()
         df_NEs = pd.DataFrame()
+        df_NEs_unaggregated = pd.DataFrame()
         df_speeds = pd.DataFrame()
         # load packing fraction data into dataframe
         df_phis = pd.read_csv(f"{folder}windowedPhiDataFrame_calA{calA0}_phi{phi}.txt")
@@ -285,7 +320,12 @@ def main():
                                         print(fileheader)
 
                                         # df_shape, df_NE = process_data(att, v0, att2, seed, fileheader)
-                                        df_shape, df_NE, df_speed = process_data(
+                                        (
+                                            df_shape,
+                                            df_NE,
+                                            df_NE_unaggregated,
+                                            df_speed,
+                                        ) = process_data(
                                             att,
                                             v0,
                                             att2,
@@ -302,6 +342,7 @@ def main():
                                         if (
                                             not df_shape.empty
                                             and not df_NE.empty
+                                            and not df_NE_unaggregated.empty
                                             and not df_speed.empty
                                         ):
                                             df_shapes = pd.concat([df_shapes, df_shape])
@@ -316,6 +357,12 @@ def main():
                                                 / timeBetweenFrames
                                             )
 
+                                            df_NE_unaggregated["minNE"] = (
+                                                df_NE_unaggregated["minNE"]
+                                                / NCELLS
+                                                / timeBetweenFrames
+                                            )
+
                                             df_speed["speed"] = (
                                                 df_speed["speed"]
                                                 * np.sqrt(25 * np.pi)
@@ -323,6 +370,12 @@ def main():
                                             )
 
                                             df_NEs = pd.concat([df_NEs, df_NE])
+                                            df_NEs_unaggregated = pd.concat(
+                                                [
+                                                    df_NEs_unaggregated,
+                                                    df_NE_unaggregated,
+                                                ]
+                                            )
                                             df_speeds = pd.concat([df_speeds, df_speed])
                                         else:
                                             print(f"{folderStr} is empty!")
@@ -396,6 +449,18 @@ def main():
         plt.figure(figsize=(10, 6))  # Adjust the figure size as needed
         sns.lineplot(
             data=df_NEs_grouped_means, x="v0", y="minNE", marker="o", hue="att"
+        )
+
+        df_NE_unaggregated = filter_df(
+            df_NE_unaggregated,
+            att_arr,
+            att2_arr,
+            v0_arr,
+            [kl],
+            gamma_arr,
+            kon_arr,
+            koff_arr,
+            kecm_arr,
         )
 
         # Perform grouping on dataframes in order to make summary plots.
@@ -474,6 +539,29 @@ def main():
         )
         df_speeds_means = df_speeds.groupby([grouping_str, "seed"]).mean().reset_index()
 
+        # writing to a file for ((parameters), phi, shape)
+        print("printing df_phis_means and df_shapes_means")
+        debugpy.breakpoint()
+        df_shapes_means = df_shapes_means.set_index(
+            ["(att, att2, v0, kl, gamma, k_on, k_off, k_ecm)", "seed"]
+        )
+        df_combined_phis_shapes = df_phis_means.join(
+            df_shapes_means["circularity"],
+            on=["(att, att2, v0, kl, gamma, k_on, k_off, k_ecm)", "seed"],
+            how="left",  # Optional: use 'left' join if you want to keep all rows from df_phis_means
+        )
+        df_shapes_means.reset_index(inplace=True)
+
+        df_combined_phis_shapes["combined_color"] = (
+            df_combined_phis_shapes["att"] + df_combined_phis_shapes["att2"]
+        )
+
+        shapes_means = df_combined_phis_shapes.plot.scatter(
+            x="circularity", y="phi", c="combined_color"
+        )
+
+        plt.savefig("scatter_plot_circularity_vs_phi.png")  # Save the plot as a PNG
+
         # make boxplots of the mean values for each seed for each parameter combo
         # sns_NEs = sns.catplot(df_NEs_means, x="(att, att2, v0)", y="minNE", kind="box", color="skyblue", height = 8, aspect=2)
         sns_shapes = sns.catplot(
@@ -528,11 +616,26 @@ def main():
         plt.xticks(rotation=45, ha="right")
         plt.tight_layout()
 
+        sns_zc = sns.catplot(
+            df_NEs_means,
+            x=grouping_str,
+            y="zc",
+            kind="box",
+            color="skyblue",
+            height=8,
+            aspect=2,
+        )
+
+        plt.ylim(0, 6)
+        plt.xticks(rotation=45, ha="right")
+        plt.tight_layout()
+
         # sns_NEs.figure.savefig(f"sns_NEs_{v0_arr[0]}.png")
         sns_shapes.figure.savefig(f"sns_shapes_{v0_arr[0]}_kl{kl}.png")
         sns_NEs.figure.savefig(f"sns_NEs_{v0_arr[0]}_kl{kl}.png")
         sns_phis.figure.savefig(f"sns_phis_{v0_arr[0]}_kl{kl}.png")
         sns_speeds.figure.savefig(f"sns_speeds_{v0_arr[0]}_kl{kl}.png")
+        sns_zc.figure.savefig(f"sns_zc_{v0_arr[0]}_kl{kl}.png")
 
         # make boxplots for each parameter combo, pooling observations from each seed
         # sns.catplot(df_NEs, x="(att, att2, v0, kl, gamma)",
@@ -649,6 +752,20 @@ def main():
                 f"fig_heatmap_NEs_k_off={fixed_val}_kl={kl}.png",
             )
 
+            create_heatmap(
+                df_NEs_grouped_means[
+                    (df_NEs_grouped_means["k_off"] == fixed_val)
+                    & (df_NEs_grouped_means["kl"] == float(kl))
+                ][["att", "att2", "k_ecm", "zc"]],
+                "att",
+                "att2",
+                "zc",
+                "$\epsilon_1$",
+                "$\epsilon_2$",
+                "NE rate",
+                f"fig_heatmap_zc_k_off={fixed_val}_kl={kl}.png",
+            )
+
             # make sure to change these parameters, and any of the bracketed f-string components
             #  if those parameters change in the simulations, or if I want to explore different phenotype values
             genotype_tags = []
@@ -671,6 +788,12 @@ def main():
                     "NE_std",
                 ]
             )
+
+            df_phis.to_csv("df_phis.csv", index=False)
+            df_shapes.to_csv("df_shapes.csv", index=False)
+            df_speeds.to_csv("df_speeds.csv", index=False)
+            df_NEs.to_csv("df_NEs.csv", index=False)
+            df_NEs_unaggregated.to_csv("df_NEs_unaggregated.csv", index=False)
 
             for i in range(0, len(genotype_tags)):
                 phi_group = df_phis[
@@ -801,6 +924,8 @@ def main():
             )
             # plt.close(fig)
 
+            df_all.to_csv("df_all.csv", index=False)
+            print("after printing figures and df_all!")
             debugpy.breakpoint()
 
             # plt.show()
