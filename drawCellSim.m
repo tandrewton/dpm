@@ -259,7 +259,8 @@ for seed = startSeed:max_seed
                 if (cellID(nn) == 1)
                     % if cellID is a boundary, have it be blue
                     % exterior with white interior
-                    patch('Faces',finfo,'vertices',vpos,'FaceColor','w','EdgeColor',[0 1 0],'linewidth',3);
+                    %patch('Faces',finfo,'vertices',vpos,'FaceColor','w','EdgeColor',[0 1 0],'linewidth',1);
+                    patch('Faces',finfo,'vertices',vpos,'FaceColor',[0 104 55],'FaceAlpha', 0.61, EdgeColor',[0 1 0],'linewidth',3);
                     if (forImageAnalysis)
                         % switch to bd figure, plot bd, switch back
                         figure(fnum_boundary); clf; axis off;
