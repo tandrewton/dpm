@@ -112,6 +112,17 @@ rsync -rav --inplace --progress --exclude '*.pos' --exclude '*.tif' --exclude '*
 rsync -rav --inplace --progress at965@transfer-mccleary.ycrc.yale.edu:/home/at965/psm_extracellular_calculation/windowedPhiDataFrame_calA1.0_phi0.8.txt /mnt/c/Users/atata/projects/psm_extracellular_calculation 
 rsync -rav --inplace --progress at965@transfer-mccleary.ycrc.yale.edu:/home/at965/psm_extracellular_calculation/windowedPhiDataFrame_calA1.0_phi0.8.txt /Users/AndrewTon/Documents/YalePhD/projects/ZebrafishSegmentation/psm_extracellular_calculation 
 
+# pulling boundary files to manually calculate packing fraction for the images used in the paper
+rsync -rav --inplace --progress at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm/output/psm_calA01.0_phi0.8_tm10000.0_v00.1_t_abp1.0_gamma0_k_on_1.0_k_off_100.0_k_ecm_0.01_kl0.2_ka2.5_kb0.01/psm_N40_dur300_att0.035_att20.01_sd1fr60_bd.tif /mnt/c/Users/atata/projects/dpm/output/cells/psm/psm_calA01.0_phi0.8_tm10000.0_v00.1_t_abp1.0_gamma0_k_on_1.0_k_off_100.0_k_ecm_0_kl0.2_ka2.5_kb0.01
+
+# for scott, do on cluster and then pull result to check
+salloc -c 4 --mem 16G -t 4:00:00
+module load MATLAB/2023a
+matlab -nodisplay
+drawCellSim("40", "1.0", "0.8", "0.2", "0.01", "0.035", "0.01", "0.1", "10000.0", "0", "1.0", "0.1", "0.01", 20)
+
+rsync -rav --inplace --progress at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm/output/psm_calA01.0_phi0.8_tm10000.0_v00.1_t_abp1.0_gamma0_k_on_1.0_k_off_0.1_k_ecm_0.01_kl0.2_ka2.5_kb0.01/psm_N40_dur300_att0.035_att20.01_sd1fr60* /mnt/c/Users/atata/projects/dpm/output/cells/psm/psm_pull_test
+
 
 # use bash to echo a series of commands that I can copy and paste into a windows terminal to run a python code..
 att_arr=(0.001 0.01 0.1)
@@ -124,48 +135,6 @@ for a in ${att_arr[@]}; do
     done
   done
 done
-
-close all; clear;
-calA0_arr = ["1.0"];
-att_arr = ["0.001" "0.01" "0.02" "0.05"];
-att2_arr = ["0.0" "0.001" "0.01" "0.05"];
-phi_arr = ["0.8"];
-v0_arr = ["0.1"];
-gamma_arr = ["0"];
-t_stress_arr = ["10000.0"];
-ka_arr = ["5.0"];
-kb_arr = ["0.01"]; 
-%v0_arr = ["0.1"];
-
-
-for ii=1:length(calA0_arr)
-  for jj=1:length(phi_arr)
-    for kk=1:length(att_arr)
-      for ll=1:length(att2_arr)
-        for mm=1:length(v0_arr)
-          for nn=1:length(ka_arr)
-            for oo=1:length(kb_arr)
-              for pp=1:length(t_stress_arr)
-                for qq=1:length(gamma_arr)
-                  drawCellSim("40", calA0_arr(ii), phi_arr(jj), ka_arr(nn), kb_arr(oo), att_arr(kk), att2_arr(ll), v0_arr(mm), t_stress_arr(pp), gamma_arr(qq))
-                end
-              end
-            end
-          end
-        end
-      end
-    end
-  end
-end
-
-
-drawCellSim("40", "1.0", "0.8", "5.0", "0.1", "0.001", "0.001", "0.1", "10000.0", "0")
-drawCellSim("40", "1.0", "0.8", "5.0", "0.1", "0.001", "0.01", "0.1", "1000.0", "0.25")
-drawCellSim("40", "1.0", "0.8", "5.0", "0.1", "0.001", "0.01", "0.1", "1000.0", "0.5")
-
-drawCellSim("40", "1.0", "0.8", "5.0", "0.1", "0.001", "0.05", "0.0", "1.0", "0")
-drawCellSim("40", "1.0", "0.8", "5.0", "0.1", "0.001", "0.05", "0.0", "1.0", "0.25")
-drawCellSim("40", "1.0", "0.8", "5.0", "0.1", "0.001", "0.05", "0.0", "1.0", "0.5")
 
 for i in *.avi; do ffmpeg -i "$i" -c:v libx264 -preset slow  -profile:v high -level:v 4.0 -pix_fmt yuv420p -crf 22 -codec:a aac "$(basename "$i" .avi)".mp4  ; done
 

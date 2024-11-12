@@ -132,8 +132,6 @@ def process_data(att, v0, att2, kl, gamma, k_on, k_off, k_ecm, seed, fileheader)
     zc = calculateCellContacts(cijMin)
     zc_mean = np.mean(zc)
     zc_std = np.std(zc)
-    debugpy.breakpoint()
-    print("zc values = ", zc_mean, zc_std)
     minNE = np.mean(nb_exch)
     minNEstd = np.std(nb_exch)
 
@@ -242,13 +240,15 @@ def create_heatmap(
 
 def main():
     calA0 = "1.0"
-    # att_arr = ["0.01", "0.015", "0.02", "0.025", "0.03", "0.035"]
+    # att_arr = ["0.015", "0.02", "0.025", "0.03", "0.035"]
+    # att_arr = ["0.015", "0.025", "0.035"]
     att_arr = ["0.015", "0.035"]
     kl_arr = ["0.2"]
     ka = "2.5"
     kb = "0.01"
     v0_arr = ["0.1"]
-    # att2_arr = ["0.0005", "0.001", "0.005", "0.01", "0.05", "0.1"]
+    # att2_arr = ["0", "0.01", "0.015", "0.02", "0.025"]
+    # att2_arr = ["0", "0.01", "0.015"]
     att2_arr = ["0", "0.01"]
     tm_arr = ["10000.0"]
     gamma_arr = ["0"]
@@ -541,7 +541,6 @@ def main():
 
         # writing to a file for ((parameters), phi, shape)
         print("printing df_phis_means and df_shapes_means")
-        debugpy.breakpoint()
         df_shapes_means = df_shapes_means.set_index(
             ["(att, att2, v0, kl, gamma, k_on, k_off, k_ecm)", "seed"]
         )
@@ -556,11 +555,41 @@ def main():
             df_combined_phis_shapes["att"] + df_combined_phis_shapes["att2"]
         )
 
-        shapes_means = df_combined_phis_shapes.plot.scatter(
-            x="circularity", y="phi", c="combined_color"
+        debugpy.breakpoint()
+
+        df_combined_phis_shapes["combined_name"] = df_combined_phis_shapes.apply(
+            lambda row: f'$\epsilon_1$={row["att"]}, $\epsilon_2$={row["att2"]}', axis=1
+        )
+        df_combined_phis_shapes["color"] = pd.factorize(
+            df_combined_phis_shapes["combined_name"]
+        )[0]
+
+        cmap = plt.get_cmap("viridis", len(df_combined_phis_shapes["color"].unique()))
+
+        fig, ax = plt.subplots()
+        scatter = ax.scatter(
+            df_combined_phis_shapes["circularity"],
+            df_combined_phis_shapes["phi"],
+            c=df_combined_phis_shapes["color"],
+            cmap=cmap,
         )
 
-        plt.savefig("scatter_plot_circularity_vs_phi.png")  # Save the plot as a PNG
+        colorbar = plt.colorbar(
+            scatter,
+            ticks=range(len(df_combined_phis_shapes["combined_name"].unique())),
+        )
+        colorbar.set_ticklabels(df_combined_phis_shapes["combined_name"].unique())
+        plt.ylim(0.5, 1.0)
+        plt.xlim(0.78, 0.88)
+        plt.xlabel("$C$")
+        plt.ylabel("$\phi$")
+
+        plt.savefig(
+            "scatter_plot_circularity_vs_phi.png", bbox_inches="tight"
+        )  # Save the plot as a PNG
+
+        # write to file
+        df_combined_phis_shapes.to_csv("circularity_phi.csv")
 
         # make boxplots of the mean values for each seed for each parameter combo
         # sns_NEs = sns.catplot(df_NEs_means, x="(att, att2, v0)", y="minNE", kind="box", color="skyblue", height = 8, aspect=2)
@@ -762,7 +791,7 @@ def main():
                 "zc",
                 "$\epsilon_1$",
                 "$\epsilon_2$",
-                "NE rate",
+                "z",
                 f"fig_heatmap_zc_k_off={fixed_val}_kl={kl}.png",
             )
 

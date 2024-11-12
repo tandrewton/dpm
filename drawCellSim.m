@@ -37,7 +37,7 @@ ka = "2.5";
 Duration="300";
 FSKIP = 1;
 startSeed = 1;
-max_seed = 1; % gets overwritten if OS is unix (I use slurm in unix)
+max_seed = numSeeds; % gets overwritten if OS is unix (I use slurm in unix)
 %att_range = 0.3;
 
 %if makeAMovie is 0, then plot every frame separately
@@ -259,7 +259,7 @@ for seed = startSeed:max_seed
                 if (cellID(nn) == 1)
                     % if cellID is a boundary, have it be blue
                     % exterior with white interior
-                    patch('Faces',finfo,'vertices',vpos,'FaceColor','w','EdgeColor',[0 1 0],'linewidth',1);
+                    patch('Faces',finfo,'vertices',vpos,'FaceColor','w','EdgeColor',[0 1 0],'linewidth',3);
                     if (forImageAnalysis)
                         % switch to bd figure, plot bd, switch back
                         figure(fnum_boundary); clf; axis off;
