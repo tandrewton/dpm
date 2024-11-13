@@ -120,13 +120,13 @@ salloc -c 4 --mem 16G -t 4:00:00
 module load MATLAB/2023a
 matlab -nodisplay
 drawCellSim("40", "1.0", "0.8", "0.2", "0.01", "0.035", "0.01", "0.1", "10000.0", "0", "1.0", "0.1", "0.01", 20)
-drawCellSim("40", "1.0", "0.8", "0.2", "0.01", "0.025", "0", "0.1", "10000.0", "0", "1.0", "0.1", "0", 20)
+drawCellSim("40", "1.0", "0.8", "0.2", "0.01", "0.025", "0", "0.1", "10000.0", "0", "1.0", "100.0", "0", 20)
 drawCellSim("40", "1.0", "0.8", "0.2", "0.01", "0.015", "0", "0.1", "10000.0", "0", "1.0", "0.1", "0", 20)
 
 
 rsync -rav --inplace --progress at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm/output/psm_calA01.0_phi0.8_tm10000.0_v00.1_t_abp1.0_gamma0_k_on_1.0_k_off_0.1_k_ecm_0.01_kl0.2_ka2.5_kb0.01/psm_N40_dur300_att0.035_att20.01_sd1fr60* /mnt/c/Users/atata/projects/dpm/output/cells/psm/psm_pull_test
 
-rsync -rav --inplace --progress at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm/output/psm_calA01.0_phi0.8_tm10000.0_v00.1_t_abp1.0_gamma0_k_on_1.0_k_off_0.1_k_ecm_0_kl0.2_ka2.5_kb0.01/psm_N40_dur300_att0.025_att20_sd1fr60* /mnt/c/Users/atata/projects/dpm/output/cells/psm/psm_pull_test
+rsync -rav --inplace --progress at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm/output/psm_calA01.0_phi0.8_tm10000.0_v00.1_t_abp1.0_gamma0_k_on_1.0_k_off_100.0_k_ecm_0_kl0.2_ka2.5_kb0.01/psm_N40_dur300_att0.025_att20_sd2fr60* /mnt/c/Users/atata/projects/dpm/output/cells/psm/psm_pull_test
 
 rsync -rav --inplace --progress at965@transfer-mccleary.ycrc.yale.edu:/gpfs/gibbs/pi/ohern/at965/dpm/psm/output/psm_calA01.0_phi0.8_tm10000.0_v00.1_t_abp1.0_gamma0_k_on_1.0_k_off_0.1_k_ecm_0_kl0.2_ka2.5_kb0.01/psm_N40_dur300_att0.015_att20_sd1fr60* /mnt/c/Users/atata/projects/dpm/output/cells/psm/psm_pull_test
 
