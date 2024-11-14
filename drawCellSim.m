@@ -318,7 +318,11 @@ for seed = startSeed:max_seed
             ax_boundary.Visible = ax.Visible;
 
             figure(fnum)
-            exportgraphics(gcf, runType+fileheader_short+'fr'+ff+'.tif', 'Resolution', 200);
+            if ff == 60
+                exportgraphics(gcf, runType+fileheader_short+'fr'+ff+'.tif', 'Resolution', 600);
+            else
+                exportgraphics(gcf, runType+fileheader_short+'fr'+ff+'.tif', 'Resolution', 200);
+            end
             figure(fnum_boundary);
             exportgraphics(gcf, runType+fileheader_short+'fr'+ff+'_bd.tif', 'Resolution', 200);
             
